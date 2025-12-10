@@ -6539,5 +6539,100 @@ Add comprehensive debug logging for cache and parsing
 ID: toolu_01A4rKvqGNME26oCD6AmhTEp
 
 <tool.toolu_01A4rKvqGNME26oCD6AmhTEp>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Add comprehensive debug logging for cache and parsing
 </tool.toolu_01A4rKvqGNME26oCD6AmhTEp>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01M3EgbyFm6x6UzCUoYGHgw4
+
+## path
+
+<tool.toolu_01M3EgbyFm6x6UzCUoYGHgw4>
+runtime.ts
+</tool.toolu_01M3EgbyFm6x6UzCUoYGHgw4>
+
+## git-commit-message
+
+<tool.toolu_01M3EgbyFm6x6UzCUoYGHgw4>
+Add cache debug logging to execution phase
+</tool.toolu_01M3EgbyFm6x6UzCUoYGHgw4>
+
+## diff
+
+<tool.toolu_01M3EgbyFm6x6UzCUoYGHgw4>
+ export function runProgram(program: string, width: number, height: number): Image[] {
++  console.log(`\n=== EXECUTION: ${width}x${height} ===`);
++  
+   if (width !== lastWidth || height !== lastHeight) {
++    console.log(`Dimensions changed (${lastWidth}x${lastHeight} -> ${width}x${height}), clearing cache`);
+     imageCache.clear();
+     lastWidth = width;
+     lastHeight = height;
+   }
+ 
+   const ops = parseProgram(program);
+   
+   if (ops.length === 0) {
++    console.log('No operations, returning black image');
+     return [createSolidImage(width, height, '#000000')];
+   }
+ 
+   const images: Image[] = [];
++  let cacheHits = 0;
++  let cacheMisses = 0;
+   
+   for (let opIdx = 0; opIdx < ops.length; opIdx++) {
+     const op = ops[opIdx];
++    console.log(`\n[Op ${opIdx}] identifier="${op.identifier}"`);
+     
+     const cached = imageCache.get(op.identifier);
+     if (cached) {
++      console.log(`  ✓ CACHE HIT`);
+       images.push(cached);
++      cacheHits++;
+       continue;
+     }
+ 
++    console.log(`  ✗ CACHE MISS`);
++    cacheMisses++;
++
+     let result: Image;
+     
+     if (op.type === 'solid') {
++      console.log(`  Creating solid image: ${op.color}`);
+       result = createSolidImage(width, height, op.color);
+     } else {
++      console.log(`  Executing function: ${op.fnDef.functionName} with args:`, op.args);
+       const ctx: FnContext = {
+         width,
+         height,
+         images: [...images],
+         currentIndex: images.length,
+       };
+       
+       result = op.fnDef.fn(ctx, ...op.args);
+     }
+     
+     images.push(result);
+     imageCache.set(op.identifier, result);
++    console.log(`  ✓ Cached result for "${op.identifier}"`);
+   }
+ 
++  console.log(`\n=== EXECUTION COMPLETE ===`);
++  console.log(`Cache hits: ${cacheHits}, Cache misses: ${cacheMisses}`);
++  console.log(`Total images: ${images.length}`);
+   return images;
+ }
+\ No newline at end of file
+
+</tool.toolu_01M3EgbyFm6x6UzCUoYGHgw4>
+
+# TOOL RESULT
+
+ID: toolu_01M3EgbyFm6x6UzCUoYGHgw4
+
+<tool.toolu_01M3EgbyFm6x6UzCUoYGHgw4>
+
+</tool.toolu_01M3EgbyFm6x6UzCUoYGHgw4>
