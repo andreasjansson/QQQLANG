@@ -1707,29 +1707,12 @@ function fn5(ctx: FnContext, n: number): Image {
       return mix(b, a, h) - k * h * (1.0 - h);
     }
     
-    // SDF for a true pear/teardrop shape - fat at top, pointy at bottom
-    float sdPear(vec3 p, vec3 center, float radius) {
-      vec3 q = p - center;
-      
-      // Normalize y position within the droplet (-1 to 1 range roughly)
-      float yNorm = q.y / (radius * 2.0);
-      
-      // Pear profile: wide at top (positive y), narrow at bottom (negative y)
-      // yNorm > 0 = top = wide, yNorm < 0 = bottom = narrow
-      float width = 1.0 + yNorm * 0.5; // 1.5 at top, 0.5 at bottom
-      width = max(width, 0.2);
-      
-      // Scale horizontal axes by width profile
-      float qx = q.x / width;
-      float qz = q.z / width;
-      
-      // Elongate vertically (taller than wide)
-      float qy = q.y / (radius * 2.5);
-      
-      return length(vec3(qx, qy, qz)) - radius;
+    // Simple sphere SDF
+    float sdSphere(vec3 p, vec3 center, float radius) {
+      return length(p - center) - radius;
     }
     
-    // Scene SDF - metaballs as smooth-blended pear shapes dripping down
+    // Scene SDF - many small spheres blended to form dripping shapes
     float sceneSDF(vec3 p, int numDrips, float strength) {
       float d = 1000.0;
       
@@ -1744,41 +1727,41 @@ function fn5(ctx: FnContext, n: number): Image {
         // Start from top
         float startY = 1.3 - hash(fi * 311.7) * 0.3;
         
-        // Drip length
-        float dripLen = 2.5 + hash(fi * 74.3) * 1.0;
+        // Drip length to cover full height
+        float dripLen = 3.0 + hash(fi * 74.3) * 1.0;
         
-        // Random drift direction for this drip
-        float driftDir = (hash(fi * 234.5) - 0.5) * 2.0;
-        float driftSpeed = hash(fi * 567.8) * 0.3;
+        // Random drift for organic paths
+        float driftDir = (hash(fi * 234.5) - 0.5) * 0.8;
         
-        // Create drip with pear-shaped blobs along organic path
-        for (int j = 0; j < 8; j++) {
+        // MANY spheres per drip for smooth vertical shape
+        for (int j = 0; j < 20; j++) {
           float fj = float(j);
-          float t = fj / 7.0;
+          float t = fj / 19.0;
           
-          // Y position - dripping downward
+          // Y position - vertical drip going DOWN
           float y = startY - t * dripLen * strength;
           
-          // Organic meandering path
-          float meander = sin(t * 5.0 + fi * 2.0) * 0.1 * (0.5 + t);
-          meander += sin(t * 12.0 + fi * 7.0) * 0.03;
-          float drift = t * t * driftDir * driftSpeed;
+          // Gentle meandering
+          float meander = sin(t * 4.0 + fi * 2.0) * 0.08;
+          meander += sin(t * 9.0 + fi * 5.0) * 0.04;
+          float drift = t * driftDir * 0.15;
           float x = baseX + meander + drift;
           
-          // Size: large blobs that taper
-          float baseR = 0.18 + hash(fi * 183.9 + fj * 31.0) * 0.1;
-          float taper = 1.0 - t * 0.5;
-          float r = baseR * taper * strength * 0.45;
+          // Radius: bigger at top, smaller at bottom (teardrop effect)
+          float baseR = 0.08 + hash(fi * 183.9) * 0.04;
+          float taper = 1.0 - t * 0.7; // Shrinks toward bottom
+          float r = baseR * taper * strength * 0.6;
           
-          if (r < 0.04) continue;
+          if (r < 0.015) continue;
           
-          float z = 0.08 + r * 0.2;
+          // Z depth
+          float z = 0.06 + r * 0.3;
           
           vec3 center = vec3(x, y, z);
-          float pear = sdPear(p, center, r);
+          float sphere = sdSphere(p, center, r);
           
-          // Generous smooth blend for organic merging
-          d = smin(d, pear, 0.15);
+          // Smooth blend - creates organic merged shapes
+          d = smin(d, sphere, 0.08);
         }
       }
       
