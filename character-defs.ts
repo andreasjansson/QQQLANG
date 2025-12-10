@@ -873,9 +873,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#FF69B4',
     number: 13,
     fn: fnM,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 2,
+    argTypes: ['int', 'int'],
     functionName: "spiral-interleave",
-    documentation: "Interleaves prev and old_image in a spiral pattern from center outward"
+    documentation: "Interleaves prev and old_image in jagged pixelated spiral, spiral effect (5-100), old image index"
   },
 };
