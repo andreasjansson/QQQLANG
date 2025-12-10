@@ -3840,10 +3840,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#20B2AA',
     number: 12,
     fn: fnL,
-    arity: 0,
-    argTypes: [],
-    functionName: "L-shape",
-    documentation: "3D letter L shape textured with prev, strong specular lighting from top-right"
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "lissajous",
+    documentation: "3D Lissajous tube textured with prev, old_image as background, strong lighting"
   },
   
   'M': {
