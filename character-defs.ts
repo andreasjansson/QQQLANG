@@ -547,97 +547,38 @@ function fnG(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnH(ctx: FnContext, j: number): Image {
+function fnH(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#FFFFFF');
   
-  const dotSpacing = 8;
-  const maxRadius = dotSpacing * 0.6;
+  const dotSpacing = Math.max(4, 4 + n * 2);
+  const maxRadius = dotSpacing * 0.55;
   
-  const angle1 = 0;
-  const angle2 = Math.PI / 4;
-  
-  const cos1 = Math.cos(angle1), sin1 = Math.sin(angle1);
-  const cos2 = Math.cos(angle2), sin2 = Math.sin(angle2);
-  
-  const dotCenters1: { x: number; y: number; r: number; cr: number; cg: number; cb: number }[] = [];
-  const dotCenters2: { x: number; y: number; r: number; cr: number; cg: number; cb: number }[] = [];
-  
-  const diagonal = Math.sqrt(ctx.width * ctx.width + ctx.height * ctx.height);
-  const gridExtent = Math.ceil(diagonal / dotSpacing) + 2;
-  
-  for (let gy = -gridExtent; gy <= gridExtent; gy++) {
-    for (let gx = -gridExtent; gx <= gridExtent; gx++) {
-      const lx = gx * dotSpacing;
-      const ly = gy * dotSpacing;
+  for (let gy = 0; gy < ctx.height; gy += dotSpacing) {
+    for (let gx = 0; gx < ctx.width; gx += dotSpacing) {
+      const cx = gx + dotSpacing / 2;
+      const cy = gy + dotSpacing / 2;
       
-      const x1 = ctx.width / 2 + lx * cos1 - ly * sin1;
-      const y1 = ctx.height / 2 + lx * sin1 + ly * cos1;
+      const sx = Math.min(ctx.width - 1, Math.floor(cx));
+      const sy = Math.min(ctx.height - 1, Math.floor(cy));
+      const [r, g, b] = getPixel(prev, sx, sy);
       
-      if (x1 >= -maxRadius && x1 < ctx.width + maxRadius && y1 >= -maxRadius && y1 < ctx.height + maxRadius) {
-        const sx = Math.max(0, Math.min(ctx.width - 1, Math.floor(x1)));
-        const sy = Math.max(0, Math.min(ctx.height - 1, Math.floor(y1)));
-        const [r, g, b] = getPixel(prev, sx, sy);
-        const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-        const radius = (1 - lum) * maxRadius;
-        if (radius > 0.5) {
-          dotCenters1.push({ x: x1, y: y1, r: radius, cr: r, cg: g, cb: b });
+      const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      const radius = (1 - lum) * maxRadius;
+      
+      if (radius > 0.5) {
+        const r2 = radius * radius;
+        for (let dy = -Math.ceil(radius); dy <= Math.ceil(radius); dy++) {
+          for (let dx = -Math.ceil(radius); dx <= Math.ceil(radius); dx++) {
+            if (dx * dx + dy * dy <= r2) {
+              const px = Math.floor(cx + dx);
+              const py = Math.floor(cy + dy);
+              if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+                setPixel(out, px, py, r, g, b);
+              }
+            }
+          }
         }
-      }
-      
-      const x2 = ctx.width / 2 + lx * cos2 - ly * sin2;
-      const y2 = ctx.height / 2 + lx * sin2 + ly * cos2;
-      
-      if (x2 >= -maxRadius && x2 < ctx.width + maxRadius && y2 >= -maxRadius && y2 < ctx.height + maxRadius) {
-        const sx = Math.max(0, Math.min(ctx.width - 1, Math.floor(x2)));
-        const sy = Math.max(0, Math.min(ctx.height - 1, Math.floor(y2)));
-        const [r, g, b] = getPixel(old, sx, sy);
-        const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-        const radius = (1 - lum) * maxRadius;
-        if (radius > 0.5) {
-          dotCenters2.push({ x: x2, y: y2, r: radius, cr: r, cg: g, cb: b });
-        }
-      }
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      let inDot1 = false;
-      let dot1Color = { r: 0, g: 0, b: 0 };
-      for (const dot of dotCenters1) {
-        const dx = x - dot.x;
-        const dy = y - dot.y;
-        if (dx * dx + dy * dy < dot.r * dot.r) {
-          inDot1 = true;
-          dot1Color = { r: dot.cr, g: dot.cg, b: dot.cb };
-          break;
-        }
-      }
-      
-      let inDot2 = false;
-      let dot2Color = { r: 0, g: 0, b: 0 };
-      for (const dot of dotCenters2) {
-        const dx = x - dot.x;
-        const dy = y - dot.y;
-        if (dx * dx + dy * dy < dot.r * dot.r) {
-          inDot2 = true;
-          dot2Color = { r: dot.cr, g: dot.cg, b: dot.cb };
-          break;
-        }
-      }
-      
-      if (inDot1 && inDot2) {
-        setPixel(out, x, y,
-          Math.floor((dot1Color.r + dot2Color.r) / 2),
-          Math.floor((dot1Color.g + dot2Color.g) / 2),
-          Math.floor((dot1Color.b + dot2Color.b) / 2)
-        );
-      } else if (inDot1) {
-        setPixel(out, x, y, dot1Color.r, dot1Color.g, dot1Color.b);
-      } else if (inDot2) {
-        setPixel(out, x, y, dot2Color.r, dot2Color.g, dot2Color.b);
       }
     }
   }
