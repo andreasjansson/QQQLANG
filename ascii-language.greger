@@ -13019,5 +13019,46 @@ Fix T camera and box positions to cover full screen
 ID: toolu_01BmZsQnE5zp1z9RKWJdMWhw
 
 <tool.toolu_01BmZsQnE5zp1z9RKWJdMWhw>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix T camera and box positions to cover full screen
 </tool.toolu_01BmZsQnE5zp1z9RKWJdMWhw>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01EmgupCyY2KCxbXYSFLVhW7
+
+## path
+
+<tool.toolu_01EmgupCyY2KCxbXYSFLVhW7>
+character-defs.ts
+</tool.toolu_01EmgupCyY2KCxbXYSFLVhW7>
+
+## git-commit-message
+
+<tool.toolu_01EmgupCyY2KCxbXYSFLVhW7>
+Adjust T view matrix to see full 0-1 coordinate space
+</tool.toolu_01EmgupCyY2KCxbXYSFLVhW7>
+
+## diff
+
+<tool.toolu_01EmgupCyY2KCxbXYSFLVhW7>
+-  // View matrix - camera at z=2 looking at origin
++  // View matrix - camera at z=1.5 looking at center of 0-1 space
+   const view = new Float32Array([
+     1, 0, 0, 0,
+     0, 1, 0, 0,
+     0, 0, 1, 0,
+-    -0.5, -0.5, -2, 1
++    -0.5, -0.5, -1.5, 1
+   ]);
+\ No newline at end of file
+
+</tool.toolu_01EmgupCyY2KCxbXYSFLVhW7>
+
+# TOOL RESULT
+
+ID: toolu_01EmgupCyY2KCxbXYSFLVhW7
+
+<tool.toolu_01EmgupCyY2KCxbXYSFLVhW7>
+
+</tool.toolu_01EmgupCyY2KCxbXYSFLVhW7>

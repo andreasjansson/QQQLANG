@@ -1172,12 +1172,12 @@ function fnT(ctx: FnContext, n: number): Image {
     0, 0, (2*far*near)/(near-far), 0
   ]);
   
-  // View matrix - camera at z=2 looking at origin
+  // View matrix - camera at z=1.5 looking at center of 0-1 space
   const view = new Float32Array([
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
-    -0.5, -0.5, -2, 1
+    -0.5, -0.5, -1.5, 1
   ]);
   
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
