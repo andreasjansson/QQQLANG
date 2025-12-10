@@ -1692,7 +1692,7 @@ function fn5(ctx: FnContext, n: number): Image {
     uniform int uNumDrips;
     varying vec2 vUV;
     
-    #define MAX_DRIPS 20
+    #define MAX_DRIPS 100
     #define MAX_STEPS 64
     #define WALL_Z 0.0
     #define EPS 0.001
