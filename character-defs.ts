@@ -819,9 +819,9 @@ function fnO(ctx: FnContext, n: number): Image {
       
       const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
       
-      const normalizedR = r / 1.5;
-      const brightnessMod = normalizedR < 0.5 ? 1 + (1 - normalizedR / 0.5) * 0.3 : 1 - Math.min(1, (normalizedR - 0.5) / 0.5) * 0.5;
-      const clampedMod = Math.max(0.3, Math.min(1.3, brightnessMod));
+      const normalizedR = Math.min(r, 1.2);
+      const brightnessMod = normalizedR < 0.5 ? 1 + (1 - normalizedR / 0.5) * 0.3 : 1 - (normalizedR - 0.5) / 0.7 * 0.3;
+      const clampedMod = Math.max(0.5, Math.min(1.3, brightnessMod));
       
       setPixel(out, x, y, 
         Math.round(Math.min(255, Math.max(0, pr * clampedMod))),
