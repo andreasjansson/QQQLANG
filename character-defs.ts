@@ -3729,8 +3729,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnDollar,
     arity: 1,
     argTypes: ['int'],
-    functionName: "hue-sort-segments",
-    documentation: "Divides image into grid segments, sorts pixels within each segment by hue left-to-right top-to-bottom"
+    functionName: "segment-hue-sort",
+    documentation: "Color-based flood-fill segmentation, then sorts pixels within each segment by hue; n controls color threshold"
   },
   
   '%': {
