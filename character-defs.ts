@@ -1707,22 +1707,26 @@ function fn5(ctx: FnContext, n: number): Image {
       return mix(b, a, h) - k * h * (1.0 - h);
     }
     
-    // SDF for a pear/teardrop shape - fat at top, thin at bottom
-    float sdTeardrop(vec3 p, vec3 center, float radius, float elongation) {
+    // SDF for a true pear/teardrop shape - round at top, pointy at bottom
+    float sdPear(vec3 p, vec3 center, float radius) {
       vec3 q = p - center;
       
-      // Stretch vertically
-      q.y /= elongation;
+      // Vertical stretch
+      float yNorm = q.y / radius;
       
-      // Make it pear-shaped: wider at top, narrower at bottom
-      float squeeze = 1.0 + q.y * 0.4; // positive y = top = wider
-      q.x *= squeeze;
-      q.z *= squeeze;
+      // Pear profile: use quadratic to make top bulbous, bottom pointy
+      float profile = 1.0 - yNorm * 0.3 - yNorm * yNorm * 0.2;
+      profile = max(profile, 0.3);
       
-      return length(q) - radius;
+      // Apply profile to horizontal axes
+      vec2 qh = q.xz / profile;
+      
+      // Stretched sphere
+      float dy = q.y / (radius * 1.8);
+      return length(vec3(qh.x, dy, qh.y)) * profile - radius;
     }
     
-    // Scene SDF - metaballs as smooth-blended teardrops dripping down
+    // Scene SDF - metaballs as smooth-blended pear shapes dripping down
     float sceneSDF(vec3 p, int numDrips, float strength) {
       float d = 1000.0;
       
@@ -1731,44 +1735,47 @@ function fn5(ctx: FnContext, n: number): Image {
         
         float fi = float(i);
         
-        // Spread across full width (-1.5 to 1.5 for aspect ratio coverage)
-        float dripX = (hash(fi * 127.1) * 2.0 - 1.0) * 1.5;
+        // Spread across full width
+        float baseX = (hash(fi * 127.1) * 2.0 - 1.0) * 1.5;
         
-        // Start from top, some variation
-        float startY = 1.2 - hash(fi * 311.7) * 0.4;
+        // Start from top
+        float startY = 1.3 - hash(fi * 311.7) * 0.3;
         
-        // Long drips that can reach bottom
-        float dripLen = 2.0 + hash(fi * 74.3) * 1.5;
+        // Drip length
+        float dripLen = 2.5 + hash(fi * 74.3) * 1.0;
         
-        // Create drip with pear-shaped blobs
-        for (int j = 0; j < 10; j++) {
+        // Random drift direction for this drip
+        float driftDir = (hash(fi * 234.5) - 0.5) * 2.0;
+        float driftSpeed = hash(fi * 567.8) * 0.3;
+        
+        // Create drip with pear-shaped blobs along organic path
+        for (int j = 0; j < 8; j++) {
           float fj = float(j);
-          float t = fj / 9.0;
+          float t = fj / 7.0;
           
           // Y position - dripping downward
           float y = startY - t * dripLen * strength;
           
-          // Wobble
-          float wobble = sin(t * 8.0 + fi * 3.0) * 0.03;
-          float x = dripX + wobble;
+          // Organic meandering path
+          float meander = sin(t * 5.0 + fi * 2.0) * 0.1 * (0.5 + t);
+          meander += sin(t * 12.0 + fi * 7.0) * 0.03;
+          float drift = t * t * driftDir * driftSpeed;
+          float x = baseX + meander + drift;
           
-          // Size: large at top of drip, smaller toward bottom
-          float baseR = 0.12 + hash(fi * 183.9) * 0.08;
-          float taper = 1.0 - t * 0.6;
-          float r = baseR * taper * strength * 0.5;
+          // Size: large blobs that taper
+          float baseR = 0.18 + hash(fi * 183.9 + fj * 31.0) * 0.1;
+          float taper = 1.0 - t * 0.5;
+          float r = baseR * taper * strength * 0.45;
           
-          if (r < 0.03) continue;
+          if (r < 0.04) continue;
           
-          // Elongation: more stretched as it drips (1.5 to 2.5)
-          float elongation = 1.5 + t * 1.0;
-          
-          float z = 0.1 + r * 0.3;
+          float z = 0.08 + r * 0.2;
           
           vec3 center = vec3(x, y, z);
-          float tear = sdTeardrop(p, center, r, elongation);
+          float pear = sdPear(p, center, r);
           
-          // Smooth blend for organic merging
-          d = smin(d, tear, 0.1);
+          // Generous smooth blend for organic merging
+          d = smin(d, pear, 0.15);
         }
       }
       
