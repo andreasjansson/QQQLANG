@@ -963,36 +963,14 @@ function fnEntangle(ctx: FnContext, j: number): Image {
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx);
-      
-      const ex = ctx.width - 1 - x;
-      const ey = ctx.height - 1 - y;
-      
       const [pr, pg, pb] = getPixel(prev, x, y);
-      const [or, og, ob] = getPixel(old, ex, ey);
+      const [or, og, ob] = getPixel(old, x, y);
       
-      const pLum = (pr + pg + pb) / 765;
-      const oLum = (or + og + ob) / 765;
-      const correlation = 1 - Math.abs(pLum - oLum);
-      
-      const wave1 = Math.sin(dist * 0.05 + angle * 2);
-      const wave2 = Math.sin(dist * 0.03 - angle * 3);
-      const interference = (wave1 + wave2) * 0.5;
-      
-      const blend = 0.5 + interference * 0.4 + (correlation - 0.5) * 0.2;
-      const clampedBlend = Math.max(0, Math.min(1, blend));
-      
-      const nr = Math.round(pr * clampedBlend + or * (1 - clampedBlend));
-      const ng = Math.round(pg * clampedBlend + og * (1 - clampedBlend));
-      const nb = Math.round(pb * clampedBlend + ob * (1 - clampedBlend));
+      const nr = pr > or ? pr : or;
+      const ng = pg > og ? og : pg;
+      const nb = pb > ob ? pb : ob;
       
       setPixel(out, x, y, nr, ng, nb);
     }
