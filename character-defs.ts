@@ -1102,7 +1102,7 @@ function fnT(ctx: FnContext, n: number): Image {
     const cy = hash(i * 311.7);
     const hw = 0.03 + hash(i * 74.3) * 0.08;
     const hh = 0.025 + hash(i * 183.9) * 0.06;
-    const depth = 0.1 + hash(i * 271.3) * 0.4;
+    const depth = 0.5 + hash(i * 271.3) * 1.5;
     
     const box = createBox(cx, cy, hw, hh, depth);
     allVertices.push(...box.vertices);
