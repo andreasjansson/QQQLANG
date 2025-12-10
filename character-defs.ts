@@ -659,10 +659,12 @@ function fnK(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnL(ctx: FnContext, j: number): Image {
+function fnL(ctx: FnContext, j: number, rot: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
   const gl = initWebGL(ctx.width, ctx.height);
+  
+  const rotation = rot * 0.3;
   
   const vertexShader = `
     attribute vec3 aPosition;
@@ -690,6 +692,7 @@ function fnL(ctx: FnContext, j: number): Image {
     
     uniform sampler2D uTexture;
     uniform vec3 uLightPos;
+    uniform vec3 uLightPos2;
     
     varying vec3 vNormal;
     varying vec3 vPosition;
@@ -697,16 +700,24 @@ function fnL(ctx: FnContext, j: number): Image {
     
     void main() {
       vec3 normal = normalize(vNormal);
-      vec3 lightDir = normalize(uLightPos - vPosition);
       vec3 viewDir = normalize(-vPosition);
-      vec3 halfDir = normalize(lightDir + viewDir);
       
-      float ambient = 0.25;
-      float diff = max(dot(normal, lightDir), 0.0) * 0.65;
-      float spec = pow(max(dot(normal, halfDir), 0.0), 32.0) * 0.6;
+      vec3 lightDir1 = normalize(uLightPos - vPosition);
+      vec3 halfDir1 = normalize(lightDir1 + viewDir);
+      float diff1 = max(dot(normal, lightDir1), 0.0);
+      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 32.0);
+      
+      vec3 lightDir2 = normalize(uLightPos2 - vPosition);
+      vec3 halfDir2 = normalize(lightDir2 + viewDir);
+      float diff2 = max(dot(normal, lightDir2), 0.0);
+      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 32.0);
+      
+      float ambient = 0.4;
+      float diffuse = (diff1 + diff2 * 0.6) * 0.5;
+      float specular = (spec1 + spec2 * 0.5) * 0.5;
       
       vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
-      vec3 color = texColor * (ambient + diff) + vec3(1.0) * spec;
+      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
       
       gl_FragColor = vec4(color, 1.0);
     }
