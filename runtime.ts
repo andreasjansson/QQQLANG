@@ -164,7 +164,7 @@ export function runProgram(program: string, width: number, height: number): Imag
     return [createSolidImage(width, height, '#000000')];
   }
 
-  const images: Image[] = [];
+  const images: Image[] = [createSolidImage(width, height, '#000000')];
   let cacheHits = 0;
   let cacheMisses = 0;
   
