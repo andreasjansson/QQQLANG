@@ -51,6 +51,48 @@
       width: 100%;
       height: 100%;
     }
+    
+    #debug-pane {
+      position: fixed;
+      top: 60px;
+      right: 10px;
+      bottom: 10px;
+      width: 400px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #0f0;
+      padding: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      overflow-y: auto;
+      z-index: 9;
+      border: 1px solid #333;
+      display: none;
+    }
+    
+    #debug-pane.visible {
+      display: block;
+    }
+    
+    #debug-pane .op {
+      margin-bottom: 10px;
+      padding: 5px;
+      border-left: 2px solid #0f0;
+      padding-left: 8px;
+    }
+    
+    #debug-pane .op-id {
+      color: #ff0;
+      font-weight: bold;
+    }
+    
+    #debug-pane .op-type {
+      color: #0ff;
+    }
+    
+    #debug-pane .op-details {
+      color: #0f0;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
