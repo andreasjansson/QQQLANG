@@ -715,14 +715,15 @@ function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: 
   return out;
 }
 
-function fnM(ctx: FnContext, j: number): Image {
+function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
-  const maxRadius = Math.sqrt(cx * cx + cy * cy);
+  const spiralTightness = Math.max(5, Math.min(spiralEffect * 3, 100));
+  const pixelation = Math.max(3, Math.floor(spiralEffect * 0.8));
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
@@ -731,8 +732,12 @@ function fnM(ctx: FnContext, j: number): Image {
       const radius = Math.sqrt(dx * dx + dy * dy);
       const angle = Math.atan2(dy, dx);
       
-      const spiralValue = radius + angle * 20;
-      const useOld = Math.floor(spiralValue / 30) % 2 === 0;
+      const quantizedRadius = Math.floor(radius / pixelation) * pixelation;
+      const quantizedAngle = Math.floor(angle / (Math.PI / (4 + spiralEffect * 0.5))) * (Math.PI / (4 + spiralEffect * 0.5));
+      
+      const spiralValue = quantizedRadius + quantizedAngle * spiralTightness;
+      const bandIndex = Math.floor(spiralValue / (spiralTightness * 2));
+      const useOld = bandIndex % 2 === 0;
       
       const src = useOld ? old : prev;
       const [r, g, b] = getPixel(src, x, y);
