@@ -1005,69 +1005,93 @@ function fnT(ctx: FnContext, n: number): Image {
       return fract(sin(n) * 43758.5453);
     }
     
+    // Check if point p is inside quadrilateral defined by 4 corners (CCW order)
+    bool inQuad(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d) {
+      vec2 ab = b - a, bc = c - b, cd = d - c, da = a - d;
+      vec2 ap = p - a, bp = p - b, cp = p - c, dp = p - d;
+      float cross1 = ab.x * ap.y - ab.y * ap.x;
+      float cross2 = bc.x * bp.y - bc.y * bp.x;
+      float cross3 = cd.x * cp.y - cd.y * cp.x;
+      float cross4 = da.x * dp.y - da.y * dp.x;
+      return (cross1 >= 0.0 && cross2 >= 0.0 && cross3 >= 0.0 && cross4 >= 0.0) ||
+             (cross1 <= 0.0 && cross2 <= 0.0 && cross3 <= 0.0 && cross4 <= 0.0);
+    }
+    
     void main() {
       vec2 uv = vUV;
       vec3 baseColor = texture2D(texture, uv).rgb;
       
       float maxDepth = -1.0;
       vec3 finalColor = baseColor;
-      int hitFace = 0;
       
       for (int i = 0; i < 12; i++) {
         if (i >= numDrawers) break;
         
         float fi = float(i);
-        float bx = hash(fi * 127.1);
-        float by = hash(fi * 311.7);
-        float bw = 0.06 + hash(fi * 74.3) * 0.12;
-        float bh = 0.05 + hash(fi * 183.9) * 0.10;
-        float depth = 0.15 + hash(fi * 271.3) * 0.25;
+        float cx = 0.15 + hash(fi * 127.1) * 0.7;
+        float cy = 0.15 + hash(fi * 311.7) * 0.7;
+        float hw = 0.04 + hash(fi * 74.3) * 0.08;
+        float hh = 0.03 + hash(fi * 183.9) * 0.06;
+        float depth = 0.3 + hash(fi * 271.3) * 0.5;
         
-        vec2 boxMin = vec2(bx - bw, by - bh);
-        vec2 boxMax = vec2(bx + bw, by + bh);
+        // Back face corners (on the wall, smaller)
+        vec2 backBL = vec2(cx - hw, cy - hh);
+        vec2 backBR = vec2(cx + hw, cy - hh);
+        vec2 backTR = vec2(cx + hw, cy + hh);
+        vec2 backTL = vec2(cx - hw, cy + hh);
         
-        float perspScale = 1.0 + depth * 0.8;
-        vec2 center = (boxMin + boxMax) * 0.5;
-        vec2 scaledMin = center + (boxMin - center) * perspScale;
-        vec2 scaledMax = center + (boxMax - center) * perspScale;
+        // Front face corners (towards camera, larger due to perspective)
+        float scale = 1.0 + depth * 1.5;
+        vec2 frontBL = vec2(cx - hw * scale, cy - hh * scale);
+        vec2 frontBR = vec2(cx + hw * scale, cy - hh * scale);
+        vec2 frontTR = vec2(cx + hw * scale, cy + hh * scale);
+        vec2 frontTL = vec2(cx - hw * scale, cy + hh * scale);
         
-        bool inFront = uv.x >= scaledMin.x && uv.x <= scaledMax.x && 
-                       uv.y >= scaledMin.y && uv.y <= scaledMax.y;
-        
-        bool inOriginal = uv.x >= boxMin.x && uv.x <= boxMax.x && 
-                          uv.y >= boxMin.y && uv.y <= boxMax.y;
-        
-        if (inFront && depth > maxDepth) {
-          maxDepth = depth;
-          
-          vec2 localUV = (uv - scaledMin) / (scaledMax - scaledMin);
-          vec2 texCoord = boxMin + localUV * (boxMax - boxMin);
-          
-          bool onLeft = uv.x < boxMin.x + (scaledMin.x - boxMin.x) * (1.0 - localUV.x);
-          bool onRight = uv.x > boxMax.x + (scaledMax.x - boxMax.x) * localUV.x;
-          bool onTop = uv.y > boxMax.y + (scaledMax.y - boxMax.y) * localUV.y;
-          bool onBottom = uv.y < boxMin.y + (scaledMin.y - boxMin.y) * (1.0 - localUV.y);
-          
-          float edgeL = boxMin.x + (scaledMin.x - boxMin.x) * (1.0 - localUV.y);
-          float edgeR = boxMax.x + (scaledMax.x - boxMax.x) * localUV.y;
-          float edgeT = boxMax.y + (scaledMax.y - boxMax.y) * localUV.x;
-          float edgeB = boxMin.y + (scaledMin.y - boxMin.y) * (1.0 - localUV.x);
-          
-          if (uv.x < edgeL && !inOriginal) {
-            finalColor = texture2D(texture, vec2(boxMin.x, texCoord.y)).rgb * 0.4;
-            hitFace = 1;
-          } else if (uv.x > edgeR && !inOriginal) {
-            finalColor = texture2D(texture, vec2(boxMax.x, texCoord.y)).rgb * 0.5;
-            hitFace = 2;
-          } else if (uv.y > edgeT && !inOriginal) {
-            finalColor = texture2D(texture, vec2(texCoord.x, boxMax.y)).rgb * 0.7;
-            hitFace = 3;
-          } else if (uv.y < edgeB && !inOriginal) {
-            finalColor = texture2D(texture, vec2(texCoord.x, boxMin.y)).rgb * 0.6;
-            hitFace = 4;
-          } else {
-            finalColor = texture2D(texture, texCoord).rgb * 1.05;
-            hitFace = 5;
+        // Check front face (rectangle)
+        if (uv.x >= frontBL.x && uv.x <= frontBR.x && uv.y >= frontBL.y && uv.y <= frontTL.y) {
+          if (depth > maxDepth) {
+            maxDepth = depth;
+            // Map screen position to texture position on back face
+            vec2 t = (uv - frontBL) / (frontTR - frontBL);
+            vec2 texCoord = backBL + t * (backTR - backBL);
+            finalColor = texture2D(texture, texCoord).rgb;
+          }
+        }
+        // Left side (trapezoid)
+        else if (inQuad(uv, frontBL, backBL, backTL, frontTL)) {
+          if (depth > maxDepth) {
+            maxDepth = depth;
+            float t = (uv.x - frontBL.x) / (backBL.x - frontBL.x);
+            vec2 texCoord = vec2(backBL.x, mix(frontBL.y, frontTL.y, (uv.y - frontBL.y) / (frontTL.y - frontBL.y)));
+            texCoord.y = backBL.y + (uv.y - frontBL.y) / (frontTL.y - frontBL.y) * (backTL.y - backBL.y);
+            finalColor = texture2D(texture, texCoord).rgb * (0.35 + 0.15 * t);
+          }
+        }
+        // Right side (trapezoid)
+        else if (inQuad(uv, frontBR, frontTR, backTR, backBR)) {
+          if (depth > maxDepth) {
+            maxDepth = depth;
+            float t = (uv.x - frontBR.x) / (backBR.x - frontBR.x);
+            vec2 texCoord = vec2(backBR.x, backBR.y + (uv.y - frontBR.y) / (frontTR.y - frontBR.y) * (backTR.y - backBR.y));
+            finalColor = texture2D(texture, texCoord).rgb * (0.35 + 0.15 * t);
+          }
+        }
+        // Top side (trapezoid)
+        else if (inQuad(uv, frontTL, frontTR, backTR, backTL)) {
+          if (depth > maxDepth) {
+            maxDepth = depth;
+            float t = (uv.y - frontTL.y) / (backTL.y - frontTL.y);
+            vec2 texCoord = vec2(backTL.x + (uv.x - frontTL.x) / (frontTR.x - frontTL.x) * (backTR.x - backTL.x), backTL.y);
+            finalColor = texture2D(texture, texCoord).rgb * (0.5 + 0.2 * t);
+          }
+        }
+        // Bottom side (trapezoid)
+        else if (inQuad(uv, frontBL, frontBR, backBR, backBL)) {
+          if (depth > maxDepth) {
+            maxDepth = depth;
+            float t = (frontBL.y - uv.y) / (frontBL.y - backBL.y);
+            vec2 texCoord = vec2(backBL.x + (uv.x - frontBL.x) / (frontBR.x - frontBL.x) * (backBR.x - backBL.x), backBL.y);
+            finalColor = texture2D(texture, texCoord).rgb * (0.4 + 0.15 * t);
           }
         }
       }
