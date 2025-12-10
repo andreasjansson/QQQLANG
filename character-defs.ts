@@ -2193,10 +2193,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#20B2AA',
     number: 12,
     fn: fnL,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 0,
+    argTypes: [],
     functionName: "lissajous",
-    documentation: "Draws thick Lissajous curves spanning the image, n controls complexity, colors are XOR gradient of background"
+    documentation: "Draws Lissajous curves spanning the image with black to white diagonal gradient"
   },
   
   'M': {
