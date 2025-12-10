@@ -635,72 +635,83 @@ function fnK(ctx: FnContext, n: number): Image {
 
 function fnL(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const out = cloneImage(prev);
   
-  const stripHeight = Math.max(6, n * 2 + 6);
-  const waveAmplitude = stripHeight * 0.4;
-  const weaveWidth = stripHeight * 3;
-  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
+  const complexity = Math.max(1, n);
+  const thickness = Math.max(8, Math.min(ctx.width, ctx.height) / 25);
+  const numCurves = Math.min(complexity, 5);
+  
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const scaleX = cx * 0.9;
+  const scaleY = cy * 0.9;
+  
+  const [bgR, bgG, bgB] = getPixel(prev, Math.floor(cx), Math.floor(cy));
+  
+  const curves: { a: number; b: number; delta: number }[] = [];
+  for (let i = 0; i < numCurves; i++) {
+    curves.push({
+      a: complexity + i,
+      b: complexity + i + 1 + (i % 3),
+      delta: (i * Math.PI) / (numCurves + 1)
+    });
+  }
+  
+  const curvePoints: { x: number; y: number; t: number; curveIdx: number }[][] = [];
+  
+  for (let c = 0; c < curves.length; c++) {
+    const curve = curves[c];
+    const points: { x: number; y: number; t: number; curveIdx: number }[] = [];
+    const steps = 2000 + complexity * 500;
+    
+    for (let i = 0; i <= steps; i++) {
+      const t = (i / steps) * Math.PI * 2;
+      const x = cx + Math.sin(curve.a * t + curve.delta) * scaleX;
+      const y = cy + Math.sin(curve.b * t) * scaleY;
+      points.push({ x, y, t, curveIdx: c });
+    }
+    curvePoints.push(points);
+  }
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      let bestEven = 0, bestEvenDist = Infinity;
-      let bestOdd = 1, bestOddDist = Infinity;
+      let minDist = Infinity;
+      let closestT = 0;
+      let closestCurve = 0;
       
-      for (let i = -3; i < numStrips; i++) {
-        const weavePhase = Math.floor(x / weaveWidth);
-        const wave = ((i + weavePhase) % 2 === 0 ? 1 : -1) * waveAmplitude;
-        const stripCenterY = i * stripHeight + stripHeight / 2 + wave;
-        const dist = Math.abs(y - stripCenterY);
-        
-        if (((i % 2) + 2) % 2 === 0) {
-          if (dist < bestEvenDist) { bestEvenDist = dist; bestEven = i; }
-        } else {
-          if (dist < bestOddDist) { bestOddDist = dist; bestOdd = i; }
+      for (let c = 0; c < curvePoints.length; c++) {
+        const points = curvePoints[c];
+        for (let i = 0; i < points.length; i += 4) {
+          const p = points[i];
+          const dx = x - p.x;
+          const dy = y - p.y;
+          const dist = dx * dx + dy * dy;
+          if (dist < minDist) {
+            minDist = dist;
+            closestT = p.t;
+            closestCurve = c;
+          }
         }
       }
       
-      const weavePhaseEven = Math.floor(x / weaveWidth);
-      const waveEven = ((bestEven + weavePhaseEven) % 2 === 0 ? 1 : -1) * waveAmplitude;
-      const weavePhaseOdd = Math.floor(x / weaveWidth);
-      const waveOdd = ((bestOdd + weavePhaseOdd) % 2 === 0 ? 1 : -1) * waveAmplitude;
+      const dist = Math.sqrt(minDist);
       
-      const evenY = bestEven * stripHeight + stripHeight / 2 + waveEven;
-      const oddY = bestOdd * stripHeight + stripHeight / 2 + waveOdd;
-      
-      const evenOnTop = Math.abs(y - evenY) < Math.abs(y - oddY);
-      const drawOrder = evenOnTop ? [bestOdd, bestEven] : [bestEven, bestOdd];
-      
-      for (let pass = 0; pass < 2; pass++) {
-        const stripIdx = drawOrder[pass];
-        const weavePhase = Math.floor(x / weaveWidth);
-        const wave = ((stripIdx + weavePhase) % 2 === 0 ? 1 : -1) * waveAmplitude;
+      if (dist < thickness) {
+        const t01 = closestT / (Math.PI * 2);
+        const gradientPos = (t01 + closestCurve * 0.2) % 1;
         
-        const stripCenterY = stripIdx * stripHeight + stripHeight / 2 + wave;
-        const distFromCenter = y - stripCenterY;
-        const srcY = stripIdx * stripHeight + stripHeight / 2 + distFromCenter;
-        const clampedSrcY = Math.max(0, Math.min(ctx.height - 1, Math.floor(srcY)));
+        const xorVal = Math.floor(gradientPos * 255);
+        const cr = bgR ^ xorVal;
+        const cg = bgG ^ ((xorVal + 85) % 256);
+        const cb = bgB ^ ((xorVal + 170) % 256);
         
-        const [r, g, b] = getPixel(prev, x, clampedSrcY);
-        const [h, s, l] = rgbToHsl(r, g, b);
-        const hueShift = (((stripIdx % 8) + 8) % 8) * 20;
-        const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
-        
-        const normDist = Math.abs(distFromCenter) / (stripHeight / 2);
-        let shadow = 1.0;
-        
-        if (pass === 0) {
-          shadow = 0.6;
-        } else {
-          if (normDist > 0.6) {
-            shadow = 1.0 - (normDist - 0.6) * 0.5;
-          }
-        }
+        const edgeFade = dist > thickness * 0.6 ? 1 - (dist - thickness * 0.6) / (thickness * 0.4) : 1;
+        const [pr, pg, pb] = getPixel(out, x, y);
         
         setPixel(out, x, y,
-          Math.round(nr * shadow),
-          Math.round(ng * shadow),
-          Math.round(nb * shadow)
+          Math.round(pr * (1 - edgeFade) + cr * edgeFade),
+          Math.round(pg * (1 - edgeFade) + cg * edgeFade),
+          Math.round(pb * (1 - edgeFade) + cb * edgeFade)
         );
       }
     }
