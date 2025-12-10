@@ -1672,7 +1672,7 @@ function fn5(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
-  const strength = Math.max(0.1, Math.min(n * 0.15, 2.0));
+  const strength = Math.max(0.1, Math.min(n * 0.1 + 0.3, 1.5));
   
   const vertexShader = `
     attribute vec2 position;
@@ -1690,63 +1690,80 @@ function fn5(ctx: FnContext, n: number): Image {
     uniform float strength;
     varying vec2 vUV;
     
-    float hash(vec2 p) {
-      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    // Smooth noise functions
+    float hash(float n) {
+      return fract(sin(n) * 43758.5453123);
     }
     
-    float noise(vec2 p) {
+    float noise(float x) {
+      float i = floor(x);
+      float f = fract(x);
+      f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0); // quintic smoothing
+      return mix(hash(i), hash(i + 1.0), f);
+    }
+    
+    float noise2D(vec2 p) {
       vec2 i = floor(p);
       vec2 f = fract(p);
-      f = f * f * (3.0 - 2.0 * f);
+      f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0); // quintic smoothing
       
-      float a = hash(i);
-      float b = hash(i + vec2(1.0, 0.0));
-      float c = hash(i + vec2(0.0, 1.0));
-      float d = hash(i + vec2(1.0, 1.0));
-      
-      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+      float n = i.x + i.y * 157.0;
+      return mix(
+        mix(hash(n), hash(n + 1.0), f.x),
+        mix(hash(n + 157.0), hash(n + 158.0), f.x),
+        f.y
+      );
+    }
+    
+    // Fractal brownian motion for organic shapes
+    float fbm(float x) {
+      float value = 0.0;
+      float amplitude = 0.5;
+      for (int i = 0; i < 4; i++) {
+        value += amplitude * noise(x);
+        x *= 2.0;
+        amplitude *= 0.5;
+      }
+      return value;
     }
     
     void main() {
       vec2 uv = vUV;
+      float aspect = resolution.x / resolution.y;
       
-      // Create drip streams based on x position
-      float dripSeed = floor(uv.x * resolution.x / 3.0);
-      float dripStrength = hash(vec2(dripSeed, 0.0));
-      float dripOffset = hash(vec2(dripSeed, 1.0)) * 0.5;
+      // Create smooth drip channels using noise
+      float dripX = uv.x * 8.0;
+      float channelNoise = fbm(dripX * 3.0) * 0.5 + 0.5;
       
-      // Sample brightness above to determine drip amount
-      float accumDrip = 0.0;
-      for (float i = 0.0; i < 50.0; i++) {
-        float sampleY = uv.y - i / resolution.y * strength * 100.0;
-        if (sampleY < 0.0) break;
-        
-        vec2 sampleUV = vec2(uv.x, sampleY);
-        vec4 sampleColor = texture2D(texture, sampleUV);
-        float brightness = dot(sampleColor.rgb, vec3(0.299, 0.587, 0.114));
-        
-        // Darker areas drip more
-        float dripAmount = (1.0 - brightness) * dripStrength * strength * 0.02;
-        accumDrip += dripAmount;
-      }
+      // Vertical position affects drip amount (more at bottom)
+      float verticalFactor = pow(uv.y, 0.7);
       
-      // Add some waviness to drips
-      float wave = sin(uv.x * resolution.x * 0.5 + dripSeed * 10.0) * 0.002 * strength;
+      // Sample original to let darker areas drip more
+      vec4 origColor = texture2D(texture, uv);
+      float darkness = 1.0 - dot(origColor.rgb, vec3(0.299, 0.587, 0.114));
       
-      // Displace UV upward (sample from above to create downward drip)
-      vec2 drippedUV = uv;
-      drippedUV.y = uv.y - accumDrip - wave;
-      drippedUV.y = max(0.0, drippedUV.y);
+      // Combine factors for smooth drip displacement
+      float dripAmount = channelNoise * verticalFactor * strength * 0.4;
+      dripAmount *= (0.5 + darkness * 0.5);
       
-      // Add horizontal wobble for more organic feel
-      float wobble = noise(vec2(uv.x * 20.0, uv.y * 5.0 + accumDrip * 10.0)) * 0.003 * strength;
-      drippedUV.x += wobble;
+      // Add gentle wobble that varies smoothly
+      float wobbleX = noise2D(vec2(uv.x * 15.0, uv.y * 3.0)) * 0.015 * strength;
+      float wobbleY = noise2D(vec2(uv.x * 10.0 + 100.0, uv.y * 5.0)) * 0.01 * strength;
       
-      vec4 color = texture2D(texture, drippedUV);
+      // Create stretched/smeared look by sampling from above
+      vec2 meltedUV = uv;
+      meltedUV.y = uv.y - dripAmount + wobbleY;
+      meltedUV.x = uv.x + wobbleX * verticalFactor;
       
-      // Slight darkening in drip areas for depth
-      float dripDarken = 1.0 - accumDrip * 0.3;
-      color.rgb *= max(0.7, dripDarken);
+      // Clamp to valid range
+      meltedUV = clamp(meltedUV, vec2(0.0), vec2(1.0));
+      
+      // Sample with slight vertical blur for smoothness
+      vec4 color = vec4(0.0);
+      float blurSize = dripAmount * 0.1;
+      color += texture2D(texture, meltedUV) * 0.4;
+      color += texture2D(texture, meltedUV + vec2(0.0, blurSize)) * 0.3;
+      color += texture2D(texture, meltedUV - vec2(0.0, blurSize * 0.5)) * 0.3;
       
       gl_FragColor = color;
     }
