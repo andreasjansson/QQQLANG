@@ -12801,5 +12801,57 @@ Use old texture for tubes in fnH
 ID: toolu_01RVYiZvQPsK36t6oX5RpUwz
 
 <tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Use old texture for tubes in fnH
 </tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01We7pXdvKLjBtNrfpthJEEo
+
+## path
+
+<tool.toolu_01We7pXdvKLjBtNrfpthJEEo>
+character-defs.ts
+</tool.toolu_01We7pXdvKLjBtNrfpthJEEo>
+
+## git-commit-message
+
+<tool.toolu_01We7pXdvKLjBtNrfpthJEEo>
+Clean up old texture in fnH
+</tool.toolu_01We7pXdvKLjBtNrfpthJEEo>
+
+## diff
+
+<tool.toolu_01We7pXdvKLjBtNrfpthJEEo>
+   gl.disable(gl.DEPTH_TEST);
+   gl.disableVertexAttribArray(posLoc);
+   gl.disableVertexAttribArray(normLoc);
+   gl.disableVertexAttribArray(texLoc);
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE0);
+   gl.deleteTexture(prevTexture);
++  gl.deleteTexture(oldTexture);
+   gl.deleteBuffer(bgBuffer);
+   gl.deleteBuffer(posBuffer);
+   gl.deleteBuffer(normBuffer);
+   gl.deleteBuffer(texBuffer);
+   gl.deleteProgram(tubeProgram);
+   gl.deleteProgram(bgProgram);
+   
+   return { width: ctx.width, height: ctx.height, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_01We7pXdvKLjBtNrfpthJEEo>
+
+# TOOL RESULT
+
+ID: toolu_01We7pXdvKLjBtNrfpthJEEo
+
+<tool.toolu_01We7pXdvKLjBtNrfpthJEEo>
+
+</tool.toolu_01We7pXdvKLjBtNrfpthJEEo>
