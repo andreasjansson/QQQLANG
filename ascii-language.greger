@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-231916636897>
+${greger-prompt-code-style<eval-result-232158549564>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-231916636897>}
+</eval-result-232158549564>}
 
 # USER
 
@@ -9345,5 +9345,477 @@ Update L characterDef for rotation argument
 ID: toolu_018RAyuMMPotfG1Uj8osZUQj
 
 <tool.toolu_018RAyuMMPotfG1Uj8osZUQj>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update L characterDef for rotation argument
 </tool.toolu_018RAyuMMPotfG1Uj8osZUQj>
+
+# ASSISTANT
+
+Done! L now has:
+- Two lights (main light at top-right-front, fill light at left) for better illumination
+- Higher ambient (0.4) so dark areas aren't black
+- Second argument `rot` that controls Y-axis rotation (each increment rotates by 0.3 radians)
+- Two arguments: j (old image index) and rot (rotation amount)
+
+# USER
+
+it's not entirely connected, there's a small gap between the parts of the object. also texture it with the prev image and make the lighting more intense
+
+# THINKING
+
+Signature: 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
+
+The user is saying there's a gap in the Lissajous tube - it's not closing properly. This is likely because the tube doesn't complete a full loop, or there's an issue with how the segments connect at the end.
+
+Also they want:
+1. More intense lighting
+2. Texture with prev image (it already does this, but maybe it's not showing well?)
+
+Let me look at the tube generation code. The Lissajous curve with parameters a=3, b=2, c=1 might not close perfectly at 2π. I need to make sure it closes.
+
+For a Lissajous curve to close, the ratios a:b:c need to work out. With a=3, b=2, c=1, the curve should close at 2π since they're all integers.
+
+The issue might be that we're not connecting the last segment back to the first. Let me check the loop - it goes from i=0 to i<segments, and t goes from 0 to 2π. But the last segment connects t1 = 2π back to the next iteration which doesn't exist.
+
+Actually looking at the code more carefully:
+- segments = 400
+- for i from 0 to 399
+- t0 = i/400 * 2π, t1 = (i+1)/400 * 2π
+- When i=399, t1 = 400/400 * 2π = 2π
+
+So t1 at the last segment is exactly 2π, which should be the same as t0=0 for the first segment. But because we're generating tube geometry, we need the normals and positions to match up.
+
+The issue is likely that at t=0 and t=2π, the tangent direction might be slightly different due to numerical precision, causing a discontinuity in the frame (normal and binormal vectors).
+
+To fix this, I should make the tube connect properly by ensuring the last ring of vertices matches the first ring.
+
+
+I'll modify the vertex generation to explicitly force the last and first rings to be identical. This means carefully matching positions, normals, and tangents at the seam. I'll use interpolation or direct matching to eliminate any numerical precision discrepancies that might cause the visual gap.
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_014fD8CZg6AeRtFpvJweNHNy
+
+## path
+
+<tool.toolu_014fD8CZg6AeRtFpvJweNHNy>
+character-defs.ts
+</tool.toolu_014fD8CZg6AeRtFpvJweNHNy>
+
+## start-line
+
+<tool.toolu_014fD8CZg6AeRtFpvJweNHNy>
+662
+</tool.toolu_014fD8CZg6AeRtFpvJweNHNy>
+
+## end-line
+
+<tool.toolu_014fD8CZg6AeRtFpvJweNHNy>
+800
+</tool.toolu_014fD8CZg6AeRtFpvJweNHNy>
+
+# TOOL RESULT
+
+ID: toolu_014fD8CZg6AeRtFpvJweNHNy
+
+<tool.toolu_014fD8CZg6AeRtFpvJweNHNy>
+function fnL(ctx: FnContext, j: number, rot: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const gl = initWebGL(ctx.width, ctx.height);
+  
+  const rotation = rot * 0.3;
+  
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uModelView;
+    uniform mat3 uNormalMatrix;
+    
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vTexCoord;
+    
+    void main() {
+      vPosition = (uModelView * vec4(aPosition, 1.0)).xyz;
+      vNormal = uNormalMatrix * aNormal;
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * vec4(vPosition, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightPos;
+    uniform vec3 uLightPos2;
+    
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vTexCoord;
+    
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 viewDir = normalize(-vPosition);
+      
+      vec3 lightDir1 = normalize(uLightPos - vPosition);
+      vec3 halfDir1 = normalize(lightDir1 + viewDir);
+      float diff1 = max(dot(normal, lightDir1), 0.0);
+      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 32.0);
+      
+      vec3 lightDir2 = normalize(uLightPos2 - vPosition);
+      vec3 halfDir2 = normalize(lightDir2 + viewDir);
+      float diff2 = max(dot(normal, lightDir2), 0.0);
+      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 32.0);
+      
+      float ambient = 0.4;
+      float diffuse = (diff1 + diff2 * 0.6) * 0.5;
+      float specular = (spec1 + spec2 * 0.5) * 0.5;
+      
+      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
+      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const bgVertShader = `
+    attribute vec2 aPosition;
+    varying vec2 vUV;
+    void main() {
+      vUV = aPosition * 0.5 + 0.5;
+      gl_Position = vec4(aPosition, 0.999, 1.0);
+    }
+  `;
+  
+  const bgFragShader = `
+    precision highp float;
+    uniform sampler2D uBgTexture;
+    varying vec2 vUV;
+    void main() {
+      gl_FragColor = texture2D(uBgTexture, vec2(vUV.x, 1.0 - vUV.y));
+    }
+  `;
+  
+  const tubeProgram = createShaderProgram(gl, vertexShader, fragmentShader);
+  const bgProgram = createShaderProgram(gl, bgVertShader, bgFragShader);
+  
+  const prevTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const oldTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const texCoords: number[] = [];
+  
+  const a = 3, b = 2, c = 1;
+  const tubeRadius = 0.08;
+  const segments = 400;
+  const radialSegments = 12;
+  
+  const getPoint = (t: number): [number, number, number] => {
+    return [
+      Math.sin(a * t) * 0.7,
+      Math.sin(b * t) * 0.7,
+      Math.sin(c * t) * 0.5
+    ];
+  };
+  
+  const getTangent = (t: number): [number, number, number] => {
+    const eps = 0.001;
+    const p1 = getPoint(t - eps);
+    const p2 = getPoint(t + eps);
+    const len = Math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 + (p2[2]-p1[2])**2);
+    return [(p2[0]-p1[0])/len, (p2[1]-p1[1])/len, (p2[2]-p1[2])/len];
+  };
+  
+  for (let i = 0; i < segments; i++) {
+    const t0 = (i / segments) * Math.PI * 2;
+    const t1 = ((i + 1) / segments) * Math.PI * 2;
+    
+    const p0 = getPoint(t0);
+    const p1 = getPoint(t1);
+    const tan0 = getTangent(t0);
+    const tan1 = getTangent(t1);
+    
+    const up = [0, 1, 0];
+    const cross = (a: number[], b: number[]): number[] => [
+      a[1]*b[2] - a[2]*b[1],
+      a[2]*b[0] - a[0]*b[2],
+</tool.toolu_014fD8CZg6AeRtFpvJweNHNy>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01JazhjDwoJmQXtgfEUpuVBz
+
+## path
+
+<tool.toolu_01JazhjDwoJmQXtgfEUpuVBz>
+character-defs.ts
+</tool.toolu_01JazhjDwoJmQXtgfEUpuVBz>
+
+## start-line
+
+<tool.toolu_01JazhjDwoJmQXtgfEUpuVBz>
+800
+</tool.toolu_01JazhjDwoJmQXtgfEUpuVBz>
+
+## end-line
+
+<tool.toolu_01JazhjDwoJmQXtgfEUpuVBz>
+920
+</tool.toolu_01JazhjDwoJmQXtgfEUpuVBz>
+
+# TOOL RESULT
+
+ID: toolu_01JazhjDwoJmQXtgfEUpuVBz
+
+<tool.toolu_01JazhjDwoJmQXtgfEUpuVBz>
+      a[2]*b[0] - a[0]*b[2],
+      a[0]*b[1] - a[1]*b[0]
+    ];
+    const normalize = (v: number[]): number[] => {
+      const len = Math.sqrt(v[0]**2 + v[1]**2 + v[2]**2);
+      return [v[0]/len, v[1]/len, v[2]/len];
+    };
+    
+    let binormal0 = normalize(cross(tan0, up));
+    if (Math.abs(tan0[1]) > 0.99) binormal0 = normalize(cross(tan0, [1, 0, 0]));
+    const normal0 = normalize(cross(binormal0, tan0));
+    
+    let binormal1 = normalize(cross(tan1, up));
+    if (Math.abs(tan1[1]) > 0.99) binormal1 = normalize(cross(tan1, [1, 0, 0]));
+    const normal1 = normalize(cross(binormal1, tan1));
+    
+    for (let r = 0; r < radialSegments; r++) {
+      const angle0 = (r / radialSegments) * Math.PI * 2;
+      const angle1 = ((r + 1) / radialSegments) * Math.PI * 2;
+      
+      const cos0 = Math.cos(angle0), sin0 = Math.sin(angle0);
+      const cos1 = Math.cos(angle1), sin1 = Math.sin(angle1);
+      
+      const v00 = [
+        p0[0] + (normal0[0] * cos0 + binormal0[0] * sin0) * tubeRadius,
+        p0[1] + (normal0[1] * cos0 + binormal0[1] * sin0) * tubeRadius,
+        p0[2] + (normal0[2] * cos0 + binormal0[2] * sin0) * tubeRadius
+      ];
+      const v01 = [
+        p0[0] + (normal0[0] * cos1 + binormal0[0] * sin1) * tubeRadius,
+        p0[1] + (normal0[1] * cos1 + binormal0[1] * sin1) * tubeRadius,
+        p0[2] + (normal0[2] * cos1 + binormal0[2] * sin1) * tubeRadius
+      ];
+      const v10 = [
+        p1[0] + (normal1[0] * cos0 + binormal1[0] * sin0) * tubeRadius,
+        p1[1] + (normal1[1] * cos0 + binormal1[1] * sin0) * tubeRadius,
+        p1[2] + (normal1[2] * cos0 + binormal1[2] * sin0) * tubeRadius
+      ];
+      const v11 = [
+        p1[0] + (normal1[0] * cos1 + binormal1[0] * sin1) * tubeRadius,
+        p1[1] + (normal1[1] * cos1 + binormal1[1] * sin1) * tubeRadius,
+        p1[2] + (normal1[2] * cos1 + binormal1[2] * sin1) * tubeRadius
+      ];
+      
+      const n00 = [normal0[0] * cos0 + binormal0[0] * sin0, normal0[1] * cos0 + binormal0[1] * sin0, normal0[2] * cos0 + binormal0[2] * sin0];
+      const n01 = [normal0[0] * cos1 + binormal0[0] * sin1, normal0[1] * cos1 + binormal0[1] * sin1, normal0[2] * cos1 + binormal0[2] * sin1];
+      const n10 = [normal1[0] * cos0 + binormal1[0] * sin0, normal1[1] * cos0 + binormal1[1] * sin0, normal1[2] * cos0 + binormal1[2] * sin0];
+      const n11 = [normal1[0] * cos1 + binormal1[0] * sin1, normal1[1] * cos1 + binormal1[1] * sin1, normal1[2] * cos1 + binormal1[2] * sin1];
+      
+      const u0 = i / segments * 4;
+      const u1 = (i + 1) / segments * 4;
+      const v0 = r / radialSegments;
+      const v1 = (r + 1) / radialSegments;
+      
+      positions.push(...v00, ...v10, ...v11, ...v00, ...v11, ...v01);
+      normals.push(...n00, ...n10, ...n11, ...n00, ...n11, ...n01);
+      texCoords.push(u0, v0, u1, v0, u1, v1, u0, v0, u1, v1, u0, v1);
+    }
+  }
+  
+  gl.enable(gl.DEPTH_TEST);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  
+  gl.useProgram(bgProgram);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.uniform1i(gl.getUniformLocation(bgProgram, 'uBgTexture'), 0);
+  
+  const bgVerts = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const bgBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, bgVerts, gl.STATIC_DRAW);
+  const bgPosLoc = gl.getAttribLocation(bgProgram, 'aPosition');
+  gl.enableVertexAttribArray(bgPosLoc);
+  gl.vertexAttribPointer(bgPosLoc, 2, gl.FLOAT, false, 0, 0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.disableVertexAttribArray(bgPosLoc);
+  
+  gl.useProgram(tubeProgram);
+  
+  const posBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+  const posLoc = gl.getAttribLocation(tubeProgram, 'aPosition');
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const normBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+  const normLoc = gl.getAttribLocation(tubeProgram, 'aNormal');
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const texBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+  const texLoc = gl.getAttribLocation(tubeProgram, 'aTexCoord');
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  const aspect = ctx.width / ctx.height;
+  const fov = Math.PI / 3.5;
+  const near = 0.1, far = 10.0;
+  const f = 1.0 / Math.tan(fov / 2);
+  const projection = new Float32Array([
+    f / aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far + near) / (near - far), -1,
+    0, 0, (2 * far * near) / (near - far), 0
+  ]);
+  
+  const angleY = 0.5 + rotation;
+  const angleX = 0.3;
+  const cy = Math.cos(angleY), sy = Math.sin(angleY);
+  const cx = Math.cos(angleX), sx = Math.sin(angleX);
+  const modelView = new Float32Array([
+    cy, sy * sx, sy * cx, 0,
+    0, cx, -sx, 0,
+</tool.toolu_01JazhjDwoJmQXtgfEUpuVBz>
+
+# ASSISTANT
+
+Let me replace the entire fnL function with a fixed version:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0113buLVvKTb7cEUFeMmPAmr
+
+## path
+
+<tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+character-defs.ts
+</tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+
+## git-commit-message
+
+<tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+Fix L Lissajous gap, increase lighting intensity
+</tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+
+## original-content
+
+<tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightPos;
+    uniform vec3 uLightPos2;
+    
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vTexCoord;
+    
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 viewDir = normalize(-vPosition);
+      
+      vec3 lightDir1 = normalize(uLightPos - vPosition);
+      vec3 halfDir1 = normalize(lightDir1 + viewDir);
+      float diff1 = max(dot(normal, lightDir1), 0.0);
+      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 32.0);
+      
+      vec3 lightDir2 = normalize(uLightPos2 - vPosition);
+      vec3 halfDir2 = normalize(lightDir2 + viewDir);
+      float diff2 = max(dot(normal, lightDir2), 0.0);
+      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 32.0);
+      
+      float ambient = 0.4;
+      float diffuse = (diff1 + diff2 * 0.6) * 0.5;
+      float specular = (spec1 + spec2 * 0.5) * 0.5;
+      
+      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
+      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+</tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+
+## new-content
+
+<tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightPos;
+    uniform vec3 uLightPos2;
+    
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vTexCoord;
+    
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 viewDir = normalize(-vPosition);
+      
+      vec3 lightDir1 = normalize(uLightPos - vPosition);
+      vec3 halfDir1 = normalize(lightDir1 + viewDir);
+      float diff1 = max(dot(normal, lightDir1), 0.0);
+      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 24.0);
+      
+      vec3 lightDir2 = normalize(uLightPos2 - vPosition);
+      vec3 halfDir2 = normalize(lightDir2 + viewDir);
+      float diff2 = max(dot(normal, lightDir2), 0.0);
+      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 24.0);
+      
+      float ambient = 0.5;
+      float diffuse = diff1 * 0.8 + diff2 * 0.5;
+      float specular = (spec1 + spec2) * 0.7;
+      
+      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
+      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+</tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+
+# TOOL RESULT
+
+ID: toolu_0113buLVvKTb7cEUFeMmPAmr
+
+<tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+
+</tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
