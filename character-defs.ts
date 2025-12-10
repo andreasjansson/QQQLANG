@@ -1746,13 +1746,13 @@ function fn5(ctx: FnContext, n: number): Image {
           wobble += sin(progress * 25.12 + fi * 5.0) * 0.008;
           float x = baseX + wobble;
           
-          // Elliptical radii - much taller than wide for melty look
-          float baseRadius = 0.035 + hash(fi * 183.9) * 0.025;
-          float radiusX = baseRadius * (1.0 - progress * 0.6);
-          radiusX *= uStrength * 0.5;
+          // Elliptical radii - slightly elongated for melty look
+          float baseRadius = 0.04 + hash(fi * 183.9) * 0.03;
+          float radiusX = baseRadius * (1.0 - progress * 0.5);
+          radiusX *= uStrength * 0.6;
           
-          // Vertical radius is much larger, especially in middle of drip
-          float verticalStretch = 2.0 + progress * 3.0; // Gets more stretched as it drips
+          // Vertical radius slightly larger, more stretch as it drips
+          float verticalStretch = 1.5 + progress * 1.5;
           float radiusY = radiusX * verticalStretch;
           
           vec2 ballPos = vec2(x * aspect.x, y);
@@ -1763,7 +1763,7 @@ function fn5(ctx: FnContext, n: number): Image {
           // Accumulate displacement direction
           if (field > 0.01) {
             vec2 toDrip = ballPos - p;
-            displacement += normalize(toDrip) * field * progress * 0.05;
+            displacement += normalize(toDrip) * field * progress * 0.02;
           }
         }
       }
@@ -1772,10 +1772,10 @@ function fn5(ctx: FnContext, n: number): Image {
       float threshold = 1.2;
       float blob = smoothstep(threshold - 0.5, threshold + 0.5, totalField);
       
-      // Apply smooth displacement based on drip field
+      // Apply gentle displacement based on drip field
       vec2 sampleUV = uv;
-      sampleUV.y -= blob * 0.08 * uStrength;
-      sampleUV.x += displacement.x * blob * 0.5;
+      sampleUV.y -= blob * 0.04 * uStrength;
+      sampleUV.x += displacement.x * blob * 0.3;
       
       // High quality multi-tap sampling to prevent pixelation
       vec4 color = vec4(0.0);
