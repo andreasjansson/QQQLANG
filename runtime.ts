@@ -148,7 +148,10 @@ let lastWidth = 0;
 let lastHeight = 0;
 
 export function runProgram(program: string, width: number, height: number): Image[] {
+  console.log(`\n=== EXECUTION: ${width}x${height} ===`);
+  
   if (width !== lastWidth || height !== lastHeight) {
+    console.log(`Dimensions changed (${lastWidth}x${lastHeight} -> ${width}x${height}), clearing cache`);
     imageCache.clear();
     lastWidth = width;
     lastHeight = height;
@@ -157,25 +160,36 @@ export function runProgram(program: string, width: number, height: number): Imag
   const ops = parseProgram(program);
   
   if (ops.length === 0) {
+    console.log('No operations, returning black image');
     return [createSolidImage(width, height, '#000000')];
   }
 
   const images: Image[] = [];
+  let cacheHits = 0;
+  let cacheMisses = 0;
   
   for (let opIdx = 0; opIdx < ops.length; opIdx++) {
     const op = ops[opIdx];
+    console.log(`\n[Op ${opIdx}] identifier="${op.identifier}"`);
     
     const cached = imageCache.get(op.identifier);
     if (cached) {
+      console.log(`  ✓ CACHE HIT`);
       images.push(cached);
+      cacheHits++;
       continue;
     }
+
+    console.log(`  ✗ CACHE MISS`);
+    cacheMisses++;
 
     let result: Image;
     
     if (op.type === 'solid') {
+      console.log(`  Creating solid image: ${op.color}`);
       result = createSolidImage(width, height, op.color);
     } else {
+      console.log(`  Executing function: ${op.fnDef.functionName} with args:`, op.args);
       const ctx: FnContext = {
         width,
         height,
@@ -188,8 +202,12 @@ export function runProgram(program: string, width: number, height: number): Imag
     
     images.push(result);
     imageCache.set(op.identifier, result);
+    console.log(`  ✓ Cached result for "${op.identifier}"`);
   }
 
+  console.log(`\n=== EXECUTION COMPLETE ===`);
+  console.log(`Cache hits: ${cacheHits}, Cache misses: ${cacheMisses}`);
+  console.log(`Total images: ${images.length}`);
   return images;
 }
 
