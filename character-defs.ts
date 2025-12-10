@@ -958,7 +958,7 @@ function fnP(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnR(ctx: FnContext): Image {
+function fnCorrugated(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
