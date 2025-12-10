@@ -638,48 +638,6 @@ function fnL(ctx: FnContext, c: string): Image {
   const out = cloneImage(prev);
   const [cr, cg, cb] = hexToRgb(c);
   
-  const occupied = new Set<string>();
-  const candidates: Array<{x: number, y: number, weight: number}> = [];
-  
-  const startX = Math.floor(ctx.width / 2);
-  const startY = Math.floor(ctx.height * 0.1);
-  
-  for (let r = 0; r < 3; r++) {
-    for (let dx = -r; dx <= r; dx++) {
-      for (let dy = -r; dy <= r; dy++) {
-        const x = startX + dx;
-        const y = startY + dy;
-        if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
-          occupied.add(`${x},${y}`);
-          setPixel(out, x, y, cr, cg, cb);
-        }
-      }
-    }
-  }
-  
-  const dirs = [
-    {dx: -1, dy: 0, weight: 1},
-    {dx: 1, dy: 0, weight: 1},
-    {dx: 0, dy: -1, weight: 0.3},
-    {dx: 0, dy: 1, weight: 3},
-    {dx: -1, dy: 1, weight: 2},
-    {dx: 1, dy: 1, weight: 2},
-    {dx: -1, dy: -1, weight: 0.5},
-    {dx: 1, dy: -1, weight: 0.5},
-  ];
-  
-  for (const point of occupied) {
-    const [x, y] = point.split(',').map(Number);
-    for (const dir of dirs) {
-      const nx = x + dir.dx;
-      const ny = y + dir.dy;
-      const key = `${nx},${ny}`;
-      if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height && !occupied.has(key)) {
-        candidates.push({x: nx, y: ny, weight: dir.weight});
-      }
-    }
-  }
-  
   const seededRandom = (seed: number) => {
     let state = seed;
     return () => {
@@ -689,51 +647,71 @@ function fnL(ctx: FnContext, c: string): Image {
   };
   const rand = seededRandom(12345);
   
-  let segmentCount = 0;
-  const maxSegments = 2000;
+  const occupied = new Set<string>();
+  const startX = Math.floor(ctx.width / 2);
+  const startY = 5;
   
-  while (candidates.length > 0 && segmentCount < maxSegments) {
-    const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0);
-    let r = rand() * totalWeight;
-    let chosenIdx = 0;
-    
-    for (let i = 0; i < candidates.length; i++) {
-      r -= candidates[i].weight;
-      if (r <= 0) {
-        chosenIdx = i;
-        break;
-      }
-    }
-    
-    const chosen = candidates[chosenIdx];
-    candidates.splice(chosenIdx, 1);
-    
-    const key = `${chosen.x},${chosen.y}`;
-    if (occupied.has(key)) continue;
-    
-    occupied.add(key);
-    
-    for (let r = 0; r < 2; r++) {
-      for (let dx = -r; dx <= r; dx++) {
-        for (let dy = -r; dy <= r; dy++) {
-          const x = chosen.x + dx;
-          const y = chosen.y + dy;
-          if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
-            setPixel(out, x, y, cr, cg, cb);
+  const drawBranch = (x: number, y: number) => {
+    for (let dx = -2; dx <= 2; dx++) {
+      for (let dy = -2; dy <= 2; dy++) {
+        if (dx * dx + dy * dy <= 4) {
+          const px = x + dx;
+          const py = y + dy;
+          if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+            setPixel(out, px, py, cr, cg, cb);
           }
         }
       }
     }
+  };
+  
+  drawBranch(startX, startY);
+  occupied.add(`${startX},${startY}`);
+  
+  const branches: Array<{x: number, y: number, angle: number, len: number}> = [
+    {x: startX, y: startY, angle: Math.PI / 2, len: 0}
+  ];
+  
+  const maxBranches = 500;
+  
+  while (branches.length > 0 && occupied.size < maxBranches) {
+    const idx = Math.floor(rand() * branches.length);
+    const branch = branches[idx];
     
-    segmentCount++;
+    const angleVariation = (rand() - 0.5) * 0.8;
+    const newAngle = branch.angle + angleVariation;
     
-    for (const dir of dirs) {
-      const nx = chosen.x + dir.dx;
-      const ny = chosen.y + dir.dy;
-      const nkey = `${nx},${ny}`;
-      if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height && !occupied.has(nkey)) {
-        candidates.push({x: nx, y: ny, weight: dir.weight});
-      }
+    const step = 3 + Math.floor(rand() * 3);
+    const nx = Math.floor(branch.x + Math.cos(newAngle) * step);
+    const ny = Math.floor(branch.y + Math.sin(newAngle) * step);
+    
+    if (nx < 0 || nx >= ctx.width || ny < 0 || ny >= ctx.height) {
+      branches.splice(idx, 1);
+      continue;
+    }
+    
+    const key = `${nx},${ny}`;
+    if (occupied.has(key)) {
+      branches.splice(idx, 1);
+      continue;
+    }
+    
+    drawBranch(nx, ny);
+    occupied.add(key);
+    
+    branch.x = nx;
+    branch.y = ny;
+    branch.angle = newAngle;
+    branch.len++;
+    
+    if (branch.len > 20 + rand() * 30) {
+      branches.splice(idx, 1);
+      continue;
+    }
+    
+    if (rand() < 0.15 && branches.length < 20) {
+      const splitAngle = newAngle + (rand() < 0.5 ? -0.5 : 0.5);
+      branches.push({x: nx, y: ny, angle: splitAngle, len: 0});
     }
   }
   
