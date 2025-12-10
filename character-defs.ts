@@ -1698,28 +1698,18 @@ function fn5(ctx: FnContext, n: number): Image {
       return fract(sin(n) * 43758.5453123);
     }
     
-    // Compute elongated metaball field value (elliptical, stretched vertically)
-    float metaball(vec2 p, vec2 center, float radiusX, float radiusY) {
-      vec2 delta = p - center;
-      
-      // Elliptical distance
-      float dx = delta.x / radiusX;
-      float dy = delta.y / radiusY;
-      float d2 = dx * dx + dy * dy;
-      
-      if (d2 > 9.0) return 0.0;
-      
-      // Use elliptical field strength
-      float r2 = 1.0;
-      return r2 / (d2 + 0.0001);
+    // Classic metaball formula: influence = r^2 / distance^2
+    float metaball(vec2 p, vec2 center, float radius) {
+      float d = length(p - center);
+      if (d > radius * 2.5) return 0.0;
+      return (radius * radius) / (d * d + 0.0001);
     }
     
     void main() {
       vec2 uv = vUV;
-      vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
-      vec2 p = uv * aspect;
       
-      float totalField = 0.0;
+      // Calculate metaball field
+      float sum = 0.0;
       
       // Generate drips deterministically
       for (int i = 0; i < MAX_DRIPS; i++) {
@@ -1728,81 +1718,72 @@ function fn5(ctx: FnContext, n: number): Image {
         float fi = float(i);
         
         // Base x position
-        float baseX = hash(fi * 127.1);
+        float xPos = hash(fi * 127.1);
         
-        // Create a drip trail - multiple balls along a vertical line
-        for (int j = 0; j < 12; j++) {
+        // Create a drip trail - multiple balls forming teardrop shape
+        int numBalls = 8;
+        for (int j = 0; j < 8; j++) {
           float fj = float(j);
+          float progress = fj / 7.0;
           
-          // Y position - spread along the drip trail
-          float progress = fj / 11.0;
-          float startY = hash(fi * 311.7) * 0.25;
-          float dripLength = 0.35 + hash(fi * 74.3) * 0.45;
+          // Y position spreads downward
+          float startY = hash(fi * 311.7) * 0.2;
+          float dripLength = 0.4 + hash(fi * 74.3) * 0.4;
           float y = startY + progress * dripLength * uStrength;
           
-          // Smooth wobble along the drip
-          float wobble = sin(progress * 12.56 + fi * 2.0) * 0.015;
-          wobble += sin(progress * 25.12 + fi * 5.0) * 0.008;
-          float x = baseX + wobble;
+          // Slight horizontal wobble
+          float wobble = sin(progress * 10.0 + fi * 3.0) * 0.01;
+          float x = xPos + wobble;
           
-          // Elliptical radii - slightly elongated for melty look
-          float baseRadius = 0.04 + hash(fi * 183.9) * 0.03;
-          float radiusX = baseRadius * (1.0 - progress * 0.5);
-          radiusX *= uStrength * 0.6;
+          // Ball size - larger at top, smaller at bottom (teardrop)
+          float baseRadius = 0.025 + hash(fi * 183.9) * 0.02;
+          float radius = baseRadius * (1.0 - progress * 0.6) * uStrength * 0.8;
           
-          // Vertical radius slightly larger, more stretch as it drips
-          float verticalStretch = 1.5 + progress * 1.5;
-          float radiusY = radiusX * verticalStretch;
+          vec2 ballPos = vec2(x, y);
           
-          vec2 ballPos = vec2(x * aspect.x, y);
-          
-          float field = metaball(p, ballPos, radiusX, radiusY);
-          totalField += field;
+          // Add metaball influence
+          sum += metaball(uv, ballPos, radius);
         }
       }
       
-      // Smooth threshold for metaball surface
-      float threshold = 1.2;
-      float blob = smoothstep(threshold - 0.5, threshold + 0.5, totalField);
+      // Threshold determines blob surface
+      float threshold = 1.0;
       
-      // Only displace downward (sample from above to create drip)
+      // Create smooth blob mask
+      float blobMask = smoothstep(threshold - 0.3, threshold + 0.2, sum);
+      
+      // Where blobs are, displace texture downward
+      float displace = blobMask * 0.06 * uStrength;
       vec2 sampleUV = uv;
-      float dripAmount = blob * 0.05 * uStrength;
+      sampleUV.y -= displace;
       
-      // Sample from ABOVE current position (positive y = down in texture coords)
-      // This pulls pixels downward creating the drip effect
-      sampleUV.y = uv.y - dripAmount;
-      
-      // High quality multi-tap sampling to prevent pixelation
+      // Multi-sample for smooth result
       vec4 color = vec4(0.0);
-      float kernelSize = max(1.0, blob * 2.0);
-      float pixelSize = 1.0 / uResolution.y;
+      float totalWeight = 0.0;
       
-      // Use a larger sampling kernel in drip areas
-      for (int sy = -2; sy <= 2; sy++) {
-        for (int sx = -2; sx <= 2; sx++) {
-          vec2 offset = vec2(float(sx), float(sy)) * pixelSize * kernelSize;
+      // 5x5 sampling kernel for quality
+      for (int dy = -2; dy <= 2; dy++) {
+        for (int dx = -2; dx <= 2; dx++) {
+          vec2 offset = vec2(float(dx), float(dy)) / uResolution * 1.5;
           vec2 tapUV = sampleUV + offset;
           
-          // Gaussian-like weights
-          float dx = float(sx) / 2.0;
-          float dy = float(sy) / 2.0;
-          float weight = exp(-(dx*dx + dy*dy) * 0.5);
+          // Gaussian weight
+          float weight = exp(-(float(dx*dx + dy*dy)) * 0.3);
           
           color += texture2D(uTexture, clamp(tapUV, 0.0, 1.0)) * weight;
+          totalWeight += weight;
         }
       }
       
-      // Normalize by approximate sum of gaussian weights
-      color /= 6.7;
+      color /= totalWeight;
       
-      // Subtle shading - darker in thick drip areas
-      float shade = 1.0 - blob * 0.12;
-      color.rgb *= shade;
+      // Slight shading in drip areas
+      color.rgb *= 1.0 - blobMask * 0.15;
       
-      // Edge highlight
-      float edge = smoothstep(threshold - 0.3, threshold, totalField) - smoothstep(threshold, threshold + 0.6, totalField);
-      color.rgb += edge * 0.08;
+      // Subtle edge highlight
+      float edge = smoothstep(threshold - 0.2, threshold, sum) - 
+                   smoothstep(threshold, threshold + 0.5, sum);
+      color.rgb += edge * 0.1;
       
       gl_FragColor = color;
     }
