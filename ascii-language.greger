@@ -11211,5 +11211,87 @@ Implement characters N-Q: XOR blend, fisheye morph, diagonal pixelate, and inver
 ID: toolu_019hiqvC4zsTpiwSNZFuQ5Bi
 
 <tool.toolu_019hiqvC4zsTpiwSNZFuQ5Bi>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Implement characters N-Q: XOR blend, fisheye morph, diagonal pixelate, and inverted tile
 </tool.toolu_019hiqvC4zsTpiwSNZFuQ5Bi>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RF6BiMgLxnYNZcHKCYpXFB
+
+## path
+
+<tool.toolu_01RF6BiMgLxnYNZcHKCYpXFB>
+character-defs.ts
+</tool.toolu_01RF6BiMgLxnYNZcHKCYpXFB>
+
+## git-commit-message
+
+<tool.toolu_01RF6BiMgLxnYNZcHKCYpXFB>
+Add N-Q character definitions to exports
+</tool.toolu_01RF6BiMgLxnYNZcHKCYpXFB>
+
+## diff
+
+<tool.toolu_01RF6BiMgLxnYNZcHKCYpXFB>
+   'M': {
+     color: '#FF69B4',
+     number: 13,
+     fn: fnM,
+     arity: 2,
+     argTypes: ['int', 'int'],
+     functionName: "spiral-interleave",
+     documentation: "Interleaves prev and old_image in jagged pixelated spiral, spiral effect (5-100), old image index"
+   },
++  
++  'N': {
++    color: '#8A2BE2',
++    number: 14,
++    fn: fnN,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "xor-blend",
++    documentation: "XORs prev with old_image at index j, creating glitchy digital artifacts"
++  },
++  
++  'O': {
++    color: '#FF6347',
++    number: 15,
++    fn: fnO,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "fisheye-morph",
++    documentation: "Fisheye distortion that brightens center and darkens edges with strength n"
++  },
++  
++  'P': {
++    color: '#4682B4',
++    number: 16,
++    fn: fnP,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "diagonal-pixelate",
++    documentation: "Pixelates with cell size n+1, diagonal split: top-left = average, bottom-right = most saturated"
++  },
++  
++  'Q': {
++    color: '#32CD32',
++    number: 17,
++    fn: fnQ,
++    arity: 0,
++    argTypes: [],
++    functionName: "inverted-tile",
++    documentation: "Splits prev diagonally, inverts bottom-right half, then tiles in four quadrants"
++  },
+ };
+\ No newline at end of file
+
+</tool.toolu_01RF6BiMgLxnYNZcHKCYpXFB>
+
+# TOOL RESULT
+
+ID: toolu_01RF6BiMgLxnYNZcHKCYpXFB
+
+<tool.toolu_01RF6BiMgLxnYNZcHKCYpXFB>
+
+</tool.toolu_01RF6BiMgLxnYNZcHKCYpXFB>
