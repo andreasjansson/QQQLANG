@@ -2180,6 +2180,502 @@ function fnCaret(ctx: FnContext): Image {
   return out;
 }
 
+function fnExclaim(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const opacity = 0.3;
+  const factor = n + 17;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const brightness = ((x * factor) ^ (y * 31) ^ (x * y)) % 256;
+      const idx = (y * ctx.width + x) * 4;
+      out.data[idx] = Math.round(out.data[idx] * (1 - opacity) + brightness * opacity);
+      out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - opacity) + brightness * opacity);
+      out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - opacity) + brightness * opacity);
+    }
+  }
+  
+  return out;
+}
+
+function fnDoubleQuote(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const bands = Math.max(2, n);
+  const bandHeight = ctx.height / bands;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    const bandIdx = Math.floor(y / bandHeight);
+    const isOdd = bandIdx % 2 === 1;
+    
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      
+      if (isOdd) {
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb((h + 180) % 360, s, l);
+        setPixel(out, x, y, nr, ng, nb);
+      } else {
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb(h, 1 - s, l);
+        setPixel(out, x, y, nr, ng, nb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnHash(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  const gridSpacing = 20;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const thickness = 1 + Math.sin(x * y * 0.01) * 3;
+      const nearHorizontal = (y % gridSpacing) < thickness;
+      const nearVertical = (x % gridSpacing) < thickness;
+      
+      if (nearHorizontal || nearVertical) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnDollar(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const turns = Math.max(1, n);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.min(cx, cy) * 0.9;
+  const phi = (1 + Math.sqrt(5)) / 2;
+  const totalAngle = turns * Math.PI * 2;
+  const steps = turns * 200;
+  
+  for (let i = 0; i < steps; i++) {
+    const t = i / steps;
+    const angle = t * totalAngle;
+    const r = maxR * Math.pow(phi, angle / (Math.PI * 2) - turns + 1);
+    
+    if (r < 1 || r > maxR) continue;
+    
+    const x = Math.floor(cx + r * Math.cos(angle));
+    const y = Math.floor(cy + r * Math.sin(angle));
+    
+    if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const brightness = (pr + pg + pb) / 3;
+      const invBrightness = 255 - brightness;
+      
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          if (dx * dx + dy * dy <= 4) {
+            setPixel(out, x + dx, y + dy, invBrightness, invBrightness, invBrightness);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnPercent(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const cellSize = Math.max(1, n + 1);
+  const corners = [
+    getPixel(prev, 0, 0),
+    getPixel(prev, ctx.width - 1, 0),
+    getPixel(prev, 0, ctx.height - 1),
+    getPixel(prev, ctx.width - 1, ctx.height - 1)
+  ];
+  const palette = corners.map(([r, g, b]) => [r, g, b] as [number, number, number]);
+  
+  const findClosest = (r: number, g: number, b: number): [number, number, number] => {
+    let minDist = Infinity;
+    let closest = palette[0];
+    for (const [pr, pg, pb] of palette) {
+      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+      if (dist < minDist) {
+        minDist = dist;
+        closest = [pr, pg, pb];
+      }
+    }
+    return closest;
+  };
+  
+  const tempData = new Float32Array(ctx.width * ctx.height * 3);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const idx = (y * ctx.width + x) * 3;
+      tempData[idx] = r;
+      tempData[idx + 1] = g;
+      tempData[idx + 2] = b;
+    }
+  }
+  
+  for (let y = 0; y < ctx.height; y += cellSize) {
+    for (let x = 0; x < ctx.width; x += cellSize) {
+      const idx = (y * ctx.width + x) * 3;
+      const oldR = tempData[idx];
+      const oldG = tempData[idx + 1];
+      const oldB = tempData[idx + 2];
+      
+      const [newR, newG, newB] = findClosest(oldR, oldG, oldB);
+      
+      for (let cy = 0; cy < cellSize && y + cy < ctx.height; cy++) {
+        for (let cx = 0; cx < cellSize && x + cx < ctx.width; cx++) {
+          setPixel(out, x + cx, y + cy, newR, newG, newB);
+        }
+      }
+      
+      const errR = oldR - newR;
+      const errG = oldG - newG;
+      const errB = oldB - newB;
+      
+      const distribute = (dx: number, dy: number, factor: number) => {
+        const nx = x + dx * cellSize;
+        const ny = y + dy * cellSize;
+        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
+          const nidx = (ny * ctx.width + nx) * 3;
+          tempData[nidx] += errR * factor;
+          tempData[nidx + 1] += errG * factor;
+          tempData[nidx + 2] += errB * factor;
+        }
+      };
+      
+      distribute(1, 0, 7 / 16);
+      distribute(-1, 1, 3 / 16);
+      distribute(0, 1, 5 / 16);
+      distribute(1, 1, 1 / 16);
+    }
+  }
+  
+  return out;
+}
+
+function fnAmpersand(ctx: FnContext, j: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
+      
+      const luminance = pr * 0.299 + pg * 0.587 + pb * 0.114;
+      const [oh, os, ol] = rgbToHsl(or, og, ob);
+      const [nr, ng, nb] = hslToRgb(oh, os, luminance / 255);
+      
+      setPixel(out, x, y, nr, ng, nb);
+    }
+  }
+  
+  return out;
+}
+
+function fnApostrophe(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const spacing = n + 2;
+  
+  for (let x = 0; x < ctx.width; x++) {
+    if (x % spacing !== 0) continue;
+    
+    let colLuminance = 0;
+    for (let y = 0; y < ctx.height; y++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      colLuminance += r * 0.299 + g * 0.587 + b * 0.114;
+    }
+    colLuminance /= ctx.height;
+    
+    const streakLength = Math.floor((colLuminance / 255) * 100);
+    const startY = 0;
+    
+    for (let y = startY; y < startY + streakLength && y < ctx.height; y++) {
+      const idx = (y * ctx.width + x) * 4;
+      out.data[idx] = Math.min(255, Math.round(out.data[idx] * 0.5 + 127));
+      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * 0.5 + 127));
+      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * 0.5 + 127));
+    }
+  }
+  
+  return out;
+}
+
+function fnOpenParen(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const strength = n / 10;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const normDist = dist / maxR;
+      
+      const pinchFactor = 1 + strength * (1 - normDist);
+      const sx = cx + dx * pinchFactor;
+      const sy = cy + dy * pinchFactor;
+      
+      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      const brighten = (1 - normDist) * strength * 30;
+      r = Math.min(255, r + brighten);
+      g = Math.min(255, g + brighten);
+      b = Math.min(255, b + brighten);
+      
+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+    }
+  }
+  
+  return out;
+}
+
+function fnCloseParen(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const strength = n / 10;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const normDist = dist / maxR;
+      
+      const bulgeFactor = 1 - strength * normDist * 0.5;
+      const sx = cx + dx * bulgeFactor;
+      const sy = cy + dy * bulgeFactor;
+      
+      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      const darken = normDist * strength * 50;
+      r = Math.max(0, r - darken);
+      g = Math.max(0, g - darken);
+      b = Math.max(0, b - darken);
+      
+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+    }
+  }
+  
+  return out;
+}
+
+function fnAsterisk(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const numRays = Math.max(2, n);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  const opacity = 0.6;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      let angle = Math.atan2(dy, dx);
+      if (angle < 0) angle += Math.PI * 2;
+      
+      const rayAngle = (Math.PI * 2) / numRays;
+      const nearestRay = Math.round(angle / rayAngle) * rayAngle;
+      const angleDiff = Math.abs(angle - nearestRay);
+      
+      const rayWidth = 0.05;
+      if (angleDiff < rayWidth) {
+        const softness = 1 - angleDiff / rayWidth;
+        const sampleX = Math.floor(cx + Math.cos(nearestRay) * (ctx.width / numRays));
+        const [sr, sg, sb] = getPixel(prev, sampleX, Math.floor(cy));
+        
+        const idx = (y * ctx.width + x) * 4;
+        const blend = softness * opacity;
+        out.data[idx] = Math.round(out.data[idx] * (1 - blend) + sr * blend);
+        out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - blend) + sg * blend);
+        out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - blend) + sb * blend);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnPlus(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const hw = ctx.width / 2;
+  const hh = ctx.height / 2;
+  
+  const sharpenKernel = [
+    [0, -1, 0],
+    [-1, 5, -1],
+    [0, -1, 0]
+  ];
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const inTopLeft = x < hw && y < hh;
+      const inBottomRight = x >= hw && y >= hh;
+      const shouldSharpen = inTopLeft || inBottomRight;
+      
+      if (shouldSharpen) {
+        let sr = 0, sg = 0, sb = 0;
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
+            const weight = sharpenKernel[ky + 1][kx + 1];
+            sr += pr * weight;
+            sg += pg * weight;
+            sb += pb * weight;
+          }
+        }
+        setPixel(out, x, y,
+          Math.max(0, Math.min(255, Math.round(sr))),
+          Math.max(0, Math.min(255, Math.round(sg))),
+          Math.max(0, Math.min(255, Math.round(sb)))
+        );
+      } else {
+        let sr = 0, sg = 0, sb = 0;
+        const radius = 2;
+        let count = 0;
+        for (let ky = -radius; ky <= radius; ky++) {
+          for (let kx = -radius; kx <= radius; kx++) {
+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
+            sr += pr;
+            sg += pg;
+            sb += pb;
+            count++;
+          }
+        }
+        setPixel(out, x, y,
+          Math.round(sr / count),
+          Math.round(sg / count),
+          Math.round(sb / count)
+        );
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnComma(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const luminance = Math.floor(r * 0.299 + g * 0.587 + b * 0.114);
+      const divisor = 1 + Math.floor(luminance / 32);
+      
+      if ((x * 13 + y * 7) % divisor === 0) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnMinus(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const spacing = Math.max(2, n);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      let [r, g, b] = getPixel(prev, x, y);
+      
+      if (y % spacing === 0) {
+        r = Math.floor(r * 0.5);
+        g = Math.floor(g * 0.5);
+        b = Math.floor(b * 0.5);
+      }
+      
+      if (y % (spacing * 2) === 0) {
+        const srcY = Math.max(0, y - spacing);
+        [r, g, b] = getPixel(prev, x, srcY);
+      }
+      
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fnDot(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const radius = (n % 8) + 2;
+  const diameter = radius * 2;
+  
+  for (let cy = radius; cy < ctx.height; cy += diameter) {
+    for (let cx = radius; cx < ctx.width; cx += diameter) {
+      const [r, g, b] = getPixel(prev, cx, cy);
+      const [h, s, l] = rgbToHsl(r, g, b);
+      const [nr, ng, nb] = hslToRgb(h, Math.min(1, s + 0.1), l);
+      
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          if (dx * dx + dy * dy <= radius * radius) {
+            setPixel(out, cx + dx, cy + dy, nr, ng, nb);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnSlash(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      const spacing = Math.max(2, Math.floor(2 + luminance * 15));
+      
+      const diag = (x + y) % spacing;
+      if (diag === 0) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
