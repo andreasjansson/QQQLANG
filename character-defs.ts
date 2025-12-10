@@ -3781,8 +3781,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnL,
     arity: 0,
     argTypes: [],
-    functionName: "lissajous",
-    documentation: "Draws Lissajous curves spanning the image with black to white diagonal gradient"
+    functionName: "L-shape",
+    documentation: "3D letter L shape textured with prev, strong specular lighting from top-right"
   },
   
   'M': {
