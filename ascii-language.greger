@@ -12135,5 +12135,54 @@ Add left-half-offset function for ] and rename torn-right
 ID: toolu_01AdQa3qdWqEK3jVqdvAV5Ak
 
 <tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add left-half-offset function for ] and rename torn-right
 </tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
+
+# ASSISTANT
+
+Now update the characterDefs:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_018r4eGqQsbm87vzos5bR2cP
+
+## path
+
+<tool.toolu_018r4eGqQsbm87vzos5bR2cP>
+character-defs.ts
+</tool.toolu_018r4eGqQsbm87vzos5bR2cP>
+
+## git-commit-message
+
+<tool.toolu_018r4eGqQsbm87vzos5bR2cP>
+Update [ to rotate-left with arity 0
+</tool.toolu_018r4eGqQsbm87vzos5bR2cP>
+
+## diff
+
+<tool.toolu_018r4eGqQsbm87vzos5bR2cP>
+   '[': {
+     color: '#48D1CC',
+     number: 60,
+     fn: fnOpenBracket,
+-    arity: 1,
+-    argTypes: ['int'],
+-    functionName: "torn-left",
+-    documentation: "Left third shows old_image, right two-thirds show prev, torn-paper edge using sin waves"
++    arity: 0,
++    argTypes: [],
++    functionName: "rotate-left",
++    documentation: "Rotates prev 20 degrees counter-clockwise"
+   },
+\ No newline at end of file
+
+</tool.toolu_018r4eGqQsbm87vzos5bR2cP>
+
+# TOOL RESULT
+
+ID: toolu_018r4eGqQsbm87vzos5bR2cP
+
+<tool.toolu_018r4eGqQsbm87vzos5bR2cP>
+
+</tool.toolu_018r4eGqQsbm87vzos5bR2cP>

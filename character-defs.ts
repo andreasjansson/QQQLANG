@@ -3944,10 +3944,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#48D1CC',
     number: 60,
     fn: fnOpenBracket,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "torn-left",
-    documentation: "Left third shows old_image, right two-thirds show prev, torn-paper edge using sin waves"
+    arity: 0,
+    argTypes: [],
+    functionName: "rotate-left",
+    documentation: "Rotates prev 20 degrees counter-clockwise"
   },
   
   '\\': {
