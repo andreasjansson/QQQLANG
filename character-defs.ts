@@ -965,14 +965,15 @@ function fnEntangle(ctx: FnContext, j: number): Image {
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const [or, og, ob] = getPixel(old, x, y);
+      const pattern = ((x ^ y) >> 3) & 1;
       
-      const nr = pr > or ? pr : or;
-      const ng = pg > og ? og : pg;
-      const nb = pb > ob ? pb : ob;
-      
-      setPixel(out, x, y, nr, ng, nb);
+      if (pattern === 1) {
+        const [r, g, b] = getPixel(prev, x, y);
+        setPixel(out, x, y, r, g, b);
+      } else {
+        const [r, g, b] = getPixel(old, x, y);
+        setPixel(out, x, y, r, g, b);
+      }
     }
   }
   
