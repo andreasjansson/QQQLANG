@@ -857,28 +857,36 @@ function fnN(ctx: FnContext): Image {
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const idx = (y * ctx.width + x) * 3;
-      let tr = blurred[idx] * 1.5;
-      let tg = blurred[idx + 1] * 1.5;
-      let tb = blurred[idx + 2] * 1.5;
+      const gr = Math.min(1, blurred[idx] * 2);
+      const gg = Math.min(1, blurred[idx + 1] * 2);
+      const gb = Math.min(1, blurred[idx + 2] * 2);
       
       const [pr, pg, pb] = getPixel(prev, x, y);
-      tr += (pr / 255) * 0.5;
-      tg += (pg / 255) * 0.5;
-      tb += (pb / 255) * 0.5;
+      const sr = pr / 255;
+      const sg = pg / 255;
+      const sb = pb / 255;
       
+      let lr = 0, lg = 0, lb = 0;
       for (const light of lights) {
         const dx = x - light.x;
         const dy = y - light.y;
         const dist = Math.sqrt(dx * dx + dy * dy) / scale;
-        const glow = 0.008 / Math.max(0.01, dist);
-        tr += glow * light.r;
-        tg += glow * light.g;
-        tb += glow * light.b;
+        const glow = 0.012 / Math.max(0.01, dist);
+        lr += glow * light.r;
+        lg += glow * light.g;
+        lb += glow * light.b;
       }
+      lr = Math.min(0.5, lr);
+      lg = Math.min(0.5, lg);
+      lb = Math.min(0.5, lb);
       
-      tr = tr / (1 + tr);
-      tg = tg / (1 + tg);
-      tb = tb / (1 + tb);
+      let tr = sr + gr + lr;
+      let tg = sg + gg + lg;
+      let tb = sb + gb + lb;
+      
+      tr = Math.pow(Math.min(1, tr), 0.8);
+      tg = Math.pow(Math.min(1, tg), 0.8);
+      tb = Math.pow(Math.min(1, tb), 0.8);
       
       setPixel(out, x, y,
         Math.min(255, Math.floor(tr * 255)),
