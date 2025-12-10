@@ -1722,7 +1722,7 @@ function fn6(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const hexRadius = Math.max(5, n * 5);
+  const hexRadius = Math.max(3, n * 2 + 3);
   const hexWidth = hexRadius * 2;
   const hexHeight = hexRadius * Math.sqrt(3);
   
