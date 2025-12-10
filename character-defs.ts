@@ -645,7 +645,7 @@ function fnL(ctx: FnContext, n: number): Image {
   const strips: { y: number; hueShift: number; phase: number }[] = [];
   for (let i = 0; i < numStrips; i++) {
     strips.push({
-      y: i * stripHeight - stripHeight * 2,
+      y: i * stripHeight - stripHeight * 3,
       hueShift: (i * 25) % 360,
       phase: i * 0.8
     });

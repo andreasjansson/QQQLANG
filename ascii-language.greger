@@ -7833,5 +7833,56 @@ function fnL(ctx: FnContext, n: number): Image {
 ID: toolu_018U3dV43uaCbyHawGgpufvr
 
 <tool.toolu_018U3dV43uaCbyHawGgpufvr>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix line weave to avoid black background gaps - start with prev image
 </tool.toolu_018U3dV43uaCbyHawGgpufvr>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0174D62KcATR86FcaPYKvLDr
+
+## path
+
+<tool.toolu_0174D62KcATR86FcaPYKvLDr>
+character-defs.ts
+</tool.toolu_0174D62KcATR86FcaPYKvLDr>
+
+## git-commit-message
+
+<tool.toolu_0174D62KcATR86FcaPYKvLDr>
+Extend strip range to cover edges
+</tool.toolu_0174D62KcATR86FcaPYKvLDr>
+
+## original-content
+
+<tool.toolu_0174D62KcATR86FcaPYKvLDr>
+  const strips: { y: number; hueShift: number; phase: number }[] = [];
+  for (let i = 0; i < numStrips; i++) {
+    strips.push({
+      y: i * stripHeight - stripHeight * 2,
+      hueShift: (i * 25) % 360,
+      phase: i * 0.8
+    });
+  }
+</tool.toolu_0174D62KcATR86FcaPYKvLDr>
+
+## new-content
+
+<tool.toolu_0174D62KcATR86FcaPYKvLDr>
+  const strips: { y: number; hueShift: number; phase: number }[] = [];
+  for (let i = 0; i < numStrips; i++) {
+    strips.push({
+      y: i * stripHeight - stripHeight * 3,
+      hueShift: (i * 25) % 360,
+      phase: i * 0.8
+    });
+  }
+</tool.toolu_0174D62KcATR86FcaPYKvLDr>
+
+# TOOL RESULT
+
+ID: toolu_0174D62KcATR86FcaPYKvLDr
+
+<tool.toolu_0174D62KcATR86FcaPYKvLDr>
+
+</tool.toolu_0174D62KcATR86FcaPYKvLDr>
