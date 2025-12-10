@@ -3964,10 +3964,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#00FA9A',
     number: 62,
     fn: fnCloseBracket,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "torn-right",
-    documentation: "Right third shows old_image, left two-thirds show prev, with torn-paper edge"
+    arity: 0,
+    argTypes: [],
+    functionName: "left-half-offset",
+    documentation: "Offsets the left half of the image vertically by 20% with wraparound"
   },
   
   '_': {
