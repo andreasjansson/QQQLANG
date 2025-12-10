@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-233510976738>
+${greger-prompt-code-style<eval-result-233622330287>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-233510976738>}
+</eval-result-233622330287>}
 
 # USER
 
@@ -8683,5 +8683,86 @@ Use fract() in L shader to manually tile texture
 ID: toolu_013p7mridKDEbaiBWk7mBHPr
 
 <tool.toolu_013p7mridKDEbaiBWk7mBHPr>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Use fract() in L shader to manually tile texture
 </tool.toolu_013p7mridKDEbaiBWk7mBHPr>
+
+# USER
+
+That worked! Can you give it some lighting?
+
+# THINKING
+
+Signature: Ep0CCkYIChgCKkCDcZLELig/QXXmakPkUXD7Pbu9ZILTpqcoaJ+/+nhpRdxfg+IBE8bfXUSzne9L9/QOlQW4KIyJy6APK+Xz9cDcEgxY/crTufK1gvo4uA8aDJKNlHXgq3hAfy4KjyIwOYccdd6mnK4A0WZdKeY/eA6fx4YcMZtkVfl9Vy8xHY2MnUpZCen+Srh7u8NzeuM8KoQBs6hpOrCMJfYwzp9jzBsvlNWKMd8z2oJjfgEY1pZhbl3nBKgEVvF8bPVaT+rkXCy+sqUz04NSgEGVqw/C+HeZUje6x2rHR6sSIkLkOKxEfSR6eA6ImbYJh0B4xEBKRLQmosk+2nL6rudQiHY8ovg8TDpHY/2BDDErxRS9Oys00cOaFUB5GAE=
+
+Great, now I need to add the lighting back to the shader. Let me restore the full shader with lighting calculations.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01MgnCC39WxW5y5Bjh39mA6u
+
+## path
+
+<tool.toolu_01MgnCC39WxW5y5Bjh39mA6u>
+character-defs.ts
+</tool.toolu_01MgnCC39WxW5y5Bjh39mA6u>
+
+## git-commit-message
+
+<tool.toolu_01MgnCC39WxW5y5Bjh39mA6u>
+Add lighting back to L Lissajous shader
+</tool.toolu_01MgnCC39WxW5y5Bjh39mA6u>
+
+## diff
+
+<tool.toolu_01MgnCC39WxW5y5Bjh39mA6u>
+   const fragmentShader = `
+     precision highp float;
+     
+     uniform sampler2D uTexture;
+     uniform vec3 uLightPos;
+     uniform vec3 uLightPos2;
+     
+     varying vec3 vNormal;
+     varying vec3 vPosition;
+     varying vec2 vTexCoord;
+     
+     void main() {
++      vec3 normal = normalize(vNormal);
++      vec3 viewDir = normalize(-vPosition);
++      
++      // Light 1 - main light
++      vec3 lightDir1 = normalize(uLightPos - vPosition);
++      vec3 halfDir1 = normalize(lightDir1 + viewDir);
++      float diff1 = max(dot(normal, lightDir1), 0.0);
++      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 32.0);
++      
++      // Light 2 - fill light
++      vec3 lightDir2 = normalize(uLightPos2 - vPosition);
++      vec3 halfDir2 = normalize(lightDir2 + viewDir);
++      float diff2 = max(dot(normal, lightDir2), 0.0);
++      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 32.0);
++      
++      float ambient = 0.35;
++      float diffuse = diff1 * 0.6 + diff2 * 0.35;
++      float specular = (spec1 * 0.8 + spec2 * 0.4);
++      
+       vec2 tiledCoord = fract(vTexCoord);
+       vec3 texColor = texture2D(uTexture, tiledCoord).rgb;
+-      gl_FragColor = vec4(texColor, 1.0);
++      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
++      
++      gl_FragColor = vec4(color, 1.0);
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_01MgnCC39WxW5y5Bjh39mA6u>
+
+# TOOL RESULT
+
+ID: toolu_01MgnCC39WxW5y5Bjh39mA6u
+
+<tool.toolu_01MgnCC39WxW5y5Bjh39mA6u>
+
+</tool.toolu_01MgnCC39WxW5y5Bjh39mA6u>
