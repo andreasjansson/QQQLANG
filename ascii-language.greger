@@ -6815,5 +6815,65 @@ Add vite for development with auto-reload and TypeScript compilation
 ID: toolu_01AUENhhM7y2kg3f9RUZ3qym
 
 <tool.toolu_01AUENhhM7y2kg3f9RUZ3qym>
-
+Successfully replaced contents of /Users/ajansson/projects/ascii-language/package.json with 253 characters. Successfully staged 2 file(s) and committed with message: Add vite for development with auto-reload and TypeScript compilation
 </tool.toolu_01AUENhhM7y2kg3f9RUZ3qym>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0161KMhAojMdxRsgASD2F1u6
+
+## path
+
+<tool.toolu_0161KMhAojMdxRsgASD2F1u6>
+index.html
+</tool.toolu_0161KMhAojMdxRsgASD2F1u6>
+
+## git-commit-message
+
+<tool.toolu_0161KMhAojMdxRsgASD2F1u6>
+Update index.html to import .ts files directly for Vite
+</tool.toolu_0161KMhAojMdxRsgASD2F1u6>
+
+## diff
+
+<tool.toolu_0161KMhAojMdxRsgASD2F1u6>
+   <script type="module">
+-    import { runProgram } from './dist/runtime.js';
++    import { runProgram } from './runtime.ts';
+ 
+     const canvas = document.getElementById('canvas');
+     const ctx = canvas.getContext('2d');
+     const input = document.getElementById('program-input');
+ 
+     function resize() {
+       canvas.width = window.innerWidth;
+       canvas.height = window.innerHeight;
+       render();
+     }
+ 
+     function render() {
+       const program = input.value || '';
+       const images = runProgram(program, canvas.width, canvas.height);
+       const finalImage = images[images.length - 1];
+       
+       const imageData = new ImageData(finalImage.data, finalImage.width, finalImage.height);
+       ctx.putImageData(imageData, 0, 0);
+     }
+ 
+     window.addEventListener('resize', resize);
+     input.addEventListener('input', render);
+     
+     resize();
+   </script>
+\ No newline at end of file
+
+</tool.toolu_0161KMhAojMdxRsgASD2F1u6>
+
+# TOOL RESULT
+
+ID: toolu_0161KMhAojMdxRsgASD2F1u6
+
+<tool.toolu_0161KMhAojMdxRsgASD2F1u6>
+
+</tool.toolu_0161KMhAojMdxRsgASD2F1u6>
