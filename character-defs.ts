@@ -501,13 +501,7 @@ function fnF(ctx: FnContext, n: number): Image {
         const sampleY = py;
         
         const [pr, pg, pb] = getPixel(prev, sampleX, sampleY);
-        
-        const brightness = 0.7 + 0.6 * Math.sin(smoothed * 0.15);
-        const nr = Math.min(255, Math.round(pr * brightness));
-        const ng = Math.min(255, Math.round(pg * brightness));
-        const nb = Math.min(255, Math.round(pb * brightness));
-        
-        setPixel(out, px, py, nr, ng, nb);
+        setPixel(out, px, py, pr, pg, pb);
       }
     }
   }
