@@ -1497,119 +1497,247 @@ function fnS(ctx: FnContext): Image {
 
 function fnT(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const numBuildings = Math.max(5, (n + 1) * 5);
+  const numCubes = Math.max(1, n + 1);
+  
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightDir;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 lightDir = normalize(uLightDir);
+      
+      float ambient = 0.4;
+      float diffuse = max(dot(normal, lightDir), 0.0) * 0.6;
+      float lighting = ambient + diffuse;
+      
+      vec3 color = texture2D(uTexture, vTexCoord).rgb * lighting;
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number): { vertices: number[], normals: number[], texCoords: number[] } {
+    const x0 = cx - hw, x1 = cx + hw;
+    const y0 = cy - hh, y1 = cy + hh;
+    const z0 = 0, z1 = depth;
+    
+    const u0 = cx - hw, u1 = cx + hw;
+    const v0 = cy - hh, v1 = cy + hh;
+    
+    const vertices: number[] = [];
+    const normals: number[] = [];
+    const texCoords: number[] = [];
+    
+    // Top face (z = z1, facing +z towards camera) - textured with image at this position
+    vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(0,0,1);
+    texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
+    
+    // Right face (+x) - use edge pixel
+    vertices.push(x1,y0,z0, x1,y0,z1, x1,y1,z1, x1,y0,z0, x1,y1,z1, x1,y1,z0);
+    for(let i=0;i<6;i++) normals.push(1,0,0);
+    texCoords.push(u1,v0, u1,v0, u1,v1, u1,v0, u1,v1, u1,v1);
+    
+    // Left face (-x) - use edge pixel
+    vertices.push(x0,y0,z1, x0,y0,z0, x0,y1,z0, x0,y0,z1, x0,y1,z0, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(-1,0,0);
+    texCoords.push(u0,v0, u0,v0, u0,v1, u0,v0, u0,v1, u0,v1);
+    
+    // Front face (+y) - use edge pixel
+    vertices.push(x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z1, x1,y1,z0, x0,y1,z0);
+    for(let i=0;i<6;i++) normals.push(0,1,0);
+    texCoords.push(u0,v1, u1,v1, u1,v1, u0,v1, u1,v1, u0,v1);
+    
+    // Back face (-y) - use edge pixel
+    vertices.push(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z0, x1,y0,z1, x0,y0,z1);
+    for(let i=0;i<6;i++) normals.push(0,-1,0);
+    texCoords.push(u0,v0, u1,v0, u1,v0, u0,v0, u1,v0, u0,v0);
+    
+    return { vertices, normals, texCoords };
+  }
+  
   const seed = ctx.images.length * 137.5 + n * 17.0;
-  const hash = (i: number) => {
-    const x = Math.sin(i + seed) * 43758.5453;
+  const hash = (n: number) => {
+    const x = Math.sin(n + seed) * 43758.5453;
     return x - Math.floor(x);
   };
   
-  interface Building {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    height: number;
-  }
+  const allVertices: number[] = [];
+  const allNormals: number[] = [];
+  const allTexCoords: number[] = [];
   
-  const buildings: Building[] = [];
-  for (let i = 0; i < numBuildings; i++) {
-    const bx = hash(i * 127.1) * ctx.width;
-    const by = hash(i * 311.7) * ctx.height;
-    const bw = 20 + hash(i * 74.3) * 60;
-    const bh = 15 + hash(i * 183.9) * 50;
-    const bHeight = 0.3 + hash(i * 271.3) * 0.7;
-    buildings.push({ x: bx, y: by, w: bw, h: bh, height: bHeight });
-  }
-  
-  buildings.sort((a, b) => a.height - b.height);
-  
-  const shadowOffsetX = 15;
-  const shadowOffsetY = 20;
-  const shadowOpacity = 0.4;
-  
-  for (const b of buildings) {
-    const sx = b.x + shadowOffsetX * b.height;
-    const sy = b.y + shadowOffsetY * b.height;
-    const sw = b.w;
-    const sh = b.h;
+  for (let i = 0; i < numCubes; i++) {
+    const cx = hash(i * 127.1);
+    const cy = hash(i * 311.7);
+    const hw = 0.03 + hash(i * 74.3) * 0.08;
+    const hh = 0.025 + hash(i * 183.9) * 0.06;
+    const depth = 0.1 + hash(i * 271.3) * 0.2;
     
-    for (let py = Math.floor(sy); py < sy + sh && py < ctx.height; py++) {
-      for (let px = Math.floor(sx); px < sx + sw && px < ctx.width; px++) {
-        if (px < 0 || py < 0) continue;
-        const idx = (py * ctx.width + px) * 4;
-        out.data[idx] = Math.floor(out.data[idx] * (1 - shadowOpacity * b.height));
-        out.data[idx + 1] = Math.floor(out.data[idx + 1] * (1 - shadowOpacity * b.height));
-        out.data[idx + 2] = Math.floor(out.data[idx + 2] * (1 - shadowOpacity * b.height));
-      }
+    const box = createBox(cx, cy, hw, hh, depth);
+    allVertices.push(...box.vertices);
+    allNormals.push(...box.normals);
+    allTexCoords.push(...box.texCoords);
+  }
+  
+  gl.useProgram(program);
+  gl.disable(gl.DEPTH_TEST);
+  
+  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
+  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
+  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
+  
+  const posLoc = gl.getAttribLocation(program, 'aPosition');
+  const normLoc = gl.getAttribLocation(program, 'aNormal');
+  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
+  
+  const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), 0.0, 0.0, 1.0);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  
+  const bgPosBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgVertices, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgNormBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgNormals, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgTexBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgTexCoords, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LESS);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  
+  const aspect = ctx.width / ctx.height;
+  const fov = Math.PI / 2.5;
+  const near = 0.1, far = 10.0;
+  const f = 1.0 / Math.tan(fov / 2);
+  const perspective = new Float32Array([
+    f/aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far+near)/(near-far), -1,
+    0, 0, (2*far*near)/(near-far), 0
+  ]);
+  
+  const camZ = 0.5 / Math.tan(fov / 2);
+  const view = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    -0.5, -0.5, -camZ, 1
+  ]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
+  
+  const posBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allVertices), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const normBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allNormals), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const texBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allTexCoords), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = (y * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  for (const b of buildings) {
-    const lightIntensity = 0.6 + b.height * 0.4;
-    
-    for (let py = Math.floor(b.y); py < b.y + b.h && py < ctx.height; py++) {
-      for (let px = Math.floor(b.x); px < b.x + b.w && px < ctx.width; px++) {
-        if (px < 0 || py < 0) continue;
-        const [r, g, b_] = getPixel(prev, px, py);
-        
-        const edgeDist = Math.min(
-          px - b.x,
-          b.x + b.w - px,
-          py - b.y,
-          b.y + b.h - py
-        );
-        const edgeFade = Math.min(1, edgeDist / 3);
-        const roofLight = lightIntensity * edgeFade;
-        
-        const nr = Math.min(255, Math.floor(r * roofLight + 30 * b.height));
-        const ng = Math.min(255, Math.floor(g * roofLight + 25 * b.height));
-        const nb = Math.min(255, Math.floor(b_ * roofLight + 20 * b.height));
-        
-        setPixel(out, px, py, nr, ng, nb);
-      }
-    }
-    
-    const borderDark = 0.5;
-    for (let px = Math.floor(b.x); px < b.x + b.w && px < ctx.width; px++) {
-      if (px < 0) continue;
-      const topY = Math.floor(b.y);
-      const bottomY = Math.min(ctx.height - 1, Math.floor(b.y + b.h - 1));
-      if (topY >= 0 && topY < ctx.height) {
-        const idx = (topY * ctx.width + px) * 4;
-        out.data[idx] = Math.floor(out.data[idx] * borderDark);
-        out.data[idx + 1] = Math.floor(out.data[idx + 1] * borderDark);
-        out.data[idx + 2] = Math.floor(out.data[idx + 2] * borderDark);
-      }
-      if (bottomY >= 0 && bottomY < ctx.height) {
-        const idx = (bottomY * ctx.width + px) * 4;
-        out.data[idx] = Math.floor(out.data[idx] * borderDark);
-        out.data[idx + 1] = Math.floor(out.data[idx + 1] * borderDark);
-        out.data[idx + 2] = Math.floor(out.data[idx + 2] * borderDark);
-      }
-    }
-    for (let py = Math.floor(b.y); py < b.y + b.h && py < ctx.height; py++) {
-      if (py < 0) continue;
-      const leftX = Math.floor(b.x);
-      const rightX = Math.min(ctx.width - 1, Math.floor(b.x + b.w - 1));
-      if (leftX >= 0 && leftX < ctx.width) {
-        const idx = (py * ctx.width + leftX) * 4;
-        out.data[idx] = Math.floor(out.data[idx] * borderDark);
-        out.data[idx + 1] = Math.floor(out.data[idx + 1] * borderDark);
-        out.data[idx + 2] = Math.floor(out.data[idx + 2] * borderDark);
-      }
-      if (rightX >= 0 && rightX < ctx.width) {
-        const idx = (py * ctx.width + rightX) * 4;
-        out.data[idx] = Math.floor(out.data[idx] * borderDark);
-        out.data[idx + 1] = Math.floor(out.data[idx + 1] * borderDark);
-        out.data[idx + 2] = Math.floor(out.data[idx + 2] * borderDark);
-      }
-    }
-  }
+  gl.disableVertexAttribArray(posLoc);
+  gl.disableVertexAttribArray(normLoc);
+  gl.disableVertexAttribArray(texLoc);
+  gl.disable(gl.DEPTH_TEST);
   
-  return out;
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(bgPosBuf);
+  gl.deleteBuffer(bgNormBuf);
+  gl.deleteBuffer(bgTexBuf);
+  gl.deleteBuffer(posBuf);
+  gl.deleteBuffer(normBuf);
+  gl.deleteBuffer(texBuf);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnU(ctx: FnContext, n: number): Image {
