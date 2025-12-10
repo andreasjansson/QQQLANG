@@ -1125,8 +1125,8 @@ function fnT(ctx: FnContext, n: number): Image {
     const y0 = cy - hh, y1 = cy + hh;
     const z0 = 0, z1 = depth;
     
-    // Texture coords based on box position in image
-    const u0 = cx - hw, u1 = cx + hw;
+    // Texture coords based on box position in image (flip u for correct orientation)
+    const u0 = 1 - (cx + hw), u1 = 1 - (cx - hw);
     const v0 = cy - hh, v1 = cy + hh;
     
     const vertices: number[] = [];
