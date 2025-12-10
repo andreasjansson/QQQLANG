@@ -1110,14 +1110,30 @@ function fnM(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const scale = 20 + n * 4;
-  const waveAmp = 30 + n * 5;
-  const waveFreq = 0.015;
+  const hash = (i: number) => {
+    const x = Math.sin(i * 127.1 + n * 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  
+  const scale = 15 + hash(0) * 25;
+  const freqRatio = 1.03 + hash(1) * 0.08;
+  const amp1 = 20 + hash(2) * 60;
+  const amp2 = 20 + hash(3) * 60;
+  const freq1 = 0.008 + hash(4) * 0.02;
+  const freq2 = 0.005 + hash(5) * 0.015;
+  const angle = hash(6) * Math.PI;
+  const phase = hash(7) * Math.PI * 2;
+  const hueShift = Math.floor(hash(8) * 360);
+  
+  const cos_a = Math.cos(angle), sin_a = Math.sin(angle);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const wave1 = y + Math.sin(x * waveFreq) * waveAmp;
-      const wave2 = y + Math.sin(x * waveFreq * 1.07 + 0.5) * waveAmp;
+      const rx = x * cos_a + y * sin_a;
+      const ry = -x * sin_a + y * cos_a;
+      
+      const wave1 = ry + Math.sin(rx * freq1) * amp1;
+      const wave2 = ry + Math.sin(rx * freq1 * freqRatio + phase) * amp2;
       
       const line1 = Math.floor(wave1 / scale) % 2;
       const line2 = Math.floor(wave2 / scale) % 2;
@@ -1127,7 +1143,7 @@ function fnM(ctx: FnContext, n: number): Image {
       const [r, g, b] = getPixel(prev, x, y);
       const [h, s, l] = rgbToHsl(r, g, b);
       
-      const newH = moire ? (h + 180) % 360 : h;
+      const newH = moire ? (h + hueShift) % 360 : h;
       const newL = Math.max(0.05, Math.min(0.95, l + (moire ? 0.15 : -0.1)));
       
       const [nr, ng, nb] = hslToRgb(newH, s, newL);
