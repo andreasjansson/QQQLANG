@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-170212475561>
+${greger-prompt-code-style<eval-result-170322165157>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-170212475561>}
+</eval-result-170322165157>}
 
 # USER
 
@@ -13412,5 +13412,327 @@ Fix Q diagonal to use full diagonal line
 ID: toolu_01SytK7X5pnBezQfSqp9a8nx
 
 <tool.toolu_01SytK7X5pnBezQfSqp9a8nx>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix Q diagonal to use full diagonal line
 </tool.toolu_01SytK7X5pnBezQfSqp9a8nx>
+
+# ASSISTANT
+
+Fixed. Changed the diagonal check from `x + y > hw` to `x / hw + y / hh > 1`, which properly normalizes both coordinates to create a diagonal line from corner to corner regardless of the aspect ratio.
+
+# USER
+
+T flips the image horizontally. fix that
+
+# THINKING
+
+Signature: EoADCkYIChgCKkCiNBFNUmmzvvf+Ez8VJo7sB1LaZQB+uc01kdc9fgyPGtU3W1oSAtwMsoJBwC/GXCil+PnezII39Xw0c1vkLx4oEgyN+vAzHo8vUzpJWokaDPn2pF7M2p4Cx9OazSIw2Cm1FhLZx3BzudmLptzED395jYnmn1b5HIYe8lWLnz6+wdCUZTp2/k8aUmBYK+jxKucBaerVsMNZvzxf6pqlr8SVfXQT/87MH8biGanh54tlfN1eaR9JNYwxEt2eGrYyr6GgRpQzRp0T2VAwma+a6CutabLVqorQYwVQ6l8WjDLYVeLE12N1xZiZVTKF1xzBEnmi7p7flvaNfw2zWr7MKlsABMgPCsdsblJVvrxE2+htQsbJhPdj8BBan/bIKHHb+CQJHdrJDCzE0EOigKfsGQ4zDPtabaXCOr2IrYKAvssmMXf/FkzMkFO77gTU0Kz6nmOTDU/erXb8g/e4PL/NHxnBVDcljP3u2q1ODEsVcLWQqJ0Dxy+obEm4GAE=
+
+The T function is flipping the image horizontally. This is likely happening in the WebGL rendering where the texture coordinates or the final pixel read is flipped. Let me look at the fnT function to find the issue.
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01P59bmESmPjz5Udmog2JrmU
+
+## pattern
+
+<tool.toolu_01P59bmESmPjz5Udmog2JrmU>
+function fnT
+</tool.toolu_01P59bmESmPjz5Udmog2JrmU>
+
+## path
+
+<tool.toolu_01P59bmESmPjz5Udmog2JrmU>
+character-defs.ts
+</tool.toolu_01P59bmESmPjz5Udmog2JrmU>
+
+## context-lines
+
+<tool.toolu_01P59bmESmPjz5Udmog2JrmU>
+5
+</tool.toolu_01P59bmESmPjz5Udmog2JrmU>
+
+# TOOL RESULT
+
+ID: toolu_01P59bmESmPjz5Udmog2JrmU
+
+<tool.toolu_01P59bmESmPjz5Udmog2JrmU>
+1052-  }
+1053-  
+1054-  return out;
+1055-}
+1056-
+1057:function fnT(ctx: FnContext, n: number): Image {
+1058-  const prev = getPrevImage(ctx);
+1059-  const gl = initWebGL(ctx.width, ctx.height);
+1060-  
+1061-  const numDrawers = Math.max(1, n + 1);
+1062-  
+
+</tool.toolu_01P59bmESmPjz5Udmog2JrmU>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01RjKt75VUvyVNh1XcnXGpxy
+
+## path
+
+<tool.toolu_01RjKt75VUvyVNh1XcnXGpxy>
+character-defs.ts
+</tool.toolu_01RjKt75VUvyVNh1XcnXGpxy>
+
+## start-line
+
+<tool.toolu_01RjKt75VUvyVNh1XcnXGpxy>
+1057
+</tool.toolu_01RjKt75VUvyVNh1XcnXGpxy>
+
+## end-line
+
+<tool.toolu_01RjKt75VUvyVNh1XcnXGpxy>
+1160
+</tool.toolu_01RjKt75VUvyVNh1XcnXGpxy>
+
+# TOOL RESULT
+
+ID: toolu_01RjKt75VUvyVNh1XcnXGpxy
+
+<tool.toolu_01RjKt75VUvyVNh1XcnXGpxy>
+function fnT(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const gl = initWebGL(ctx.width, ctx.height);
+  
+  const numDrawers = Math.max(1, n + 1);
+  
+  // Vertex shader with MVP transformation
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  // Fragment shader with lighting
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightDir;
+    uniform int uFaceType; // 0 = front, 1 = side, 2 = top/bottom
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 lightDir = normalize(uLightDir);
+      
+      float ambient = 0.3;
+      float diffuse = max(dot(normal, lightDir), 0.0) * 0.7;
+      float lighting = ambient + diffuse;
+      
+      vec3 color = texture2D(uTexture, vTexCoord).rgb * lighting;
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  
+  // Create texture from prev image
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  // Helper to create box geometry
+  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number): { vertices: number[], normals: number[], texCoords: number[] } {
+    const x0 = cx - hw, x1 = cx + hw;
+    const y0 = cy - hh, y1 = cy + hh;
+    const z0 = 0, z1 = depth;
+    
+    // Texture coords based on box position in image
+    const u0 = cx - hw, u1 = cx + hw;
+    const v0 = cy - hh, v1 = cy + hh;
+    
+    const vertices: number[] = [];
+    const normals: number[] = [];
+    const texCoords: number[] = [];
+    
+    // Front face (z = z1, facing +z towards camera)
+    vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(0,0,1);
+    texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
+    
+    // Right face (+x)
+    vertices.push(x1,y0,z0, x1,y0,z1, x1,y1,z1, x1,y0,z0, x1,y1,z1, x1,y1,z0);
+    for(let i=0;i<6;i++) normals.push(1,0,0);
+    texCoords.push(u1,v0, u1,v0, u1,v1, u1,v0, u1,v1, u1,v1);
+    
+    // Left face (-x)
+    vertices.push(x0,y0,z1, x0,y0,z0, x0,y1,z0, x0,y0,z1, x0,y1,z0, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(-1,0,0);
+    texCoords.push(u0,v0, u0,v0, u0,v1, u0,v0, u0,v1, u0,v1);
+    
+    // Top face (+y)
+    vertices.push(x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z1, x1,y1,z0, x0,y1,z0);
+    for(let i=0;i<6;i++) normals.push(0,1,0);
+    texCoords.push(u0,v1, u1,v1, u1,v1, u0,v1, u1,v1, u0,v1);
+    
+    // Bottom face (-y)
+    vertices.push(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z0, x1,y0,z1, x0,y0,z1);
+    for(let i=0;i<6;i++) normals.push(0,-1,0);
+    texCoords.push(u0,v0, u1,v0, u1,v0, u0,v0, u1,v0, u0,v0);
+    
+</tool.toolu_01RjKt75VUvyVNh1XcnXGpxy>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01NSYETdqpDM3cdydaPnqKP9
+
+## path
+
+<tool.toolu_01NSYETdqpDM3cdydaPnqKP9>
+character-defs.ts
+</tool.toolu_01NSYETdqpDM3cdydaPnqKP9>
+
+## start-line
+
+<tool.toolu_01NSYETdqpDM3cdydaPnqKP9>
+1160
+</tool.toolu_01NSYETdqpDM3cdydaPnqKP9>
+
+## end-line
+
+<tool.toolu_01NSYETdqpDM3cdydaPnqKP9>
+1220
+</tool.toolu_01NSYETdqpDM3cdydaPnqKP9>
+
+# TOOL RESULT
+
+ID: toolu_01NSYETdqpDM3cdydaPnqKP9
+
+<tool.toolu_01NSYETdqpDM3cdydaPnqKP9>
+    
+    return { vertices, normals, texCoords };
+  }
+  
+  // Seeded random
+  const hash = (n: number) => {
+    const x = Math.sin(n) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  
+  // Generate all boxes
+  const allVertices: number[] = [];
+  const allNormals: number[] = [];
+  const allTexCoords: number[] = [];
+  
+  for (let i = 0; i < numDrawers; i++) {
+    const cx = hash(i * 127.1);
+    const cy = hash(i * 311.7);
+    const hw = 0.03 + hash(i * 74.3) * 0.08;
+    const hh = 0.025 + hash(i * 183.9) * 0.06;
+    const depth = 0.1 + hash(i * 271.3) * 0.2;
+    
+    const box = createBox(cx, cy, hw, hh, depth);
+    allVertices.push(...box.vertices);
+    allNormals.push(...box.normals);
+    allTexCoords.push(...box.texCoords);
+  }
+  
+  // First render the background quad
+  gl.useProgram(program);
+  gl.disable(gl.DEPTH_TEST);
+  
+  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
+  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
+  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
+  
+  const posLoc = gl.getAttribLocation(program, 'aPosition');
+  const normLoc = gl.getAttribLocation(program, 'aNormal');
+  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
+  
+  // Identity matrices for background
+  const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), 0.3, 0.5, 1.0);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  
+  const bgPosBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgVertices, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgNormBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgNormals, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+</tool.toolu_01NSYETdqpDM3cdydaPnqKP9>
+
+# ASSISTANT
+
+I see the issue. The background texture coordinates go from `0,0` to `1,1` but the texture in WebGL has Y flipped by default. Let me check the bgTexCoords and fix the horizontal flip:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01WRnYx5Z5wBDZoB9PnU68pT
+
+## path
+
+<tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
+character-defs.ts
+</tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
+
+## git-commit-message
+
+<tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
+Fix T horizontal flip by correcting texture coordinates
+</tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
+
+## diff
+
+<tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
+   const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
+   const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
+-  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
+\ No newline at end of file
++  const bgTexCoords = new Float32Array([1,0, 0,0, 0,1, 1,0, 0,1, 1,1]);
+\ No newline at end of file
+
+</tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
+
+# TOOL RESULT
+
+ID: toolu_01WRnYx5Z5wBDZoB9PnU68pT
+
+<tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
+
+</tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
