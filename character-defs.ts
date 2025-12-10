@@ -1161,9 +1161,10 @@ function fnT(ctx: FnContext, n: number): Image {
     return { vertices, normals, texCoords };
   }
   
-  // Seeded random
+  // Seeded random based on image count
+  const seed = ctx.images.length * 137.5 + n * 17.0;
   const hash = (n: number) => {
-    const x = Math.sin(n) * 43758.5453;
+    const x = Math.sin(n + seed) * 43758.5453;
     return x - Math.floor(x);
   };
   
