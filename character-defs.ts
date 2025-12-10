@@ -659,8 +659,9 @@ function fnK(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnL(ctx: FnContext): Image {
+function fnL(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
   const gl = initWebGL(ctx.width, ctx.height);
   
   const vertexShader = `
@@ -700,9 +701,9 @@ function fnL(ctx: FnContext): Image {
       vec3 viewDir = normalize(-vPosition);
       vec3 halfDir = normalize(lightDir + viewDir);
       
-      float ambient = 0.2;
-      float diff = max(dot(normal, lightDir), 0.0) * 0.7;
-      float spec = pow(max(dot(normal, halfDir), 0.0), 64.0) * 0.8;
+      float ambient = 0.25;
+      float diff = max(dot(normal, lightDir), 0.0) * 0.65;
+      float spec = pow(max(dot(normal, halfDir), 0.0), 32.0) * 0.6;
       
       vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
       vec3 color = texColor * (ambient + diff) + vec3(1.0) * spec;
@@ -711,128 +712,185 @@ function fnL(ctx: FnContext): Image {
     }
   `;
   
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  const bgVertShader = `
+    attribute vec2 aPosition;
+    varying vec2 vUV;
+    void main() {
+      vUV = aPosition * 0.5 + 0.5;
+      gl_Position = vec4(aPosition, 0.999, 1.0);
+    }
+  `;
   
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
+  const bgFragShader = `
+    precision highp float;
+    uniform sampler2D uBgTexture;
+    varying vec2 vUV;
+    void main() {
+      gl_FragColor = texture2D(uBgTexture, vec2(vUV.x, 1.0 - vUV.y));
+    }
+  `;
+  
+  const tubeProgram = createShaderProgram(gl, vertexShader, fragmentShader);
+  const bgProgram = createShaderProgram(gl, bgVertShader, bgFragShader);
+  
+  const prevTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const oldTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   
-  const depth = 0.3;
   const positions: number[] = [];
   const normals: number[] = [];
   const texCoords: number[] = [];
   
-  const addQuad = (
-    p0: number[], p1: number[], p2: number[], p3: number[],
-    n: number[],
-    t0: number[], t1: number[], t2: number[], t3: number[]
-  ) => {
-    positions.push(...p0, ...p1, ...p2, ...p0, ...p2, ...p3);
-    for (let i = 0; i < 6; i++) normals.push(...n);
-    texCoords.push(...t0, ...t1, ...t2, ...t0, ...t2, ...t3);
+  const a = 3, b = 2, c = 1;
+  const tubeRadius = 0.08;
+  const segments = 400;
+  const radialSegments = 12;
+  
+  const getPoint = (t: number): [number, number, number] => {
+    return [
+      Math.sin(a * t) * 0.7,
+      Math.sin(b * t) * 0.7,
+      Math.sin(c * t) * 0.5
+    ];
   };
   
-  // L shape: vertical bar (left) + horizontal bar (bottom)
-  // Vertical bar: x: -0.4 to -0.1, y: -0.5 to 0.5
-  // Horizontal bar: x: -0.4 to 0.4, y: -0.5 to -0.2
+  const getTangent = (t: number): [number, number, number] => {
+    const eps = 0.001;
+    const p1 = getPoint(t - eps);
+    const p2 = getPoint(t + eps);
+    const len = Math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 + (p2[2]-p1[2])**2);
+    return [(p2[0]-p1[0])/len, (p2[1]-p1[1])/len, (p2[2]-p1[2])/len];
+  };
   
-  // Front face - vertical
-  addQuad(
-    [-0.4, 0.5, depth], [-0.1, 0.5, depth], [-0.1, -0.2, depth], [-0.4, -0.2, depth],
-    [0, 0, 1],
-    [0, 0], [0.33, 0], [0.33, 0.7], [0, 0.7]
-  );
-  // Front face - horizontal
-  addQuad(
-    [-0.4, -0.2, depth], [0.4, -0.2, depth], [0.4, -0.5, depth], [-0.4, -0.5, depth],
-    [0, 0, 1],
-    [0, 0.7], [1, 0.7], [1, 1], [0, 1]
-  );
+  for (let i = 0; i < segments; i++) {
+    const t0 = (i / segments) * Math.PI * 2;
+    const t1 = ((i + 1) / segments) * Math.PI * 2;
+    
+    const p0 = getPoint(t0);
+    const p1 = getPoint(t1);
+    const tan0 = getTangent(t0);
+    const tan1 = getTangent(t1);
+    
+    const up = [0, 1, 0];
+    const cross = (a: number[], b: number[]): number[] => [
+      a[1]*b[2] - a[2]*b[1],
+      a[2]*b[0] - a[0]*b[2],
+      a[0]*b[1] - a[1]*b[0]
+    ];
+    const normalize = (v: number[]): number[] => {
+      const len = Math.sqrt(v[0]**2 + v[1]**2 + v[2]**2);
+      return [v[0]/len, v[1]/len, v[2]/len];
+    };
+    
+    let binormal0 = normalize(cross(tan0, up));
+    if (Math.abs(tan0[1]) > 0.99) binormal0 = normalize(cross(tan0, [1, 0, 0]));
+    const normal0 = normalize(cross(binormal0, tan0));
+    
+    let binormal1 = normalize(cross(tan1, up));
+    if (Math.abs(tan1[1]) > 0.99) binormal1 = normalize(cross(tan1, [1, 0, 0]));
+    const normal1 = normalize(cross(binormal1, tan1));
+    
+    for (let r = 0; r < radialSegments; r++) {
+      const angle0 = (r / radialSegments) * Math.PI * 2;
+      const angle1 = ((r + 1) / radialSegments) * Math.PI * 2;
+      
+      const cos0 = Math.cos(angle0), sin0 = Math.sin(angle0);
+      const cos1 = Math.cos(angle1), sin1 = Math.sin(angle1);
+      
+      const v00 = [
+        p0[0] + (normal0[0] * cos0 + binormal0[0] * sin0) * tubeRadius,
+        p0[1] + (normal0[1] * cos0 + binormal0[1] * sin0) * tubeRadius,
+        p0[2] + (normal0[2] * cos0 + binormal0[2] * sin0) * tubeRadius
+      ];
+      const v01 = [
+        p0[0] + (normal0[0] * cos1 + binormal0[0] * sin1) * tubeRadius,
+        p0[1] + (normal0[1] * cos1 + binormal0[1] * sin1) * tubeRadius,
+        p0[2] + (normal0[2] * cos1 + binormal0[2] * sin1) * tubeRadius
+      ];
+      const v10 = [
+        p1[0] + (normal1[0] * cos0 + binormal1[0] * sin0) * tubeRadius,
+        p1[1] + (normal1[1] * cos0 + binormal1[1] * sin0) * tubeRadius,
+        p1[2] + (normal1[2] * cos0 + binormal1[2] * sin0) * tubeRadius
+      ];
+      const v11 = [
+        p1[0] + (normal1[0] * cos1 + binormal1[0] * sin1) * tubeRadius,
+        p1[1] + (normal1[1] * cos1 + binormal1[1] * sin1) * tubeRadius,
+        p1[2] + (normal1[2] * cos1 + binormal1[2] * sin1) * tubeRadius
+      ];
+      
+      const n00 = [normal0[0] * cos0 + binormal0[0] * sin0, normal0[1] * cos0 + binormal0[1] * sin0, normal0[2] * cos0 + binormal0[2] * sin0];
+      const n01 = [normal0[0] * cos1 + binormal0[0] * sin1, normal0[1] * cos1 + binormal0[1] * sin1, normal0[2] * cos1 + binormal0[2] * sin1];
+      const n10 = [normal1[0] * cos0 + binormal1[0] * sin0, normal1[1] * cos0 + binormal1[1] * sin0, normal1[2] * cos0 + binormal1[2] * sin0];
+      const n11 = [normal1[0] * cos1 + binormal1[0] * sin1, normal1[1] * cos1 + binormal1[1] * sin1, normal1[2] * cos1 + binormal1[2] * sin1];
+      
+      const u0 = i / segments * 4;
+      const u1 = (i + 1) / segments * 4;
+      const v0 = r / radialSegments;
+      const v1 = (r + 1) / radialSegments;
+      
+      positions.push(...v00, ...v10, ...v11, ...v00, ...v11, ...v01);
+      normals.push(...n00, ...n10, ...n11, ...n00, ...n11, ...n01);
+      texCoords.push(u0, v0, u1, v0, u1, v1, u0, v0, u1, v1, u0, v1);
+    }
+  }
   
-  // Back face - vertical
-  addQuad(
-    [-0.1, 0.5, -depth], [-0.4, 0.5, -depth], [-0.4, -0.2, -depth], [-0.1, -0.2, -depth],
-    [0, 0, -1],
-    [0.33, 0], [0, 0], [0, 0.7], [0.33, 0.7]
-  );
-  // Back face - horizontal
-  addQuad(
-    [0.4, -0.2, -depth], [-0.4, -0.2, -depth], [-0.4, -0.5, -depth], [0.4, -0.5, -depth],
-    [0, 0, -1],
-    [1, 0.7], [0, 0.7], [0, 1], [1, 1]
-  );
+  gl.enable(gl.DEPTH_TEST);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
-  // Top of vertical bar
-  addQuad(
-    [-0.4, 0.5, -depth], [-0.1, 0.5, -depth], [-0.1, 0.5, depth], [-0.4, 0.5, depth],
-    [0, 1, 0],
-    [0, 0], [0.33, 0], [0.33, 0.1], [0, 0.1]
-  );
+  gl.useProgram(bgProgram);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.uniform1i(gl.getUniformLocation(bgProgram, 'uBgTexture'), 0);
   
-  // Right side of vertical bar (above horizontal)
-  addQuad(
-    [-0.1, 0.5, depth], [-0.1, 0.5, -depth], [-0.1, -0.2, -depth], [-0.1, -0.2, depth],
-    [1, 0, 0],
-    [0.33, 0], [0.33, 0], [0.33, 0.7], [0.33, 0.7]
-  );
+  const bgVerts = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const bgBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, bgVerts, gl.STATIC_DRAW);
+  const bgPosLoc = gl.getAttribLocation(bgProgram, 'aPosition');
+  gl.enableVertexAttribArray(bgPosLoc);
+  gl.vertexAttribPointer(bgPosLoc, 2, gl.FLOAT, false, 0, 0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.disableVertexAttribArray(bgPosLoc);
   
-  // Top of horizontal bar (right part)
-  addQuad(
-    [-0.1, -0.2, -depth], [0.4, -0.2, -depth], [0.4, -0.2, depth], [-0.1, -0.2, depth],
-    [0, 1, 0],
-    [0.33, 0.7], [1, 0.7], [1, 0.7], [0.33, 0.7]
-  );
-  
-  // Right side of horizontal bar
-  addQuad(
-    [0.4, -0.2, depth], [0.4, -0.2, -depth], [0.4, -0.5, -depth], [0.4, -0.5, depth],
-    [1, 0, 0],
-    [1, 0.7], [1, 0.7], [1, 1], [1, 1]
-  );
-  
-  // Bottom of horizontal bar
-  addQuad(
-    [-0.4, -0.5, depth], [0.4, -0.5, depth], [0.4, -0.5, -depth], [-0.4, -0.5, -depth],
-    [0, -1, 0],
-    [0, 1], [1, 1], [1, 1], [0, 1]
-  );
-  
-  // Left side of L
-  addQuad(
-    [-0.4, 0.5, -depth], [-0.4, 0.5, depth], [-0.4, -0.5, depth], [-0.4, -0.5, -depth],
-    [-1, 0, 0],
-    [0, 0], [0, 0], [0, 1], [0, 1]
-  );
-  
-  gl.useProgram(program);
+  gl.useProgram(tubeProgram);
   
   const posBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-  const posLoc = gl.getAttribLocation(program, 'aPosition');
+  const posLoc = gl.getAttribLocation(tubeProgram, 'aPosition');
   gl.enableVertexAttribArray(posLoc);
   gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
   
   const normBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-  const normLoc = gl.getAttribLocation(program, 'aNormal');
+  const normLoc = gl.getAttribLocation(tubeProgram, 'aNormal');
   gl.enableVertexAttribArray(normLoc);
   gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
   
   const texBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
+  const texLoc = gl.getAttribLocation(tubeProgram, 'aTexCoord');
   gl.enableVertexAttribArray(texLoc);
   gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
   
   const aspect = ctx.width / ctx.height;
-  const fov = Math.PI / 4;
+  const fov = Math.PI / 3.5;
   const near = 0.1, far = 10.0;
   const f = 1.0 / Math.tan(fov / 2);
   const projection = new Float32Array([
@@ -842,31 +900,31 @@ function fnL(ctx: FnContext): Image {
     0, 0, (2 * far * near) / (near - far), 0
   ]);
   
-  const angle = 0.4;
-  const c = Math.cos(angle), s = Math.sin(angle);
+  const angleY = 0.5;
+  const angleX = 0.3;
+  const cy = Math.cos(angleY), sy = Math.sin(angleY);
+  const cx = Math.cos(angleX), sx = Math.sin(angleX);
   const modelView = new Float32Array([
-    c, 0, s, 0,
-    0, 1, 0, 0,
-    -s, 0, c, 0,
-    0, 0, -2.5, 1
+    cy, sy * sx, sy * cx, 0,
+    0, cx, -sx, 0,
+    -sy, cy * sx, cy * cx, 0,
+    0, 0, -2.2, 1
   ]);
   
   const normalMatrix = new Float32Array([
-    c, 0, -s,
-    0, 1, 0,
-    s, 0, c
+    cy, sy * sx, sy * cx,
+    0, cx, -sx,
+    -sy, cy * sx, cy * cx
   ]);
   
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, projection);
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModelView'), false, modelView);
-  gl.uniformMatrix3fv(gl.getUniformLocation(program, 'uNormalMatrix'), false, normalMatrix);
-  gl.uniform3f(gl.getUniformLocation(program, 'uLightPos'), 2.0, 2.0, 3.0);
-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
   
-  gl.enable(gl.DEPTH_TEST);
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.clearColor(0, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uProjection'), false, projection);
+  gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uModelView'), false, modelView);
+  gl.uniformMatrix3fv(gl.getUniformLocation(tubeProgram, 'uNormalMatrix'), false, normalMatrix);
+  gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 2.0, 3.0, 2.0);
+  gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 0);
   
   gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
   
@@ -889,11 +947,14 @@ function fnL(ctx: FnContext): Image {
   gl.disableVertexAttribArray(posLoc);
   gl.disableVertexAttribArray(normLoc);
   gl.disableVertexAttribArray(texLoc);
-  gl.deleteTexture(texture);
+  gl.deleteTexture(prevTexture);
+  gl.deleteTexture(oldTexture);
+  gl.deleteBuffer(bgBuffer);
   gl.deleteBuffer(posBuffer);
   gl.deleteBuffer(normBuffer);
   gl.deleteBuffer(texBuffer);
-  gl.deleteProgram(program);
+  gl.deleteProgram(tubeProgram);
+  gl.deleteProgram(bgProgram);
   
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
