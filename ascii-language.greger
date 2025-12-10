@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-160339570500>
+${greger-prompt-code-style<eval-result-160414097349>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-160339570500>}
+</eval-result-160414097349>}
 
 # USER
 
@@ -8268,5 +8268,144 @@ Fix line weave - assign every pixel to closest strip, no distance threshold
 ID: toolu_01UMzS6bouKYrBNGE2Ys3FEL
 
 <tool.toolu_01UMzS6bouKYrBNGE2Ys3FEL>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix line weave - assign every pixel to closest strip, no distance threshold
 </tool.toolu_01UMzS6bouKYrBNGE2Ys3FEL>
+
+# ASSISTANT
+
+Done. Now the algorithm:
+1. For each pixel, finds the closest even strip AND closest odd strip
+2. Draws the farther one first (background), then the closer one on top (foreground)
+3. This creates the weave effect where strips go over/under each other
+4. Every pixel gets assigned to a strip, no gaps possible
+
+# USER
+
+Still lots of gaps
+
+# THINKING
+
+Signature: Eo8GCkYIChgCKkCKiS2Rq703h3Ur0emoAIacaBaFydcpzxJloxjA8kxJgJAJsnfP/3HM23nCQWYPkUl4xYbB7pNLMRq1gw+Ny1WhEgw0tIc92eyiqZYrZ4UaDNmy14tk/YJT9AjmZiIwHBP1Hjv3fJBc16bx7wriF7oXifgfwSP839BLqdSjMkACSLjsE28GYi1eyClxRkBcKvYEX7VqurNByEelxm2C6VjKY1qEPX1vbLZ3fNRmw1Cv/WM1j1bWqUSaGhbyXtrlvLsxWFIk/5RKHTft/1ZcXvUDAWfqzRpoa8LaPoTKmayxlY1KV4LPCf5eEavP/VKr4B9uNYB4zhwV1ovbAmlnDJwpmWF7gq+ClgEzlUNlUPUOiBh/4Ci//VtYeeerEcZnTJToTKGJ+dFvwUu2DHskV2yfBSYcNcOKx+7QFVfs0fiE1OqGsNLCjzblSfMQo6hkLtYAYSSrfuEH2Pv2TE0s3P668+d3IGfzyVuw2TdC9yYg/1VVTYO/H1kTrMve+Uzk5PPDlqwWQFdrLKHIVS/EXb4kw6gGfi6lGUSNaJRwZwI2ibHOvU6ZQGsBGlXg5+elmdmOSJOEDQjr/P7HTHtI32uBkYCYeOhZIxdVAGso79NWes4Zu0oNO9yMULCl7J+Xel1+Zk7RpQlvCWBF2eQx3OCXQloCJa5QA04Ep4poYvj5VNOzU3YxTiivLkEO19CL0vAwct08wRFREBb+A1/SIyvdZqnUZsnLURB739C9ae93xw9XLXnpSr02SS2Zw/wAU7RLmN9Z7NgFsDXmtGg0R+8pFaO07xXTO/VmfQMpN0XGTnXDitfgcLvEqboS31+Tfrk39icWLiVec+mvUzzuRMZ3gY7UXfMq+5Gt6HOA03YxcrYFe/t543KSnlSGOuvFsGt7sjEam7NUns3hTMZILCoeNxnRNlyX0umG+XCTJD8n2gRrasX1fH1ukHi7sFRg1boen6vXJwHUN4/RkbpkLS7TikX6yHJj1WsrLk4Ye4ttkpFv1LcbZ0Md7I6uYtzCbZF5mPb1Y8wgGAE=
+
+The issue is that the `localY >= 0 && localY < stripHeight` check is still causing gaps. When strips wave, the localY calculation might put some pixels outside the strip bounds even though they should be covered.
+
+Let me simplify this drastically. For each output pixel:
+1. Find the closest strip (by center distance after wave)
+2. Sample from that strip's source location
+3. No bounds checking on localY - every pixel MUST be assigned to something
+
+Actually, the problem is I'm checking `if (localY >= 0 && localY < stripHeight)` which excludes pixels. Let me remove that check and just always draw the closest strip.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01P88enLDicDNtbyvQZygVyj
+
+## path
+
+<tool.toolu_01P88enLDicDNtbyvQZygVyj>
+character-defs.ts
+</tool.toolu_01P88enLDicDNtbyvQZygVyj>
+
+## git-commit-message
+
+<tool.toolu_01P88enLDicDNtbyvQZygVyj>
+Fix line weave - remove all bounds checks, every pixel must be filled
+</tool.toolu_01P88enLDicDNtbyvQZygVyj>
+
+## diff
+
+<tool.toolu_01P88enLDicDNtbyvQZygVyj>
+ function fnL(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+   const stripHeight = Math.max(4, n * 2 + 4);
+   const waveAmplitude = stripHeight * 1.2;
+   const waveFrequency = 0.02;
+   const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
+   
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+-      let bestEven = -1, bestEvenDist = Infinity;
+-      let bestOdd = -1, bestOddDist = Infinity;
++      let bestEven = 0, bestEvenDist = Infinity;
++      let bestOdd = 1, bestOddDist = Infinity;
+       
+       for (let i = -3; i < numStrips; i++) {
+         const phase = i * 0.8;
+         const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
+         const stripCenterY = i * stripHeight + stripHeight / 2 + wave;
+         const dist = Math.abs(y - stripCenterY);
+         
+-        if (i % 2 === 0) {
++        if (((i % 2) + 2) % 2 === 0) {
+           if (dist < bestEvenDist) { bestEvenDist = dist; bestEven = i; }
+         } else {
+           if (dist < bestOddDist) { bestOddDist = dist; bestOdd = i; }
+         }
+       }
+       
+       const drawOrder = bestEvenDist < bestOddDist ? [bestOdd, bestEven] : [bestEven, bestOdd];
+       
+       for (const stripIdx of drawOrder) {
+-        if (stripIdx < 0) continue;
+-        
+         const phase = stripIdx * 0.8;
+-        const hueShift = (stripIdx * 25) % 360;
++        const hueShift = ((stripIdx % 360) + 360) % 360 * 25 % 360;
+         const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
+         
+-        const stripTopY = stripIdx * stripHeight + wave;
+-        const localY = y - stripTopY;
++        const stripCenterY = stripIdx * stripHeight + stripHeight / 2 + wave;
++        const distFromCenter = y - stripCenterY;
++        const srcY = stripIdx * stripHeight + stripHeight / 2 + distFromCenter;
++        const clampedSrcY = Math.max(0, Math.min(ctx.height - 1, Math.floor(srcY)));
+         
+-        if (localY >= 0 && localY < stripHeight) {
+-          const srcY = stripIdx * stripHeight + localY;
+-          const clampedSrcY = Math.max(0, Math.min(ctx.height - 1, Math.floor(srcY)));
+-          
+-          const [r, g, b] = getPixel(prev, x, clampedSrcY);
+-          const [h, s, l] = rgbToHsl(r, g, b);
+-          const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
+-          
+-          const edgeDist = Math.min(localY, stripHeight - 1 - localY);
+-          const shadow = edgeDist < 2 ? 0.7 : 1.0;
+-          
+-          setPixel(out, x, y,
+-            Math.round(nr * shadow),
+-            Math.round(ng * shadow),
+-            Math.round(nb * shadow)
+-          );
+-        }
++        const [r, g, b] = getPixel(prev, x, clampedSrcY);
++        const [h, s, l] = rgbToHsl(r, g, b);
++        const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
++        
++        const normDist = Math.abs(distFromCenter) / (stripHeight / 2);
++        const shadow = normDist > 0.7 ? 0.7 : 1.0;
++        
++        setPixel(out, x, y,
++          Math.round(nr * shadow),
++          Math.round(ng * shadow),
++          Math.round(nb * shadow)
++        );
+       }
+     }
+   }
+   
+   return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_01P88enLDicDNtbyvQZygVyj>
+
+# TOOL RESULT
+
+ID: toolu_01P88enLDicDNtbyvQZygVyj
+
+<tool.toolu_01P88enLDicDNtbyvQZygVyj>
+
+</tool.toolu_01P88enLDicDNtbyvQZygVyj>
