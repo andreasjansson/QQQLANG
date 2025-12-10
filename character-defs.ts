@@ -4013,11 +4013,11 @@ export const characterDefs: Record<string, CharDef> = {
   '}': {
     color: '#9400D3',
     number: 67,
-    fn: fnCloseBrace,
-    arity: 0,
-    argTypes: [],
-    functionName: "cylinder-right",
-    documentation: "Right half of image wrapped onto vertical cylinder (WebGL), curved-page effect turning right"
+    fn: fnTornRight,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "torn-right",
+    documentation: "Right third shows old_image, left two-thirds show prev, with torn-paper edge"
   },
   
   '~': {
