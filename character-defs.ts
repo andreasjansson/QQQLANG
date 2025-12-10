@@ -1093,4 +1093,94 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "inverted-tile",
     documentation: "Splits prev diagonally, inverts bottom-right half, then tiles in four quadrants"
   },
+  
+  'R': {
+    color: '#DA70D6',
+    number: 18,
+    fn: fnR,
+    arity: 0,
+    argTypes: [],
+    functionName: "corrugated",
+    documentation: "Image transformed with sinusoidal shape in z dimension, looks vertically corrugated"
+  },
+  
+  'S': {
+    color: '#87CEEB',
+    number: 19,
+    fn: fnS,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "skew-left",
+    documentation: "Skews image left by amount based on n, with wraparound"
+  },
+  
+  'T': {
+    color: '#F0E68C',
+    number: 20,
+    fn: fnT,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "cubes",
+    documentation: "3D cubes emerge from image in deterministic chaotic patterns, light from top-right"
+  },
+  
+  'U': {
+    color: '#DDA0DD',
+    number: 21,
+    fn: fnU,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "undulate",
+    documentation: "Vertical wave distortion with amplitude n*5px, frequency n cycles, phase based on luminance"
+  },
+  
+  'V': {
+    color: '#40E0D0',
+    number: 22,
+    fn: fnV,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "vignette-tint",
+    documentation: "Vignette with radius 0.7, darkened edges tinted toward color c"
+  },
+  
+  'W': {
+    color: '#EE82EE',
+    number: 23,
+    fn: fnW,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "swirl",
+    documentation: "Swirl distortion from center, rotation = n*45°, quadratic falloff"
+  },
+  
+  'X': {
+    color: '#F5DEB3',
+    number: 24,
+    fn: fnX,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "shape-overlay",
+    documentation: "Draws shape from 64-shape lookup table at center, filled with complement of average color"
+  },
+  
+  'Y': {
+    color: '#98FB98',
+    number: 25,
+    fn: fnY,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "radial-hue",
+    documentation: "Splits into n radial sections, each hue-rotated by i*(360/n)°"
+  },
+  
+  'Z': {
+    color: '#AFEEEE',
+    number: 26,
+    fn: fnZ,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "zoom-blur",
+    documentation: "Radial motion blur from center, blur amount n*4px, center 20% stays sharp"
+  },
 };
