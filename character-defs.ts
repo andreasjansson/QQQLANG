@@ -1691,6 +1691,7 @@ function fn5(ctx: FnContext, n: number): Image {
     uniform vec2 uResolution;
     uniform float uStrength;
     uniform int uNumDrips;
+    uniform float uSeed;
     varying vec2 vUV;
     
     #define MAX_DRIPS 100
