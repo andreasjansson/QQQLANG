@@ -2365,10 +2365,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#87CEEB',
     number: 19,
     fn: fnS,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "skew-left",
-    documentation: "Skews image left by amount based on n, with wraparound"
+    arity: 0,
+    argTypes: [],
+    functionName: "skew",
+    documentation: "Skews image 20 degrees with wraparound"
   },
   
   'T': {
