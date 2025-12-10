@@ -12056,5 +12056,84 @@ Add rotate-left and left-half-offset functions for [ and ]
 ID: toolu_01BEeEE82LJqHxYzUxUoWgVA
 
 <tool.toolu_01BEeEE82LJqHxYzUxUoWgVA>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add rotate-left and left-half-offset functions for [ and ]
 </tool.toolu_01BEeEE82LJqHxYzUxUoWgVA>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01AdQa3qdWqEK3jVqdvAV5Ak
+
+## path
+
+<tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
+character-defs.ts
+</tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
+
+## git-commit-message
+
+<tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
+Add left-half-offset function for ] and rename torn-right
+</tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
+
+## diff
+
+<tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
+-function fnCloseBracket(ctx: FnContext, j: number): Image {
++function fnCloseBracket(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const offset = Math.floor(ctx.height * 0.2);
++  const midX = Math.floor(ctx.width / 2);
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      if (x < midX) {
++        const srcY = (y + offset) % ctx.height;
++        const [r, g, b] = getPixel(prev, x, srcY);
++        setPixel(out, x, y, r, g, b);
++      } else {
++        const [r, g, b] = getPixel(prev, x, y);
++        setPixel(out, x, y, r, g, b);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnTornRight(ctx: FnContext, j: number): Image {
++  const prev = getPrevImage(ctx);
+   const old = getOldImage(ctx, j);
+   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+   const boundary = ctx.width * 2 / 3;
+   
+   for (let y = 0; y < ctx.height; y++) {
+     const tear = boundary + Math.sin(y * 0.3) * 20 + Math.sin(y * 0.7) * 10;
+     
+     for (let x = 0; x < ctx.width; x++) {
+       if (x > tear) {
+         const [r, g, b] = getPixel(old, x, y);
+         setPixel(out, x, y, r, g, b);
+       } else {
+         const [r, g, b] = getPixel(prev, x, y);
+         setPixel(out, x, y, r, g, b);
+       }
+     }
+   }
+   
+   return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
+
+# TOOL RESULT
+
+ID: toolu_01AdQa3qdWqEK3jVqdvAV5Ak
+
+<tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
+
+</tool.toolu_01AdQa3qdWqEK3jVqdvAV5Ak>
