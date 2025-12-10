@@ -638,7 +638,7 @@ function fnL(ctx: FnContext, n: number): Image {
   const out = cloneImage(prev);
   
   const complexity = Math.max(1, n);
-  const thickness = Math.max(6, Math.min(ctx.width, ctx.height) / 30);
+  const thickness = Math.max(3, Math.floor(Math.min(ctx.width, ctx.height) / 50));
   const numCurves = Math.min(complexity, 5);
   
   const cx = ctx.width / 2;
@@ -653,12 +653,14 @@ function fnL(ctx: FnContext, n: number): Image {
     const b = complexity + c + 1 + (c % 3);
     const delta = (c * Math.PI) / (numCurves + 1);
     
-    const steps = 3000 + complexity * 200;
+    const steps = 2000;
+    let prevX = cx + Math.sin(delta) * scaleX;
+    let prevY = cy;
     
-    for (let i = 0; i <= steps; i++) {
+    for (let i = 1; i <= steps; i++) {
       const t = (i / steps) * Math.PI * 2;
-      const px = cx + Math.sin(a * t + delta) * scaleX;
-      const py = cy + Math.sin(b * t) * scaleY;
+      const currX = cx + Math.sin(a * t + delta) * scaleX;
+      const currY = cy + Math.sin(b * t) * scaleY;
       
       const t01 = t / (Math.PI * 2);
       const gradientPos = (t01 + c * 0.2) % 1;
@@ -667,24 +669,30 @@ function fnL(ctx: FnContext, n: number): Image {
       const cg = bgG ^ ((xorVal + 85) % 256);
       const cb = bgB ^ ((xorVal + 170) % 256);
       
-      for (let dy = -thickness; dy <= thickness; dy++) {
-        for (let dx = -thickness; dx <= thickness; dx++) {
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist <= thickness) {
-            const x = Math.floor(px + dx);
-            const y = Math.floor(py + dy);
-            if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
-              const alpha = dist > thickness * 0.5 ? 1 - (dist - thickness * 0.5) / (thickness * 0.5) : 1;
-              const [pr, pg, pb] = getPixel(out, x, y);
-              setPixel(out, x, y,
-                Math.round(pr * (1 - alpha) + cr * alpha),
-                Math.round(pg * (1 - alpha) + cg * alpha),
-                Math.round(pb * (1 - alpha) + cb * alpha)
-              );
+      const dx = currX - prevX;
+      const dy = currY - prevY;
+      const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+      const lineSteps = Math.ceil(dist);
+      
+      for (let j = 0; j <= lineSteps; j++) {
+        const lx = Math.floor(prevX + (dx * j) / lineSteps);
+        const ly = Math.floor(prevY + (dy * j) / lineSteps);
+        
+        for (let ty = -thickness; ty <= thickness; ty++) {
+          for (let tx = -thickness; tx <= thickness; tx++) {
+            if (tx * tx + ty * ty <= thickness * thickness) {
+              const px = lx + tx;
+              const py = ly + ty;
+              if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+                setPixel(out, px, py, cr, cg, cb);
+              }
             }
           }
         }
       }
+      
+      prevX = currX;
+      prevY = currY;
     }
   }
   
