@@ -457,18 +457,18 @@ function fnE(ctx: FnContext, j: number): Image {
 
 function fnF(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const maxIterations = Math.max(10, Math.min(n * 10, 100));
+  const zoom = 0.5 + n * 0.3;
+  const maxIterations = 80;
   
-  const centerPixel = getPixel(prev, Math.floor(ctx.width / 2), Math.floor(ctx.height / 2));
-  const cReal = (centerPixel[0] / 255) * 2 - 1;
-  const cImag = (centerPixel[1] / 255) * 2 - 1;
+  const cReal = -0.7;
+  const cImag = 0.27015;
   
   for (let py = 0; py < ctx.height; py++) {
     for (let px = 0; px < ctx.width; px++) {
-      let zReal = (px / ctx.width) * 3 - 1.5;
-      let zImag = (py / ctx.height) * 3 - 1.5;
+      let zReal = ((px / ctx.width) - 0.5) * (3 / zoom);
+      let zImag = ((py / ctx.height) - 0.5) * (3 / zoom) * (ctx.height / ctx.width);
       
       let iteration = 0;
       while (iteration < maxIterations && zReal * zReal + zImag * zImag < 4) {
@@ -478,12 +478,19 @@ function fnF(ctx: FnContext, n: number): Image {
         iteration++;
       }
       
-      const intensity = iteration / maxIterations;
-      const idx = (py * ctx.width + px) * 4;
+      const [pr, pg, pb] = getPixel(prev, px, py);
       
-      out.data[idx] = Math.min(255, out.data[idx] + intensity * 255);
-      out.data[idx + 1] = Math.min(255, out.data[idx + 1] + intensity * 200);
-      out.data[idx + 2] = Math.min(255, out.data[idx + 2] + intensity * 150);
+      if (iteration === maxIterations) {
+        setPixel(out, px, py, pr, pg, pb);
+      } else {
+        const t = iteration / maxIterations;
+        const smooth = t + (1 - t) * 0.3;
+        setPixel(out, px, py,
+          Math.floor(pr * smooth),
+          Math.floor(pg * smooth),
+          Math.floor(pb * smooth)
+        );
+      }
     }
   }
   
