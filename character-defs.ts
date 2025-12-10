@@ -981,113 +981,81 @@ function fnS(ctx: FnContext, n: number): Image {
 
 function fnT(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
+  const out = cloneImage(prev);
   
-  const numCubes = Math.max(1, Math.min(n, 20));
+  const numDrawers = Math.max(1, Math.min(n + 1, 15));
   
-  const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = position * 0.5 + 0.5;
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
+  const seededRandom = (seed: number) => {
+    let state = seed;
+    return () => {
+      state = (state * 1103515245 + 12345) & 0x7fffffff;
+      return state / 0x7fffffff;
+    };
+  };
+  const rand = seededRandom(42);
   
-  const fragmentShader = `
-    precision mediump float;
-    uniform sampler2D texture;
-    uniform vec2 resolution;
-    uniform float numCubes;
-    varying vec2 vUV;
+  const drawers: Array<{x: number, y: number, w: number, h: number, depth: number}> = [];
+  
+  for (let i = 0; i < numDrawers; i++) {
+    const w = 0.1 + rand() * 0.2;
+    const h = 0.08 + rand() * 0.15;
+    const x = rand() * (1 - w);
+    const y = rand() * (1 - h);
+    const depth = 20 + rand() * 40;
+    drawers.push({ x, y, w, h, depth });
+  }
+  
+  drawers.sort((a, b) => a.depth - b.depth);
+  
+  for (const drawer of drawers) {
+    const left = Math.floor(drawer.x * ctx.width);
+    const top = Math.floor(drawer.y * ctx.height);
+    const right = Math.floor((drawer.x + drawer.w) * ctx.width);
+    const bottom = Math.floor((drawer.y + drawer.h) * ctx.height);
+    const depth = Math.floor(drawer.depth);
     
-    float hash(vec2 p) {
-      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-    }
+    const offsetX = Math.floor(depth * 0.3);
+    const offsetY = Math.floor(depth * -0.2);
     
-    void main() {
-      vec2 uv = vUV;
-      vec3 baseColor = texture2D(texture, uv).rgb;
-      vec3 color = baseColor;
-      
-      for (float i = 0.0; i < 20.0; i++) {
-        if (i >= numCubes) break;
-        
-        vec2 cubeCenter = vec2(
-          hash(vec2(i * 47.0, 13.0)),
-          hash(vec2(i * 89.0, 31.0))
-        );
-        float cubeSize = 0.05 + hash(vec2(i, i * 2.0)) * 0.1;
-        
-        vec2 toCenter = uv - cubeCenter;
-        float depth = hash(vec2(i * 17.0, i * 23.0)) * 0.5;
-        
-        vec2 offset3D = vec2(depth * 0.02, -depth * 0.03);
-        
-        if (abs(toCenter.x) < cubeSize && abs(toCenter.y) < cubeSize) {
-          float light = 0.6 + 0.4 * (1.0 - toCenter.x / cubeSize * 0.5 - toCenter.y / cubeSize * 0.3);
-          vec3 cubeColor = texture2D(texture, cubeCenter).rgb;
-          color = cubeColor * light;
-        }
-        
-        vec2 shadowOffset = toCenter + vec2(0.02, 0.03);
-        if (abs(shadowOffset.x) < cubeSize && abs(shadowOffset.y) < cubeSize &&
-            (abs(toCenter.x) >= cubeSize || abs(toCenter.y) >= cubeSize)) {
-          color *= 0.7;
+    for (let y = bottom - 1; y >= top; y--) {
+      for (let x = right + offsetX; x > right; x--) {
+        const srcY = y;
+        if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+          const [r, g, b] = getPixel(prev, right - 1, srcY);
+          const shade = 0.5;
+          setPixel(out, x, y + offsetY, r * shade, g * shade, b * shade);
         }
       }
-      
-      gl_FragColor = vec4(color, 1.0);
     }
-  `;
-  
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
-  
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
-  gl.uniform1f(gl.getUniformLocation(program, 'numCubes'), numCubes);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+    
+    for (let x = left; x < right; x++) {
+      for (let y = top + offsetY; y < top; y++) {
+        if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+          const [r, g, b] = getPixel(prev, x, top);
+          const shade = 0.7;
+          setPixel(out, x + offsetX, y, r * shade, g * shade, b * shade);
+        }
+      }
+    }
+    
+    for (let y = top; y < bottom; y++) {
+      for (let x = left; x < right; x++) {
+        const destX = x + offsetX;
+        const destY = y + offsetY;
+        if (destX >= 0 && destX < ctx.width && destY >= 0 && destY < ctx.height) {
+          const [r, g, b] = getPixel(prev, x, y);
+          const light = 1.1;
+          setPixel(out, destX, destY, 
+            Math.min(255, r * light), 
+            Math.min(255, g * light), 
+            Math.min(255, b * light)
+          );
+        }
+      }
     }
   }
   
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(program);
-  
-  return { width: ctx.width, height: ctx.height, data: flipped };
+  return out;
 }
 
 function fnU(ctx: FnContext, n: number): Image {
