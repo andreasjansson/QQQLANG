@@ -4182,10 +4182,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#DC143C',
     number: 8,
     fn: fnH,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 2,
+    argTypes: ['int', 'int'],
     functionName: "hopf",
-    documentation: "Hopf fibration: 3D projection of 4D structure as interlocking circles textured with prev, n controls rotation"
+    documentation: "Hopf fibration: interlocking circles textured with old_image over prev background, j=old image, rot=rotation"
   },
   
   'I': {
