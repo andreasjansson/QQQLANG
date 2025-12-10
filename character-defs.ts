@@ -1723,9 +1723,9 @@ function fn5(ctx: FnContext, n: number): Image {
         
         float fi = float(i);
         
-        // Random cluster center position across full screen
-        float clusterX = (hash(fi * 127.1) * 2.0 - 1.0) * 1.5;
-        float clusterY = (hash(fi * 311.7) * 2.0 - 1.0) * 1.2;
+        // Random cluster center position across full screen (seeded by image count)
+        float clusterX = (hash(fi * 127.1 + uSeed) * 2.0 - 1.0) * 1.5;
+        float clusterY = (hash(fi * 311.7 + uSeed) * 2.0 - 1.0) * 1.2;
         
         // Cluster size
         float clusterSize = 0.15 + hash(fi * 74.3) * 0.15;
