@@ -488,25 +488,24 @@ function fnF(ctx: FnContext, n: number): Image {
         iteration++;
       }
       
-      const [pr, pg, pb] = getPixel(prev, px, py);
-      
       if (iteration === maxIterations) {
+        const [pr, pg, pb] = getPixel(prev, px, py);
         setPixel(out, px, py, pr, pg, pb);
       } else {
         const log_zn = Math.log(zReal2 + zImag2) / 2;
         const nu = Math.log(log_zn / Math.log(2)) / Math.log(2);
         const smoothed = iteration + 1 - nu;
         
-        const t = smoothed / maxIterations;
-        const hue = (smoothed * 3.5) % 360;
-        const sat = 0.8;
-        const light = 0.4 + t * 0.3;
-        const [fr, fg, fb] = hslToRgb(hue, sat, light);
+        const t = (smoothed % 20) / 20;
+        const sampleX = Math.floor(t * ctx.width);
+        const sampleY = py;
         
-        const blend = 0.7;
-        const nr = Math.round(fr * blend + pr * (1 - blend));
-        const ng = Math.round(fg * blend + pg * (1 - blend));
-        const nb = Math.round(fb * blend + pb * (1 - blend));
+        const [pr, pg, pb] = getPixel(prev, sampleX, sampleY);
+        
+        const brightness = 0.7 + 0.6 * Math.sin(smoothed * 0.15);
+        const nr = Math.min(255, Math.round(pr * brightness));
+        const ng = Math.min(255, Math.round(pg * brightness));
+        const nb = Math.min(255, Math.round(pb * brightness));
         
         setPixel(out, px, py, nr, ng, nb);
       }
