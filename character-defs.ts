@@ -2259,10 +2259,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#8A2BE2',
     number: 14,
     fn: fnN,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "xor-blend",
-    documentation: "XORs prev with old_image at index j, creating glitchy digital artifacts"
+    arity: 0,
+    argTypes: [],
+    functionName: "neon",
+    documentation: "Neon glow effect - edges glow in their original hue, scattered light points add ambiance"
   },
   
   'O': {
