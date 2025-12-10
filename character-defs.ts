@@ -3691,8 +3691,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnDollar,
     arity: 1,
     argTypes: ['int'],
-    functionName: "glass-shatter",
-    documentation: "Shatters image into glass-like shards using Voronoi cells, n controls shard count and displacement"
+    functionName: "hue-sort-segments",
+    documentation: "Divides image into grid segments, sorts pixels within each segment by hue left-to-right top-to-bottom"
   },
   
   '%': {
