@@ -160,14 +160,15 @@
 
     function getProgramFromURL() {
       const path = window.location.pathname;
-      return path === '/' ? '' : path.substring(1);
+      const encoded = path === '/' ? '' : path.substring(1);
+      return decodeURIComponent(encoded);
     }
 
     function updateURL(program) {
       const search = window.location.search;
-      const newPath = program ? `/${program}${search}` : `/${search}`;
-      const fullPath = window.location.pathname + window.location.search;
-      if (fullPath !== newPath) {
+      const newPath = program ? `/${encodeURIComponent(program)}${search}` : `/${search}`;
+      const currentPath = `/${encodeURIComponent(getProgramFromURL())}${search}`;
+      if (currentPath !== newPath) {
         window.history.pushState({ program }, '', newPath);
       }
     }
