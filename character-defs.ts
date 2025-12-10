@@ -775,6 +775,153 @@ function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
   return out;
 }
 
+function fnN(ctx: FnContext, j: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r1, g1, b1] = getPixel(prev, x, y);
+      const [r2, g2, b2] = getPixel(old, x, y);
+      
+      setPixel(out, x, y, r1 ^ r2, g1 ^ g2, b1 ^ b2);
+    }
+  }
+  
+  return out;
+}
+
+function fnO(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const strength = Math.max(0.1, Math.min(n / 10, 3));
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.min(cx, cy);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = (x - cx) / maxR;
+      const dy = (y - cy) / maxR;
+      const r = Math.sqrt(dx * dx + dy * dy);
+      const nr = Math.pow(r, strength) / Math.max(0.001, r);
+      const sx = (cx + dx * nr * maxR) / ctx.width * prev.width;
+      const sy = (cy + dy * nr * maxR) / ctx.height * prev.height;
+      
+      const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      const distFactor = Math.max(0, 1 - r);
+      const brightnessMod = 1 + distFactor * 0.5;
+      const darknessMod = r > 1 ? Math.max(0.3, 1 - (r - 1) * 0.5) : 1;
+      const finalMod = brightnessMod * darknessMod;
+      
+      setPixel(out, x, y, 
+        Math.min(255, pr * finalMod),
+        Math.min(255, pg * finalMod),
+        Math.min(255, pb * finalMod)
+      );
+    }
+  }
+  
+  return out;
+}
+
+function fnP(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const cellSize = Math.max(2, Math.min(n + 1, 50));
+  
+  for (let by = 0; by < ctx.height; by += cellSize) {
+    for (let bx = 0; bx < ctx.width; bx += cellSize) {
+      let sumR = 0, sumG = 0, sumB = 0, count = 0;
+      let maxSat = 0;
+      let mostSatR = 0, mostSatG = 0, mostSatB = 0;
+      
+      for (let y = by; y < by + cellSize && y < ctx.height; y++) {
+        for (let x = bx; x < bx + cellSize && x < ctx.width; x++) {
+          const [r, g, b] = getPixel(prev, x, y);
+          sumR += r;
+          sumG += g;
+          sumB += b;
+          count++;
+          
+          const [h, s, l] = rgbToHsl(r, g, b);
+          if (s > maxSat) {
+            maxSat = s;
+            mostSatR = r;
+            mostSatG = g;
+            mostSatB = b;
+          }
+        }
+      }
+      
+      const avgR = Math.round(sumR / count);
+      const avgG = Math.round(sumG / count);
+      const avgB = Math.round(sumB / count);
+      
+      for (let y = by; y < by + cellSize && y < ctx.height; y++) {
+        for (let x = bx; x < bx + cellSize && x < ctx.width; x++) {
+          const localX = x - bx;
+          const localY = y - by;
+          const isTopLeft = localX + localY < cellSize;
+          
+          if (isTopLeft) {
+            setPixel(out, x, y, avgR, avgG, avgB);
+          } else {
+            setPixel(out, x, y, mostSatR, mostSatG, mostSatB);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnQ(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const hw = Math.floor(ctx.width / 2);
+  const hh = Math.floor(ctx.height / 2);
+  
+  const temp = createSolidImage(hw, hh, '#000000');
+  
+  for (let y = 0; y < hh; y++) {
+    for (let x = 0; x < hw; x++) {
+      const sx = (x / hw) * prev.width;
+      const sy = (y / hh) * prev.height;
+      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      if (x + y > hw) {
+        setPixel(temp, x, y, 255 - r, 255 - g, 255 - b);
+      } else {
+        setPixel(temp, x, y, r, g, b);
+      }
+    }
+  }
+  
+  for (let qy = 0; qy < 2; qy++) {
+    for (let qx = 0; qx < 2; qx++) {
+      for (let y = 0; y < hh; y++) {
+        for (let x = 0; x < hw; x++) {
+          const outX = qx * hw + x;
+          const outY = qy * hh + y;
+          if (outX < ctx.width && outY < ctx.height) {
+            const [r, g, b] = getPixel(temp, x, y);
+            setPixel(out, outX, outY, r, g, b);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
