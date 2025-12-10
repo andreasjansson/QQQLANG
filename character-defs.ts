@@ -979,39 +979,39 @@ function fnCorrugated(ctx: FnContext): Image {
     
     void main() {
       vec2 uv = vUV;
-      float aspect = uResolution.x / uResolution.y;
       
       // Corrugated surface: z = sin(x * freq) * amplitude
-      float freq = 25.0;
-      float amplitude = 0.08;
+      float freq = 20.0;
+      float amplitude = 0.15;
       
       // Calculate the z position on the corrugated surface
       float x = uv.x * freq;
       float z = sin(x) * amplitude;
       
       // Calculate normal by taking derivative of the surface
-      // dz/dx = cos(x * freq) * amplitude * freq
-      float dzdx = cos(x) * amplitude * freq / freq;
+      // Surface is z = sin(uv.x * freq) * amplitude
+      // dz/duv.x = cos(uv.x * freq) * freq * amplitude
+      float dzdx = cos(x) * freq * amplitude;
       vec3 normal = normalize(vec3(-dzdx, 0.0, 1.0));
       
-      // Light coming from front-top-right
-      vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0));
+      // Light coming from front-top-left
+      vec3 lightDir = normalize(vec3(-0.4, 0.6, 0.8));
       
       // Diffuse lighting
       float diff = max(dot(normal, lightDir), 0.0);
       
       // Ambient
-      float ambient = 0.4;
+      float ambient = 0.35;
       
       // Specular
       vec3 viewDir = vec3(0.0, 0.0, 1.0);
       vec3 reflectDir = reflect(-lightDir, normal);
-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0) * 0.3;
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0) * 0.4;
       
-      float lighting = ambient + diff * 0.6 + spec;
+      float lighting = ambient + diff * 0.65 + spec;
       
-      // Sample texture with slight displacement based on surface angle
-      vec2 texCoord = uv + vec2(z * 0.5, 0.0);
+      // Sample texture with displacement based on surface depth
+      vec2 texCoord = uv + vec2(z * 0.3, 0.0);
       texCoord = clamp(texCoord, 0.0, 1.0);
       vec3 texColor = texture2D(uTexture, texCoord).rgb;
       
