@@ -805,13 +805,17 @@ function fnN(ctx: FnContext): Image {
   const numLights = 12;
   const lights: { x: number; y: number; r: number; g: number; b: number }[] = [];
   
+  const seed = ctx.images.length * 137.5;
+  const hash = (n: number) => {
+    const x = Math.sin(n + seed) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  
   for (let i = 0; i < numLights; i++) {
-    const angle = (i * Math.PI * 2) / numLights;
-    const radius = 0.4 + 0.2 * Math.cos(i * 1.5);
-    const px = cx + Math.cos(angle) * radius * scale * 0.5;
-    const py = cy + Math.sin(angle) * radius * scale * 0.5;
+    const px = hash(i * 127.1) * ctx.width;
+    const py = hash(i * 311.7) * ctx.height;
     
-    const colorAngle = (i / numLights) * Math.PI * 2;
+    const colorAngle = hash(i * 74.3) * Math.PI * 2;
     const r = Math.cos(colorAngle) * 0.5 + 0.5;
     const g = Math.cos(colorAngle + Math.PI * 2 / 3) * 0.5 + 0.5;
     const b = Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5;
