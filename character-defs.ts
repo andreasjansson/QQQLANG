@@ -1178,71 +1178,43 @@ function fnW(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnX(ctx: FnContext, k: number): Image {
+function fnX(ctx: FnContext, k: number, c: string): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
   
-  let avgR = 0, avgG = 0, avgB = 0;
-  for (let i = 0; i < prev.data.length; i += 4) {
-    avgR += prev.data[i];
-    avgG += prev.data[i + 1];
-    avgB += prev.data[i + 2];
-  }
-  const count = prev.data.length / 4;
-  avgR = 255 - Math.round(avgR / count);
-  avgG = 255 - Math.round(avgG / count);
-  avgB = 255 - Math.round(avgB / count);
+  const shapes = [
+    '★', '●', '■', '▲', '◆', '♥', '✦', '⬡', '✚', '◐', '☽', '⚡', '∞', '☀', '✿', '⬢',
+    '◯', '△', '□', '◇', '♦', '♣', '♠', '⬟', '⬠', '▽', '◁', '▷', '⊕', '⊗', '⊛', '⊚',
+    '▣', '▤', '▥', '▦', '▧', '▨', '▩', '⬣', '⬤', '◉', '◎', '◈', '◊', '○', '◌', '◍',
+    '◢', '◣', '◤', '◥', '♯', '♮', '♩', '♪', '✶', '✴', '✳', '✲', '✱', '✰', '✯', '✮'
+  ];
   
   const shapeIdx = Math.abs(k) % 64;
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const size = Math.min(ctx.width, ctx.height) * 0.25;
+  const symbol = shapes[shapeIdx];
   
-  const drawShape = (x: number, y: number): boolean => {
-    const nx = (x - cx) / size;
-    const ny = (y - cy) / size;
-    const dist = Math.sqrt(nx * nx + ny * ny);
-    const angle = Math.atan2(ny, nx);
-    
-    switch (shapeIdx) {
-      case 0: // star
-        const starAngle = angle + Math.PI / 2;
-        const starR = 0.5 + 0.5 * Math.cos(5 * starAngle);
-        return dist < starR;
-      case 1: return dist < 1; // circle
-      case 2: return Math.abs(nx) < 1 && Math.abs(ny) < 1; // square
-      case 3: return ny > -1 && ny < 1 - Math.abs(nx); // triangle
-      case 4: return Math.abs(nx) + Math.abs(ny) < 1; // diamond
-      case 5: // heart
-        const hx = Math.abs(nx) * 1.2;
-        const hy = -ny * 0.8 + 0.3;
-        return (hx * hx + hy * hy - 0.5) * (hx * hx + hy * hy - 0.5) * (hx * hx + hy * hy - 0.5) < hx * hx * hy * hy * hy;
-      case 6: // 4-point star
-        const star4R = 0.3 + 0.7 * Math.abs(Math.cos(2 * angle));
-        return dist < star4R;
-      case 7: // hexagon
-        const hAngle = Math.abs((angle + Math.PI / 6) % (Math.PI / 3) - Math.PI / 6);
-        return dist * Math.cos(hAngle) < 0.9;
-      case 8: return (Math.abs(nx) < 0.2 || Math.abs(ny) < 0.2) && Math.abs(nx) < 1 && Math.abs(ny) < 1; // cross
-      case 9: return dist < 1 && (nx > 0 || dist < 0.5); // half circle
-      case 10: return dist < 1 && dist > 0.7 && nx < 0.3; // crescent
-      case 11: // lightning
-        return Math.abs(nx - Math.sin(ny * 3) * 0.3) < 0.15 && Math.abs(ny) < 1;
-      case 12: // infinity
-        const ix = nx * 1.5;
-        const iy = ny * 2;
-        return (ix * ix + iy * iy) * (ix * ix + iy * iy) < ix * ix - iy * iy + 0.5;
-      default:
-        const sides = 3 + (shapeIdx % 10);
-        const polyAngle = Math.abs((angle + Math.PI / sides) % (Math.PI * 2 / sides) - Math.PI / sides);
-        return dist * Math.cos(polyAngle) < 0.8;
-    }
-  };
+  const size = Math.min(ctx.width, ctx.height) * 0.5;
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = ctx.width;
+  tempCanvas.height = ctx.height;
+  const tempCtx = tempCanvas.getContext('2d')!;
+  
+  tempCtx.fillStyle = 'black';
+  tempCtx.fillRect(0, 0, ctx.width, ctx.height);
+  
+  tempCtx.fillStyle = 'white';
+  tempCtx.font = `${size}px serif`;
+  tempCtx.textAlign = 'center';
+  tempCtx.textBaseline = 'middle';
+  tempCtx.fillText(symbol, ctx.width / 2, ctx.height / 2);
+  
+  const maskData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      if (drawShape(x, y)) {
-        setPixel(out, x, y, avgR, avgG, avgB);
+      const maskIdx = (y * ctx.width + x) * 4;
+      if (maskData.data[maskIdx] > 128) {
+        setPixel(out, x, y, cr, cg, cb);
       }
     }
   }
