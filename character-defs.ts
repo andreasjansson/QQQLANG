@@ -638,7 +638,7 @@ function fnL(ctx: FnContext, n: number): Image {
   const out = cloneImage(prev);
   
   const complexity = Math.max(1, n);
-  const thickness = Math.max(2, Math.floor(Math.min(ctx.width, ctx.height) / 60));
+  const thickness = Math.max(4, Math.floor(Math.min(ctx.width, ctx.height) / 40));
   const numCurves = Math.min(complexity, 5);
   
   const cx = ctx.width / 2;
@@ -648,40 +648,68 @@ function fnL(ctx: FnContext, n: number): Image {
   
   const [bgR, bgG, bgB] = getPixel(prev, Math.floor(cx), Math.floor(cy));
   
-  const circleOffsets: [number, number][] = [];
-  for (let ty = -thickness; ty <= thickness; ty++) {
-    for (let tx = -thickness; tx <= thickness; tx++) {
-      if (tx * tx + ty * ty <= thickness * thickness) {
-        circleOffsets.push([tx, ty]);
+  const mask = new Uint8Array(ctx.width * ctx.height);
+  
+  const drawThickLine = (x0: number, y0: number, x1: number, y1: number) => {
+    const dx = Math.abs(x1 - x0);
+    const dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1;
+    const sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
+    let x = x0, y = y0;
+    
+    while (true) {
+      for (let ty = -thickness; ty <= thickness; ty++) {
+        for (let tx = -thickness; tx <= thickness; tx++) {
+          if (tx * tx + ty * ty <= thickness * thickness) {
+            const px = x + tx;
+            const py = y + ty;
+            if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+              mask[py * ctx.width + px] = 1;
+            }
+          }
+        }
       }
+      
+      if (x === x1 && y === y1) break;
+      const e2 = 2 * err;
+      if (e2 > -dy) { err -= dy; x += sx; }
+      if (e2 < dx) { err += dx; y += sy; }
     }
-  }
+  };
   
   for (let c = 0; c < numCurves; c++) {
     const a = complexity + c;
     const b = complexity + c + 1 + (c % 3);
     const delta = (c * Math.PI) / (numCurves + 1);
     
-    const steps = 1500;
+    const steps = 800;
+    let prevX = Math.floor(cx + Math.sin(delta) * scaleX);
+    let prevY = Math.floor(cy);
     
-    for (let i = 0; i <= steps; i++) {
+    for (let i = 1; i <= steps; i++) {
       const t = (i / steps) * Math.PI * 2;
-      const px = Math.floor(cx + Math.sin(a * t + delta) * scaleX);
-      const py = Math.floor(cy + Math.sin(b * t) * scaleY);
+      const currX = Math.floor(cx + Math.sin(a * t + delta) * scaleX);
+      const currY = Math.floor(cy + Math.sin(b * t) * scaleY);
       
-      const t01 = t / (Math.PI * 2);
-      const gradientPos = (t01 + c * 0.2) % 1;
-      const xorVal = Math.floor(gradientPos * 255);
-      const cr = bgR ^ xorVal;
-      const cg = bgG ^ ((xorVal + 85) % 256);
-      const cb = bgB ^ ((xorVal + 170) % 256);
+      drawThickLine(prevX, prevY, currX, currY);
       
-      for (const [ox, oy] of circleOffsets) {
-        const x = px + ox;
-        const y = py + oy;
-        if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
-          setPixel(out, x, y, cr, cg, cb);
-        }
+      prevX = currX;
+      prevY = currY;
+    }
+  }
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      if (mask[y * ctx.width + x]) {
+        const nx = x / ctx.width;
+        const ny = y / ctx.height;
+        const gradientPos = (nx + ny) * 0.5;
+        const xorVal = Math.floor((gradientPos % 1) * 255);
+        const cr = bgR ^ xorVal;
+        const cg = bgG ^ ((xorVal + 85) % 256);
+        const cb = bgB ^ ((xorVal + 170) % 256);
+        setPixel(out, x, y, cr, cg, cb);
       }
     }
   }
