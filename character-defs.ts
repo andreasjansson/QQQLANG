@@ -712,12 +712,12 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
       float diff2 = max(dot(normal, lightDir2), 0.0);
       float spec2 = pow(max(dot(normal, halfDir2), 0.0), 24.0);
       
-      float ambient = 0.5;
-      float diffuse = diff1 * 0.8 + diff2 * 0.5;
-      float specular = (spec1 + spec2) * 0.7;
+      float ambient = 0.6;
+      float diffuse = diff1 * 0.7 + diff2 * 0.4;
+      float specular = (spec1 + spec2) * 0.4;
       
       vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
-      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
+      vec3 color = texColor * (ambient + diffuse) + vec3(1.0, 1.0, 1.0) * specular;
       
       gl_FragColor = vec4(color, 1.0);
     }
