@@ -1717,7 +1717,7 @@ function fn5(ctx: FnContext, n: number): Image {
       return length(p - center) - r;
     }
     
-    // Scene SDF - randomly distributed clusters of 3-5 metaballs each
+    // Scene SDF - randomly distributed clusters of 4 metaballs each
     float sceneSDF(vec3 p, int numClusters, float strength) {
       float d = 1000.0;
       
@@ -1733,12 +1733,8 @@ function fn5(ctx: FnContext, n: number): Image {
         // Cluster size
         float clusterSize = 0.15 + hash(fi * 74.3) * 0.15;
         
-        // 3 to 5 balls per cluster
-        int numBalls = 3 + int(hash(fi * 456.7) * 3.0);
-        
-        for (int j = 0; j < 5; j++) {
-          if (j >= numBalls) break;
-          
+        // 4 balls per cluster (fixed to avoid dynamic loop issues)
+        for (int j = 0; j < 4; j++) {
           float fj = float(j);
           float seed = fi * 100.0 + fj;
           
