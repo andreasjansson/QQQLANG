@@ -49,9 +49,12 @@ class LRUCache<K, V> {
 }
 
 function parseProgram(program: string): ParsedOp[] {
+  console.log(`\n=== PARSING: "${program}" ===`);
   const chars = program.split('').filter(c => c.charCodeAt(0) > 32 && c.charCodeAt(0) < 127);
+  console.log(`Filtered chars: "${chars.join('')}"`);
   
   if (chars.length === 0) {
+    console.log('Empty program, returning []');
     return [];
   }
 
@@ -61,6 +64,7 @@ function parseProgram(program: string): ParsedOp[] {
   const firstDef = characterDefs[firstChar];
   const firstColor = firstDef ? firstDef.color : '#000000';
   
+  console.log(`[0] First char '${firstChar}' -> solid color ${firstColor}`);
   ops.push({
     type: 'solid',
     identifier: firstChar,
@@ -73,12 +77,15 @@ function parseProgram(program: string): ParsedOp[] {
     const def = characterDefs[char];
     
     if (!def) {
+      console.log(`[${i}] '${char}' undefined, skipping`);
       i++;
       continue;
     }
 
     const args: (number | string)[] = [];
     let argsConsumed = 0;
+
+    console.log(`[${i}] '${char}' -> ${def.functionName}, arity ${def.arity}`);
 
     for (let argIdx = 0; argIdx < def.arity; argIdx++) {
       const argType = def.argTypes[argIdx];
@@ -91,28 +98,36 @@ function parseProgram(program: string): ParsedOp[] {
         if (argDef) {
           if (argType === 'int') {
             args.push(argDef.number);
+            console.log(`  arg[${argIdx}] (${argType}): '${argChar}' -> ${argDef.number}`);
           } else {
             args.push(argDef.color);
+            console.log(`  arg[${argIdx}] (${argType}): '${argChar}' -> ${argDef.color}`);
           }
           argsConsumed++;
         } else {
           if (argType === 'int') {
             args.push(def.number);
+            console.log(`  arg[${argIdx}] (${argType}): '${argChar}' undefined, using default ${def.number}`);
           } else {
             args.push(def.color);
+            console.log(`  arg[${argIdx}] (${argType}): '${argChar}' undefined, using default ${def.color}`);
           }
         }
       } else {
         if (argType === 'int') {
           args.push(def.number);
+          console.log(`  arg[${argIdx}] (${argType}): EOF, using default ${def.number}`);
         } else {
           args.push(def.color);
+          console.log(`  arg[${argIdx}] (${argType}): EOF, using default ${def.color}`);
         }
       }
     }
 
     const endIndex = i + 1 + argsConsumed;
     const identifier = chars.slice(0, endIndex).join('');
+    
+    console.log(`  identifier: "${identifier}"`);
     
     ops.push({
       type: 'function',
@@ -124,6 +139,7 @@ function parseProgram(program: string): ParsedOp[] {
     i += 1 + argsConsumed;
   }
 
+  console.log(`Parsed into ${ops.length} operations`);
   return ops;
 }
 
