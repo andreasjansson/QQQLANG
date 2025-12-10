@@ -857,10 +857,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#20B2AA',
     number: 12,
     fn: fnL,
-    arity: 1,
-    argTypes: ['color'],
+    arity: 3,
+    argTypes: ['color', 'int', 'int'],
     functionName: "lichtenberg",
-    documentation: "Draws Lichtenberg figures from top using DLA simulation (max 500 segments) in color c"
+    documentation: "Draws Lichtenberg figures with recursive branching in color c, recursion depth (3-12), and angle variation (1-30)"
   },
   
   'M': {
