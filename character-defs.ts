@@ -967,14 +967,14 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
     -sy, cy * sx, cy * cx
   ]);
   
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
-  
   gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uProjection'), false, projection);
   gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uModelView'), false, modelView);
   gl.uniformMatrix3fv(gl.getUniformLocation(tubeProgram, 'uNormalMatrix'), false, normalMatrix);
   gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 3.0, 3.0, 3.0);
   gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos2'), -2.0, 1.0, 2.0);
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
   gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 0);
   
   gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
