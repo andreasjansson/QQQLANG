@@ -1,4 +1,4 @@
-import { characterDefs, createSolidImage, Image, FnContext, CharDef } from './character-defs';
+import { characterDefs, createSolidImage, Image, FnContext, CharDef } from './character-defs.js';
 
 export function runProgram(program: string, width: number, height: number): Image[] {
   const chars = program.split('').filter(c => c.charCodeAt(0) > 32 && c.charCodeAt(0) < 127);
