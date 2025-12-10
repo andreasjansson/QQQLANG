@@ -1,24 +1,73 @@
 import { characterDefs, createSolidImage, Image, FnContext, CharDef } from './character-defs.js';
 
-export function runProgram(program: string, width: number, height: number): Image[] {
+interface ParsedSolidColor {
+  type: 'solid';
+  identifier: string;
+  color: string;
+}
+
+interface ParsedFunction {
+  type: 'function';
+  identifier: string;
+  fnDef: CharDef;
+  args: (number | string)[];
+}
+
+type ParsedOp = ParsedSolidColor | ParsedFunction;
+
+class LRUCache<K, V> {
+  private cache = new Map<K, V>();
+  private maxSize: number;
+
+  constructor(maxSize: number = 100) {
+    this.maxSize = maxSize;
+  }
+
+  get(key: K): V | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      this.cache.delete(key);
+      this.cache.set(key, value);
+    }
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
+    this.cache.set(key, value);
+    if (this.cache.size > this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      this.cache.delete(firstKey);
+    }
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+function parseProgram(program: string): ParsedOp[] {
   const chars = program.split('').filter(c => c.charCodeAt(0) > 32 && c.charCodeAt(0) < 127);
   
   if (chars.length === 0) {
-    return [createSolidImage(width, height, '#000000')];
+    return [];
   }
 
-  const images: Image[] = [];
-  let i = 0;
-
-  const firstChar = chars[i];
+  const ops: ParsedOp[] = [];
+  
+  const firstChar = chars[0];
   const firstDef = characterDefs[firstChar];
-  if (firstDef) {
-    images.push(createSolidImage(width, height, firstDef.color));
-  } else {
-    images.push(createSolidImage(width, height, '#000000'));
-  }
-  i++;
+  const firstColor = firstDef ? firstDef.color : '#000000';
+  
+  ops.push({
+    type: 'solid',
+    identifier: firstChar,
+    color: firstColor
+  });
 
+  let i = 1;
   while (i < chars.length) {
     const char = chars[i];
     const def = characterDefs[char];
@@ -62,17 +111,67 @@ export function runProgram(program: string, width: number, height: number): Imag
       }
     }
 
-    const ctx: FnContext = {
-      width,
-      height,
-      images: [...images],
-      currentIndex: images.length,
-    };
-
-    const result = def.fn(ctx, ...args);
-    images.push(result);
+    const endIndex = i + 1 + argsConsumed;
+    const identifier = chars.slice(0, endIndex).join('');
+    
+    ops.push({
+      type: 'function',
+      identifier,
+      fnDef: def,
+      args
+    });
     
     i += 1 + argsConsumed;
+  }
+
+  return ops;
+}
+
+const imageCache = new LRUCache<string, Image>(100);
+let lastWidth = 0;
+let lastHeight = 0;
+
+export function runProgram(program: string, width: number, height: number): Image[] {
+  if (width !== lastWidth || height !== lastHeight) {
+    imageCache.clear();
+    lastWidth = width;
+    lastHeight = height;
+  }
+
+  const ops = parseProgram(program);
+  
+  if (ops.length === 0) {
+    return [createSolidImage(width, height, '#000000')];
+  }
+
+  const images: Image[] = [];
+  
+  for (let opIdx = 0; opIdx < ops.length; opIdx++) {
+    const op = ops[opIdx];
+    
+    const cached = imageCache.get(op.identifier);
+    if (cached) {
+      images.push(cached);
+      continue;
+    }
+
+    let result: Image;
+    
+    if (op.type === 'solid') {
+      result = createSolidImage(width, height, op.color);
+    } else {
+      const ctx: FnContext = {
+        width,
+        height,
+        images: [...images],
+        currentIndex: images.length,
+      };
+      
+      result = op.fnDef.fn(ctx, ...op.args);
+    }
+    
+    images.push(result);
+    imageCache.set(op.identifier, result);
   }
 
   return images;
