@@ -1005,13 +1005,6 @@ function fnT(ctx: FnContext, n: number): Image {
       return fract(sin(n) * 43758.5453);
     }
     
-    struct Box {
-      vec3 min;
-      vec3 max;
-      vec2 texMin;
-      vec2 texMax;
-    };
-    
     bool rayBoxIntersect(vec3 ro, vec3 rd, vec3 boxMin, vec3 boxMax, out float tNear, out float tFar, out vec3 normal) {
       vec3 invRd = 1.0 / rd;
       vec3 t1 = (boxMin - ro) * invRd;
@@ -1034,29 +1027,28 @@ function fnT(ctx: FnContext, n: number): Image {
       vec2 uv = vUV;
       vec3 baseColor = texture2D(texture, uv).rgb;
       
-      vec2 ndc = uv * 2.0 - 1.0;
-      ndc.x *= resolution.x / resolution.y;
-      
-      vec3 ro = vec3(0.0, 0.0, 2.5);
-      vec3 rd = normalize(vec3(ndc * 0.8, -1.0));
+      vec3 ro = vec3(uv.x, uv.y, 1.5);
+      vec3 rd = vec3(0.0, 0.0, -1.0);
       
       vec3 lightDir = normalize(vec3(0.4, 0.5, 0.8));
       
       float closestT = 1000.0;
       vec3 finalColor = baseColor;
+      vec2 finalTexCoord = uv;
+      int hitType = 0;
       
       for (int i = 0; i < 12; i++) {
         if (i >= numDrawers) break;
         
         float fi = float(i);
-        float bx = hash(fi * 127.1) * 1.4 - 0.7;
-        float by = hash(fi * 311.7) * 1.4 - 0.7;
-        float bw = 0.15 + hash(fi * 74.3) * 0.25;
-        float bh = 0.1 + hash(fi * 183.9) * 0.2;
-        float depth = 0.3 + hash(fi * 271.3) * 0.7;
+        float bx = hash(fi * 127.1);
+        float by = hash(fi * 311.7);
+        float bw = 0.08 + hash(fi * 74.3) * 0.15;
+        float bh = 0.06 + hash(fi * 183.9) * 0.12;
+        float depth = 0.2 + hash(fi * 271.3) * 0.6;
         
-        vec3 boxMin = vec3(bx - bw, by - bh, -depth);
-        vec3 boxMax = vec3(bx + bw, by + bh, 0.0);
+        vec3 boxMin = vec3(bx - bw, by - bh, 0.0);
+        vec3 boxMax = vec3(bx + bw, by + bh, depth);
         
         float tNear, tFar;
         vec3 normal;
@@ -1066,29 +1058,44 @@ function fnT(ctx: FnContext, n: number): Image {
             closestT = tNear;
             vec3 hitPos = ro + rd * tNear;
             
-            float lighting = max(0.3, dot(normal, lightDir));
-            
             if (normal.z > 0.5) {
-              vec2 texCoord = vec2(
-                (hitPos.x - boxMin.x) / (boxMax.x - boxMin.x),
-                (hitPos.y - boxMin.y) / (boxMax.y - boxMin.y)
+              hitType = 1;
+              finalTexCoord = vec2(
+                boxMin.x + (hitPos.x - boxMin.x),
+                boxMin.y + (hitPos.y - boxMin.y)
               );
-              texCoord = texCoord * 0.15 + vec2(bx * 0.3 + 0.5, 0.5 - by * 0.3);
-              finalColor = texture2D(texture, clamp(texCoord, 0.0, 1.0)).rgb * lighting;
             } else if (abs(normal.x) > 0.5) {
-              float shade = 0.4 + 0.2 * (hitPos.z / depth + 1.0);
-              vec2 texCoord = vec2(bx * 0.3 + 0.5, 0.5 - by * 0.3);
-              finalColor = texture2D(texture, texCoord).rgb * shade * lighting;
+              hitType = 2;
+              float t = (hitPos.z - boxMin.z) / (boxMax.z - boxMin.z);
+              if (normal.x > 0.0) {
+                finalTexCoord = vec2(boxMin.x, hitPos.y);
+              } else {
+                finalTexCoord = vec2(boxMax.x, hitPos.y);
+              }
             } else {
-              float shade = 0.5 + 0.3 * (hitPos.z / depth + 1.0);
-              vec2 texCoord = vec2(bx * 0.3 + 0.5, 0.5 - by * 0.3);
-              finalColor = texture2D(texture, texCoord).rgb * shade * lighting;
+              hitType = 3;
+              float t = (hitPos.z - boxMin.z) / (boxMax.z - boxMin.z);
+              if (normal.y > 0.0) {
+                finalTexCoord = vec2(hitPos.x, boxMin.y);
+              } else {
+                finalTexCoord = vec2(hitPos.x, boxMax.y);
+              }
             }
           }
         }
       }
       
-      gl_FragColor = vec4(finalColor, 1.0);
+      vec3 color = texture2D(texture, clamp(finalTexCoord, 0.0, 1.0)).rgb;
+      if (hitType == 2) {
+        color *= 0.5;
+      } else if (hitType == 3) {
+        color *= 0.7;
+      } else if (hitType == 1) {
+        color *= 1.1;
+        color = min(color, vec3(1.0));
+      }
+      
+      gl_FragColor = vec4(color, 1.0);
     }
   `;
   
