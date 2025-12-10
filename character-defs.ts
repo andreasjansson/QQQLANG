@@ -2210,10 +2210,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#FFA07A',
     number: 28,
     fn: fn1,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 0,
+    argTypes: [],
     functionName: "center-bar",
-    documentation: "Vertical bar at center (width = n% of image) shows prev sharpened and contrast-boosted, rest is desaturated"
+    documentation: "Vertical bar at center (20% width) shows prev sharpened and contrast-boosted, rest is desaturated"
   },
   
   '2': {
