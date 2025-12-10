@@ -3732,9 +3732,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 42,
     fn: fnHash,
     arity: 1,
-    argTypes: ['color'],
-    functionName: "grid-lines",
-    documentation: "Draws grid of lines in color c with thickness = 1 + sin(x*y*0.01) * 3"
+    argTypes: ['int'],
+    functionName: "som-rearrange",
+    documentation: "Rearranges image cells using self-organizing map, grouping similar colors together, grid size 4-16 based on n"
   },
   
   '$': {
