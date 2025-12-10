@@ -12705,5 +12705,61 @@ Update fnH with old image, rotation params, and thicker tubes
 ID: toolu_01TYvde6Xfiv4mQti5jArNF1
 
 <tool.toolu_01TYvde6Xfiv4mQti5jArNF1>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update fnH with old image, rotation params, and thicker tubes
 </tool.toolu_01TYvde6Xfiv4mQti5jArNF1>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01KUqUYNRb7Y6msSBpQwM5u2
+
+## path
+
+<tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
+character-defs.ts
+</tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
+
+## git-commit-message
+
+<tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
+Add old texture and make tubes thicker in fnH
+</tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
+
+## diff
+
+<tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
+   const prevTexture = gl.createTexture();
+   gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   
++  const oldTexture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
+   const positions: number[] = [];
+   const normals: number[] = [];
+   const texCoords: number[] = [];
+   
+   const numFibers = 12;
+-  const tubeRadius = 0.025;
+\ No newline at end of file
++  const tubeRadius = 0.06;
+\ No newline at end of file
+
+</tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
+
+# TOOL RESULT
+
+ID: toolu_01KUqUYNRb7Y6msSBpQwM5u2
+
+<tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
+
+</tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
