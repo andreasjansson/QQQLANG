@@ -1698,111 +1698,104 @@ function fn5(ctx: FnContext, n: number): Image {
       return fract(sin(n) * 43758.5453123);
     }
     
-    // Smooth 2D noise
-    float noise2D(vec2 p) {
-      vec2 i = floor(p);
-      vec2 f = fract(p);
-      f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
-      
-      float n = i.x + i.y * 157.0;
-      float a = hash(n);
-      float b = hash(n + 1.0);
-      float c = hash(n + 157.0);
-      float d = hash(n + 158.0);
-      
-      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-    }
-    
-    // Fractal noise
-    float fbm(vec2 p) {
-      float value = 0.0;
-      float amp = 0.5;
-      for (int i = 0; i < 3; i++) {
-        value += amp * noise2D(p);
-        p *= 2.0;
-        amp *= 0.5;
-      }
-      return value;
+    // Compute metaball field value
+    float metaball(vec2 p, vec2 center, float radius) {
+      float d = length(p - center);
+      if (d > radius * 3.0) return 0.0;
+      float r2 = radius * radius;
+      float d2 = d * d;
+      return r2 / (d2 + 0.0001);
     }
     
     void main() {
       vec2 uv = vUV;
+      vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+      vec2 p = uv * aspect;
       
-      // Create smooth drip displacement field
-      float dripField = 0.0;
-      vec2 dripDirection = vec2(0.0);
+      float totalField = 0.0;
+      vec2 displacement = vec2(0.0);
       
-      // Sample multiple positions for smooth drip effect
+      // Generate drips deterministically
       for (int i = 0; i < MAX_DRIPS; i++) {
         if (i >= uNumDrips) break;
         
         float fi = float(i);
-        float xPos = hash(fi * 127.1);
-        float xOffset = (uv.x - xPos) * uResolution.x / uResolution.y;
         
-        // Create smooth falloff in X
-        float xFalloff = exp(-xOffset * xOffset * 8.0);
+        // Base x position
+        float baseX = hash(fi * 127.1);
         
-        // Vertical influence based on Y position
-        float startY = hash(fi * 311.7) * 0.2;
-        float yInfluence = smoothstep(startY, startY + 0.8 * uStrength, uv.y);
-        
-        // Add noise for organic variation
-        float noiseOffset = fbm(vec2(xPos * 20.0, uv.y * 10.0 + fi * 5.0)) * 0.1;
-        
-        dripField += xFalloff * yInfluence * (1.0 + noiseOffset);
-        
-        // Direction weighted by influence
-        float wobble = sin(uv.y * 15.0 + fi * 6.28) * 0.02;
-        dripDirection += vec2(wobble, 1.0) * xFalloff * yInfluence;
-      }
-      
-      // Normalize and scale
-      if (dripField > 0.01) {
-        dripDirection = normalize(dripDirection) * dripField;
-      }
-      
-      // Create smooth vertical displacement
-      float dripAmount = dripField * 0.12 * uStrength;
-      dripAmount *= smoothstep(0.0, 0.2, uv.y); // Less at top
-      
-      // Add horizontal wobble
-      float wobbleX = fbm(vec2(uv.x * 25.0, uv.y * 8.0)) * 0.015 * dripAmount;
-      
-      // Sample with smooth displacement
-      vec2 displaced = uv;
-      displaced.y += dripAmount;
-      displaced.x += wobbleX;
-      
-      // Multi-sample for smooth anti-aliased result
-      vec4 color = vec4(0.0);
-      float totalWeight = 0.0;
-      
-      // 9-tap smooth sampling
-      for (int dy = -1; dy <= 1; dy++) {
-        for (int dx = -1; dx <= 1; dx++) {
-          vec2 offset = vec2(float(dx), float(dy)) / uResolution * 1.5;
-          vec2 sampleUV = displaced + offset;
+        // Create a drip trail - multiple balls along a vertical line
+        for (int j = 0; j < 10; j++) {
+          float fj = float(j);
           
-          // Vertical smear in drip areas
-          float smearAmount = dripAmount * 0.3;
-          sampleUV.y += float(dy) * smearAmount / uResolution.y;
+          // Y position - spread along the drip trail
+          float progress = fj / 9.0;
+          float startY = hash(fi * 311.7) * 0.25;
+          float dripLength = 0.35 + hash(fi * 74.3) * 0.45;
+          float y = startY + progress * dripLength * uStrength;
           
-          float weight = 1.0;
-          if (dx != 0 || dy != 0) {
-            weight = 0.5;
+          // Smooth wobble along the drip
+          float wobble = sin(progress * 12.56 + fi * 2.0) * 0.015;
+          wobble += sin(progress * 25.12 + fi * 5.0) * 0.008;
+          float x = baseX + wobble;
+          
+          // Ball radius - teardrop shape
+          float baseRadius = 0.035 + hash(fi * 183.9) * 0.025;
+          float radius = baseRadius * (1.0 - progress * 0.7);
+          radius *= uStrength * 0.6;
+          
+          vec2 ballPos = vec2(x * aspect.x, y);
+          
+          float field = metaball(p, ballPos, radius);
+          totalField += field;
+          
+          // Accumulate displacement direction
+          if (field > 0.01) {
+            vec2 toDrip = ballPos - p;
+            displacement += normalize(toDrip) * field * progress * 0.05;
           }
-          
-          color += texture2D(uTexture, clamp(sampleUV, 0.0, 1.0)) * weight;
-          totalWeight += weight;
         }
       }
       
-      color /= totalWeight;
+      // Smooth threshold for metaball surface
+      float threshold = 1.2;
+      float blob = smoothstep(threshold - 0.5, threshold + 0.5, totalField);
       
-      // Subtle shading for depth
-      float shadeFactor = 1.0 - dripAmount * 0.2;
-      color.rgb *= shadeFactor;
+      // Apply smooth displacement based on drip field
+      vec2 sampleUV = uv;
+      sampleUV.y -= blob * 0.08 * uStrength;
+      sampleUV.x += displacement.x * blob * 0.5;
+      
+      // High quality multi-tap sampling to prevent pixelation
+      vec4 color = vec4(0.0);
+      float kernelSize = max(1.0, blob * 2.0);
+      float pixelSize = 1.0 / uResolution.y;
+      
+      // Use a larger sampling kernel in drip areas
+      for (int sy = -2; sy <= 2; sy++) {
+        for (int sx = -2; sx <= 2; sx++) {
+          vec2 offset = vec2(float(sx), float(sy)) * pixelSize * kernelSize;
+          vec2 tapUV = sampleUV + offset;
+          
+          // Gaussian-like weights
+          float dx = float(sx) / 2.0;
+          float dy = float(sy) / 2.0;
+          float weight = exp(-(dx*dx + dy*dy) * 0.5);
+          
+          color += texture2D(uTexture, clamp(tapUV, 0.0, 1.0)) * weight;
+        }
+      }
+      
+      // Normalize by approximate sum of gaussian weights
+      color /= 6.7;
+      
+      // Subtle shading - darker in thick drip areas
+      float shade = 1.0 - blob * 0.12;
+      color.rgb *= shade;
+      
+      // Edge highlight
+      float edge = smoothstep(threshold - 0.3, threshold, totalField) - smoothstep(threshold, threshold + 0.6, totalField);
+      color.rgb += edge * 0.08;
       
       gl_FragColor = color;
     }
