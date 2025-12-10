@@ -814,20 +814,18 @@ function fnO(ctx: FnContext, n: number): Image {
       }
       
       const nr = Math.pow(r, strength) / r || 0;
-      const sx = (cx + dx * nr * maxR) / ctx.width * prev.width;
-      const sy = (cy + dy * nr * maxR) / ctx.height * prev.height;
+      const distortedX = cx + dx * nr * maxR;
+      const distortedY = cy + dy * nr * maxR;
+      
+      const clampedX = Math.max(0, Math.min(ctx.width - 1, distortedX));
+      const clampedY = Math.max(0, Math.min(ctx.height - 1, distortedY));
+      
+      const sx = (clampedX / ctx.width) * prev.width;
+      const sy = (clampedY / ctx.height) * prev.height;
       
       const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
       
-      const normalizedR = Math.min(r, 1.2);
-      const brightnessMod = normalizedR < 0.5 ? 1 + (1 - normalizedR / 0.5) * 0.3 : 1 - (normalizedR - 0.5) / 0.7 * 0.3;
-      const clampedMod = Math.max(0.5, Math.min(1.3, brightnessMod));
-      
-      setPixel(out, x, y, 
-        Math.round(Math.min(255, Math.max(0, pr * clampedMod))),
-        Math.round(Math.min(255, Math.max(0, pg * clampedMod))),
-        Math.round(Math.min(255, Math.max(0, pb * clampedMod)))
-      );
+      setPixel(out, x, y, pr, pg, pb);
     }
   }
   
