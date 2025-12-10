@@ -1807,8 +1807,8 @@ function fn5(ctx: FnContext, n: number): Image {
       if (hit) {
         vec3 normal = calcNormal(p, uNumDrips, uStrength);
         
-        // Light from front-top-left
-        vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0));
+        // Light from top
+        vec3 lightDir = normalize(vec3(0.0, 1.0, 0.5));
         vec3 viewDir = -rd;
         
         // Fresnel for glass rim
