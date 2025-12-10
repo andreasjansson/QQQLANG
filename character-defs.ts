@@ -3942,10 +3942,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#DC143C',
     number: 8,
     fn: fnH,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 0,
+    argTypes: [],
     functionName: "hilbert-dither",
-    documentation: "Hilbert curve dithering: error diffusion along space-filling curve, 4 color levels per channel"
+    documentation: "Hilbert curve dithering: error diffusion along space-filling curve, 8-color palette sampled from image"
   },
   
   'I': {
