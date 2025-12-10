@@ -799,30 +799,27 @@ function fnO(ctx: FnContext, n: number): Image {
   const strength = Math.max(0.1, Math.min(n / 10, 3));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const dx = x - cx;
       const dy = y - cy;
       const r = Math.sqrt(dx * dx + dy * dy);
-      const maxR = Math.sqrt(cx * cx + cy * cy);
+      
+      if (r < 0.001) continue;
+      
       const normR = r / maxR;
+      const sampleNormR = Math.pow(normR, strength);
+      const factor = sampleNormR / normR;
       
-      if (normR < 0.001) {
-        continue;
+      const sx = cx + dx * factor;
+      const sy = cy + dy * factor;
+      
+      if (sx >= 0 && sx < prev.width && sy >= 0 && sy < prev.height) {
+        const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+        setPixel(out, x, y, pr, pg, pb);
       }
-      
-      const distortionFactor = Math.pow(normR, strength - 1);
-      const boundedFactor = Math.min(distortionFactor, 1 / normR);
-      
-      const sx = cx + dx * boundedFactor;
-      const sy = cy + dy * boundedFactor;
-      
-      const clampedSx = Math.max(0, Math.min(prev.width - 1, sx));
-      const clampedSy = Math.max(0, Math.min(prev.height - 1, sy));
-      
-      const [pr, pg, pb] = getPixel(prev, Math.floor(clampedSx), Math.floor(clampedSy));
-      setPixel(out, x, y, pr, pg, pb);
     }
   }
   
