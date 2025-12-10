@@ -2201,8 +2201,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnL,
     arity: 1,
     argTypes: ['int'],
-    functionName: "line-weave",
-    documentation: "Weaves horizontal strips from prev like fabric, strips wave over/under each other with hue shifts, n controls strip thickness"
+    functionName: "lissajous",
+    documentation: "Draws thick Lissajous curves spanning the image, n controls complexity, colors are XOR gradient of background"
   },
   
   'M': {
