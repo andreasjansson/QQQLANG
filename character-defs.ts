@@ -1500,6 +1500,28 @@ function fnT(ctx: FnContext, n: number): Image {
   const gl = initWebGL(ctx.width, ctx.height);
   
   const numCubes = Math.max(1, n + 1);
+  const seed = ctx.images.length * 137.5 + n * 17.0;
+  const hash = (i: number) => {
+    const x = Math.sin(i + seed) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  
+  interface CubeData {
+    cx: number; cy: number; hw: number; hh: number; depth: number;
+  }
+  const cubesData: CubeData[] = [];
+  for (let i = 0; i < numCubes; i++) {
+    cubesData.push({
+      cx: hash(i * 127.1),
+      cy: hash(i * 311.7),
+      hw: 0.03 + hash(i * 74.3) * 0.08,
+      hh: 0.025 + hash(i * 183.9) * 0.06,
+      depth: 0.1 + hash(i * 271.3) * 0.2
+    });
+  }
+  
+  const lightDirX = -0.3;
+  const lightDirY = -0.4;
   
   const vertexShader = `
     attribute vec3 aPosition;
@@ -1528,6 +1550,9 @@ function fnT(ctx: FnContext, n: number): Image {
     
     uniform sampler2D uTexture;
     uniform vec3 uLightDir;
+    uniform float uIsShadowPass;
+    uniform int uNumCubes;
+    uniform vec4 uCubes[32];
     
     varying vec3 vNormal;
     varying vec2 vTexCoord;
@@ -1537,11 +1562,32 @@ function fnT(ctx: FnContext, n: number): Image {
       vec3 normal = normalize(vNormal);
       vec3 lightDir = normalize(uLightDir);
       
-      float ambient = 0.4;
-      float diffuse = max(dot(normal, lightDir), 0.0) * 0.6;
+      float ambient = 0.5;
+      float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
       float lighting = ambient + diffuse;
       
-      vec3 color = texture2D(uTexture, vTexCoord).rgb * lighting;
+      float shadow = 0.0;
+      if (vWorldPos.z < 0.001) {
+        for (int i = 0; i < 32; i++) {
+          if (i >= uNumCubes) break;
+          vec4 cube = uCubes[i];
+          float cx = cube.x;
+          float cy = cube.y;
+          float hw = cube.z;
+          float hh = cube.w;
+          
+          float shadowX = vWorldPos.x + uLightDir.x * 0.15;
+          float shadowY = vWorldPos.y + uLightDir.y * 0.15;
+          
+          if (shadowX > cx - hw && shadowX < cx + hw && 
+              shadowY > cy - hh && shadowY < cy + hh) {
+            shadow = 0.5;
+            break;
+          }
+        }
+      }
+      
+      vec3 color = texture2D(uTexture, vTexCoord).rgb * (lighting - shadow);
       gl_FragColor = vec4(color, 1.0);
     }
   `;
@@ -1568,27 +1614,27 @@ function fnT(ctx: FnContext, n: number): Image {
     const normals: number[] = [];
     const texCoords: number[] = [];
     
-    // Top face (z = z1, facing +z towards camera) - textured with image at this position
+    // Top face - textured with image at this position
     vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
     for(let i=0;i<6;i++) normals.push(0,0,1);
     texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
     
-    // Right face (+x) - use edge pixel
+    // Right face (+x)
     vertices.push(x1,y0,z0, x1,y0,z1, x1,y1,z1, x1,y0,z0, x1,y1,z1, x1,y1,z0);
     for(let i=0;i<6;i++) normals.push(1,0,0);
     texCoords.push(u1,v0, u1,v0, u1,v1, u1,v0, u1,v1, u1,v1);
     
-    // Left face (-x) - use edge pixel
+    // Left face (-x)
     vertices.push(x0,y0,z1, x0,y0,z0, x0,y1,z0, x0,y0,z1, x0,y1,z0, x0,y1,z1);
     for(let i=0;i<6;i++) normals.push(-1,0,0);
     texCoords.push(u0,v0, u0,v0, u0,v1, u0,v0, u0,v1, u0,v1);
     
-    // Front face (+y) - use edge pixel
+    // Front face (+y)
     vertices.push(x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z1, x1,y1,z0, x0,y1,z0);
     for(let i=0;i<6;i++) normals.push(0,1,0);
     texCoords.push(u0,v1, u1,v1, u1,v1, u0,v1, u1,v1, u0,v1);
     
-    // Back face (-y) - use edge pixel
+    // Back face (-y)
     vertices.push(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z0, x1,y0,z1, x0,y0,z1);
     for(let i=0;i<6;i++) normals.push(0,-1,0);
     texCoords.push(u0,v0, u1,v0, u1,v0, u0,v0, u1,v0, u0,v0);
@@ -1596,30 +1642,32 @@ function fnT(ctx: FnContext, n: number): Image {
     return { vertices, normals, texCoords };
   }
   
-  const seed = ctx.images.length * 137.5 + n * 17.0;
-  const hash = (n: number) => {
-    const x = Math.sin(n + seed) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  
   const allVertices: number[] = [];
   const allNormals: number[] = [];
   const allTexCoords: number[] = [];
   
-  for (let i = 0; i < numCubes; i++) {
-    const cx = hash(i * 127.1);
-    const cy = hash(i * 311.7);
-    const hw = 0.03 + hash(i * 74.3) * 0.08;
-    const hh = 0.025 + hash(i * 183.9) * 0.06;
-    const depth = 0.1 + hash(i * 271.3) * 0.2;
-    
-    const box = createBox(cx, cy, hw, hh, depth);
+  for (const c of cubesData) {
+    const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth);
     allVertices.push(...box.vertices);
     allNormals.push(...box.normals);
     allTexCoords.push(...box.texCoords);
   }
   
   gl.useProgram(program);
+  
+  const cubeUniformData = new Float32Array(32 * 4);
+  for (let i = 0; i < Math.min(numCubes, 32); i++) {
+    cubeUniformData[i * 4] = cubesData[i].cx;
+    cubeUniformData[i * 4 + 1] = cubesData[i].cy;
+    cubeUniformData[i * 4 + 2] = cubesData[i].hw;
+    cubeUniformData[i * 4 + 3] = cubesData[i].hh;
+  }
+  
+  for (let i = 0; i < 32; i++) {
+    gl.uniform4fv(gl.getUniformLocation(program, `uCubes[${i}]`), cubeUniformData.subarray(i * 4, i * 4 + 4));
+  }
+  gl.uniform1i(gl.getUniformLocation(program, 'uNumCubes'), Math.min(numCubes, 32));
+  
   gl.disable(gl.DEPTH_TEST);
   
   const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
@@ -1636,7 +1684,7 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
-  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), 0.0, 0.0, 1.0);
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, 1.0);
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
   
   const bgPosBuf = gl.createBuffer();
