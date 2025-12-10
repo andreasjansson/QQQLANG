@@ -3668,7 +3668,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "hue-sort-tiles",
-    documentation: "Divides image into tiles and sorts them left-to-right, top-to-bottom by average hue, grid size 4-24 based on n"
+    documentation: "Divides image into tiles and sorts them left-to-right, top-to-bottom by average hue, grid size = n+2 (min 2)"
   },
   
   '$': {
