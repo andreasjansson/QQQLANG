@@ -719,7 +719,8 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
       vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
       vec3 color = texColor * (ambient + diffuse) + vec3(1.0, 1.0, 1.0) * specular;
       
-      gl_FragColor = vec4(color, 1.0);
+      // Debug: show texture directly
+      gl_FragColor = vec4(texColor, 1.0);
     }
   `;
   
