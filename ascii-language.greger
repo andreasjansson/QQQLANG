@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-142648365599>
+${greger-prompt-code-style<eval-result-143017880417>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-142648365599>}
+</eval-result-143017880417>}
 
 # USER
 
@@ -12132,5 +12132,282 @@ Fix T with proper orthographic projection for 3D drawers
 ID: toolu_01JUvfboE8Hb1kGzy6b6Ld9u
 
 <tool.toolu_01JUvfboE8Hb1kGzy6b6Ld9u>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix T with proper orthographic projection for 3D drawers
 </tool.toolu_01JUvfboE8Hb1kGzy6b6Ld9u>
+
+# ASSISTANT
+
+Now the drawers use perspective scaling - they appear larger at the front (protruding towards you) with:
+
+1. **Front face** - shows the texture from that region of the image
+2. **Side faces** - darker shading (left=0.4, right=0.5, top=0.7, bottom=0.6)
+3. **Perspective effect** - boxes scale up as they protrude, creating the 3D drawer look
+4. **Proper depth sorting** - closest drawer is shown on top
+
+Try `AT` now!
+
+# USER
+
+that's something, but it doesn't look like any drawers coming towards me (some even going above and below me). think about the shapes first -- a bunch of 3D rectangles shooting out of a flat surface towards the camera.
+
+# THINKING
+
+Signature: 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
+
+Let me think about this more carefully. We have a flat surface (the prev image) and rectangular boxes protruding out of it towards the camera.
+
+If I'm standing in front of a wall and drawers are sticking out towards me:
+- I see the FRONT face of each drawer (the part facing me) - this shows the texture
+- I see the SIDE faces (left, right, top, bottom edges of the drawer) - these are the "walls" of the drawer connecting the front face to the wall
+
+The perspective effect should be:
+- The front face of the drawer is LARGER than the back (where it connects to the wall)
+- The back of the drawer (on the wall) is smaller
+- The sides connect the larger front to the smaller back, creating a trapezoid shape
+
+So if the drawer's base on the wall is a rectangle from (x1,y1) to (x2,y2), and it protrudes with depth d:
+- The front face should be BIGGER due to perspective (closer to camera = larger)
+- The sides should be trapezoids connecting front to back
+
+Actually wait, with a standard perspective camera looking at drawers coming towards us:
+- Things closer to the camera appear larger
+- The front of the drawer (closest to us) appears larger than the base (on the wall)
+
+So for each drawer:
+1. Define the base rectangle on the wall (back face): (bx1, by1) to (bx2, by2)
+2. The front face is scaled UP from the center based on depth
+3. The four sides are trapezoids connecting front to back
+
+For a pixel on screen:
+- Check if it's inside the front face projection -> show front texture
+- Check if it's in the side trapezoids -> show side with shading
+- Otherwise -> show the background
+
+Let me implement this properly:
+
+```
+For each drawer:
+  - back rectangle: boxMin, boxMax (on the wall, at z=0)
+  - front rectangle: frontMin, frontMax (at z=depth, scaled larger due to perspective)
+
+
+```
+
+I'll calculate the perspective scaling by adjusting the front rectangle's dimensions. The scaling depends on the drawer's depth, creating a larger front face that appears closer to the viewer. I'll use a perspective factor to expand the rectangle from its center, which means the sides will form trapezoid shapes connecting the smaller back to the larger front.
+
+The key steps involve:
+- Determining the perspective scale based on depth
+- Expanding the front rectangle from its center
+- Mapping pixel locations to either front face or side trapezoids
+- Handling coordinate transformations between front and back rectangles
+
+The geometry requires careful tracking of coordinate ranges, ensuring smooth perspective projection across different drawer surfaces.
+
+```
+Camera positioned looking towards wall, with drawer extending from z=0 towards viewer
+- Front face larger, positioned at positive z depth
+- Back face smaller, anchored at wall's z=0 plane
+```
+
+Perspective fundamentally changes rectangle sizes based on depth, with closer surfaces appearing more expansive.
+
+Key rendering strategy: map drawer's back rectangle, then scale front rectangle larger, maintaining central alignment. Connecting edges create dimensional illusion of protrusion.
+
+Calculate back rectangle boundaries first, then derive front rectangle by scaling dimensions outward from central point. Depth parameter controls expansion towards viewer, ensuring perspective effect.
+
+Texture coordinate mapping transforms front face UV coordinates back to original wall-aligned rectangle, preserving visual consistency.
+
+Side geometry involves trapezoidal projections tracking vertical transformations between front and back rectangle edges, requiring precise coordinate translations.
+
+# ASSISTANT
+
+Let me think about this more carefully. A drawer coming towards me:
+- The BACK of the drawer is on the wall (small rectangle)
+- The FRONT of the drawer is closer to camera (larger rectangle due to perspective)
+- Four side faces connect the front to the back (trapezoids)
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RsYzMfAfxHQMpzBqZHqvKP
+
+## path
+
+<tool.toolu_01RsYzMfAfxHQMpzBqZHqvKP>
+character-defs.ts
+</tool.toolu_01RsYzMfAfxHQMpzBqZHqvKP>
+
+## git-commit-message
+
+<tool.toolu_01RsYzMfAfxHQMpzBqZHqvKP>
+Rewrite T with correct 3D drawer geometry - front face larger, sides as trapezoids
+</tool.toolu_01RsYzMfAfxHQMpzBqZHqvKP>
+
+## diff
+
+<tool.toolu_01RsYzMfAfxHQMpzBqZHqvKP>
+   const fragmentShader = `
+     precision highp float;
+     uniform sampler2D texture;
+     uniform vec2 resolution;
+     uniform int numDrawers;
+     varying vec2 vUV;
+     
+     float hash(float n) {
+       return fract(sin(n) * 43758.5453);
+     }
+     
++    // Check if point p is inside quadrilateral defined by 4 corners (CCW order)
++    bool inQuad(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d) {
++      vec2 ab = b - a, bc = c - b, cd = d - c, da = a - d;
++      vec2 ap = p - a, bp = p - b, cp = p - c, dp = p - d;
++      float cross1 = ab.x * ap.y - ab.y * ap.x;
++      float cross2 = bc.x * bp.y - bc.y * bp.x;
++      float cross3 = cd.x * cp.y - cd.y * cp.x;
++      float cross4 = da.x * dp.y - da.y * dp.x;
++      return (cross1 >= 0.0 && cross2 >= 0.0 && cross3 >= 0.0 && cross4 >= 0.0) ||
++             (cross1 <= 0.0 && cross2 <= 0.0 && cross3 <= 0.0 && cross4 <= 0.0);
++    }
++    
+     void main() {
+       vec2 uv = vUV;
+       vec3 baseColor = texture2D(texture, uv).rgb;
+       
+       float maxDepth = -1.0;
+       vec3 finalColor = baseColor;
+-      int hitFace = 0;
+       
+       for (int i = 0; i < 12; i++) {
+         if (i >= numDrawers) break;
+         
+         float fi = float(i);
+-        float bx = hash(fi * 127.1);
+-        float by = hash(fi * 311.7);
+-        float bw = 0.06 + hash(fi * 74.3) * 0.12;
+-        float bh = 0.05 + hash(fi * 183.9) * 0.10;
+-        float depth = 0.15 + hash(fi * 271.3) * 0.25;
++        float cx = 0.15 + hash(fi * 127.1) * 0.7;
++        float cy = 0.15 + hash(fi * 311.7) * 0.7;
++        float hw = 0.04 + hash(fi * 74.3) * 0.08;
++        float hh = 0.03 + hash(fi * 183.9) * 0.06;
++        float depth = 0.3 + hash(fi * 271.3) * 0.5;
+         
+-        vec2 boxMin = vec2(bx - bw, by - bh);
+-        vec2 boxMax = vec2(bx + bw, by + bh);
++        // Back face corners (on the wall, smaller)
++        vec2 backBL = vec2(cx - hw, cy - hh);
++        vec2 backBR = vec2(cx + hw, cy - hh);
++        vec2 backTR = vec2(cx + hw, cy + hh);
++        vec2 backTL = vec2(cx - hw, cy + hh);
+         
+-        float perspScale = 1.0 + depth * 0.8;
+-        vec2 center = (boxMin + boxMax) * 0.5;
+-        vec2 scaledMin = center + (boxMin - center) * perspScale;
+-        vec2 scaledMax = center + (boxMax - center) * perspScale;
++        // Front face corners (towards camera, larger due to perspective)
++        float scale = 1.0 + depth * 1.5;
++        vec2 frontBL = vec2(cx - hw * scale, cy - hh * scale);
++        vec2 frontBR = vec2(cx + hw * scale, cy - hh * scale);
++        vec2 frontTR = vec2(cx + hw * scale, cy + hh * scale);
++        vec2 frontTL = vec2(cx - hw * scale, cy + hh * scale);
+         
+-        bool inFront = uv.x >= scaledMin.x && uv.x <= scaledMax.x && 
+-                       uv.y >= scaledMin.y && uv.y <= scaledMax.y;
+-        
+-        bool inOriginal = uv.x >= boxMin.x && uv.x <= boxMax.x && 
+-                          uv.y >= boxMin.y && uv.y <= boxMax.y;
+-        
+-        if (inFront && depth > maxDepth) {
+-          maxDepth = depth;
+-          
+-          vec2 localUV = (uv - scaledMin) / (scaledMax - scaledMin);
+-          vec2 texCoord = boxMin + localUV * (boxMax - boxMin);
+-          
+-          bool onLeft = uv.x < boxMin.x + (scaledMin.x - boxMin.x) * (1.0 - localUV.x);
+-          bool onRight = uv.x > boxMax.x + (scaledMax.x - boxMax.x) * localUV.x;
+-          bool onTop = uv.y > boxMax.y + (scaledMax.y - boxMax.y) * localUV.y;
+-          bool onBottom = uv.y < boxMin.y + (scaledMin.y - boxMin.y) * (1.0 - localUV.y);
+-          
+-          float edgeL = boxMin.x + (scaledMin.x - boxMin.x) * (1.0 - localUV.y);
+-          float edgeR = boxMax.x + (scaledMax.x - boxMax.x) * localUV.y;
+-          float edgeT = boxMax.y + (scaledMax.y - boxMax.y) * localUV.x;
+-          float edgeB = boxMin.y + (scaledMin.y - boxMin.y) * (1.0 - localUV.x);
+-          
+-          if (uv.x < edgeL && !inOriginal) {
+-            finalColor = texture2D(texture, vec2(boxMin.x, texCoord.y)).rgb * 0.4;
+-            hitFace = 1;
+-          } else if (uv.x > edgeR && !inOriginal) {
+-            finalColor = texture2D(texture, vec2(boxMax.x, texCoord.y)).rgb * 0.5;
+-            hitFace = 2;
+-          } else if (uv.y > edgeT && !inOriginal) {
+-            finalColor = texture2D(texture, vec2(texCoord.x, boxMax.y)).rgb * 0.7;
+-            hitFace = 3;
+-          } else if (uv.y < edgeB && !inOriginal) {
+-            finalColor = texture2D(texture, vec2(texCoord.x, boxMin.y)).rgb * 0.6;
+-            hitFace = 4;
+-          } else {
+-            finalColor = texture2D(texture, texCoord).rgb * 1.05;
+-            hitFace = 5;
++        // Check front face (rectangle)
++        if (uv.x >= frontBL.x && uv.x <= frontBR.x && uv.y >= frontBL.y && uv.y <= frontTL.y) {
++          if (depth > maxDepth) {
++            maxDepth = depth;
++            // Map screen position to texture position on back face
++            vec2 t = (uv - frontBL) / (frontTR - frontBL);
++            vec2 texCoord = backBL + t * (backTR - backBL);
++            finalColor = texture2D(texture, texCoord).rgb;
+           }
+         }
++        // Left side (trapezoid)
++        else if (inQuad(uv, frontBL, backBL, backTL, frontTL)) {
++          if (depth > maxDepth) {
++            maxDepth = depth;
++            float t = (uv.x - frontBL.x) / (backBL.x - frontBL.x);
++            vec2 texCoord = vec2(backBL.x, mix(frontBL.y, frontTL.y, (uv.y - frontBL.y) / (frontTL.y - frontBL.y)));
++            texCoord.y = backBL.y + (uv.y - frontBL.y) / (frontTL.y - frontBL.y) * (backTL.y - backBL.y);
++            finalColor = texture2D(texture, texCoord).rgb * (0.35 + 0.15 * t);
++          }
++        }
++        // Right side (trapezoid)
++        else if (inQuad(uv, frontBR, frontTR, backTR, backBR)) {
++          if (depth > maxDepth) {
++            maxDepth = depth;
++            float t = (uv.x - frontBR.x) / (backBR.x - frontBR.x);
++            vec2 texCoord = vec2(backBR.x, backBR.y + (uv.y - frontBR.y) / (frontTR.y - frontBR.y) * (backTR.y - backBR.y));
++            finalColor = texture2D(texture, texCoord).rgb * (0.35 + 0.15 * t);
++          }
++        }
++        // Top side (trapezoid)
++        else if (inQuad(uv, frontTL, frontTR, backTR, backTL)) {
++          if (depth > maxDepth) {
++            maxDepth = depth;
++            float t = (uv.y - frontTL.y) / (backTL.y - frontTL.y);
++            vec2 texCoord = vec2(backTL.x + (uv.x - frontTL.x) / (frontTR.x - frontTL.x) * (backTR.x - backTL.x), backTL.y);
++            finalColor = texture2D(texture, texCoord).rgb * (0.5 + 0.2 * t);
++          }
++        }
++        // Bottom side (trapezoid)
++        else if (inQuad(uv, frontBL, frontBR, backBR, backBL)) {
++          if (depth > maxDepth) {
++            maxDepth = depth;
++            float t = (frontBL.y - uv.y) / (frontBL.y - backBL.y);
++            vec2 texCoord = vec2(backBL.x + (uv.x - frontBL.x) / (frontBR.x - frontBL.x) * (backBR.x - backBL.x), backBL.y);
++            finalColor = texture2D(texture, texCoord).rgb * (0.4 + 0.15 * t);
++          }
++        }
+       }
+       
+       gl_FragColor = vec4(finalColor, 1.0);
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_01RsYzMfAfxHQMpzBqZHqvKP>
+
+# TOOL RESULT
+
+ID: toolu_01RsYzMfAfxHQMpzBqZHqvKP
+
+<tool.toolu_01RsYzMfAfxHQMpzBqZHqvKP>
+
+</tool.toolu_01RsYzMfAfxHQMpzBqZHqvKP>
