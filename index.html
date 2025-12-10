@@ -28,20 +28,49 @@
       background: rgba(0, 0, 0, 0.7);
     }
     
+    #input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    
     #program-input {
+      position: relative;
       width: 100%;
       padding: 10px 15px;
       font-size: 18px;
       font-family: monospace;
       border: 2px solid #444;
       border-radius: 4px;
-      background: #1a1a1a;
+      background: transparent;
       color: #fff;
       outline: none;
+      z-index: 2;
     }
     
     #program-input:focus {
       border-color: #888;
+    }
+    
+    #input-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 10px 15px;
+      font-size: 18px;
+      font-family: monospace;
+      border: 2px solid transparent;
+      border-radius: 4px;
+      background: #1a1a1a;
+      color: transparent;
+      pointer-events: none;
+      white-space: pre;
+      z-index: 1;
+    }
+    
+    #input-background span {
+      border-radius: 2px;
+      padding: 1px 0;
     }
     
     #canvas {
