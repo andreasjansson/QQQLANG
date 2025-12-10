@@ -504,6 +504,90 @@ function fnG(ctx: FnContext, n: number): Image {
   return out;
 }
 
+function fnH(ctx: FnContext, j: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  for (let y = 0; y < ctx.height; y++) {
+    const stripHeight = 5 + Math.sin(y * 0.1) * 20;
+    const stripIndex = Math.floor(y / stripHeight);
+    const useOld = stripIndex % 2 === 1;
+    
+    for (let x = 0; x < ctx.width; x++) {
+      const src = useOld ? old : prev;
+      const [r, g, b] = getPixel(src, x, y);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fnI(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  for (let i = 0; i < out.data.length; i += 4) {
+    out.data[i] = 255 - out.data[i];
+    out.data[i + 1] = 255 - out.data[i + 1];
+    out.data[i + 2] = 255 - out.data[i + 2];
+  }
+  
+  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+  
+  for (let y = 1; y < ctx.height - 1; y++) {
+    for (let x = 1; x < ctx.width - 1; x++) {
+      let gx = 0, gy = 0;
+      
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const px = getPixel(prev, x + kx, y + ky);
+          const gray = px[0] * 0.299 + px[1] * 0.587 + px[2] * 0.114;
+          const kernelIdx = (ky + 1) * 3 + (kx + 1);
+          gx += gray * sobelX[kernelIdx];
+          gy += gray * sobelY[kernelIdx];
+        }
+      }
+      
+      const magnitude = Math.sqrt(gx * gx + gy * gy);
+      
+      if (magnitude > 50) {
+        setPixel(out, x, y, 255, 255, 255);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnJ(ctx: FnContext, j: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const nx = x / ctx.width;
+      const ny = y / ctx.height;
+      
+      const squareSize = Math.max(2, Math.floor(2 + (nx + ny) * 50));
+      
+      const gridX = Math.floor(x / squareSize);
+      const gridY = Math.floor(y / squareSize);
+      
+      const useOld = (gridX + gridY) % 2 === 0;
+      const src = useOld ? old : prev;
+      
+      const [r, g, b] = getPixel(src, x, y);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
@@ -573,5 +657,35 @@ export const characterDefs: Record<string, CharDef> = {
     argTypes: ['int'],
     functionName: "gradient-map",
     documentation: "Converts to grayscale then applies gradient map using n colors from histogram"
+  },
+  
+  'H': {
+    color: '#DC143C',
+    number: 8,
+    fn: fnH,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "horizontal-strips",
+    documentation: "Horizontal strips alternate between prev and old_image, strip height varies with sin"
+  },
+  
+  'I': {
+    color: '#00FF7F',
+    number: 9,
+    fn: fnI,
+    arity: 0,
+    argTypes: [],
+    functionName: "invert-edges",
+    documentation: "Inverts prev colors, then applies Sobel edge detection and draws edges in white"
+  },
+  
+  'J': {
+    color: '#FF8C00',
+    number: 10,
+    fn: fnJ,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "variable-checkerboard",
+    documentation: "Checkerboard blend where square size increases from top-left (2px) to bottom-right (52px)"
   },
 };
