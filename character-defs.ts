@@ -3727,10 +3727,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#FFD700',
     number: 43,
     fn: fnDollar,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 0,
+    argTypes: [],
     functionName: "segment-hue-sort",
-    documentation: "Color-based flood-fill segmentation, then sorts pixels within each segment by hue; n controls color threshold"
+    documentation: "Color-based flood-fill segmentation, then sorts pixels within each segment by hue vertically"
   },
   
   '%': {
