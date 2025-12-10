@@ -547,11 +547,35 @@ function fnG(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnH(ctx: FnContext, n: number): Image {
+function fnH(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const numColors = 4;
+  const palette: [number, number, number][] = [];
+  const regions = [
+    [0, 0], [0.5, 0], [1, 0],
+    [0, 0.5], [1, 0.5],
+    [0, 1], [0.5, 1], [1, 1]
+  ];
+  for (const [rx, ry] of regions) {
+    const sx = Math.floor(rx * (ctx.width - 1));
+    const sy = Math.floor(ry * (ctx.height - 1));
+    const [r, g, b] = getPixel(prev, sx, sy);
+    palette.push([r, g, b]);
+  }
+  
+  const findClosest = (r: number, g: number, b: number): [number, number, number] => {
+    let minDist = Infinity;
+    let closest = palette[0];
+    for (const [pr, pg, pb] of palette) {
+      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+      if (dist < minDist) {
+        minDist = dist;
+        closest = [pr, pg, pb];
+      }
+    }
+    return closest;
+  };
   
   const order = Math.ceil(Math.log2(Math.max(ctx.width, ctx.height)));
   const size = 1 << order;
@@ -598,15 +622,9 @@ function fnH(ctx: FnContext, n: number): Image {
     const oldG = g + errG[idx];
     const oldB = b + errB[idx];
     
-    const newR = Math.round(oldR / 255 * (numColors - 1)) * (255 / (numColors - 1));
-    const newG = Math.round(oldG / 255 * (numColors - 1)) * (255 / (numColors - 1));
-    const newB = Math.round(oldB / 255 * (numColors - 1)) * (255 / (numColors - 1));
+    const [newR, newG, newB] = findClosest(oldR, oldG, oldB);
     
-    setPixel(out, hx, hy,
-      Math.max(0, Math.min(255, Math.round(newR))),
-      Math.max(0, Math.min(255, Math.round(newG))),
-      Math.max(0, Math.min(255, Math.round(newB)))
-    );
+    setPixel(out, hx, hy, newR, newG, newB);
     
     const errRVal = oldR - newR;
     const errGVal = oldG - newG;
