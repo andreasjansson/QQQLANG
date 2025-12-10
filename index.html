@@ -140,6 +140,7 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const input = document.getElementById('program-input');
+    const inputBackground = document.getElementById('input-background');
     const debugPane = document.getElementById('debug-pane');
 
     const isDebugMode = window.location.search.includes('debug');
@@ -153,8 +154,10 @@
     }
 
     function updateURL(program) {
-      const newPath = program ? `/${program}` : '/';
-      if (window.location.pathname !== newPath) {
+      const search = window.location.search;
+      const newPath = program ? `/${program}${search}` : `/${search}`;
+      const fullPath = window.location.pathname + window.location.search;
+      if (fullPath !== newPath) {
         window.history.pushState({ program }, '', newPath);
       }
     }
@@ -164,30 +167,55 @@
       
       const ops = getParsedOperations(program);
       
-      let html = '<div style="margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">';
-      html += `<div>Program: "${program}"</div>`;
-      html += `<div>Operations: ${ops.length}</div>`;
-      html += '</div>';
+      let html = '';
       
       for (let i = ops.length - 1; i >= 0; i--) {
         const op = ops[i];
-        html += '<div class="op">';
-        html += `<div class="op-id">[${i}] "${op.identifier}"</div>`;
-        html += `<div class="op-type">Type: ${op.type}</div>`;
+        const prevIdentifier = i > 0 ? ops[i - 1].identifier : '';
+        const opChars = op.identifier.substring(prevIdentifier.length);
         
         if (op.type === 'solid') {
-          html += `<div class="op-details">Color: ${op.color}</div>`;
+          html += `<div class="op">[${i}] "${opChars}" initial-color(${op.color})</div>`;
         } else {
-          html += `<div class="op-details">Function: ${op.fnDef.functionName}</div>`;
-          html += `<div class="op-details">Arity: ${op.fnDef.arity}</div>`;
-          if (op.args.length > 0) {
-            html += `<div class="op-details">Args: ${JSON.stringify(op.args)}</div>`;
-          }
+          const argsStr = op.args.length > 0 ? op.args.join(', ') : '';
+          html += `<div class="op">[${i}] "${opChars}" ${op.fnDef.functionName}(${argsStr})</div>`;
         }
-        html += '</div>';
       }
       
       debugPane.innerHTML = html;
+    }
+
+    function updateInputColors(program) {
+      const ops = getParsedOperations(program);
+      const chars = program.split('').filter(c => c.charCodeAt(0) > 32 && c.charCodeAt(0) < 127);
+      
+      let html = '';
+      let charIdx = 0;
+      
+      for (let i = 0; i < ops.length; i++) {
+        const op = ops[i];
+        const prevIdentifier = i > 0 ? ops[i - 1].identifier : '';
+        const opChars = op.identifier.substring(prevIdentifier.length);
+        const numChars = opChars.length;
+        
+        let color = '#ffffff';
+        if (op.type === 'solid') {
+          color = op.color;
+        } else {
+          color = op.fnDef.color;
+        }
+        
+        const bgColor = color + '40';
+        
+        for (let j = 0; j < numChars; j++) {
+          if (charIdx < chars.length) {
+            html += `<span style="background-color: ${bgColor};">${chars[charIdx]}</span>`;
+            charIdx++;
+          }
+        }
+      }
+      
+      inputBackground.innerHTML = html;
     }
 
     function resize() {
@@ -205,6 +233,7 @@
       ctx.putImageData(imageData, 0, 0);
       
       updateDebugPane(program);
+      updateInputColors(program);
     }
 
     function loadProgramFromURL() {
