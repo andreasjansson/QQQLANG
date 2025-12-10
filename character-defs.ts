@@ -1132,10 +1132,22 @@ function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
       const useOld = bandIndex % 2 === 0;
       
       if (useOld) {
+        let sumR = 0, sumG = 0, sumB = 0, count = 0;
         for (let y = by; y < by + blockSize && y < ctx.height; y++) {
           for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
             const [r, g, b] = getPixel(old, x, y);
-            setPixel(out, x, y, r, g, b);
+            sumR += r;
+            sumG += g;
+            sumB += b;
+            count++;
+          }
+        }
+        const avgR = Math.round(sumR / count);
+        const avgG = Math.round(sumG / count);
+        const avgB = Math.round(sumB / count);
+        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
+          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
+            setPixel(out, x, y, avgR, avgG, avgB);
           }
         }
       } else {
@@ -1891,7 +1903,7 @@ function fnW(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const maxRotation = (n * 45) * (Math.PI / 180);
+  const maxRotation = (n * 20) * (Math.PI / 180);
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   const maxR = Math.sqrt(cx * cx + cy * cy);
@@ -2820,7 +2832,7 @@ function fnDollar(ctx: FnContext): Image {
   const w = ctx.width;
   const h = ctx.height;
   
-  const threshold = 5;
+  const threshold = 12;
   
   const labels = new Int32Array(w * h);
   labels.fill(-1);
