@@ -3531,11 +3531,11 @@ export const characterDefs: Record<string, CharDef> = {
   'E': {
     color: '#00CED1',
     number: 5,
-    fn: fnEntangle,
+    fn: fnExcise,
     arity: 1,
     argTypes: ['int'],
-    functionName: "entangle",
-    documentation: "Quantum-style entanglement: prev and mirrored old_image blend via interference waves, correlation affects pattern"
+    functionName: "excise",
+    documentation: "Cuts out bright regions (above 60th percentile luminance), old_image shows through the holes"
   },
   
   'F': {
