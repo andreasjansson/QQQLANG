@@ -394,54 +394,76 @@ function fnD(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnE(ctx: FnContext, c: string, n: number): Image {
+function fnE(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  const [cr, cg, cb] = hexToRgb(c);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const numWaves = Math.max(1, Math.min(n, 20));
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const scale = Math.min(ctx.width, ctx.height);
+  const sunRadius = scale * 0.25;
+  const moonRadius = scale * 0.24;
+  const moonOffsetX = scale * 0.02;
+  const moonOffsetY = -scale * 0.01;
   
-  for (let i = 0; i < numWaves; i++) {
-    const period = ctx.width / (1 + i * 0.3);
-    const amplitude = ctx.height * 0.45 * Math.sin(i * 0.8);
-    const thickness = Math.max(2, Math.floor(4 + Math.sin(i * 0.5) * 3));
-    const phase = Math.PI * Math.cos(i * 0.6);
-    
-    let prevY = -1;
-    
+  const [pr, pg, pb] = getPixel(prev, Math.floor(cx), Math.floor(cy));
+  const [baseH, baseS, baseL] = rgbToHsl(pr, pg, pb);
+  
+  for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const waveY = Math.floor(ctx.height / 2 + Math.sin((x / period) * Math.PI * 2 + phase) * amplitude);
+      const dx = x - cx;
+      const dy = y - cy;
+      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
       
-      if (prevY !== -1) {
-        const y1 = Math.min(prevY, waveY);
-        const y2 = Math.max(prevY, waveY);
-        
-        for (let y = y1; y <= y2; y++) {
-          for (let dy = -Math.floor(thickness / 2); dy <= Math.floor(thickness / 2); dy++) {
-            const drawY = y + dy;
-            if (drawY >= 0 && drawY < ctx.height && x >= 0 && x < ctx.width) {
-              const idx = (drawY * ctx.width + x) * 4;
-              const alpha = 0.4;
-              out.data[idx] = Math.round(out.data[idx] * (1 - alpha) + cr * alpha);
-              out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - alpha) + cg * alpha);
-              out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - alpha) + cb * alpha);
-            }
-          }
-        }
+      const moonDx = x - (cx + moonOffsetX);
+      const moonDy = y - (cy + moonOffsetY);
+      const distFromMoon = Math.sqrt(moonDx * moonDx + moonDy * moonDy);
+      
+      let tr = 0, tg = 0, tb = 0;
+      
+      if (distFromMoon < moonRadius) {
+        tr = tg = tb = 0;
       } else {
-        for (let dy = -Math.floor(thickness / 2); dy <= Math.floor(thickness / 2); dy++) {
-          const drawY = waveY + dy;
-          if (drawY >= 0 && drawY < ctx.height) {
-            const idx = (drawY * ctx.width + x) * 4;
-            const alpha = 0.4;
-            out.data[idx] = Math.round(out.data[idx] * (1 - alpha) + cr * alpha);
-            out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - alpha) + cg * alpha);
-            out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - alpha) + cb * alpha);
-          }
+        const coronaDist = distFromCenter - sunRadius;
+        
+        if (coronaDist > 0) {
+          const coronaFalloff = Math.exp(-coronaDist / (scale * 0.15));
+          const innerCorona = Math.exp(-coronaDist / (scale * 0.05));
+          
+          const angle = Math.atan2(dy, dx);
+          const rays = 0.5 + 0.5 * Math.sin(angle * 12) * Math.sin(angle * 5);
+          const rayIntensity = rays * Math.exp(-coronaDist / (scale * 0.3));
+          
+          const coronaR = 1.0 * innerCorona + 1.0 * coronaFalloff + 0.8 * rayIntensity;
+          const coronaG = 0.6 * innerCorona + 0.4 * coronaFalloff + 0.3 * rayIntensity;
+          const coronaB = 0.3 * innerCorona + 0.2 * coronaFalloff + 0.1 * rayIntensity;
+          
+          tr = coronaR;
+          tg = coronaG;
+          tb = coronaB;
+        } else {
+          tr = tg = tb = 1.0;
+        }
+        
+        if (distFromMoon < moonRadius + 3 && distFromMoon >= moonRadius) {
+          const edgeGlow = 1 - (distFromMoon - moonRadius) / 3;
+          tr += edgeGlow * 1.5;
+          tg += edgeGlow * 0.8;
+          tb += edgeGlow * 0.4;
         }
       }
       
-      prevY = waveY;
+      const [prevR, prevG, prevB] = getPixel(prev, x, y);
+      const tint = 0.15;
+      tr = tr * (1 - tint) + (prevR / 255) * tint * tr;
+      tg = tg * (1 - tint) + (prevG / 255) * tint * tg;
+      tb = tb * (1 - tint) + (prevB / 255) * tint * tb;
+      
+      setPixel(out, x, y,
+        Math.min(255, Math.floor(tr * 255)),
+        Math.min(255, Math.floor(tg * 255)),
+        Math.min(255, Math.floor(tb * 255))
+      );
     }
   }
   
