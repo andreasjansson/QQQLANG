@@ -661,83 +661,241 @@ function fnK(ctx: FnContext, n: number): Image {
 
 function fnL(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const complexity = 2;
-  const thickness = Math.max(2, Math.floor(Math.min(ctx.width, ctx.height) / 80));
-  const numCurves = Math.min(complexity, 5);
-  
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const scaleX = cx * 0.9;
-  const scaleY = cy * 0.9;
-  
-  const [bgR, bgG, bgB] = getPixel(prev, Math.floor(cx), Math.floor(cy));
-  
-  const mask = new Uint8Array(ctx.width * ctx.height);
-  
-  const drawThickLine = (x0: number, y0: number, x1: number, y1: number) => {
-    const dx = Math.abs(x1 - x0);
-    const dy = Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1;
-    const sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy;
-    let x = x0, y = y0;
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
     
-    while (true) {
-      for (let ty = -thickness; ty <= thickness; ty++) {
-        for (let tx = -thickness; tx <= thickness; tx++) {
-          if (tx * tx + ty * ty <= thickness * thickness) {
-            const px = x + tx;
-            const py = y + ty;
-            if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
-              mask[py * ctx.width + px] = 1;
-            }
-          }
-        }
-      }
-      
-      if (x === x1 && y === y1) break;
-      const e2 = 2 * err;
-      if (e2 > -dy) { err -= dy; x += sx; }
-      if (e2 < dx) { err += dx; y += sy; }
+    uniform mat4 uProjection;
+    uniform mat4 uModelView;
+    uniform mat3 uNormalMatrix;
+    
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vTexCoord;
+    
+    void main() {
+      vPosition = (uModelView * vec4(aPosition, 1.0)).xyz;
+      vNormal = uNormalMatrix * aNormal;
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * vec4(vPosition, 1.0);
     }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightPos;
+    
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vTexCoord;
+    
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 lightDir = normalize(uLightPos - vPosition);
+      vec3 viewDir = normalize(-vPosition);
+      vec3 halfDir = normalize(lightDir + viewDir);
+      
+      float ambient = 0.2;
+      float diff = max(dot(normal, lightDir), 0.0) * 0.7;
+      float spec = pow(max(dot(normal, halfDir), 0.0), 64.0) * 0.8;
+      
+      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
+      vec3 color = texColor * (ambient + diff) + vec3(1.0) * spec;
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const depth = 0.3;
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const texCoords: number[] = [];
+  
+  const addQuad = (
+    p0: number[], p1: number[], p2: number[], p3: number[],
+    n: number[],
+    t0: number[], t1: number[], t2: number[], t3: number[]
+  ) => {
+    positions.push(...p0, ...p1, ...p2, ...p0, ...p2, ...p3);
+    for (let i = 0; i < 6; i++) normals.push(...n);
+    texCoords.push(...t0, ...t1, ...t2, ...t0, ...t2, ...t3);
   };
   
-  for (let c = 0; c < numCurves; c++) {
-    const a = complexity + c;
-    const b = complexity + c + 1 + (c % 3);
-    const delta = (c * Math.PI) / (numCurves + 1);
-    
-    const steps = 800;
-    let prevX = Math.floor(cx + Math.sin(delta) * scaleX);
-    let prevY = Math.floor(cy);
-    
-    for (let i = 1; i <= steps; i++) {
-      const t = (i / steps) * Math.PI * 2;
-      const currX = Math.floor(cx + Math.sin(a * t + delta) * scaleX);
-      const currY = Math.floor(cy + Math.sin(b * t) * scaleY);
-      
-      drawThickLine(prevX, prevY, currX, currY);
-      
-      prevX = currX;
-      prevY = currY;
-    }
-  }
+  // L shape: vertical bar (left) + horizontal bar (bottom)
+  // Vertical bar: x: -0.4 to -0.1, y: -0.5 to 0.5
+  // Horizontal bar: x: -0.4 to 0.4, y: -0.5 to -0.2
   
+  // Front face - vertical
+  addQuad(
+    [-0.4, 0.5, depth], [-0.1, 0.5, depth], [-0.1, -0.2, depth], [-0.4, -0.2, depth],
+    [0, 0, 1],
+    [0, 0], [0.33, 0], [0.33, 0.7], [0, 0.7]
+  );
+  // Front face - horizontal
+  addQuad(
+    [-0.4, -0.2, depth], [0.4, -0.2, depth], [0.4, -0.5, depth], [-0.4, -0.5, depth],
+    [0, 0, 1],
+    [0, 0.7], [1, 0.7], [1, 1], [0, 1]
+  );
+  
+  // Back face - vertical
+  addQuad(
+    [-0.1, 0.5, -depth], [-0.4, 0.5, -depth], [-0.4, -0.2, -depth], [-0.1, -0.2, -depth],
+    [0, 0, -1],
+    [0.33, 0], [0, 0], [0, 0.7], [0.33, 0.7]
+  );
+  // Back face - horizontal
+  addQuad(
+    [0.4, -0.2, -depth], [-0.4, -0.2, -depth], [-0.4, -0.5, -depth], [0.4, -0.5, -depth],
+    [0, 0, -1],
+    [1, 0.7], [0, 0.7], [0, 1], [1, 1]
+  );
+  
+  // Top of vertical bar
+  addQuad(
+    [-0.4, 0.5, -depth], [-0.1, 0.5, -depth], [-0.1, 0.5, depth], [-0.4, 0.5, depth],
+    [0, 1, 0],
+    [0, 0], [0.33, 0], [0.33, 0.1], [0, 0.1]
+  );
+  
+  // Right side of vertical bar (above horizontal)
+  addQuad(
+    [-0.1, 0.5, depth], [-0.1, 0.5, -depth], [-0.1, -0.2, -depth], [-0.1, -0.2, depth],
+    [1, 0, 0],
+    [0.33, 0], [0.33, 0], [0.33, 0.7], [0.33, 0.7]
+  );
+  
+  // Top of horizontal bar (right part)
+  addQuad(
+    [-0.1, -0.2, -depth], [0.4, -0.2, -depth], [0.4, -0.2, depth], [-0.1, -0.2, depth],
+    [0, 1, 0],
+    [0.33, 0.7], [1, 0.7], [1, 0.7], [0.33, 0.7]
+  );
+  
+  // Right side of horizontal bar
+  addQuad(
+    [0.4, -0.2, depth], [0.4, -0.2, -depth], [0.4, -0.5, -depth], [0.4, -0.5, depth],
+    [1, 0, 0],
+    [1, 0.7], [1, 0.7], [1, 1], [1, 1]
+  );
+  
+  // Bottom of horizontal bar
+  addQuad(
+    [-0.4, -0.5, depth], [0.4, -0.5, depth], [0.4, -0.5, -depth], [-0.4, -0.5, -depth],
+    [0, -1, 0],
+    [0, 1], [1, 1], [1, 1], [0, 1]
+  );
+  
+  // Left side of L
+  addQuad(
+    [-0.4, 0.5, -depth], [-0.4, 0.5, depth], [-0.4, -0.5, depth], [-0.4, -0.5, -depth],
+    [-1, 0, 0],
+    [0, 0], [0, 0], [0, 1], [0, 1]
+  );
+  
+  gl.useProgram(program);
+  
+  const posBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+  const posLoc = gl.getAttribLocation(program, 'aPosition');
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const normBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+  const normLoc = gl.getAttribLocation(program, 'aNormal');
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const texBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  const aspect = ctx.width / ctx.height;
+  const fov = Math.PI / 4;
+  const near = 0.1, far = 10.0;
+  const f = 1.0 / Math.tan(fov / 2);
+  const projection = new Float32Array([
+    f / aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far + near) / (near - far), -1,
+    0, 0, (2 * far * near) / (near - far), 0
+  ]);
+  
+  const angle = 0.4;
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const modelView = new Float32Array([
+    c, 0, s, 0,
+    0, 1, 0, 0,
+    -s, 0, c, 0,
+    0, 0, -2.5, 1
+  ]);
+  
+  const normalMatrix = new Float32Array([
+    c, 0, -s,
+    0, 1, 0,
+    s, 0, c
+  ]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, projection);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModelView'), false, modelView);
+  gl.uniformMatrix3fv(gl.getUniformLocation(program, 'uNormalMatrix'), false, normalMatrix);
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightPos'), 2.0, 2.0, 3.0);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  
+  gl.enable(gl.DEPTH_TEST);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  
+  gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      if (mask[y * ctx.width + x]) {
-        const nx = x / ctx.width;
-        const ny = y / ctx.height;
-        const gradientPos = (nx + ny) * 0.5;
-        const v = Math.floor(gradientPos * 255);
-        setPixel(out, x, y, v, v, v);
-      }
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.disable(gl.DEPTH_TEST);
+  gl.disableVertexAttribArray(posLoc);
+  gl.disableVertexAttribArray(normLoc);
+  gl.disableVertexAttribArray(texLoc);
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(posBuffer);
+  gl.deleteBuffer(normBuffer);
+  gl.deleteBuffer(texBuffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {

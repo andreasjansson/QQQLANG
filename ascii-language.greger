@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-231028274866>
+${greger-prompt-code-style<eval-result-231337320588>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-231028274866>}
+</eval-result-231337320588>}
 
 # USER
 
@@ -7813,108 +7813,80 @@ character-defs.ts
 Fix F julia fractal - zoom into boundary, use escape time for coloring
 </tool.toolu_01LmoSeJ9mp8HqfLTE1Ts9P2>
 
-## original-content
+## diff
 
 <tool.toolu_01LmoSeJ9mp8HqfLTE1Ts9P2>
-function fnF(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const zoom = 0.5 + n * 0.3;
-  const maxIterations = 80;
-  
-  const cReal = -0.7;
-  const cImag = 0.27015;
-  
-  for (let py = 0; py < ctx.height; py++) {
-    for (let px = 0; px < ctx.width; px++) {
-      let zReal = ((px / ctx.width) - 0.5) * (3 / zoom);
-      let zImag = ((py / ctx.height) - 0.5) * (3 / zoom) * (ctx.height / ctx.width);
-      
-      let iteration = 0;
-      while (iteration < maxIterations && zReal * zReal + zImag * zImag < 4) {
-        const zRealTemp = zReal * zReal - zImag * zImag + cReal;
-        zImag = 2 * zReal * zImag + cImag;
-        zReal = zRealTemp;
-        iteration++;
-      }
-      
-      const [pr, pg, pb] = getPixel(prev, px, py);
-      
-      if (iteration === maxIterations) {
-        setPixel(out, px, py, pr, pg, pb);
-      } else {
-        const t = iteration / maxIterations;
-        const smooth = t + (1 - t) * 0.3;
-        setPixel(out, px, py,
-          Math.floor(pr * smooth),
-          Math.floor(pg * smooth),
-          Math.floor(pb * smooth)
-        );
-      }
-    }
-  }
-  
-  return out;
-}
-</tool.toolu_01LmoSeJ9mp8HqfLTE1Ts9P2>
+ function fnF(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+-  const zoom = 0.5 + n * 0.3;
+-  const maxIterations = 80;
++  const zoomPower = Math.max(1, n);
++  const scale = Math.pow(0.7, zoomPower);
++  const maxIterations = 100 + zoomPower * 20;
+   
+   const cReal = -0.7;
+   const cImag = 0.27015;
+   
++  const centerReal = 0.15;
++  const centerImag = 0.6;
++  
++  const aspect = ctx.height / ctx.width;
++  
+   for (let py = 0; py < ctx.height; py++) {
+     for (let px = 0; px < ctx.width; px++) {
+-      let zReal = ((px / ctx.width) - 0.5) * (3 / zoom);
+-      let zImag = ((py / ctx.height) - 0.5) * (3 / zoom) * (ctx.height / ctx.width);
++      let zReal = centerReal + ((px / ctx.width) - 0.5) * 3 * scale;
++      let zImag = centerImag + ((py / ctx.height) - 0.5) * 3 * scale * aspect;
+       
+       let iteration = 0;
+-      while (iteration < maxIterations && zReal * zReal + zImag * zImag < 4) {
+-        const zRealTemp = zReal * zReal - zImag * zImag + cReal;
++      let zReal2 = zReal * zReal;
++      let zImag2 = zImag * zImag;
++      
++      while (iteration < maxIterations && zReal2 + zImag2 < 256) {
+         zImag = 2 * zReal * zImag + cImag;
+-        zReal = zRealTemp;
++        zReal = zReal2 - zImag2 + cReal;
++        zReal2 = zReal * zReal;
++        zImag2 = zImag * zImag;
+         iteration++;
+       }
+       
+-      const [pr, pg, pb] = getPixel(prev, px, py);
+-      
+       if (iteration === maxIterations) {
++        const [pr, pg, pb] = getPixel(prev, px, py);
+         setPixel(out, px, py, pr, pg, pb);
+       } else {
+-        const t = iteration / maxIterations;
+-        const smooth = t + (1 - t) * 0.3;
+-        setPixel(out, px, py,
+-          Math.floor(pr * smooth),
+-          Math.floor(pg * smooth),
+-          Math.floor(pb * smooth)
+-        );
++        const log_zn = Math.log(zReal2 + zImag2) / 2;
++        const nu = Math.log(log_zn / Math.log(2)) / Math.log(2);
++        const smoothed = iteration + 1 - nu;
++        
++        const t = (smoothed % 20) / 20;
++        const sampleX = Math.floor(t * ctx.width);
++        const sampleY = py;
++        
++        const [pr, pg, pb] = getPixel(prev, sampleX, sampleY);
++        setPixel(out, px, py, pr, pg, pb);
+       }
+     }
+   }
+   
+   return out;
+ }
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01LmoSeJ9mp8HqfLTE1Ts9P2>
-function fnF(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const zoomPower = Math.max(1, n);
-  const scale = Math.pow(0.7, zoomPower);
-  const maxIterations = 100 + zoomPower * 20;
-  
-  const cReal = -0.7;
-  const cImag = 0.27015;
-  
-  const centerReal = 0.15;
-  const centerImag = 0.6;
-  
-  const aspect = ctx.height / ctx.width;
-  
-  for (let py = 0; py < ctx.height; py++) {
-    for (let px = 0; px < ctx.width; px++) {
-      let zReal = centerReal + ((px / ctx.width) - 0.5) * 3 * scale;
-      let zImag = centerImag + ((py / ctx.height) - 0.5) * 3 * scale * aspect;
-      
-      let iteration = 0;
-      let zReal2 = zReal * zReal;
-      let zImag2 = zImag * zImag;
-      
-      while (iteration < maxIterations && zReal2 + zImag2 < 256) {
-        zImag = 2 * zReal * zImag + cImag;
-        zReal = zReal2 - zImag2 + cReal;
-        zReal2 = zReal * zReal;
-        zImag2 = zImag * zImag;
-        iteration++;
-      }
-      
-      if (iteration === maxIterations) {
-        const [pr, pg, pb] = getPixel(prev, px, py);
-        setPixel(out, px, py, pr, pg, pb);
-      } else {
-        const log_zn = Math.log(zReal2 + zImag2) / 2;
-        const nu = Math.log(log_zn / Math.log(2)) / Math.log(2);
-        const smoothed = iteration + 1 - nu;
-        
-        const t = (smoothed % 20) / 20;
-        const sampleX = Math.floor(t * ctx.width);
-        const sampleY = py;
-        
-        const [pr, pg, pb] = getPixel(prev, sampleX, sampleY);
-        setPixel(out, px, py, pr, pg, pb);
-      }
-    }
-  }
-  
-  return out;
-}
 </tool.toolu_01LmoSeJ9mp8HqfLTE1Ts9P2>
 
 # TOOL RESULT
@@ -7922,5 +7894,670 @@ function fnF(ctx: FnContext, n: number): Image {
 ID: toolu_01LmoSeJ9mp8HqfLTE1Ts9P2
 
 <tool.toolu_01LmoSeJ9mp8HqfLTE1Ts9P2>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix F julia fractal - zoom into boundary, use escape time for coloring
 </tool.toolu_01LmoSeJ9mp8HqfLTE1Ts9P2>
+
+# ASSISTANT
+
+Now F:
+- Zooms into an interesting boundary region (0.15 + 0.6i) where there's always detail
+- Uses smooth iteration counting (continuous escape time) to eliminate banding
+- Maps the smooth escape time back to sample from prev image horizontally, creating color bands that follow the fractal contours
+- Higher n = more zoom + more iterations to capture finer detail
+- Inside the set still shows prev directly
+
+# USER
+
+Make L a 3D object in webgl with strong lighting
+
+# THINKING
+
+Signature: EpsCCkYIChgCKkBixDvhBWMaKmTeuFGhpFUykU8WAwOOEy8wkmQOCx/sGM7T3gwh7GZAj5ao2D7P188dQlnQFaXief/Yp5uOqdt/Egy37XRnsh6MBYuqEQYaDM5IKT3pehJtlLvJgiIw2D9Dy6lCDbyTno/UvBjBJwzDwvYWcggFsHBVwOorihc5EOdAzdrQiXfWJ3rj4YN9KoIBrlrsAkIcjVyArp13yAUyAChGEn8gY8rkuo38FSOQoiEf9qSmAAj1+1PZZyPs1xf0kIkSMhQ9Yp1YcFKEO0UKBQludaqvpZOIUhFLFDIslJN5np3IvSwbThQnIvFmyyjHYeLlhI2J7hO4inbHDe3ek1RLbkRszEk8tHmZdLZPRnTTnRgB
+
+The user wants to make L a 3D object using WebGL with strong lighting. Let me first look at what L currently does.
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_015KPm5zgq1nrXJtmpGF3BCE
+
+## pattern
+
+<tool.toolu_015KPm5zgq1nrXJtmpGF3BCE>
+function fnL
+</tool.toolu_015KPm5zgq1nrXJtmpGF3BCE>
+
+## path
+
+<tool.toolu_015KPm5zgq1nrXJtmpGF3BCE>
+character-defs.ts
+</tool.toolu_015KPm5zgq1nrXJtmpGF3BCE>
+
+## context-lines
+
+<tool.toolu_015KPm5zgq1nrXJtmpGF3BCE>
+70
+</tool.toolu_015KPm5zgq1nrXJtmpGF3BCE>
+
+# TOOL RESULT
+
+ID: toolu_015KPm5zgq1nrXJtmpGF3BCE
+
+<tool.toolu_015KPm5zgq1nrXJtmpGF3BCE>
+592-      
+593-      const magnitude = Math.sqrt(gx * gx + gy * gy);
+594-      
+595-      if (magnitude > 50) {
+596-        setPixel(out, x, y, 255, 255, 255);
+597-      }
+598-    }
+599-  }
+600-  
+601-  return out;
+602-}
+603-
+604-function fnJ(ctx: FnContext, j: number): Image {
+605-  const prev = getPrevImage(ctx);
+606-  const old = getOldImage(ctx, j);
+607-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+608-  
+609-  for (let y = 0; y < ctx.height; y++) {
+610-    for (let x = 0; x < ctx.width; x++) {
+611-      const nx = x / ctx.width;
+612-      const ny = y / ctx.height;
+613-      
+614-      const squareSize = Math.max(2, Math.floor(2 + (nx + ny) * 50));
+615-      
+616-      const gridX = Math.floor(x / squareSize);
+617-      const gridY = Math.floor(y / squareSize);
+618-      
+619-      const useOld = (gridX + gridY) % 2 === 0;
+620-      const src = useOld ? old : prev;
+621-      
+622-      const [r, g, b] = getPixel(src, x, y);
+623-      setPixel(out, x, y, r, g, b);
+624-    }
+625-  }
+626-  
+627-  return out;
+628-}
+629-
+630-function fnK(ctx: FnContext, n: number): Image {
+631-  const prev = getPrevImage(ctx);
+632-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+633-  
+634-  const segments = Math.max(1, Math.min(n + 2, 18));
+635-  const cx = ctx.width / 2;
+636-  const cy = ctx.height / 2;
+637-  const angleStep = (Math.PI * 2) / segments;
+638-  const zoom = 1.1;
+639-  
+640-  for (let y = 0; y < ctx.height; y++) {
+641-    for (let x = 0; x < ctx.width; x++) {
+642-      const dx = (x - cx) * zoom;
+643-      const dy = (y - cy) * zoom;
+644-      let angle = Math.atan2(dy, dx);
+645-      if (angle < 0) angle += Math.PI * 2;
+646-      
+647-      const segmentAngle = angle % angleStep;
+648-      const mirroredAngle = segmentAngle > angleStep / 2 ? angleStep - segmentAngle : segmentAngle;
+649-      
+650-      const r = Math.sqrt(dx * dx + dy * dy);
+651-      const sx = cx + r * Math.cos(mirroredAngle);
+652-      const sy = cy + r * Math.sin(mirroredAngle);
+653-      
+654-      const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+655-      setPixel(out, x, y, pr, pg, pb);
+656-    }
+657-  }
+658-  
+659-  return out;
+660-}
+661-
+662:function fnL(ctx: FnContext): Image {
+663-  const prev = getPrevImage(ctx);
+664-  const out = cloneImage(prev);
+665-  
+666-  const complexity = 2;
+667-  const thickness = Math.max(2, Math.floor(Math.min(ctx.width, ctx.height) / 80));
+668-  const numCurves = Math.min(complexity, 5);
+669-  
+670-  const cx = ctx.width / 2;
+671-  const cy = ctx.height / 2;
+672-  const scaleX = cx * 0.9;
+673-  const scaleY = cy * 0.9;
+674-  
+675-  const [bgR, bgG, bgB] = getPixel(prev, Math.floor(cx), Math.floor(cy));
+676-  
+677-  const mask = new Uint8Array(ctx.width * ctx.height);
+678-  
+679-  const drawThickLine = (x0: number, y0: number, x1: number, y1: number) => {
+680-    const dx = Math.abs(x1 - x0);
+681-    const dy = Math.abs(y1 - y0);
+682-    const sx = x0 < x1 ? 1 : -1;
+683-    const sy = y0 < y1 ? 1 : -1;
+684-    let err = dx - dy;
+685-    let x = x0, y = y0;
+686-    
+687-    while (true) {
+688-      for (let ty = -thickness; ty <= thickness; ty++) {
+689-        for (let tx = -thickness; tx <= thickness; tx++) {
+690-          if (tx * tx + ty * ty <= thickness * thickness) {
+691-            const px = x + tx;
+692-            const py = y + ty;
+693-            if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+694-              mask[py * ctx.width + px] = 1;
+695-            }
+696-          }
+697-        }
+698-      }
+699-      
+700-      if (x === x1 && y === y1) break;
+701-      const e2 = 2 * err;
+702-      if (e2 > -dy) { err -= dy; x += sx; }
+703-      if (e2 < dx) { err += dx; y += sy; }
+704-    }
+705-  };
+706-  
+707-  for (let c = 0; c < numCurves; c++) {
+708-    const a = complexity + c;
+709-    const b = complexity + c + 1 + (c % 3);
+710-    const delta = (c * Math.PI) / (numCurves + 1);
+711-    
+712-    const steps = 800;
+713-    let prevX = Math.floor(cx + Math.sin(delta) * scaleX);
+714-    let prevY = Math.floor(cy);
+715-    
+716-    for (let i = 1; i <= steps; i++) {
+717-      const t = (i / steps) * Math.PI * 2;
+718-      const currX = Math.floor(cx + Math.sin(a * t + delta) * scaleX);
+719-      const currY = Math.floor(cy + Math.sin(b * t) * scaleY);
+720-      
+721-      drawThickLine(prevX, prevY, currX, currY);
+722-      
+723-      prevX = currX;
+724-      prevY = currY;
+725-    }
+726-  }
+727-  
+728-  for (let y = 0; y < ctx.height; y++) {
+729-    for (let x = 0; x < ctx.width; x++) {
+730-      if (mask[y * ctx.width + x]) {
+731-        const nx = x / ctx.width;
+732-        const ny = y / ctx.height;
+--
+2223-  
+2224-  for (let i = 1; i <= numRects; i++) {
+2225-    const rx = Math.floor(i * ctx.width / (numRects + 2));
+2226-    const ry = Math.floor(i * ctx.height / (numRects + 4));
+2227-    const rw = Math.floor(ctx.width / (numRects + 2));
+2228-    const rh = Math.floor(ctx.height / (numRects + 4));
+2229-    
+2230-    const hueRotation = (i * 360 / numRects);
+2231-    
+2232-    for (let y = ry; y < ry + rh && y < ctx.height; y++) {
+2233-      for (let x = rx; x < rx + rw && x < ctx.width; x++) {
+2234-        const [r, g, b] = getPixel(prev, x, y);
+2235-        const [h, s, l] = rgbToHsl(r, g, b);
+2236-        const [nr, ng, nb] = hslToRgb((h + hueRotation) % 360, s, l);
+2237-        setPixel(out, x, y, nr, ng, nb);
+2238-      }
+2239-    }
+2240-  }
+2241-  
+2242-  return out;
+2243-}
+2244-
+2245-function fn8(ctx: FnContext, n: number): Image {
+2246-  const prev = getPrevImage(ctx);
+2247-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+2248-  
+2249-  const strength = Math.max(0.1, n / 5);
+2250-  const cx = ctx.width / 2;
+2251-  const cy = ctx.height / 2;
+2252-  const scale = Math.min(ctx.width, ctx.height) / 4;
+2253-  
+2254-  for (let y = 0; y < ctx.height; y++) {
+2255-    for (let x = 0; x < ctx.width; x++) {
+2256-      const nx = (x - cx) / scale;
+2257-      const ny = (y - cy) / scale;
+2258-      
+2259-      const r2 = nx * nx + ny * ny;
+2260-      const denom = r2 + 1;
+2261-      
+2262-      const lemnX = nx * (r2 - 1) / denom;
+2263-      const lemnY = ny * (r2 + 1) / denom;
+2264-      
+2265-      const sx = cx + (nx + (lemnX - nx) * strength * 0.3) * scale;
+2266-      const sy = cy + (ny + (lemnY - ny) * strength * 0.3) * scale;
+2267-      
+2268-      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+2269-      setPixel(out, x, y, r, g, b);
+2270-    }
+2271-  }
+2272-  
+2273-  return out;
+2274-}
+2275-
+2276-function fn9(ctx: FnContext, j: number): Image {
+2277-  const prev = getPrevImage(ctx);
+2278-  const old = getOldImage(ctx, j);
+2279-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+2280-  
+2281-  for (let y = 0; y < ctx.height; y++) {
+2282-    for (let x = 0; x < ctx.width; x++) {
+2283-      const [r1, g1, b1] = getPixel(prev, x, y);
+2284-      const [r2, g2, b2] = getPixel(old, x, y);
+2285-      
+2286-      setPixel(out, x, y, r1 ^ r2, g1 ^ g2, b1 ^ b2);
+2287-    }
+2288-  }
+2289-  
+2290-  return out;
+2291-}
+2292-
+2293:function fnLessThan(ctx: FnContext): Image {
+2294-  const prev = getPrevImage(ctx);
+2295-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+2296-  const shift = Math.floor(ctx.width / 3);
+2297-  
+2298-  for (let y = 0; y < ctx.height; y++) {
+2299-    for (let x = 0; x < ctx.width; x++) {
+2300-      const srcX = (x + shift) % ctx.width;
+2301-      const [r, g, b] = getPixel(prev, srcX, y);
+2302-      setPixel(out, x, y, r, g, b);
+2303-    }
+2304-  }
+2305-  
+2306-  return out;
+2307-}
+2308-
+2309-function fnGreaterThan(ctx: FnContext): Image {
+2310-  const prev = getPrevImage(ctx);
+2311-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+2312-  const shift = Math.floor(ctx.width / 3);
+2313-  
+2314-  for (let y = 0; y < ctx.height; y++) {
+2315-    for (let x = 0; x < ctx.width; x++) {
+2316-      const srcX = ((x - shift) % ctx.width + ctx.width) % ctx.width;
+2317-      const [r, g, b] = getPixel(prev, srcX, y);
+2318-      setPixel(out, x, y, r, g, b);
+2319-    }
+2320-  }
+2321-  
+2322-  return out;
+2323-}
+2324-
+2325-function fnCaret(ctx: FnContext): Image {
+2326-  const prev = getPrevImage(ctx);
+2327-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+2328-  const shift = Math.floor(ctx.height / 3);
+2329-  
+2330-  for (let y = 0; y < ctx.height; y++) {
+2331-    for (let x = 0; x < ctx.width; x++) {
+2332-      const srcY = (y + shift) % ctx.height;
+2333-      const [r, g, b] = getPixel(prev, x, srcY);
+2334-      setPixel(out, x, y, r, g, b);
+2335-    }
+2336-  }
+2337-  
+2338-  return out;
+2339-}
+2340-
+2341-function fnExclaim(ctx: FnContext, n: number): Image {
+2342-  const prev = getPrevImage(ctx);
+2343-  const out = cloneImage(prev);
+2344-  const opacity = 0.3;
+2345-  const factor = n + 17;
+2346-  
+2347-  for (let y = 0; y < ctx.height; y++) {
+2348-    for (let x = 0; x < ctx.width; x++) {
+2349-      const brightness = ((x * factor) ^ (y * 31) ^ (x * y)) % 256;
+2350-      const idx = (y * ctx.width + x) * 4;
+2351-      out.data[idx] = Math.round(out.data[idx] * (1 - opacity) + brightness * opacity);
+2352-      out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - opacity) + brightness * opacity);
+2353-      out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - opacity) + brightness * opacity);
+2354-    }
+2355-  }
+2356-  
+2357-  return out;
+2358-}
+2359-
+2360-function fnDoubleQuote(ctx: FnContext, n: number): Image {
+2361-  const prev = getPrevImage(ctx);
+2362-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+2363-  const bands = Math.max(2, n);
+
+</tool.toolu_015KPm5zgq1nrXJtmpGF3BCE>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Qp6nYtkgYPtqHCgZMh6Fwt
+
+## path
+
+<tool.toolu_01Qp6nYtkgYPtqHCgZMh6Fwt>
+character-defs.ts
+</tool.toolu_01Qp6nYtkgYPtqHCgZMh6Fwt>
+
+## git-commit-message
+
+<tool.toolu_01Qp6nYtkgYPtqHCgZMh6Fwt>
+Replace L with 3D letter L in WebGL with strong lighting
+</tool.toolu_01Qp6nYtkgYPtqHCgZMh6Fwt>
+
+## diff
+
+<tool.toolu_01Qp6nYtkgYPtqHCgZMh6Fwt>
+ function fnL(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+-  const out = cloneImage(prev);
++  const gl = initWebGL(ctx.width, ctx.height);
+   
+-  const complexity = 2;
+-  const thickness = Math.max(2, Math.floor(Math.min(ctx.width, ctx.height) / 80));
+-  const numCurves = Math.min(complexity, 5);
+-  
+-  const cx = ctx.width / 2;
+-  const cy = ctx.height / 2;
+-  const scaleX = cx * 0.9;
+-  const scaleY = cy * 0.9;
+-  
+-  const [bgR, bgG, bgB] = getPixel(prev, Math.floor(cx), Math.floor(cy));
+-  
+-  const mask = new Uint8Array(ctx.width * ctx.height);
+-  
+-  const drawThickLine = (x0: number, y0: number, x1: number, y1: number) => {
+-    const dx = Math.abs(x1 - x0);
+-    const dy = Math.abs(y1 - y0);
+-    const sx = x0 < x1 ? 1 : -1;
+-    const sy = y0 < y1 ? 1 : -1;
+-    let err = dx - dy;
+-    let x = x0, y = y0;
++  const vertexShader = `
++    attribute vec3 aPosition;
++    attribute vec3 aNormal;
++    attribute vec2 aTexCoord;
+     
+-    while (true) {
+-      for (let ty = -thickness; ty <= thickness; ty++) {
+-        for (let tx = -thickness; tx <= thickness; tx++) {
+-          if (tx * tx + ty * ty <= thickness * thickness) {
+-            const px = x + tx;
+-            const py = y + ty;
+-            if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+-              mask[py * ctx.width + px] = 1;
+-            }
+-          }
+-        }
+-      }
+-      
+-      if (x === x1 && y === y1) break;
+-      const e2 = 2 * err;
+-      if (e2 > -dy) { err -= dy; x += sx; }
+-      if (e2 < dx) { err += dx; y += sy; }
++    uniform mat4 uProjection;
++    uniform mat4 uModelView;
++    uniform mat3 uNormalMatrix;
++    
++    varying vec3 vNormal;
++    varying vec3 vPosition;
++    varying vec2 vTexCoord;
++    
++    void main() {
++      vPosition = (uModelView * vec4(aPosition, 1.0)).xyz;
++      vNormal = uNormalMatrix * aNormal;
++      vTexCoord = aTexCoord;
++      gl_Position = uProjection * vec4(vPosition, 1.0);
+     }
+-  };
++  `;
+   
+-  for (let c = 0; c < numCurves; c++) {
+-    const a = complexity + c;
+-    const b = complexity + c + 1 + (c % 3);
+-    const delta = (c * Math.PI) / (numCurves + 1);
++  const fragmentShader = `
++    precision highp float;
+     
+-    const steps = 800;
+-    let prevX = Math.floor(cx + Math.sin(delta) * scaleX);
+-    let prevY = Math.floor(cy);
++    uniform sampler2D uTexture;
++    uniform vec3 uLightPos;
+     
+-    for (let i = 1; i <= steps; i++) {
+-      const t = (i / steps) * Math.PI * 2;
+-      const currX = Math.floor(cx + Math.sin(a * t + delta) * scaleX);
+-      const currY = Math.floor(cy + Math.sin(b * t) * scaleY);
++    varying vec3 vNormal;
++    varying vec3 vPosition;
++    varying vec2 vTexCoord;
++    
++    void main() {
++      vec3 normal = normalize(vNormal);
++      vec3 lightDir = normalize(uLightPos - vPosition);
++      vec3 viewDir = normalize(-vPosition);
++      vec3 halfDir = normalize(lightDir + viewDir);
+       
+-      drawThickLine(prevX, prevY, currX, currY);
++      float ambient = 0.2;
++      float diff = max(dot(normal, lightDir), 0.0) * 0.7;
++      float spec = pow(max(dot(normal, halfDir), 0.0), 64.0) * 0.8;
+       
+-      prevX = currX;
+-      prevY = currY;
++      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
++      vec3 color = texColor * (ambient + diff) + vec3(1.0) * spec;
++      
++      gl_FragColor = vec4(color, 1.0);
+     }
+-  }
++  `;
+   
++  const program = createShaderProgram(gl, vertexShader, fragmentShader);
++  
++  const texture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, texture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const depth = 0.3;
++  const positions: number[] = [];
++  const normals: number[] = [];
++  const texCoords: number[] = [];
++  
++  const addQuad = (
++    p0: number[], p1: number[], p2: number[], p3: number[],
++    n: number[],
++    t0: number[], t1: number[], t2: number[], t3: number[]
++  ) => {
++    positions.push(...p0, ...p1, ...p2, ...p0, ...p2, ...p3);
++    for (let i = 0; i < 6; i++) normals.push(...n);
++    texCoords.push(...t0, ...t1, ...t2, ...t0, ...t2, ...t3);
++  };
++  
++  // L shape: vertical bar (left) + horizontal bar (bottom)
++  // Vertical bar: x: -0.4 to -0.1, y: -0.5 to 0.5
++  // Horizontal bar: x: -0.4 to 0.4, y: -0.5 to -0.2
++  
++  // Front face - vertical
++  addQuad(
++    [-0.4, 0.5, depth], [-0.1, 0.5, depth], [-0.1, -0.2, depth], [-0.4, -0.2, depth],
++    [0, 0, 1],
++    [0, 0], [0.33, 0], [0.33, 0.7], [0, 0.7]
++  );
++  // Front face - horizontal
++  addQuad(
++    [-0.4, -0.2, depth], [0.4, -0.2, depth], [0.4, -0.5, depth], [-0.4, -0.5, depth],
++    [0, 0, 1],
++    [0, 0.7], [1, 0.7], [1, 1], [0, 1]
++  );
++  
++  // Back face - vertical
++  addQuad(
++    [-0.1, 0.5, -depth], [-0.4, 0.5, -depth], [-0.4, -0.2, -depth], [-0.1, -0.2, -depth],
++    [0, 0, -1],
++    [0.33, 0], [0, 0], [0, 0.7], [0.33, 0.7]
++  );
++  // Back face - horizontal
++  addQuad(
++    [0.4, -0.2, -depth], [-0.4, -0.2, -depth], [-0.4, -0.5, -depth], [0.4, -0.5, -depth],
++    [0, 0, -1],
++    [1, 0.7], [0, 0.7], [0, 1], [1, 1]
++  );
++  
++  // Top of vertical bar
++  addQuad(
++    [-0.4, 0.5, -depth], [-0.1, 0.5, -depth], [-0.1, 0.5, depth], [-0.4, 0.5, depth],
++    [0, 1, 0],
++    [0, 0], [0.33, 0], [0.33, 0.1], [0, 0.1]
++  );
++  
++  // Right side of vertical bar (above horizontal)
++  addQuad(
++    [-0.1, 0.5, depth], [-0.1, 0.5, -depth], [-0.1, -0.2, -depth], [-0.1, -0.2, depth],
++    [1, 0, 0],
++    [0.33, 0], [0.33, 0], [0.33, 0.7], [0.33, 0.7]
++  );
++  
++  // Top of horizontal bar (right part)
++  addQuad(
++    [-0.1, -0.2, -depth], [0.4, -0.2, -depth], [0.4, -0.2, depth], [-0.1, -0.2, depth],
++    [0, 1, 0],
++    [0.33, 0.7], [1, 0.7], [1, 0.7], [0.33, 0.7]
++  );
++  
++  // Right side of horizontal bar
++  addQuad(
++    [0.4, -0.2, depth], [0.4, -0.2, -depth], [0.4, -0.5, -depth], [0.4, -0.5, depth],
++    [1, 0, 0],
++    [1, 0.7], [1, 0.7], [1, 1], [1, 1]
++  );
++  
++  // Bottom of horizontal bar
++  addQuad(
++    [-0.4, -0.5, depth], [0.4, -0.5, depth], [0.4, -0.5, -depth], [-0.4, -0.5, -depth],
++    [0, -1, 0],
++    [0, 1], [1, 1], [1, 1], [0, 1]
++  );
++  
++  // Left side of L
++  addQuad(
++    [-0.4, 0.5, -depth], [-0.4, 0.5, depth], [-0.4, -0.5, depth], [-0.4, -0.5, -depth],
++    [-1, 0, 0],
++    [0, 0], [0, 0], [0, 1], [0, 1]
++  );
++  
++  gl.useProgram(program);
++  
++  const posBuffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
++  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
++  const posLoc = gl.getAttribLocation(program, 'aPosition');
++  gl.enableVertexAttribArray(posLoc);
++  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
++  
++  const normBuffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
++  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
++  const normLoc = gl.getAttribLocation(program, 'aNormal');
++  gl.enableVertexAttribArray(normLoc);
++  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
++  
++  const texBuffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
++  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
++  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
++  gl.enableVertexAttribArray(texLoc);
++  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  const aspect = ctx.width / ctx.height;
++  const fov = Math.PI / 4;
++  const near = 0.1, far = 10.0;
++  const f = 1.0 / Math.tan(fov / 2);
++  const projection = new Float32Array([
++    f / aspect, 0, 0, 0,
++    0, f, 0, 0,
++    0, 0, (far + near) / (near - far), -1,
++    0, 0, (2 * far * near) / (near - far), 0
++  ]);
++  
++  const angle = 0.4;
++  const c = Math.cos(angle), s = Math.sin(angle);
++  const modelView = new Float32Array([
++    c, 0, s, 0,
++    0, 1, 0, 0,
++    -s, 0, c, 0,
++    0, 0, -2.5, 1
++  ]);
++  
++  const normalMatrix = new Float32Array([
++    c, 0, -s,
++    0, 1, 0,
++    s, 0, c
++  ]);
++  
++  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, projection);
++  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModelView'), false, modelView);
++  gl.uniformMatrix3fv(gl.getUniformLocation(program, 'uNormalMatrix'), false, normalMatrix);
++  gl.uniform3f(gl.getUniformLocation(program, 'uLightPos'), 2.0, 2.0, 3.0);
++  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
++  
++  gl.enable(gl.DEPTH_TEST);
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  gl.clearColor(0, 0, 0, 1);
++  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
++  
++  gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
++  
++  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
++  
++  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+-      if (mask[y * ctx.width + x]) {
+-        const nx = x / ctx.width;
+-        const ny = y / ctx.height;
+-        const gradientPos = (nx + ny) * 0.5;
+-        const v = Math.floor(gradientPos * 255);
+-        setPixel(out, x, y, v, v, v);
+-      }
++      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
++      const dstIdx = (y * ctx.width + x) * 4;
++      flipped[dstIdx] = pixels[srcIdx];
++      flipped[dstIdx + 1] = pixels[srcIdx + 1];
++      flipped[dstIdx + 2] = pixels[srcIdx + 2];
++      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+     }
+   }
+   
+-  return out;
++  gl.disable(gl.DEPTH_TEST);
++  gl.disableVertexAttribArray(posLoc);
++  gl.disableVertexAttribArray(normLoc);
++  gl.disableVertexAttribArray(texLoc);
++  gl.deleteTexture(texture);
++  gl.deleteBuffer(posBuffer);
++  gl.deleteBuffer(normBuffer);
++  gl.deleteBuffer(texBuffer);
++  gl.deleteProgram(program);
++  
++  return { width: ctx.width, height: ctx.height, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_01Qp6nYtkgYPtqHCgZMh6Fwt>
+
+# TOOL RESULT
+
+ID: toolu_01Qp6nYtkgYPtqHCgZMh6Fwt
+
+<tool.toolu_01Qp6nYtkgYPtqHCgZMh6Fwt>
+
+</tool.toolu_01Qp6nYtkgYPtqHCgZMh6Fwt>
