@@ -1156,13 +1156,12 @@ function fnM(ctx: FnContext, n: number): Image {
       const moire = line1 !== line2;
       
       const [r, g, b] = getPixel(prev, x, y);
-      const [h, s, l] = rgbToHsl(r, g, b);
       
-      const newH = moire ? (h + hueShift) % 360 : h;
-      const newL = Math.max(0.05, Math.min(0.95, l + (moire ? 0.15 : -0.1)));
-      
-      const [nr, ng, nb] = hslToRgb(newH, s, newL);
-      setPixel(out, x, y, nr, ng, nb);
+      if (moire) {
+        setPixel(out, x, y, 255 - r, 255 - g, 255 - b);
+      } else {
+        setPixel(out, x, y, r, g, b);
+      }
     }
   }
   
