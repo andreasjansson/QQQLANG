@@ -2413,7 +2413,7 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fn9,
     arity: 1,
     argTypes: ['int'],
-    functionName: "self-blend",
-    documentation: "Applies blend mode n%9 of prev with itself: multiply, screen, overlay, darken, lighten, color-dodge, color-burn, hard-light, soft-light"
+    functionName: "xor-blend",
+    documentation: "XORs prev with old_image at index j, creating glitchy digital artifacts"
   },
 };
