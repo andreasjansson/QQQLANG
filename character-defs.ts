@@ -640,51 +640,54 @@ function fnL(ctx: FnContext, n: number): Image {
   const stripHeight = Math.max(4, n * 2 + 4);
   const waveAmplitude = stripHeight * 1.2;
   const waveFrequency = 0.02;
-  const numStrips = Math.ceil(ctx.height / stripHeight) + 4;
+  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
   
-  for (let pass = 0; pass < 2; pass++) {
-    for (let y = 0; y < ctx.height; y++) {
-      for (let x = 0; x < ctx.width; x++) {
-        let bestStrip = -1;
-        let bestDist = Infinity;
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      let bestEven = -1, bestEvenDist = Infinity;
+      let bestOdd = -1, bestOddDist = Infinity;
+      
+      for (let i = -3; i < numStrips; i++) {
+        const phase = i * 0.8;
+        const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
+        const stripCenterY = i * stripHeight + stripHeight / 2 + wave;
+        const dist = Math.abs(y - stripCenterY);
         
-        for (let i = -2; i < numStrips; i++) {
-          if (i % 2 !== ((pass + Math.abs(i)) % 2)) continue;
-          
-          const phase = i * 0.8;
-          const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
-          const stripCenterY = i * stripHeight + stripHeight / 2 + wave;
-          const dist = Math.abs(y - stripCenterY);
-          
-          if (dist < stripHeight / 2 && dist < bestDist) {
-            bestDist = dist;
-            bestStrip = i;
-          }
+        if (i % 2 === 0) {
+          if (dist < bestEvenDist) { bestEvenDist = dist; bestEven = i; }
+        } else {
+          if (dist < bestOddDist) { bestOddDist = dist; bestOdd = i; }
         }
+      }
+      
+      const drawOrder = bestEvenDist < bestOddDist ? [bestOdd, bestEven] : [bestEven, bestOdd];
+      
+      for (const stripIdx of drawOrder) {
+        if (stripIdx < 0) continue;
         
-        if (bestStrip >= 0) {
-          const phase = bestStrip * 0.8;
-          const hueShift = (bestStrip * 25) % 360;
-          const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
+        const phase = stripIdx * 0.8;
+        const hueShift = (stripIdx * 25) % 360;
+        const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
+        
+        const stripTopY = stripIdx * stripHeight + wave;
+        const localY = y - stripTopY;
+        
+        if (localY >= 0 && localY < stripHeight) {
+          const srcY = stripIdx * stripHeight + localY;
+          const clampedSrcY = Math.max(0, Math.min(ctx.height - 1, Math.floor(srcY)));
           
-          const stripTopY = bestStrip * stripHeight + wave;
-          const localY = y - stripTopY;
-          const srcY = bestStrip * stripHeight + localY;
+          const [r, g, b] = getPixel(prev, x, clampedSrcY);
+          const [h, s, l] = rgbToHsl(r, g, b);
+          const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
           
-          if (srcY >= 0 && srcY < ctx.height) {
-            const [r, g, b] = getPixel(prev, x, Math.floor(srcY));
-            const [h, s, l] = rgbToHsl(r, g, b);
-            const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
-            
-            const edgeDist = Math.min(localY, stripHeight - 1 - localY);
-            const shadow = edgeDist < 2 ? 0.7 : 1.0;
-            
-            setPixel(out, x, y,
-              Math.round(nr * shadow),
-              Math.round(ng * shadow),
-              Math.round(nb * shadow)
-            );
-          }
+          const edgeDist = Math.min(localY, stripHeight - 1 - localY);
+          const shadow = edgeDist < 2 ? 0.7 : 1.0;
+          
+          setPixel(out, x, y,
+            Math.round(nr * shadow),
+            Math.round(ng * shadow),
+            Math.round(nb * shadow)
+          );
         }
       }
     }
