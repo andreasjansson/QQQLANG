@@ -551,7 +551,7 @@ function fnH(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const numColors = Math.max(2, Math.min(n + 2, 16));
+  const numColors = 4;
   
   const order = Math.ceil(Math.log2(Math.max(ctx.width, ctx.height)));
   const size = 1 << order;
