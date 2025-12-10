@@ -1692,90 +1692,112 @@ function fn5(ctx: FnContext, n: number): Image {
     uniform int uNumDrips;
     varying vec2 vUV;
     
-    #define MAX_DRIPS 40
+    #define MAX_DRIPS 25
     
     float hash(float n) {
       return fract(sin(n) * 43758.5453123);
     }
     
+    // Metaball influence function
+    float metaball(vec2 p, vec2 center, float radius) {
+      float d = length(p - center);
+      return (radius * radius) / (d * d + 0.001);
+    }
+    
+    // Calculate gradient of metaball field for normals
+    vec2 metaballGradient(vec2 p, vec2 center, float radius) {
+      vec2 d = p - center;
+      float len2 = dot(d, d) + 0.001;
+      float len4 = len2 * len2;
+      return -2.0 * radius * radius * d / len4;
+    }
+    
     void main() {
       vec2 uv = vUV;
+      vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+      vec2 p = uv * aspect;
       
-      // Accumulate displacement from all drip influences
-      float totalDisplaceY = 0.0;
-      float totalDisplaceX = 0.0;
+      // Calculate total metaball field and gradient
+      float field = 0.0;
+      vec2 gradient = vec2(0.0);
       
-      // Generate drips deterministically
       for (int i = 0; i < MAX_DRIPS; i++) {
         if (i >= uNumDrips) break;
         
         float fi = float(i);
+        float dripX = hash(fi * 127.1) * aspect.x;
+        float startY = hash(fi * 311.7) * 0.2;
+        float dripLen = 0.4 + hash(fi * 74.3) * 0.5;
         
-        // Base x position for this drip
-        float dripX = hash(fi * 127.1);
-        float dripStartY = hash(fi * 311.7) * 0.15;
-        float dripLength = 0.5 + hash(fi * 74.3) * 0.4;
-        float dripWidth = 0.03 + hash(fi * 183.9) * 0.04;
-        
-        // Distance from drip center line (horizontal)
-        float dx = uv.x - dripX;
-        
-        // Smooth falloff from drip center
-        float xInfluence = exp(-dx * dx / (dripWidth * dripWidth * uStrength));
-        
-        // Only affect areas below the drip start
-        float yProgress = (uv.y - dripStartY) / (dripLength * uStrength);
-        yProgress = clamp(yProgress, 0.0, 1.0);
-        
-        // Drip gets stronger as it flows down, with smooth falloff
-        float yInfluence = yProgress * smoothstep(0.0, 0.1, yProgress) * smoothstep(1.2, 0.8, yProgress);
-        
-        // Combined influence
-        float influence = xInfluence * yInfluence;
-        
-        // Add wobble
-        float wobble = sin(uv.y * 30.0 + fi * 5.0) * 0.003 * influence;
-        
-        totalDisplaceY += influence * 0.08 * uStrength;
-        totalDisplaceX += wobble;
-      }
-      
-      // Clamp total displacement
-      totalDisplaceY = min(totalDisplaceY, 0.25);
-      
-      // Sample texture with displacement (sample from above to pull down)
-      vec2 sampleUV = uv;
-      sampleUV.y -= totalDisplaceY;
-      sampleUV.x += totalDisplaceX;
-      
-      // Clamp to valid range
-      sampleUV = clamp(sampleUV, 0.0, 1.0);
-      
-      // Multi-sample for smooth result
-      vec4 color = vec4(0.0);
-      float totalWeight = 0.0;
-      
-      // Adaptive blur - more blur in displaced areas
-      float blurAmount = 1.0 + totalDisplaceY * 3.0;
-      
-      for (int dy = -2; dy <= 2; dy++) {
-        for (int dx = -2; dx <= 2; dx++) {
-          vec2 offset = vec2(float(dx), float(dy)) / uResolution * blurAmount;
-          vec2 tapUV = sampleUV + offset;
+        // Create elongated drip with multiple large balls
+        for (int j = 0; j < 6; j++) {
+          float fj = float(j);
+          float t = fj / 5.0;
           
-          float weight = exp(-(float(dx*dx + dy*dy)) * 0.4);
+          // Position along drip
+          float y = startY + t * dripLen * uStrength;
+          float wobble = sin(t * 8.0 + fi * 4.0) * 0.02;
+          float x = dripX + wobble;
           
-          color += texture2D(uTexture, clamp(tapUV, 0.0, 1.0)) * weight;
-          totalWeight += weight;
+          // Large radius, teardrop shape
+          float baseR = 0.06 + hash(fi * 183.9) * 0.04;
+          float r = baseR * (1.0 - t * 0.5) * uStrength;
+          
+          vec2 center = vec2(x, y);
+          field += metaball(p, center, r);
+          gradient += metaballGradient(p, center, r);
         }
       }
       
-      color /= totalWeight;
+      // Blob threshold
+      float threshold = 0.8;
+      float blob = smoothstep(threshold - 0.2, threshold + 0.1, field);
       
-      // Subtle darkening in drip areas
-      color.rgb *= 1.0 - totalDisplaceY * 0.3;
+      // Calculate surface normal from gradient
+      vec3 normal = normalize(vec3(-gradient * 2.0, 1.0));
       
-      gl_FragColor = color;
+      // Light direction (from top-left)
+      vec3 lightDir = normalize(vec3(-0.4, -0.5, 1.0));
+      
+      // Fresnel effect for glass edges
+      float fresnel = pow(1.0 - abs(normal.z), 3.0);
+      
+      // Specular highlight
+      vec3 viewDir = vec3(0.0, 0.0, 1.0);
+      vec3 halfVec = normalize(lightDir + viewDir);
+      float spec = pow(max(dot(normal, halfVec), 0.0), 60.0);
+      
+      // Diffuse shading
+      float diffuse = max(dot(normal, lightDir), 0.0);
+      
+      // Refraction - displace UV based on normal
+      vec2 refractUV = uv + normal.xy * 0.03 * blob;
+      refractUV = clamp(refractUV, 0.0, 1.0);
+      
+      // Sample background with refraction
+      vec4 bgColor = texture2D(uTexture, uv);
+      vec4 refractColor = texture2D(uTexture, refractUV);
+      
+      // Glass color - slightly tinted, with refraction
+      vec3 glassColor = refractColor.rgb;
+      
+      // Add shading to glass
+      glassColor *= 0.9 + diffuse * 0.2;
+      
+      // Add specular highlight
+      glassColor += vec3(1.0) * spec * 0.8;
+      
+      // Add fresnel rim lighting
+      glassColor += vec3(0.3, 0.4, 0.5) * fresnel * 0.5;
+      
+      // Darken edges slightly for depth
+      float edge = smoothstep(threshold - 0.1, threshold + 0.3, field);
+      glassColor *= 0.85 + edge * 0.15;
+      
+      // Blend glass over background
+      vec3 finalColor = mix(bgColor.rgb, glassColor, blob * 0.85);
+      
+      gl_FragColor = vec4(finalColor, 1.0);
     }
   `;
   
