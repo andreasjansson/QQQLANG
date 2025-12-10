@@ -699,16 +699,16 @@ function fnL(ctx: FnContext, n: number): Image {
     }
   }
   
+  const [bgH, bgS, bgL] = rgbToHsl(bgR, bgG, bgB);
+  
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       if (mask[y * ctx.width + x]) {
         const nx = x / ctx.width;
         const ny = y / ctx.height;
         const gradientPos = (nx + ny) * 0.5;
-        const andVal = Math.floor((gradientPos % 1) * 255);
-        const cr = bgR & andVal;
-        const cg = bgG & ((andVal + 85) % 256);
-        const cb = bgB & ((andVal + 170) % 256);
+        const hueShift = gradientPos * 360;
+        const [cr, cg, cb] = hslToRgb((bgH + hueShift) % 360, Math.max(0.6, bgS), Math.max(0.4, Math.min(0.6, bgL)));
         setPixel(out, x, y, cr, cg, cb);
       }
     }
