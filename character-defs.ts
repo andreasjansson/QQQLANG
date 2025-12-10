@@ -1674,6 +1674,7 @@ function fn5(ctx: FnContext, n: number): Image {
   
   const numDrips = Math.max(1, n * 3);
   const dripStrength = Math.max(0.5, Math.min(n * 0.2 + 0.8, 2.0));
+  const seed = ctx.images.length * 137.5;
   
   const vertexShader = `
     attribute vec2 position;
