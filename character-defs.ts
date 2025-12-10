@@ -981,81 +981,164 @@ function fnS(ctx: FnContext, n: number): Image {
 
 function fnT(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const numDrawers = Math.max(1, Math.min(n + 1, 15));
+  const numDrawers = Math.max(1, Math.min(n + 1, 12));
   
-  const seededRandom = (seed: number) => {
-    let state = seed;
-    return () => {
-      state = (state * 1103515245 + 12345) & 0x7fffffff;
-      return state / 0x7fffffff;
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D texture;
+    uniform vec2 resolution;
+    uniform int numDrawers;
+    varying vec2 vUV;
+    
+    float hash(float n) {
+      return fract(sin(n) * 43758.5453);
+    }
+    
+    struct Box {
+      vec3 min;
+      vec3 max;
+      vec2 texMin;
+      vec2 texMax;
     };
-  };
-  const rand = seededRandom(42);
+    
+    bool rayBoxIntersect(vec3 ro, vec3 rd, vec3 boxMin, vec3 boxMax, out float tNear, out float tFar, out vec3 normal) {
+      vec3 invRd = 1.0 / rd;
+      vec3 t1 = (boxMin - ro) * invRd;
+      vec3 t2 = (boxMax - ro) * invRd;
+      vec3 tMin = min(t1, t2);
+      vec3 tMax = max(t1, t2);
+      tNear = max(max(tMin.x, tMin.y), tMin.z);
+      tFar = min(min(tMax.x, tMax.y), tMax.z);
+      
+      if (tNear > tFar || tFar < 0.0) return false;
+      
+      if (tMin.x > tMin.y && tMin.x > tMin.z) normal = vec3(-sign(rd.x), 0.0, 0.0);
+      else if (tMin.y > tMin.z) normal = vec3(0.0, -sign(rd.y), 0.0);
+      else normal = vec3(0.0, 0.0, -sign(rd.z));
+      
+      return true;
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      vec3 baseColor = texture2D(texture, uv).rgb;
+      
+      vec2 ndc = uv * 2.0 - 1.0;
+      ndc.x *= resolution.x / resolution.y;
+      
+      vec3 ro = vec3(0.0, 0.0, 2.5);
+      vec3 rd = normalize(vec3(ndc * 0.8, -1.0));
+      
+      vec3 lightDir = normalize(vec3(0.4, 0.5, 0.8));
+      
+      float closestT = 1000.0;
+      vec3 finalColor = baseColor;
+      
+      for (int i = 0; i < 12; i++) {
+        if (i >= numDrawers) break;
+        
+        float fi = float(i);
+        float bx = hash(fi * 127.1) * 1.4 - 0.7;
+        float by = hash(fi * 311.7) * 1.4 - 0.7;
+        float bw = 0.15 + hash(fi * 74.3) * 0.25;
+        float bh = 0.1 + hash(fi * 183.9) * 0.2;
+        float depth = 0.3 + hash(fi * 271.3) * 0.7;
+        
+        vec3 boxMin = vec3(bx - bw, by - bh, -depth);
+        vec3 boxMax = vec3(bx + bw, by + bh, 0.0);
+        
+        float tNear, tFar;
+        vec3 normal;
+        
+        if (rayBoxIntersect(ro, rd, boxMin, boxMax, tNear, tFar, normal)) {
+          if (tNear < closestT && tNear > 0.0) {
+            closestT = tNear;
+            vec3 hitPos = ro + rd * tNear;
+            
+            float lighting = max(0.3, dot(normal, lightDir));
+            
+            if (normal.z > 0.5) {
+              vec2 texCoord = vec2(
+                (hitPos.x - boxMin.x) / (boxMax.x - boxMin.x),
+                (hitPos.y - boxMin.y) / (boxMax.y - boxMin.y)
+              );
+              texCoord = texCoord * 0.15 + vec2(bx * 0.3 + 0.5, 0.5 - by * 0.3);
+              finalColor = texture2D(texture, clamp(texCoord, 0.0, 1.0)).rgb * lighting;
+            } else if (abs(normal.x) > 0.5) {
+              float shade = 0.4 + 0.2 * (hitPos.z / depth + 1.0);
+              vec2 texCoord = vec2(bx * 0.3 + 0.5, 0.5 - by * 0.3);
+              finalColor = texture2D(texture, texCoord).rgb * shade * lighting;
+            } else {
+              float shade = 0.5 + 0.3 * (hitPos.z / depth + 1.0);
+              vec2 texCoord = vec2(bx * 0.3 + 0.5, 0.5 - by * 0.3);
+              finalColor = texture2D(texture, texCoord).rgb * shade * lighting;
+            }
+          }
+        }
+      }
+      
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `;
   
-  const drawers: Array<{x: number, y: number, w: number, h: number, depth: number}> = [];
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
   
-  for (let i = 0; i < numDrawers; i++) {
-    const w = 0.1 + rand() * 0.2;
-    const h = 0.08 + rand() * 0.15;
-    const x = rand() * (1 - w);
-    const y = rand() * (1 - h);
-    const depth = 20 + rand() * 40;
-    drawers.push({ x, y, w, h, depth });
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
+  gl.uniform1i(gl.getUniformLocation(program, 'numDrawers'), numDrawers);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+    }
   }
   
-  drawers.sort((a, b) => a.depth - b.depth);
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
   
-  for (const drawer of drawers) {
-    const left = Math.floor(drawer.x * ctx.width);
-    const top = Math.floor(drawer.y * ctx.height);
-    const right = Math.floor((drawer.x + drawer.w) * ctx.width);
-    const bottom = Math.floor((drawer.y + drawer.h) * ctx.height);
-    const depth = Math.floor(drawer.depth);
-    
-    const offsetX = Math.floor(depth * 0.3);
-    const offsetY = Math.floor(depth * -0.2);
-    
-    for (let y = bottom - 1; y >= top; y--) {
-      for (let x = right + offsetX; x > right; x--) {
-        const srcY = y;
-        if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
-          const [r, g, b] = getPixel(prev, right - 1, srcY);
-          const shade = 0.5;
-          setPixel(out, x, y + offsetY, r * shade, g * shade, b * shade);
-        }
-      }
-    }
-    
-    for (let x = left; x < right; x++) {
-      for (let y = top + offsetY; y < top; y++) {
-        if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
-          const [r, g, b] = getPixel(prev, x, top);
-          const shade = 0.7;
-          setPixel(out, x + offsetX, y, r * shade, g * shade, b * shade);
-        }
-      }
-    }
-    
-    for (let y = top; y < bottom; y++) {
-      for (let x = left; x < right; x++) {
-        const destX = x + offsetX;
-        const destY = y + offsetY;
-        if (destX >= 0 && destX < ctx.width && destY >= 0 && destY < ctx.height) {
-          const [r, g, b] = getPixel(prev, x, y);
-          const light = 1.1;
-          setPixel(out, destX, destY, 
-            Math.min(255, r * light), 
-            Math.min(255, g * light), 
-            Math.min(255, b * light)
-          );
-        }
-      }
-    }
-  }
-  
-  return out;
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnU(ctx: FnContext, n: number): Image {
