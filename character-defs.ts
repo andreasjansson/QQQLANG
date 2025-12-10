@@ -647,16 +647,21 @@ function fnL(ctx: FnContext, c: string): Image {
   };
   const rand = seededRandom(12345);
   
-  const occupied = new Set<string>();
-  const startX = Math.floor(ctx.width / 2);
-  const startY = 5;
-  
-  const drawBranch = (x: number, y: number) => {
-    for (let dx = -2; dx <= 2; dx++) {
-      for (let dy = -2; dy <= 2; dy++) {
-        if (dx * dx + dy * dy <= 4) {
-          const px = x + dx;
-          const py = y + dy;
+  const drawLine = (x1: number, y1: number, x2: number, y2: number, thickness: number) => {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const steps = Math.ceil(dist);
+    
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const x = Math.floor(x1 + dx * t);
+      const y = Math.floor(y1 + dy * t);
+      
+      for (let r = 0; r < thickness; r++) {
+        for (let angle = 0; angle < Math.PI * 2; angle += 0.5) {
+          const px = Math.floor(x + Math.cos(angle) * r);
+          const py = Math.floor(y + Math.sin(angle) * r);
           if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
             setPixel(out, px, py, cr, cg, cb);
           }
@@ -665,54 +670,42 @@ function fnL(ctx: FnContext, c: string): Image {
     }
   };
   
-  drawBranch(startX, startY);
-  occupied.add(`${startX},${startY}`);
+  const growBranch = (x: number, y: number, angle: number, length: number, thickness: number, depth: number) => {
+    if (depth > 7 || length < 10) return;
+    
+    const angleVar = (rand() - 0.5) * 0.3;
+    const actualAngle = angle + angleVar;
+    
+    const endX = x + Math.cos(actualAngle) * length;
+    const endY = y + Math.sin(actualAngle) * length;
+    
+    if (endX < 0 || endX >= ctx.width || endY < 0 || endY >= ctx.height) return;
+    
+    drawLine(x, y, endX, endY, thickness);
+    
+    const numBranches = depth === 0 ? 3 : (rand() < 0.4 ? 2 : 1);
+    
+    for (let i = 0; i < numBranches; i++) {
+      const branchPoint = 0.5 + rand() * 0.4;
+      const branchX = x + Math.cos(actualAngle) * length * branchPoint;
+      const branchY = y + Math.sin(actualAngle) * length * branchPoint;
+      
+      const branchAngle = actualAngle + (rand() - 0.5) * 1.2;
+      const branchLength = length * (0.5 + rand() * 0.3);
+      const branchThickness = Math.max(1, thickness - 1);
+      
+      growBranch(branchX, branchY, branchAngle, branchLength, branchThickness, depth + 1);
+    }
+  };
   
-  const branches: Array<{x: number, y: number, angle: number, len: number}> = [
-    {x: startX, y: startY, angle: Math.PI / 2, len: 0}
-  ];
+  const topY = Math.floor(ctx.height * 0.05);
   
-  const maxBranches = 500;
-  
-  while (branches.length > 0 && occupied.size < maxBranches) {
-    const idx = Math.floor(rand() * branches.length);
-    const branch = branches[idx];
+  for (let i = 0; i < 5; i++) {
+    const startX = ctx.width * (0.2 + i * 0.15);
+    const mainLength = ctx.height * 0.6;
+    const mainAngle = Math.PI / 2 + (rand() - 0.5) * 0.4;
     
-    const angleVariation = (rand() - 0.5) * 0.8;
-    const newAngle = branch.angle + angleVariation;
-    
-    const step = 3 + Math.floor(rand() * 3);
-    const nx = Math.floor(branch.x + Math.cos(newAngle) * step);
-    const ny = Math.floor(branch.y + Math.sin(newAngle) * step);
-    
-    if (nx < 0 || nx >= ctx.width || ny < 0 || ny >= ctx.height) {
-      branches.splice(idx, 1);
-      continue;
-    }
-    
-    const key = `${nx},${ny}`;
-    if (occupied.has(key)) {
-      branches.splice(idx, 1);
-      continue;
-    }
-    
-    drawBranch(nx, ny);
-    occupied.add(key);
-    
-    branch.x = nx;
-    branch.y = ny;
-    branch.angle = newAngle;
-    branch.len++;
-    
-    if (branch.len > 20 + rand() * 30) {
-      branches.splice(idx, 1);
-      continue;
-    }
-    
-    if (rand() < 0.15 && branches.length < 20) {
-      const splitAngle = newAngle + (rand() < 0.5 ? -0.5 : 0.5);
-      branches.push({x: nx, y: ny, angle: splitAngle, len: 0});
-    }
+    growBranch(startX, topY, mainAngle, mainLength, 6, 0);
   }
   
   return out;
