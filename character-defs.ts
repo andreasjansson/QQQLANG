@@ -705,16 +705,16 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
       vec3 lightDir1 = normalize(uLightPos - vPosition);
       vec3 halfDir1 = normalize(lightDir1 + viewDir);
       float diff1 = max(dot(normal, lightDir1), 0.0);
-      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 32.0);
+      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 24.0);
       
       vec3 lightDir2 = normalize(uLightPos2 - vPosition);
       vec3 halfDir2 = normalize(lightDir2 + viewDir);
       float diff2 = max(dot(normal, lightDir2), 0.0);
-      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 32.0);
+      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 24.0);
       
-      float ambient = 0.4;
-      float diffuse = (diff1 + diff2 * 0.6) * 0.5;
-      float specular = (spec1 + spec2 * 0.5) * 0.5;
+      float ambient = 0.5;
+      float diffuse = diff1 * 0.8 + diff2 * 0.5;
+      float specular = (spec1 + spec2) * 0.7;
       
       vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
       vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
