@@ -1160,9 +1160,9 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.depthFunc(gl.LESS);
   gl.clear(gl.DEPTH_BUFFER_BIT);
   
-  // Perspective projection
+  // Perspective projection with wider FOV
   const aspect = ctx.width / ctx.height;
-  const fov = Math.PI / 4;
+  const fov = Math.PI / 2.5;
   const near = 0.1, far = 10.0;
   const f = 1.0 / Math.tan(fov / 2);
   const perspective = new Float32Array([
@@ -1172,12 +1172,13 @@ function fnT(ctx: FnContext, n: number): Image {
     0, 0, (2*far*near)/(near-far), 0
   ]);
   
-  // View matrix - camera at z=1.5 looking at center of 0-1 space
+  // View matrix - camera positioned to see full 0-1 range
+  const camZ = 0.5 / Math.tan(fov / 2);
   const view = new Float32Array([
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
-    -0.5, -0.5, -1.5, 1
+    -0.5, -0.5, -camZ, 1
   ]);
   
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
