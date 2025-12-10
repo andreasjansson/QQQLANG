@@ -961,97 +961,49 @@ function fnP(ctx: FnContext, n: number): Image {
 function fnEntangle(ctx: FnContext, n: number, j: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
-  const out = cloneImage(prev);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const numTendrils = Math.max(3, Math.min(n * 2 + 5, 30));
-  const tendrilLength = Math.max(200, Math.min(ctx.width + ctx.height, 1000));
-  const thickness = Math.max(2, Math.min(n + 2, 8));
-  
-  const hash = (a: number, b: number) => {
-    const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  
-  const getLuminance = (x: number, y: number): number => {
-    const [r, g, b] = getPixel(prev, x, y);
-    return (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-  };
-  
-  const getGradient = (x: number, y: number): [number, number] => {
-    const left = getLuminance(x - 2, y);
-    const right = getLuminance(x + 2, y);
-    const up = getLuminance(x, y - 2);
-    const down = getLuminance(x, y + 2);
-    return [right - left, down - up];
-  };
-  
-  const tendrilMask = new Float32Array(ctx.width * ctx.height);
-  
-  for (let t = 0; t < numTendrils; t++) {
-    let x = hash(t, 0) * ctx.width;
-    let y = hash(t, 1) * ctx.height;
-    
-    let angle = hash(t, 2) * Math.PI * 2;
-    const baseSpeed = 1.5 + hash(t, 3) * 1.5;
-    
-    for (let step = 0; step < tendrilLength; step++) {
-      const ix = Math.floor(x);
-      const iy = Math.floor(y);
-      
-      if (ix < 0 || ix >= ctx.width || iy < 0 || iy >= ctx.height) break;
-      
-      const [gx, gy] = getGradient(ix, iy);
-      const gradMag = Math.sqrt(gx * gx + gy * gy);
-      
-      if (gradMag > 0.01) {
-        const perpX = -gy / gradMag;
-        const perpY = gx / gradMag;
-        const targetAngle = Math.atan2(perpY, perpX);
-        
-        let angleDiff = targetAngle - angle;
-        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-        angle += angleDiff * 0.3;
-      }
-      
-      angle += (hash(t * 1000 + step, 5) - 0.5) * 0.4;
-      
-      const dynamicThickness = thickness * (0.5 + 0.5 * Math.sin(step * 0.05 + t));
-      
-      for (let dy = -dynamicThickness; dy <= dynamicThickness; dy++) {
-        for (let dx = -dynamicThickness; dx <= dynamicThickness; dx++) {
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist <= dynamicThickness) {
-            const px = Math.floor(x + dx);
-            const py = Math.floor(y + dy);
-            if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
-              const falloff = 1 - dist / dynamicThickness;
-              const idx = py * ctx.width + px;
-              tendrilMask[idx] = Math.max(tendrilMask[idx], falloff);
-            }
-          }
-        }
-      }
-      
-      x += Math.cos(angle) * baseSpeed;
-      y += Math.sin(angle) * baseSpeed;
-    }
-  }
+  const ribbonWidth = Math.max(8, Math.min(n * 4 + 12, 60));
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const maskVal = tendrilMask[y * ctx.width + x];
-      if (maskVal > 0) {
-        const [pr, pg, pb] = getPixel(prev, x, y);
-        const [or, og, ob] = getPixel(old, x, y);
-        
-        const blend = maskVal * 0.9;
-        const nr = Math.round(pr * (1 - blend) + or * blend);
-        const ng = Math.round(pg * (1 - blend) + og * blend);
-        const nb = Math.round(pb * (1 - blend) + ob * blend);
-        
-        setPixel(out, x, y, nr, ng, nb);
+      const hRibbon = Math.floor(y / ribbonWidth);
+      const vRibbon = Math.floor(x / ribbonWidth);
+      
+      const hPhase = (y % ribbonWidth) / ribbonWidth;
+      const vPhase = (x % ribbonWidth) / ribbonWidth;
+      
+      const hWave = Math.sin(hPhase * Math.PI);
+      const vWave = Math.sin(vPhase * Math.PI);
+      
+      const hOver = (hRibbon + vRibbon) % 2 === 0;
+      
+      const hHeight = 0.5 + hWave * 0.4;
+      const vHeight = 0.5 + vWave * 0.4 * (hOver ? -1 : 1);
+      
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
+      
+      let nr: number, ng: number, nb: number;
+      let shade = 1.0;
+      
+      if (hHeight > vHeight) {
+        nr = pr;
+        ng = pg;
+        nb = pb;
+        shade = 0.7 + hWave * 0.3;
+      } else {
+        nr = or;
+        ng = og;
+        nb = ob;
+        shade = 0.7 + vWave * 0.3;
       }
+      
+      setPixel(out, x, y,
+        Math.round(nr * shade),
+        Math.round(ng * shade),
+        Math.round(nb * shade)
+      );
     }
   }
   
