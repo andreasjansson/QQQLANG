@@ -953,11 +953,19 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 3.0, 3.0, 3.0);
   gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos2'), -2.0, 1.0, 2.0);
   
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
-  gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 0);
+  gl.activeTexture(gl.TEXTURE1);
+  const tubeTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tubeTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 1);
   
   gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
+  
+  gl.deleteTexture(tubeTexture);
   
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
