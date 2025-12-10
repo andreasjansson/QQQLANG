@@ -3976,10 +3976,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#FF69B4',
     number: 13,
     fn: fnM,
-    arity: 2,
-    argTypes: ['int', 'int'],
+    arity: 1,
+    argTypes: ['int'],
     functionName: "moire",
-    documentation: "Moiré interference pattern blending prev and old_image, freq controls pattern density, j selects old image"
+    documentation: "Moiré interference pattern: 3 overlapping line grids create 8 zones with different hue/saturation/lightness shifts"
   },
   
   'N': {
