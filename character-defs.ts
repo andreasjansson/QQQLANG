@@ -865,7 +865,13 @@ function fnH(ctx: FnContext, j: number, rot: number): Image {
   gl.disableVertexAttribArray(posLoc);
   gl.disableVertexAttribArray(normLoc);
   gl.disableVertexAttribArray(texLoc);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE0);
   gl.deleteTexture(prevTexture);
+  gl.deleteTexture(oldTexture);
   gl.deleteBuffer(bgBuffer);
   gl.deleteBuffer(posBuffer);
   gl.deleteBuffer(normBuffer);
