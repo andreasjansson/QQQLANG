@@ -1712,7 +1712,13 @@ function fn5(ctx: FnContext, n: number): Image {
       return length(p - center) - radius;
     }
     
-    // Scene SDF - many small spheres blended to form dripping shapes
+    // Vertically elongated ellipsoid for drip shapes
+    float sdEllipsoid(vec3 p, vec3 center, float rx, float ry, float rz) {
+      vec3 q = (p - center) / vec3(rx, ry, rz);
+      return (length(q) - 1.0) * min(min(rx, ry), rz);
+    }
+    
+    // Scene SDF - elongated ellipsoids blended into dripping shapes
     float sceneSDF(vec3 p, int numDrips, float strength) {
       float d = 1000.0;
       
@@ -1724,44 +1730,48 @@ function fn5(ctx: FnContext, n: number): Image {
         // Spread across full width
         float baseX = (hash(fi * 127.1) * 2.0 - 1.0) * 1.5;
         
-        // Start from top
-        float startY = 1.3 - hash(fi * 311.7) * 0.3;
+        // Start from TOP of screen (y = -1 is top in this coord system)
+        float startY = -1.3 + hash(fi * 311.7) * 0.3;
         
-        // Drip length to cover full height
+        // Drip length going DOWN (toward positive y)
         float dripLen = 3.0 + hash(fi * 74.3) * 1.0;
         
         // Random drift for organic paths
-        float driftDir = (hash(fi * 234.5) - 0.5) * 0.8;
+        float driftDir = (hash(fi * 234.5) - 0.5) * 0.6;
         
-        // MANY spheres per drip for smooth vertical shape
-        for (int j = 0; j < 20; j++) {
+        // Many ellipsoids per drip
+        for (int j = 0; j < 16; j++) {
           float fj = float(j);
-          float t = fj / 19.0;
+          float t = fj / 15.0;
           
-          // Y position - vertical drip going DOWN
-          float y = startY - t * dripLen * strength;
+          // Y position - drip going DOWN (increasing y)
+          float y = startY + t * dripLen * strength;
           
-          // Gentle meandering
-          float meander = sin(t * 4.0 + fi * 2.0) * 0.08;
-          meander += sin(t * 9.0 + fi * 5.0) * 0.04;
-          float drift = t * driftDir * 0.15;
+          // Organic meandering path
+          float meander = sin(t * 5.0 + fi * 2.0) * 0.12;
+          meander += sin(t * 11.0 + fi * 7.0) * 0.05;
+          float drift = t * t * driftDir * 0.2;
           float x = baseX + meander + drift;
           
-          // Radius: bigger at top, smaller at bottom (teardrop effect)
-          float baseR = 0.08 + hash(fi * 183.9) * 0.04;
-          float taper = 1.0 - t * 0.7; // Shrinks toward bottom
-          float r = baseR * taper * strength * 0.6;
+          // Size: bigger at top, smaller at bottom
+          float baseSize = 0.1 + hash(fi * 183.9) * 0.06;
+          float taper = 1.0 - t * 0.6;
+          float size = baseSize * taper * strength * 0.5;
           
-          if (r < 0.015) continue;
+          if (size < 0.02) continue;
           
-          // Z depth
-          float z = 0.06 + r * 0.3;
+          // Ellipsoid radii: taller than wide (vertical drip shape)
+          float rx = size * 0.7;  // narrow horizontally
+          float ry = size * 1.5;  // tall vertically
+          float rz = size * 0.7;  // narrow in depth
+          
+          float z = 0.05 + size * 0.25;
           
           vec3 center = vec3(x, y, z);
-          float sphere = sdSphere(p, center, r);
+          float ellip = sdEllipsoid(p, center, rx, ry, rz);
           
-          // Smooth blend - creates organic merged shapes
-          d = smin(d, sphere, 0.08);
+          // Smooth blend for organic merging
+          d = smin(d, ellip, 0.1);
         }
       }
       
