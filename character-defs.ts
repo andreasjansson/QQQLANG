@@ -3973,8 +3973,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnT,
     arity: 1,
     argTypes: ['int'],
-    functionName: "city",
-    documentation: "Bird's eye view of a city: n*5 buildings with rooftops textured from prev, casting shadows to bottom-right"
+    functionName: "cubes",
+    documentation: "n+1 3D cubes protrude from prev plane toward camera, tops textured from prev, sides use edge pixels, lit from front"
   },
   
   'U': {
