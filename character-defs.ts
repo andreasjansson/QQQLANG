@@ -1707,12 +1707,22 @@ function fn5(ctx: FnContext, n: number): Image {
       return mix(b, a, h) - k * h * (1.0 - h);
     }
     
-    // SDF for a sphere
-    float sdSphere(vec3 p, vec3 center, float radius) {
-      return length(p - center) - radius;
+    // SDF for a pear/teardrop shape - fat at top, thin at bottom
+    float sdTeardrop(vec3 p, vec3 center, float radius, float elongation) {
+      vec3 q = p - center;
+      
+      // Stretch vertically
+      q.y /= elongation;
+      
+      // Make it pear-shaped: wider at top, narrower at bottom
+      float squeeze = 1.0 + q.y * 0.4; // positive y = top = wider
+      q.x *= squeeze;
+      q.z *= squeeze;
+      
+      return length(q) - radius;
     }
     
-    // Scene SDF - metaballs as smooth-blended spheres dripping down
+    // Scene SDF - metaballs as smooth-blended teardrops dripping down
     float sceneSDF(vec3 p, int numDrips, float strength) {
       float d = 1000.0;
       
@@ -1730,34 +1740,35 @@ function fn5(ctx: FnContext, n: number): Image {
         // Long drips that can reach bottom
         float dripLen = 2.0 + hash(fi * 74.3) * 1.5;
         
-        // Create drip with many spheres for long dripping trail
-        for (int j = 0; j < 12; j++) {
+        // Create drip with pear-shaped blobs
+        for (int j = 0; j < 10; j++) {
           float fj = float(j);
-          float t = fj / 11.0;
+          float t = fj / 9.0;
           
           // Y position - dripping downward
           float y = startY - t * dripLen * strength;
           
-          // Wobble increases as drip flows down
-          float wobble = sin(t * 8.0 + fi * 3.0) * 0.04 * (1.0 + t);
+          // Wobble
+          float wobble = sin(t * 8.0 + fi * 3.0) * 0.03;
           float x = dripX + wobble;
           
-          // Teardrop shape: large at top, small at bottom
-          float baseR = 0.15 + hash(fi * 183.9) * 0.1;
-          float taper = 1.0 - t * 0.7; // Gets smaller toward bottom
-          float r = baseR * taper * strength * 0.4;
+          // Size: large at top of drip, smaller toward bottom
+          float baseR = 0.12 + hash(fi * 183.9) * 0.08;
+          float taper = 1.0 - t * 0.6;
+          float r = baseR * taper * strength * 0.5;
           
-          // Skip very small spheres
-          if (r < 0.02) continue;
+          if (r < 0.03) continue;
           
-          // Sphere sits in front of wall
-          float z = 0.12 + r * 0.3;
+          // Elongation: more stretched as it drips (1.5 to 2.5)
+          float elongation = 1.5 + t * 1.0;
+          
+          float z = 0.1 + r * 0.3;
           
           vec3 center = vec3(x, y, z);
-          float sphere = sdSphere(p, center, r);
+          float tear = sdTeardrop(p, center, r, elongation);
           
-          // Smooth blend - larger k for more organic blending
-          d = smin(d, sphere, 0.12);
+          // Smooth blend for organic merging
+          d = smin(d, tear, 0.1);
         }
       }
       
