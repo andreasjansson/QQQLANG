@@ -1115,28 +1115,43 @@ function fnM(ctx: FnContext, n: number): Image {
     return x - Math.floor(x);
   };
   
-  const scale = 15 + hash(0) * 25;
-  const freqRatio = 1.03 + hash(1) * 0.08;
-  const amp1 = 20 + hash(2) * 60;
-  const amp2 = 20 + hash(3) * 60;
-  const freq1 = 0.008 + hash(4) * 0.02;
-  const freq2 = 0.005 + hash(5) * 0.015;
-  const angle = hash(6) * Math.PI;
+  const scale = 12 + hash(0) * 30;
+  const freqRatio = 1.02 + hash(1) * 0.1;
+  const amp1 = 15 + hash(2) * 80;
+  const amp2 = 15 + hash(3) * 80;
+  const freq1 = 0.006 + hash(4) * 0.025;
+  const angle1 = hash(5) * Math.PI;
+  const angle2 = angle1 + (hash(6) - 0.5) * 0.3;
   const phase = hash(7) * Math.PI * 2;
   const hueShift = Math.floor(hash(8) * 360);
+  const harmonic1 = 0.3 + hash(9) * 0.7;
+  const harmonic2 = hash(10) * 0.5;
+  const scaleRatio = 0.95 + hash(11) * 0.1;
+  const crossAmp = hash(12) * 40;
+  const crossFreq = 0.01 + hash(13) * 0.02;
   
-  const cos_a = Math.cos(angle), sin_a = Math.sin(angle);
+  const cos_a1 = Math.cos(angle1), sin_a1 = Math.sin(angle1);
+  const cos_a2 = Math.cos(angle2), sin_a2 = Math.sin(angle2);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const rx = x * cos_a + y * sin_a;
-      const ry = -x * sin_a + y * cos_a;
+      const rx1 = x * cos_a1 + y * sin_a1;
+      const ry1 = -x * sin_a1 + y * cos_a1;
+      const rx2 = x * cos_a2 + y * sin_a2;
+      const ry2 = -x * sin_a2 + y * cos_a2;
       
-      const wave1 = ry + Math.sin(rx * freq1) * amp1;
-      const wave2 = ry + Math.sin(rx * freq1 * freqRatio + phase) * amp2;
+      const wobble1 = Math.sin(rx1 * freq1) * amp1 
+                    + Math.sin(rx1 * freq1 * 2.1) * amp1 * harmonic1
+                    + Math.sin(ry1 * crossFreq) * crossAmp;
+      const wobble2 = Math.sin(rx2 * freq1 * freqRatio + phase) * amp2
+                    + Math.sin(rx2 * freq1 * freqRatio * 2.3 + phase) * amp2 * harmonic2
+                    + Math.sin(ry2 * crossFreq * 1.1) * crossAmp;
+      
+      const wave1 = ry1 + wobble1;
+      const wave2 = ry2 + wobble2;
       
       const line1 = Math.floor(wave1 / scale) % 2;
-      const line2 = Math.floor(wave2 / scale) % 2;
+      const line2 = Math.floor(wave2 / (scale * scaleRatio)) % 2;
       
       const moire = line1 !== line2;
       
