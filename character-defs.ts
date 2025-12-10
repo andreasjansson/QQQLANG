@@ -1550,9 +1550,6 @@ function fnT(ctx: FnContext, n: number): Image {
     
     uniform sampler2D uTexture;
     uniform vec3 uLightDir;
-    uniform float uIsShadowPass;
-    uniform int uNumCubes;
-    uniform vec4 uCubes[32];
     
     varying vec3 vNormal;
     varying vec2 vTexCoord;
@@ -1566,28 +1563,7 @@ function fnT(ctx: FnContext, n: number): Image {
       float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
       float lighting = ambient + diffuse;
       
-      float shadow = 0.0;
-      if (vWorldPos.z < 0.001) {
-        for (int i = 0; i < 32; i++) {
-          if (i >= uNumCubes) break;
-          vec4 cube = uCubes[i];
-          float cx = cube.x;
-          float cy = cube.y;
-          float hw = cube.z;
-          float hh = cube.w;
-          
-          float shadowX = vWorldPos.x + uLightDir.x * 0.15;
-          float shadowY = vWorldPos.y + uLightDir.y * 0.15;
-          
-          if (shadowX > cx - hw && shadowX < cx + hw && 
-              shadowY > cy - hh && shadowY < cy + hh) {
-            shadow = 0.5;
-            break;
-          }
-        }
-      }
-      
-      vec3 color = texture2D(uTexture, vTexCoord).rgb * (lighting - shadow);
+      vec3 color = texture2D(uTexture, vTexCoord).rgb * lighting;
       gl_FragColor = vec4(color, 1.0);
     }
   `;
