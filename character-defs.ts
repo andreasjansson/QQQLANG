@@ -1670,152 +1670,77 @@ function fn4(ctx: FnContext): Image {
 
 function fn5(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const strength = Math.max(0.1, Math.min(n * 0.1 + 0.3, 1.5));
+  const strength = Math.max(1, Math.min(n + 1, 10));
   
-  const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = position * 0.5 + 0.5;
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
+  const hash = (x: number): number => {
+    const h = Math.sin(x * 127.1) * 43758.5453;
+    return h - Math.floor(h);
+  };
   
-  const fragmentShader = `
-    precision highp float;
-    uniform sampler2D texture;
-    uniform vec2 resolution;
-    uniform float strength;
-    varying vec2 vUV;
-    
-    // Smooth noise functions
-    float hash(float n) {
-      return fract(sin(n) * 43758.5453123);
+  const smoothNoise = (x: number): number => {
+    const i = Math.floor(x);
+    const f = x - i;
+    const t = f * f * f * (f * (f * 6 - 15) + 10);
+    return hash(i) * (1 - t) + hash(i + 1) * t;
+  };
+  
+  const fbm = (x: number): number => {
+    let value = 0;
+    let amp = 0.5;
+    for (let i = 0; i < 4; i++) {
+      value += amp * smoothNoise(x);
+      x *= 2;
+      amp *= 0.5;
     }
+    return value;
+  };
+  
+  for (let x = 0; x < ctx.width; x++) {
+    const nx = x / ctx.width;
+    const dripProfile = fbm(nx * 12 + 0.5) * 0.6 + fbm(nx * 24 + 10) * 0.3 + fbm(nx * 48 + 20) * 0.1;
+    const maxDrip = Math.floor(dripProfile * ctx.height * strength * 0.15);
     
-    float noise(float x) {
-      float i = floor(x);
-      float f = fract(x);
-      f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0); // quintic smoothing
-      return mix(hash(i), hash(i + 1.0), f);
-    }
+    const wobbleAmp = 2 + fbm(nx * 30) * 3;
     
-    float noise2D(vec2 p) {
-      vec2 i = floor(p);
-      vec2 f = fract(p);
-      f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0); // quintic smoothing
+    for (let y = 0; y < ctx.height; y++) {
+      const ny = y / ctx.height;
+      const dripFactor = Math.pow(ny, 1.5);
+      const currentDrip = Math.floor(maxDrip * dripFactor);
       
-      float n = i.x + i.y * 157.0;
-      return mix(
-        mix(hash(n), hash(n + 1.0), f.x),
-        mix(hash(n + 157.0), hash(n + 158.0), f.x),
-        f.y
-      );
-    }
-    
-    // Fractal brownian motion for organic shapes
-    float fbm(float x) {
-      float value = 0.0;
-      float amplitude = 0.5;
-      for (int i = 0; i < 4; i++) {
-        value += amplitude * noise(x);
-        x *= 2.0;
-        amplitude *= 0.5;
+      const wobble = Math.sin(ny * 20 + nx * 50) * wobbleAmp * dripFactor;
+      
+      let srcY = y - currentDrip;
+      let srcX = x + Math.floor(wobble);
+      
+      srcY = Math.max(0, Math.min(ctx.height - 1, srcY));
+      srcX = Math.max(0, Math.min(ctx.width - 1, srcX));
+      
+      const [r, g, b] = getPixel(prev, srcX, srcY);
+      
+      const smearSamples = Math.min(5, Math.floor(currentDrip * 0.1) + 1);
+      let sr = r, sg = g, sb = b;
+      
+      if (smearSamples > 1 && currentDrip > 5) {
+        let sumR = r, sumG = g, sumB = b;
+        for (let s = 1; s < smearSamples; s++) {
+          const sampleY = Math.max(0, srcY - s * 2);
+          const [pr, pg, pb] = getPixel(prev, srcX, sampleY);
+          sumR += pr;
+          sumG += pg;
+          sumB += pb;
+        }
+        sr = Math.round(sumR / smearSamples);
+        sg = Math.round(sumG / smearSamples);
+        sb = Math.round(sumB / smearSamples);
       }
-      return value;
-    }
-    
-    void main() {
-      vec2 uv = vUV;
-      float aspect = resolution.x / resolution.y;
       
-      // Create smooth drip channels using noise
-      float dripX = uv.x * 8.0;
-      float channelNoise = fbm(dripX * 3.0) * 0.5 + 0.5;
-      
-      // Vertical position affects drip amount (more at bottom)
-      float verticalFactor = pow(uv.y, 0.7);
-      
-      // Sample original to let darker areas drip more
-      vec4 origColor = texture2D(texture, uv);
-      float darkness = 1.0 - dot(origColor.rgb, vec3(0.299, 0.587, 0.114));
-      
-      // Combine factors for smooth drip displacement
-      float dripAmount = channelNoise * verticalFactor * strength * 0.4;
-      dripAmount *= (0.5 + darkness * 0.5);
-      
-      // Add gentle wobble that varies smoothly
-      float wobbleX = noise2D(vec2(uv.x * 15.0, uv.y * 3.0)) * 0.015 * strength;
-      float wobbleY = noise2D(vec2(uv.x * 10.0 + 100.0, uv.y * 5.0)) * 0.01 * strength;
-      
-      // Create stretched/smeared look by sampling from above
-      vec2 meltedUV = uv;
-      meltedUV.y = uv.y - dripAmount + wobbleY;
-      meltedUV.x = uv.x + wobbleX * verticalFactor;
-      
-      // Clamp to valid range
-      meltedUV = clamp(meltedUV, vec2(0.0), vec2(1.0));
-      
-      // Sample with slight vertical blur for smoothness
-      vec4 color = vec4(0.0);
-      float blurSize = dripAmount * 0.1;
-      color += texture2D(texture, meltedUV) * 0.4;
-      color += texture2D(texture, meltedUV + vec2(0.0, blurSize)) * 0.3;
-      color += texture2D(texture, meltedUV - vec2(0.0, blurSize * 0.5)) * 0.3;
-      
-      gl_FragColor = color;
-    }
-  `;
-  
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
-  
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
-  gl.uniform1f(gl.getUniformLocation(program, 'strength'), strength);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+      setPixel(out, x, y, sr, sg, sb);
     }
   }
   
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(program);
-  
-  return { width: ctx.width, height: ctx.height, data: flipped };
+  return out;
 }
 
 function fn6(ctx: FnContext, n: number): Image {
