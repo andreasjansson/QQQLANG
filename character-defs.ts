@@ -1220,7 +1220,12 @@ function fnT(ctx: FnContext, n: number): Image {
     }
   }
   
-  // Cleanup
+  // Cleanup - disable vertex attributes before deleting buffers
+  gl.disableVertexAttribArray(posLoc);
+  gl.disableVertexAttribArray(normLoc);
+  gl.disableVertexAttribArray(texLoc);
+  gl.disable(gl.DEPTH_TEST);
+  
   gl.deleteTexture(texture);
   gl.deleteBuffer(bgPosBuf);
   gl.deleteBuffer(bgNormBuf);
