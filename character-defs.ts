@@ -1191,7 +1191,7 @@ function fnT(ctx: FnContext, n: number): Image {
   
   const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
   const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
-  const bgTexCoords = new Float32Array([1,0, 0,0, 0,1, 1,0, 0,1, 1,1]);
+  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
   
   const posLoc = gl.getAttribLocation(program, 'aPosition');
   const normLoc = gl.getAttribLocation(program, 'aNormal');
