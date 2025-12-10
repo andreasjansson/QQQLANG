@@ -839,7 +839,10 @@ function fnH(ctx: FnContext, j: number, rot: number): Image {
   gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uModelView'), false, modelView);
   gl.uniformMatrix3fv(gl.getUniformLocation(tubeProgram, 'uNormalMatrix'), false, normalMatrix);
   gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 2.0, 2.0, 3.0);
-  gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 0);
+  
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 1);
   
   gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
   
