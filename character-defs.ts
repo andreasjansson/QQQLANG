@@ -898,7 +898,7 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   
   gl.useProgram(bgProgram);
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
   gl.uniform1i(gl.getUniformLocation(bgProgram, 'uBgTexture'), 0);
   
   const bgVerts = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
