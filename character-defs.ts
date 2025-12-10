@@ -799,21 +799,22 @@ function fnO(ctx: FnContext, n: number): Image {
   const strength = Math.max(0.2, Math.min(n / 5, 5));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const dx = x - cx;
       const dy = y - cy;
-      const r = Math.sqrt(dx * dx + dy * dy);
       
-      if (r < 0.001) {
+      const normX = Math.abs(dx) / cx;
+      const normY = Math.abs(dy) / cy;
+      const normR = Math.max(normX, normY);
+      
+      if (normR < 0.001) {
         const [pr, pg, pb] = getPixel(prev, Math.floor(cx), Math.floor(cy));
         setPixel(out, x, y, pr, pg, pb);
         continue;
       }
       
-      const normR = r / maxR;
       const falloff = (1 - normR) * (1 - normR);
       const factor = 1 + (strength - 1) * falloff;
       
