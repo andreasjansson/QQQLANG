@@ -13887,5 +13887,217 @@ Revert T box texture coordinates to original
 ID: toolu_016iNtu7vAbWMdtq7wwpxsMD
 
 <tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Revert T box texture coordinates to original
 </tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
+
+# ASSISTANT
+
+Now let me fix the flip in the final pixel readback by flipping horizontally as well as vertically:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_011WgYDFWmHQ2jZDzyfkodHe
+
+## pattern
+
+<tool.toolu_011WgYDFWmHQ2jZDzyfkodHe>
+const flipped = new Uint8ClampedArray
+</tool.toolu_011WgYDFWmHQ2jZDzyfkodHe>
+
+## path
+
+<tool.toolu_011WgYDFWmHQ2jZDzyfkodHe>
+character-defs.ts
+</tool.toolu_011WgYDFWmHQ2jZDzyfkodHe>
+
+## context-lines
+
+<tool.toolu_011WgYDFWmHQ2jZDzyfkodHe>
+15
+</tool.toolu_011WgYDFWmHQ2jZDzyfkodHe>
+
+# TOOL RESULT
+
+ID: toolu_011WgYDFWmHQ2jZDzyfkodHe
+
+<tool.toolu_011WgYDFWmHQ2jZDzyfkodHe>
+244-  gl.enableVertexAttribArray(positionLoc);
+245-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+246-  
+247-  const textureLoc = gl.getUniformLocation(program, 'texture');
+248-  const resolutionLoc = gl.getUniformLocation(program, 'resolution');
+249-  
+250-  gl.uniform1i(textureLoc, 0);
+251-  gl.uniform2f(resolutionLoc, ctx.width, ctx.height);
+252-  
+253-  gl.viewport(0, 0, ctx.width, ctx.height);
+254-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+255-  
+256-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+257-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+258-  
+259:  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+260-  for (let y = 0; y < ctx.height; y++) {
+261-    for (let x = 0; x < ctx.width; x++) {
+262-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+263-      const dstIdx = (y * ctx.width + x) * 4;
+264-      flipped[dstIdx] = pixels[srcIdx];
+265-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+266-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+267-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+268-    }
+269-  }
+270-  
+271-  gl.deleteTexture(texture);
+272-  gl.deleteBuffer(buffer);
+273-  gl.deleteProgram(program);
+274-  
+--
+1005-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+1006-  
+1007-  const positionLoc = gl.getAttribLocation(program, 'position');
+1008-  gl.enableVertexAttribArray(positionLoc);
+1009-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+1010-  
+1011-  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
+1012-  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
+1013-  
+1014-  gl.viewport(0, 0, ctx.width, ctx.height);
+1015-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+1016-  
+1017-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+1018-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+1019-  
+1020:  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+1021-  for (let y = 0; y < ctx.height; y++) {
+1022-    for (let x = 0; x < ctx.width; x++) {
+1023-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+1024-      const dstIdx = (y * ctx.width + x) * 4;
+1025-      flipped[dstIdx] = pixels[srcIdx];
+1026-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+1027-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+1028-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+1029-    }
+1030-  }
+1031-  
+1032-  gl.deleteTexture(texture);
+1033-  gl.deleteBuffer(buffer);
+1034-  gl.deleteProgram(program);
+1035-  
+--
+1271-  gl.enableVertexAttribArray(normLoc);
+1272-  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+1273-  
+1274-  const texBuf = gl.createBuffer();
+1275-  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+1276-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allTexCoords), gl.STATIC_DRAW);
+1277-  gl.enableVertexAttribArray(texLoc);
+1278-  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+1279-  
+1280-  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+1281-  
+1282-  // Read pixels
+1283-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+1284-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+1285-  
+1286:  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+1287-  for (let y = 0; y < ctx.height; y++) {
+1288-    for (let x = 0; x < ctx.width; x++) {
+1289-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+1290-      const dstIdx = (y * ctx.width + x) * 4;
+1291-      flipped[dstIdx] = pixels[srcIdx];
+1292-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+1293-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+1294-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+1295-    }
+1296-  }
+1297-  
+1298-  // Cleanup - disable vertex attributes before deleting buffers
+1299-  gl.disableVertexAttribArray(posLoc);
+1300-  gl.disableVertexAttribArray(normLoc);
+1301-  gl.disableVertexAttribArray(texLoc);
+--
+1939-  gl.enableVertexAttribArray(positionLoc);
+1940-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+1941-  
+1942-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+1943-  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+1944-  gl.uniform1f(gl.getUniformLocation(program, 'uStrength'), dripStrength);
+1945-  gl.uniform1i(gl.getUniformLocation(program, 'uNumDrips'), numDrips);
+1946-  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+1947-  
+1948-  gl.viewport(0, 0, ctx.width, ctx.height);
+1949-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+1950-  
+1951-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+1952-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+1953-  
+1954:  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+1955-  for (let y = 0; y < ctx.height; y++) {
+1956-    for (let x = 0; x < ctx.width; x++) {
+1957-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+1958-      const dstIdx = (y * ctx.width + x) * 4;
+1959-      flipped[dstIdx] = pixels[srcIdx];
+1960-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+1961-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+1962-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+1963-    }
+1964-  }
+1965-  
+1966-  gl.deleteTexture(texture);
+1967-  gl.deleteBuffer(buffer);
+1968-  gl.deleteProgram(program);
+1969-  
+
+</tool.toolu_011WgYDFWmHQ2jZDzyfkodHe>
+
+# ASSISTANT
+
+I see there are multiple WebGL functions. The T function's flip is at line 1286. Let me fix it by also flipping horizontally:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DwzQLQfaCScsnJc6vMT8U5
+
+## path
+
+<tool.toolu_01DwzQLQfaCScsnJc6vMT8U5>
+character-defs.ts
+</tool.toolu_01DwzQLQfaCScsnJc6vMT8U5>
+
+## git-commit-message
+
+<tool.toolu_01DwzQLQfaCScsnJc6vMT8U5>
+Fix T by flipping both horizontally and vertically on readback
+</tool.toolu_01DwzQLQfaCScsnJc6vMT8U5>
+
+## diff
+
+<tool.toolu_01DwzQLQfaCScsnJc6vMT8U5>
+   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
++      const srcIdx = ((ctx.height - 1 - y) * ctx.width + (ctx.width - 1 - x)) * 4;
+       const dstIdx = (y * ctx.width + x) * 4;
+       flipped[dstIdx] = pixels[srcIdx];
+       flipped[dstIdx + 1] = pixels[srcIdx + 1];
+       flipped[dstIdx + 2] = pixels[srcIdx + 2];
+       flipped[dstIdx + 3] = pixels[srcIdx + 3];
+     }
+   }
+   
+   // Cleanup - disable vertex attributes before deleting buffers
+\ No newline at end of file
+
+</tool.toolu_01DwzQLQfaCScsnJc6vMT8U5>
+
+# TOOL RESULT
+
+ID: toolu_01DwzQLQfaCScsnJc6vMT8U5
+
+<tool.toolu_01DwzQLQfaCScsnJc6vMT8U5>
+
+</tool.toolu_01DwzQLQfaCScsnJc6vMT8U5>
