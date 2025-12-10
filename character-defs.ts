@@ -633,84 +633,56 @@ function fnK(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: number): Image {
+function fnL(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  const [cr, cg, cb] = hexToRgb(c);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const maxDepth = Math.max(2, recursionDepth);
-  const angleVar = Math.max(0.1, angleVariation * 0.15);
+  const stripHeight = Math.max(4, n * 2 + 4);
+  const waveAmplitude = stripHeight * 1.5;
+  const waveFrequency = 0.02;
+  const numStrips = Math.ceil(ctx.height / stripHeight) + 4;
   
-  const seededRandom = (seed: number) => {
-    let state = seed;
-    return () => {
-      state = (state * 1103515245 + 12345) & 0x7fffffff;
-      return state / 0x7fffffff;
-    };
-  };
-  const rand = seededRandom(12345);
+  const strips: { y: number; hueShift: number; phase: number }[] = [];
+  for (let i = 0; i < numStrips; i++) {
+    strips.push({
+      y: i * stripHeight - stripHeight * 2,
+      hueShift: (i * 25) % 360,
+      phase: i * 0.8
+    });
+  }
   
-  const drawLine = (x1: number, y1: number, x2: number, y2: number, thickness: number) => {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const steps = Math.ceil(dist);
-    
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps;
-      const x = Math.floor(x1 + dx * t);
-      const y = Math.floor(y1 + dy * t);
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < strips.length; i++) {
+      if (i % 2 !== pass) continue;
       
-      for (let r = 0; r < thickness; r++) {
-        for (let angle = 0; angle < Math.PI * 2; angle += 0.5) {
-          const px = Math.floor(x + Math.cos(angle) * r);
-          const py = Math.floor(y + Math.sin(angle) * r);
-          if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
-            setPixel(out, px, py, cr, cg, cb);
-          }
+      const strip = strips[i];
+      
+      for (let x = 0; x < ctx.width; x++) {
+        const wave = Math.sin(x * waveFrequency + strip.phase) * waveAmplitude;
+        const baseY = strip.y + wave;
+        
+        for (let dy = 0; dy < stripHeight; dy++) {
+          const srcY = Math.floor(strip.y + dy);
+          const dstY = Math.floor(baseY + dy);
+          
+          if (srcY < 0 || srcY >= ctx.height || dstY < 0 || dstY >= ctx.height) continue;
+          
+          const [r, g, b] = getPixel(prev, x, srcY);
+          const [h, s, l] = rgbToHsl(r, g, b);
+          const [nr, ng, nb] = hslToRgb((h + strip.hueShift) % 360, s, l);
+          
+          const edgeDist = Math.min(dy, stripHeight - 1 - dy);
+          const shadow = edgeDist < 2 ? 0.7 : 1.0;
+          
+          setPixel(out, x, dstY, 
+            Math.round(nr * shadow), 
+            Math.round(ng * shadow), 
+            Math.round(nb * shadow)
+          );
         }
       }
     }
-  };
-  
-  const growBranch = (x: number, y: number, angle: number, length: number, thickness: number, depth: number) => {
-    if (depth > maxDepth) return;
-    
-    const angleVariation = (rand() - 0.5) * angleVar * 0.5;
-    const actualAngle = angle + angleVariation;
-    
-    const endX = x + Math.cos(actualAngle) * length;
-    const endY = y + Math.sin(actualAngle) * length;
-    
-    if (endX < 0 || endX >= ctx.width || endY < 0 || endY >= ctx.height) return;
-    
-    drawLine(x, y, endX, endY, thickness);
-    
-    const branchProbability = Math.min(0.9, 0.3 + maxDepth * 0.05);
-    const baseBranches = depth === 0 ? Math.min(4, 1 + Math.floor(maxDepth / 4)) : 1;
-    const extraBranches = rand() < branchProbability ? 1 : 0;
-    const numBranches = baseBranches + extraBranches;
-    
-    for (let i = 0; i < numBranches; i++) {
-      const branchPoint = 0.4 + rand() * 0.5;
-      const branchX = x + Math.cos(actualAngle) * length * branchPoint;
-      const branchY = y + Math.sin(actualAngle) * length * branchPoint;
-      
-      const spreadAngle = (i - (numBranches - 1) / 2) * angleVar * 0.8;
-      const branchAngle = actualAngle + spreadAngle + (rand() - 0.5) * angleVar * 0.5;
-      const branchLength = length * (0.4 + rand() * 0.35);
-      const branchThickness = Math.max(1, thickness - 1);
-      
-      growBranch(branchX, branchY, branchAngle, branchLength, branchThickness, depth + 1);
-    }
-  };
-  
-  const topY = Math.floor(ctx.height * 0.05);
-  const centerX = Math.floor(ctx.width / 2);
-  const mainLength = ctx.height * 0.7;
-  const mainAngle = Math.PI / 2;
-  
-  growBranch(centerX, topY, mainAngle, mainLength, 8, 0);
+  }
   
   return out;
 }
