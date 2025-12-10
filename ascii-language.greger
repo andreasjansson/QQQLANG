@@ -9237,5 +9237,69 @@ Brighten L Lissajous lighting and add rotation argument
 ID: toolu_01GASJDehQyXLyg4bzVG2BoD
 
 <tool.toolu_01GASJDehQyXLyg4bzVG2BoD>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Brighten L Lissajous lighting and add rotation argument
 </tool.toolu_01GASJDehQyXLyg4bzVG2BoD>
+
+# ASSISTANT
+
+Now update the rotation matrix and add the second light uniform:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01UXYKj12nm5euBPK1bnD2WV
+
+## path
+
+<tool.toolu_01UXYKj12nm5euBPK1bnD2WV>
+character-defs.ts
+</tool.toolu_01UXYKj12nm5euBPK1bnD2WV>
+
+## git-commit-message
+
+<tool.toolu_01UXYKj12nm5euBPK1bnD2WV>
+Update L rotation matrix and add second light
+</tool.toolu_01UXYKj12nm5euBPK1bnD2WV>
+
+## diff
+
+<tool.toolu_01UXYKj12nm5euBPK1bnD2WV>
+-  const angleY = 0.5;
++  const angleY = 0.5 + rotation;
+   const angleX = 0.3;
+   const cy = Math.cos(angleY), sy = Math.sin(angleY);
+   const cx = Math.cos(angleX), sx = Math.sin(angleX);
+   const modelView = new Float32Array([
+     cy, sy * sx, sy * cx, 0,
+     0, cx, -sx, 0,
+     -sy, cy * sx, cy * cx, 0,
+     0, 0, -2.2, 1
+   ]);
+   
+   const normalMatrix = new Float32Array([
+     cy, sy * sx, sy * cx,
+     0, cx, -sx,
+     -sy, cy * sx, cy * cx
+   ]);
+   
+   gl.activeTexture(gl.TEXTURE0);
+   gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+   
+   gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uProjection'), false, projection);
+   gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uModelView'), false, modelView);
+   gl.uniformMatrix3fv(gl.getUniformLocation(tubeProgram, 'uNormalMatrix'), false, normalMatrix);
+-  gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 2.0, 3.0, 2.0);
++  gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 3.0, 3.0, 3.0);
++  gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos2'), -2.0, 1.0, 2.0);
+   gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 0);
+\ No newline at end of file
+
+</tool.toolu_01UXYKj12nm5euBPK1bnD2WV>
+
+# TOOL RESULT
+
+ID: toolu_01UXYKj12nm5euBPK1bnD2WV
+
+<tool.toolu_01UXYKj12nm5euBPK1bnD2WV>
+
+</tool.toolu_01UXYKj12nm5euBPK1bnD2WV>
