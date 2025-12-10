@@ -1670,52 +1670,135 @@ function fn4(ctx: FnContext): Image {
 
 function fn5(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const cellSize = Math.max(10, n * 10);
-  const h = cellSize * Math.sqrt(3) / 2;
+  const strength = Math.max(0.1, Math.min(n * 0.15, 2.0));
   
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = position * 0.5 + 0.5;
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D texture;
+    uniform vec2 resolution;
+    uniform float strength;
+    varying vec2 vUV;
+    
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+    
+    float noise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      
+      float a = hash(i);
+      float b = hash(i + vec2(1.0, 0.0));
+      float c = hash(i + vec2(0.0, 1.0));
+      float d = hash(i + vec2(1.0, 1.0));
+      
+      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      
+      // Create drip streams based on x position
+      float dripSeed = floor(uv.x * resolution.x / 3.0);
+      float dripStrength = hash(vec2(dripSeed, 0.0));
+      float dripOffset = hash(vec2(dripSeed, 1.0)) * 0.5;
+      
+      // Sample brightness above to determine drip amount
+      float accumDrip = 0.0;
+      for (float i = 0.0; i < 50.0; i++) {
+        float sampleY = uv.y - i / resolution.y * strength * 100.0;
+        if (sampleY < 0.0) break;
+        
+        vec2 sampleUV = vec2(uv.x, sampleY);
+        vec4 sampleColor = texture2D(texture, sampleUV);
+        float brightness = dot(sampleColor.rgb, vec3(0.299, 0.587, 0.114));
+        
+        // Darker areas drip more
+        float dripAmount = (1.0 - brightness) * dripStrength * strength * 0.02;
+        accumDrip += dripAmount;
+      }
+      
+      // Add some waviness to drips
+      float wave = sin(uv.x * resolution.x * 0.5 + dripSeed * 10.0) * 0.002 * strength;
+      
+      // Displace UV upward (sample from above to create downward drip)
+      vec2 drippedUV = uv;
+      drippedUV.y = uv.y - accumDrip - wave;
+      drippedUV.y = max(0.0, drippedUV.y);
+      
+      // Add horizontal wobble for more organic feel
+      float wobble = noise(vec2(uv.x * 20.0, uv.y * 5.0 + accumDrip * 10.0)) * 0.003 * strength;
+      drippedUV.x += wobble;
+      
+      vec4 color = texture2D(texture, drippedUV);
+      
+      // Slight darkening in drip areas for depth
+      float dripDarken = 1.0 - accumDrip * 0.3;
+      color.rgb *= max(0.7, dripDarken);
+      
+      gl_FragColor = color;
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'strength'), strength);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const row = Math.floor(y / h);
-      const isOddRow = row % 2 === 1;
-      const offsetX = isOddRow ? cellSize / 2 : 0;
-      const col = Math.floor((x + offsetX) / cellSize);
-      
-      const triX = (x + offsetX) - col * cellSize;
-      const triY = y - row * h;
-      
-      const isUpper = triY < h * (1 - triX / cellSize) && triY < h * triX / cellSize;
-      const isLower = triY > h * triX / cellSize || triY > h * (1 - triX / cellSize);
-      
-      let centerX: number, centerY: number;
-      
-      if (isUpper || (!isUpper && !isLower && triY < h / 2)) {
-        centerX = col * cellSize + cellSize / 2 - offsetX;
-        centerY = row * h + h / 3;
-      } else {
-        centerX = col * cellSize + cellSize / 2 - offsetX;
-        centerY = row * h + 2 * h / 3;
-      }
-      
-      const [sr, sg, sb] = getPixel(prev, Math.floor(centerX), Math.floor(centerY));
-      
-      const edgeDist = Math.min(
-        Math.abs(triX),
-        Math.abs(triX - cellSize),
-        Math.abs(triY),
-        Math.abs(triY - h)
-      );
-      
-      if (edgeDist < 2) {
-        setPixel(out, x, y, 255 - sr, 255 - sg, 255 - sb);
-      } else {
-        setPixel(out, x, y, sr, sg, sb);
-      }
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fn6(ctx: FnContext, n: number): Image {
