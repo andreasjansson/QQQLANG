@@ -1672,8 +1672,8 @@ function fn5(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
-  const numDrips = Math.max(5, Math.min(n * 3 + 8, 40));
-  const dripStrength = Math.max(0.3, Math.min(n * 0.15 + 0.5, 2.0));
+  const numDrips = Math.max(3, Math.min(n * 2 + 5, 20));
+  const dripStrength = Math.max(0.5, Math.min(n * 0.2 + 0.8, 2.0));
   
   const vertexShader = `
     attribute vec2 position;
@@ -1692,112 +1692,148 @@ function fn5(ctx: FnContext, n: number): Image {
     uniform int uNumDrips;
     varying vec2 vUV;
     
-    #define MAX_DRIPS 25
+    #define MAX_DRIPS 20
+    #define MAX_STEPS 64
+    #define WALL_Z 0.0
+    #define EPS 0.001
     
     float hash(float n) {
       return fract(sin(n) * 43758.5453123);
     }
     
-    // Metaball influence function
-    float metaball(vec2 p, vec2 center, float radius) {
-      float d = length(p - center);
-      return (radius * radius) / (d * d + 0.001);
+    // Smooth min for organic blending
+    float smin(float a, float b, float k) {
+      float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+      return mix(b, a, h) - k * h * (1.0 - h);
     }
     
-    // Calculate gradient of metaball field for normals
-    vec2 metaballGradient(vec2 p, vec2 center, float radius) {
-      vec2 d = p - center;
-      float len2 = dot(d, d) + 0.001;
-      float len4 = len2 * len2;
-      return -2.0 * radius * radius * d / len4;
+    // SDF for a sphere
+    float sdSphere(vec3 p, vec3 center, float radius) {
+      return length(p - center) - radius;
+    }
+    
+    // Scene SDF - metaballs as smooth-blended spheres
+    float sceneSDF(vec3 p, int numDrips, float strength) {
+      float d = 1000.0;
+      
+      for (int i = 0; i < MAX_DRIPS; i++) {
+        if (i >= numDrips) break;
+        
+        float fi = float(i);
+        float dripX = hash(fi * 127.1) * 2.0 - 1.0;
+        float startY = 1.0 - hash(fi * 311.7) * 0.3;
+        float dripLen = 0.8 + hash(fi * 74.3) * 0.6;
+        
+        // Create drip with multiple spheres
+        for (int j = 0; j < 5; j++) {
+          float fj = float(j);
+          float t = fj / 4.0;
+          
+          float y = startY - t * dripLen * strength;
+          float wobble = sin(t * 6.0 + fi * 3.0) * 0.05;
+          float x = dripX * 0.8 + wobble;
+          
+          // Sphere radius - teardrop shape
+          float baseR = 0.12 + hash(fi * 183.9 + fj * 47.0) * 0.08;
+          float r = baseR * (1.0 - t * 0.4) * strength * 0.5;
+          
+          // Sphere sits slightly in front of wall
+          float z = 0.15 + r * 0.5;
+          
+          vec3 center = vec3(x, y, z);
+          float sphere = sdSphere(p, center, r);
+          
+          // Smooth blend spheres together
+          d = smin(d, sphere, 0.15);
+        }
+      }
+      
+      return d;
+    }
+    
+    // Calculate normal via gradient
+    vec3 calcNormal(vec3 p, int numDrips, float strength) {
+      vec2 e = vec2(0.001, 0.0);
+      return normalize(vec3(
+        sceneSDF(p + e.xyy, numDrips, strength) - sceneSDF(p - e.xyy, numDrips, strength),
+        sceneSDF(p + e.yxy, numDrips, strength) - sceneSDF(p - e.yxy, numDrips, strength),
+        sceneSDF(p + e.yyx, numDrips, strength) - sceneSDF(p - e.yyx, numDrips, strength)
+      ));
     }
     
     void main() {
       vec2 uv = vUV;
-      vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
-      vec2 p = uv * aspect;
+      float aspect = uResolution.x / uResolution.y;
       
-      // Calculate total metaball field and gradient
-      float field = 0.0;
-      vec2 gradient = vec2(0.0);
+      // Ray origin and direction (orthographic-ish camera)
+      vec3 ro = vec3((uv.x * 2.0 - 1.0) * aspect, uv.y * 2.0 - 1.0, 2.0);
+      vec3 rd = vec3(0.0, 0.0, -1.0);
       
-      for (int i = 0; i < MAX_DRIPS; i++) {
-        if (i >= uNumDrips) break;
+      // Raymarch to find metaball surface
+      float t = 0.0;
+      float d = 0.0;
+      bool hit = false;
+      vec3 p;
+      
+      for (int i = 0; i < MAX_STEPS; i++) {
+        p = ro + rd * t;
+        d = sceneSDF(p, uNumDrips, uStrength);
         
-        float fi = float(i);
-        float dripX = hash(fi * 127.1) * aspect.x;
-        float startY = hash(fi * 311.7) * 0.2;
-        float dripLen = 0.4 + hash(fi * 74.3) * 0.5;
-        
-        // Create elongated drip with multiple large balls
-        for (int j = 0; j < 6; j++) {
-          float fj = float(j);
-          float t = fj / 5.0;
-          
-          // Position along drip
-          float y = startY + t * dripLen * uStrength;
-          float wobble = sin(t * 8.0 + fi * 4.0) * 0.02;
-          float x = dripX + wobble;
-          
-          // Large radius, teardrop shape
-          float baseR = 0.06 + hash(fi * 183.9) * 0.04;
-          float r = baseR * (1.0 - t * 0.5) * uStrength;
-          
-          vec2 center = vec2(x, y);
-          field += metaball(p, center, r);
-          gradient += metaballGradient(p, center, r);
+        if (d < EPS) {
+          hit = true;
+          break;
         }
+        if (t > 4.0) break;
+        
+        t += d * 0.8;
       }
       
-      // Blob threshold
-      float threshold = 0.8;
-      float blob = smoothstep(threshold - 0.2, threshold + 0.1, field);
+      // Sample wall texture
+      vec4 wallColor = texture2D(uTexture, uv);
       
-      // Calculate surface normal from gradient
-      vec3 normal = normalize(vec3(-gradient * 2.0, 1.0));
-      
-      // Light direction (from top-left)
-      vec3 lightDir = normalize(vec3(-0.4, -0.5, 1.0));
-      
-      // Fresnel effect for glass edges
-      float fresnel = pow(1.0 - abs(normal.z), 3.0);
-      
-      // Specular highlight
-      vec3 viewDir = vec3(0.0, 0.0, 1.0);
-      vec3 halfVec = normalize(lightDir + viewDir);
-      float spec = pow(max(dot(normal, halfVec), 0.0), 60.0);
-      
-      // Diffuse shading
-      float diffuse = max(dot(normal, lightDir), 0.0);
-      
-      // Refraction - displace UV based on normal
-      vec2 refractUV = uv + normal.xy * 0.03 * blob;
-      refractUV = clamp(refractUV, 0.0, 1.0);
-      
-      // Sample background with refraction
-      vec4 bgColor = texture2D(uTexture, uv);
-      vec4 refractColor = texture2D(uTexture, refractUV);
-      
-      // Glass color - slightly tinted, with refraction
-      vec3 glassColor = refractColor.rgb;
-      
-      // Add shading to glass
-      glassColor *= 0.9 + diffuse * 0.2;
-      
-      // Add specular highlight
-      glassColor += vec3(1.0) * spec * 0.8;
-      
-      // Add fresnel rim lighting
-      glassColor += vec3(0.3, 0.4, 0.5) * fresnel * 0.5;
-      
-      // Darken edges slightly for depth
-      float edge = smoothstep(threshold - 0.1, threshold + 0.3, field);
-      glassColor *= 0.85 + edge * 0.15;
-      
-      // Blend glass over background
-      vec3 finalColor = mix(bgColor.rgb, glassColor, blob * 0.85);
-      
-      gl_FragColor = vec4(finalColor, 1.0);
+      if (hit) {
+        vec3 normal = calcNormal(p, uNumDrips, uStrength);
+        
+        // Light from front-top-left
+        vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0));
+        vec3 viewDir = -rd;
+        
+        // Fresnel for glass rim
+        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 4.0);
+        
+        // Specular highlight
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(reflectDir, viewDir), 0.0), 80.0);
+        
+        // Refraction for glass look
+        vec3 refracted = refract(rd, normal, 0.75);
+        vec2 refractUV = uv + refracted.xy * 0.08;
+        refractUV = clamp(refractUV, 0.0, 1.0);
+        vec4 refractColor = texture2D(uTexture, refractUV);
+        
+        // Shadow on wall behind blob
+        float shadow = smoothstep(0.3, 0.0, d);
+        
+        // Glass material
+        vec3 glassColor = refractColor.rgb * 0.85;
+        
+        // Add environment reflection (fake)
+        vec3 envColor = vec3(0.6, 0.7, 0.8);
+        glassColor = mix(glassColor, envColor, fresnel * 0.4);
+        
+        // Add specular
+        glassColor += vec3(1.0) * spec * 1.2;
+        
+        // Subtle tint
+        glassColor *= vec3(0.95, 0.97, 1.0);
+        
+        // Blend with slight transparency
+        vec3 finalColor = mix(wallColor.rgb * (1.0 - shadow * 0.3), glassColor, 0.9);
+        
+        gl_FragColor = vec4(finalColor, 1.0);
+      } else {
+        gl_FragColor = wallColor;
+      }
     }
   `;
   
