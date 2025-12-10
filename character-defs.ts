@@ -2298,214 +2298,45 @@ function fnHash(ctx: FnContext, n: number): Image {
 
 function fnDollar(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const seed = ctx.images.length * 137.5 + n * 23.0;
-  const crackIntensity = 0.5 + n * 0.2;
-  const gridSize = Math.max(3, 4 + n);
+  const gridSize = Math.max(2, n + 2);
+  const cellW = Math.ceil(ctx.width / gridSize);
+  const cellH = Math.ceil(ctx.height / gridSize);
   
-  const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
-  
-  const fragmentShader = `
-    precision highp float;
-    uniform sampler2D uTexture;
-    uniform vec2 uResolution;
-    uniform float uSeed;
-    uniform float uCrackIntensity;
-    uniform float uGridSize;
-    varying vec2 vUV;
-    
-    #define PI 3.14159265359
-    
-    float hash(float n) {
-      return fract(sin(n * 127.1 + uSeed * 311.7) * 43758.5453);
-    }
-    
-    float hash2(vec2 p) {
-      return fract(sin(dot(p, vec2(127.1, 311.7)) + uSeed * 43.7) * 43758.5453);
-    }
-    
-    // Get grid point with random offset
-    vec2 getGridPoint(vec2 cell) {
-      vec2 base = (cell + 0.5) / uGridSize;
-      vec2 offset = vec2(
-        hash2(cell + 0.1) - 0.5,
-        hash2(cell + 0.2) - 0.5
-      ) * 0.7 / uGridSize;
-      return base + offset;
-    }
-    
-    // Find which cell we're in and distance to edges
-    // Returns: xy = cell ID, z = distance to nearest edge
-    vec3 getCellInfo(vec2 uv) {
-      vec2 cellF = uv * uGridSize;
-      vec2 cell = floor(cellF);
-      vec2 localPos = fract(cellF);
+  for (let gy = 0; gy < gridSize; gy++) {
+    for (let gx = 0; gx < gridSize; gx++) {
+      const x0 = gx * cellW;
+      const y0 = gy * cellH;
+      const x1 = Math.min((gx + 1) * cellW, ctx.width);
+      const y1 = Math.min((gy + 1) * cellH, ctx.height);
       
-      // Get the 4 corners of this cell (with offsets)
-      vec2 p00 = getGridPoint(cell) * uGridSize - cell;
-      vec2 p10 = getGridPoint(cell + vec2(1.0, 0.0)) * uGridSize - cell;
-      vec2 p01 = getGridPoint(cell + vec2(0.0, 1.0)) * uGridSize - cell;
-      vec2 p11 = getGridPoint(cell + vec2(1.0, 1.0)) * uGridSize - cell;
+      const pixels: { x: number; y: number; r: number; g: number; b: number; hue: number }[] = [];
       
-      // Distance to each edge (as lines between corners)
-      float d1 = abs((p10.y - p00.y) * localPos.x - (p10.x - p00.x) * localPos.y + p10.x * p00.y - p10.y * p00.x) 
-                 / length(p10 - p00); // bottom edge
-      float d2 = abs((p11.y - p10.y) * localPos.x - (p11.x - p10.x) * localPos.y + p11.x * p10.y - p11.y * p10.x) 
-                 / length(p11 - p10); // right edge
-      float d3 = abs((p01.y - p11.y) * localPos.x - (p01.x - p11.x) * localPos.y + p01.x * p11.y - p01.y * p11.x) 
-                 / length(p01 - p11); // top edge
-      float d4 = abs((p00.y - p01.y) * localPos.x - (p00.x - p01.x) * localPos.y + p00.x * p01.y - p00.y * p01.x) 
-                 / length(p00 - p01); // left edge
-      
-      float minDist = min(min(d1, d2), min(d3, d4)) / uGridSize;
-      
-      return vec3(cell, minDist);
-    }
-    
-    void main() {
-      vec2 uv = vUV;
-      
-      // Get cell info
-      vec3 cellInfo = getCellInfo(uv);
-      vec2 cellId = cellInfo.xy;
-      float edgeDist = cellInfo.z;
-      
-      // Unique hash for this shard
-      float shardHash = hash2(cellId);
-      float shardHash2 = hash2(cellId + 100.0);
-      float shardHash3 = hash2(cellId + 200.0);
-      
-      // 3D rotation angles for this shard
-      float tiltX = (shardHash - 0.5) * 0.15 * uCrackIntensity;  // tilt around X axis
-      float tiltY = (shardHash2 - 0.5) * 0.15 * uCrackIntensity; // tilt around Y axis
-      float tiltZ = (shardHash3 - 0.5) * 0.05 * uCrackIntensity; // rotation in plane
-      
-      // Calculate shard center
-      vec2 shardCenter = getGridPoint(cellId);
-      
-      // Local position within shard
-      vec2 local = uv - shardCenter;
-      
-      // Apply Z rotation (in-plane)
-      float cz = cos(tiltZ);
-      float sz = sin(tiltZ);
-      local = vec2(local.x * cz - local.y * sz, local.x * sz + local.y * cz);
-      
-      // Simulate 3D tilt via perspective-like UV distortion
-      // Tilting around X axis affects Y coordinate based on distance from center
-      // Tilting around Y axis affects X coordinate
-      float perspectiveScale = 1.0 + local.y * tiltX + local.x * tiltY;
-      vec2 tiltedLocal = local / max(perspectiveScale, 0.5);
-      
-      // Small translation (shard popping out)
-      vec2 translation = vec2(
-        (shardHash - 0.5) * 0.01,
-        (shardHash2 - 0.5) * 0.01
-      ) * uCrackIntensity;
-      
-      // Final UV for this shard
-      vec2 shardUV = shardCenter + tiltedLocal + translation;
-      shardUV = clamp(shardUV, 0.001, 0.999);
-      
-      // Sample texture
-      vec3 color = texture2D(uTexture, shardUV).rgb;
-      
-      // 3D lighting - compute normal based on tilt
-      vec3 normal = normalize(vec3(-tiltY * 2.0, -tiltX * 2.0, 1.0));
-      vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0)); // light from top-right-front
-      vec3 viewDir = vec3(0.0, 0.0, 1.0);
-      
-      // Diffuse lighting
-      float diffuse = max(dot(normal, lightDir), 0.0);
-      
-      // Specular reflection (glass is shiny)
-      vec3 reflectDir = reflect(-lightDir, normal);
-      float specular = pow(max(dot(reflectDir, viewDir), 0.0), 32.0);
-      
-      // Fresnel - edges reflect more
-      float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
-      
-      // Apply lighting
-      color *= 0.7 + 0.3 * diffuse;
-      color += vec3(1.0) * specular * 0.4 * uCrackIntensity;
-      color += vec3(0.9, 0.95, 1.0) * fresnel * 0.15 * uCrackIntensity;
-      
-      // Edge darkening (thickness of glass at edges)
-      float edgeDarken = smoothstep(0.0, 0.02, edgeDist);
-      color *= 0.85 + 0.15 * edgeDarken;
-      
-      // Crack lines - thin white
-      float crackLine = 1.0 - smoothstep(0.001, 0.003, edgeDist);
-      color = mix(color, vec3(1.0), crackLine * 0.9);
-      
-      // Subtle chromatic aberration at shard edges
-      if (edgeDist < 0.015) {
-        float aberr = (0.015 - edgeDist) * 0.3 * uCrackIntensity;
-        color.r = texture2D(uTexture, clamp(shardUV + vec2(aberr, 0.0), 0.001, 0.999)).r;
-        color.b = texture2D(uTexture, clamp(shardUV - vec2(aberr, 0.0), 0.001, 0.999)).b;
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          const [r, g, b] = getPixel(prev, x, y);
+          const [hue] = rgbToHsl(r, g, b);
+          pixels.push({ x, y, r, g, b, hue });
+        }
       }
       
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
-  
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
-  
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
-  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
-  gl.uniform1f(gl.getUniformLocation(program, 'uCrackIntensity'), crackIntensity);
-  gl.uniform1f(gl.getUniformLocation(program, 'uGridSize'), gridSize);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+      pixels.sort((a, b) => a.hue - b.hue);
+      
+      let i = 0;
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          if (i < pixels.length) {
+            const p = pixels[i];
+            setPixel(out, x, y, p.r, p.g, p.b);
+            i++;
+          }
+        }
+      }
     }
   }
   
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(program);
-  
-  return { width: ctx.width, height: ctx.height, data: flipped };
+  return out;
 }
 
 function fnPercent(ctx: FnContext, n: number): Image {
