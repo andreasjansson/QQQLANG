@@ -66,6 +66,18 @@
     const ctx = canvas.getContext('2d');
     const input = document.getElementById('program-input');
 
+    function getProgramFromURL() {
+      const path = window.location.pathname;
+      return path === '/' ? '' : path.substring(1);
+    }
+
+    function updateURL(program) {
+      const newPath = program ? `/${program}` : '/';
+      if (window.location.pathname !== newPath) {
+        window.history.pushState({ program }, '', newPath);
+      }
+    }
+
     function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -81,9 +93,24 @@
       ctx.putImageData(imageData, 0, 0);
     }
 
+    function loadProgramFromURL() {
+      const program = getProgramFromURL();
+      input.value = program;
+      render();
+    }
+
     window.addEventListener('resize', resize);
-    input.addEventListener('input', render);
     
+    input.addEventListener('input', () => {
+      updateURL(input.value);
+      render();
+    });
+
+    window.addEventListener('popstate', (event) => {
+      loadProgramFromURL();
+    });
+    
+    loadProgramFromURL();
     resize();
   </script>
 </body>
