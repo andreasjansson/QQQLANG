@@ -215,3 +215,7 @@ export function getFinalImage(program: string, width: number, height: number): I
   const images = runProgram(program, width, height);
   return images[images.length - 1];
 }
+
+export function getParsedOperations(program: string): ParsedOp[] {
+  return parseProgram(program);
+}

@@ -8752,5 +8752,45 @@ Add logic to show/hide debug pane and populate with parsed operations
 ID: toolu_012nt2LPh4GgwCFg8nMwkCQd
 
 <tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Add logic to show/hide debug pane and populate with parsed operations
 </tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01BZGk5o2VH6sEQrK8YGCKMS
+
+## path
+
+<tool.toolu_01BZGk5o2VH6sEQrK8YGCKMS>
+runtime.ts
+</tool.toolu_01BZGk5o2VH6sEQrK8YGCKMS>
+
+## git-commit-message
+
+<tool.toolu_01BZGk5o2VH6sEQrK8YGCKMS>
+Export getParsedOperations function for debug pane
+</tool.toolu_01BZGk5o2VH6sEQrK8YGCKMS>
+
+## diff
+
+<tool.toolu_01BZGk5o2VH6sEQrK8YGCKMS>
+ export function getFinalImage(program: string, width: number, height: number): Image {
+   const images = runProgram(program, width, height);
+   return images[images.length - 1];
++}
++
++export function getParsedOperations(program: string): ParsedOp[] {
++  return parseProgram(program);
+ }
+\ No newline at end of file
+
+</tool.toolu_01BZGk5o2VH6sEQrK8YGCKMS>
+
+# TOOL RESULT
+
+ID: toolu_01BZGk5o2VH6sEQrK8YGCKMS
+
+<tool.toolu_01BZGk5o2VH6sEQrK8YGCKMS>
+
+</tool.toolu_01BZGk5o2VH6sEQrK8YGCKMS>
