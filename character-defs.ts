@@ -2229,11 +2229,17 @@ function fnDoubleQuote(ctx: FnContext, n: number): Image {
 
 function fnHash(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const out = cloneImage(prev);
   
   const gridSize = Math.max(2, n + 2);
-  const cellW = Math.floor(ctx.width / gridSize);
-  const cellH = Math.floor(ctx.height / gridSize);
+  
+  const getCellBounds = (gx: number, gy: number): [number, number, number, number] => {
+    const x0 = Math.floor(gx * ctx.width / gridSize);
+    const x1 = Math.floor((gx + 1) * ctx.width / gridSize);
+    const y0 = Math.floor(gy * ctx.height / gridSize);
+    const y1 = Math.floor((gy + 1) * ctx.height / gridSize);
+    return [x0, y0, x1, y1];
+  };
   
   const cells: { gx: number; gy: number; hue: number; pixels: [number, number, number, number, number][] }[] = [];
   
@@ -2241,15 +2247,16 @@ function fnHash(ctx: FnContext, n: number): Image {
     for (let gx = 0; gx < gridSize; gx++) {
       let sumR = 0, sumG = 0, sumB = 0, count = 0;
       const pixels: [number, number, number, number, number][] = [];
+      const [x0, y0, x1, y1] = getCellBounds(gx, gy);
       
-      for (let y = gy * cellH; y < (gy + 1) * cellH && y < ctx.height; y++) {
-        for (let x = gx * cellW; x < (gx + 1) * cellW && x < ctx.width; x++) {
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
           const [r, g, b] = getPixel(prev, x, y);
           sumR += r;
           sumG += g;
           sumB += b;
           count++;
-          pixels.push([x, y, r, g, b]);
+          pixels.push([x - x0, y - y0, r, g, b]);
         }
       }
       
@@ -2267,14 +2274,12 @@ function fnHash(ctx: FnContext, n: number): Image {
   for (let i = 0; i < cells.length; i++) {
     const targetGX = i % gridSize;
     const targetGY = Math.floor(i / gridSize);
+    const [tx0, ty0] = getCellBounds(targetGX, targetGY);
     const cell = cells[i];
     
-    for (const [ox, oy, r, g, b] of cell.pixels) {
-      const localX = ox - cell.gx * cellW;
-      const localY = oy - cell.gy * cellH;
-      
-      const newX = targetGX * cellW + localX;
-      const newY = targetGY * cellH + localY;
+    for (const [localX, localY, r, g, b] of cell.pixels) {
+      const newX = tx0 + localX;
+      const newY = ty0 + localY;
       
       if (newX >= 0 && newX < ctx.width && newY >= 0 && newY < ctx.height) {
         setPixel(out, newX, newY, r, g, b);
