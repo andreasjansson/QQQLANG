@@ -3395,11 +3395,11 @@ export const characterDefs: Record<string, CharDef> = {
   'E': {
     color: '#00CED1',
     number: 5,
-    fn: fnE,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "eclipse",
-    documentation: "Solar eclipse - corona color from prev, old_image shown in moon center"
+    fn: fnR,
+    arity: 0,
+    argTypes: [],
+    functionName: "corrugated",
+    documentation: "Image transformed with sinusoidal shape in z dimension, looks vertically corrugated"
   },
   
   'F': {
