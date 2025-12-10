@@ -1826,42 +1826,42 @@ function fn5(ctx: FnContext, n: number): Image {
         vec3 normal = calcNormal(p, uNumDrips, uStrength);
         
         // Light from top (Y is flipped in screen coords)
-        vec3 lightDir = normalize(vec3(0.0, -1.0, 0.5));
+        vec3 lightDir = normalize(vec3(0.0, -1.0, 0.6));
         vec3 viewDir = -rd;
         
-        // Fresnel for glass rim
-        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 4.0);
+        // Fresnel - edges reflect more
+        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
         
-        // Specular highlight
+        // Specular highlight - bright and sharp
         vec3 reflectDir = reflect(-lightDir, normal);
-        float spec = pow(max(dot(reflectDir, viewDir), 0.0), 80.0);
+        float spec = pow(max(dot(reflectDir, viewDir), 0.0), 120.0);
         
-        // Refraction for glass look
+        // Refraction - water has IOR ~1.33, so ratio is 1.0/1.33 ≈ 0.75
         vec3 refracted = refract(rd, normal, 0.75);
-        vec2 refractUV = uv + refracted.xy * 0.08;
+        vec2 refractUV = uv + refracted.xy * 0.06;
         refractUV = clamp(refractUV, 0.0, 1.0);
         vec4 refractColor = texture2D(uTexture, refractUV);
         
-        // Shadow on wall behind blob
-        float shadow = smoothstep(0.3, 0.0, d);
+        // Clear water droplet - mostly shows refracted background
+        vec3 dropletColor = refractColor.rgb;
         
-        // Glass material
-        vec3 glassColor = refractColor.rgb * 0.85;
+        // Slight caustic brightening where light focuses
+        float caustic = max(dot(normal, lightDir), 0.0);
+        dropletColor *= 1.0 + caustic * 0.15;
         
-        // Add environment reflection (fake)
-        vec3 envColor = vec3(0.6, 0.7, 0.8);
-        glassColor = mix(glassColor, envColor, fresnel * 0.4);
+        // Add crisp specular highlight
+        dropletColor += vec3(1.0) * spec * 1.5;
         
-        // Add specular
-        glassColor += vec3(1.0) * spec * 1.2;
+        // Subtle rim highlight from fresnel
+        dropletColor += vec3(1.0) * fresnel * 0.2;
         
-        // Subtle tint
-        glassColor *= vec3(0.95, 0.97, 1.0);
+        // Very subtle shadow directly under droplet on wall
+        vec2 shadowUV = uv + vec2(0.01, 0.02);
+        float shadowMask = smoothstep(0.05, 0.0, d) * 0.15;
+        vec3 wallWithShadow = wallColor.rgb * (1.0 - shadowMask);
         
-        // Blend with slight transparency
-        vec3 finalColor = mix(wallColor.rgb * (1.0 - shadow * 0.3), glassColor, 0.9);
-        
-        gl_FragColor = vec4(finalColor, 1.0);
+        // Droplet is almost fully transparent, just refracts
+        gl_FragColor = vec4(dropletColor, 1.0);
       } else {
         gl_FragColor = wallColor;
       }
