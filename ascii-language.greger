@@ -7912,107 +7912,90 @@ character-defs.ts
 Rewrite line weave to ensure complete coverage with no gaps
 </tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
 
-## original-content
+## diff
 
 <tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
-function fnL(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  const stripHeight = Math.max(4, n * 2 + 4);
-  const waveAmplitude = stripHeight * 0.8;
-  const waveFrequency = 0.015;
-  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
-  
-  const strips: { y: number; hueShift: number; phase: number }[] = [];
-  for (let i = 0; i < numStrips; i++) {
-    strips.push({
-      y: i * stripHeight - stripHeight * 3,
-      hueShift: (i * 25) % 360,
-      phase: i * 0.8
-    });
-  }
-  
-  for (let pass = 0; pass < 2; pass++) {
-    for (let i = 0; i < strips.length; i++) {
-      if (i % 2 !== pass) continue;
-      
-      const strip = strips[i];
-      
-      for (let x = 0; x < ctx.width; x++) {
-        const wave = Math.sin(x * waveFrequency + strip.phase) * waveAmplitude;
-        const baseY = strip.y + wave;
-        
-        for (let dy = 0; dy < stripHeight; dy++) {
-          const srcY = Math.floor(strip.y + dy);
-          const dstY = Math.floor(baseY + dy);
-          
-          if (srcY < 0 || srcY >= ctx.height || dstY < 0 || dstY >= ctx.height) continue;
-          
-          const [r, g, b] = getPixel(prev, x, srcY);
-          const [h, s, l] = rgbToHsl(r, g, b);
-          const [nr, ng, nb] = hslToRgb((h + strip.hueShift) % 360, s, l);
-          
-          const edgeDist = Math.min(dy, stripHeight - 1 - dy);
-          const shadow = edgeDist < 2 ? 0.7 : 1.0;
-          
-          setPixel(out, x, dstY, 
-            Math.round(nr * shadow), 
-            Math.round(ng * shadow), 
-            Math.round(nb * shadow)
-          );
-        }
-      }
-    }
-  }
-  
-  return out;
-}
-</tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+ function fnL(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+-  const out = cloneImage(prev);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+   const stripHeight = Math.max(4, n * 2 + 4);
+-  const waveAmplitude = stripHeight * 0.8;
+-  const waveFrequency = 0.015;
+-  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
++  const waveAmplitude = stripHeight * 1.2;
++  const waveFrequency = 0.02;
+   
+-  const strips: { y: number; hueShift: number; phase: number }[] = [];
+-  for (let i = 0; i < numStrips; i++) {
+-    strips.push({
+-      y: i * stripHeight - stripHeight * 3,
+-      hueShift: (i * 25) % 360,
+-      phase: i * 0.8
+-    });
+-  }
+-  
+   for (let pass = 0; pass < 2; pass++) {
+-    for (let i = 0; i < strips.length; i++) {
+-      if (i % 2 !== pass) continue;
+-      
+-      const strip = strips[i];
+-      
++    for (let y = 0; y < ctx.height; y++) {
+       for (let x = 0; x < ctx.width; x++) {
+-        const wave = Math.sin(x * waveFrequency + strip.phase) * waveAmplitude;
+-        const baseY = strip.y + wave;
++        const stripIndex = Math.floor(y / stripHeight);
++        if (stripIndex % 2 !== pass) continue;
+         
+-        for (let dy = 0; dy < stripHeight; dy++) {
+-          const srcY = Math.floor(strip.y + dy);
+-          const dstY = Math.floor(baseY + dy);
+-          
+-          if (srcY < 0 || srcY >= ctx.height || dstY < 0 || dstY >= ctx.height) continue;
+-          
+-          const [r, g, b] = getPixel(prev, x, srcY);
+-          const [h, s, l] = rgbToHsl(r, g, b);
+-          const [nr, ng, nb] = hslToRgb((h + strip.hueShift) % 360, s, l);
+-          
+-          const edgeDist = Math.min(dy, stripHeight - 1 - dy);
+-          const shadow = edgeDist < 2 ? 0.7 : 1.0;
+-          
+-          setPixel(out, x, dstY, 
+-            Math.round(nr * shadow), 
+-            Math.round(ng * shadow), 
+-            Math.round(nb * shadow)
+-          );
+-        }
++        const phase = stripIndex * 0.8;
++        const hueShift = (stripIndex * 25) % 360;
++        const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
++        
++        const dstY = Math.floor(y + wave);
++        if (dstY < 0 || dstY >= ctx.height) continue;
++        
++        const [r, g, b] = getPixel(prev, x, y);
++        const [h, s, l] = rgbToHsl(r, g, b);
++        const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
++        
++        const localY = y % stripHeight;
++        const edgeDist = Math.min(localY, stripHeight - 1 - localY);
++        const shadow = edgeDist < 2 ? 0.7 : 1.0;
++        
++        setPixel(out, x, dstY,
++          Math.round(nr * shadow),
++          Math.round(ng * shadow),
++          Math.round(nb * shadow)
++        );
+       }
+     }
+   }
+   
+   return out;
+ }
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
-function fnL(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const stripHeight = Math.max(4, n * 2 + 4);
-  const waveAmplitude = stripHeight * 1.2;
-  const waveFrequency = 0.02;
-  
-  for (let pass = 0; pass < 2; pass++) {
-    for (let y = 0; y < ctx.height; y++) {
-      for (let x = 0; x < ctx.width; x++) {
-        const stripIndex = Math.floor(y / stripHeight);
-        if (stripIndex % 2 !== pass) continue;
-        
-        const phase = stripIndex * 0.8;
-        const hueShift = (stripIndex * 25) % 360;
-        const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
-        
-        const dstY = Math.floor(y + wave);
-        if (dstY < 0 || dstY >= ctx.height) continue;
-        
-        const [r, g, b] = getPixel(prev, x, y);
-        const [h, s, l] = rgbToHsl(r, g, b);
-        const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
-        
-        const localY = y % stripHeight;
-        const edgeDist = Math.min(localY, stripHeight - 1 - localY);
-        const shadow = edgeDist < 2 ? 0.7 : 1.0;
-        
-        setPixel(out, x, dstY,
-          Math.round(nr * shadow),
-          Math.round(ng * shadow),
-          Math.round(nb * shadow)
-        );
-      }
-    }
-  }
-  
-  return out;
-}
 </tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
 
 # TOOL RESULT
@@ -8020,5 +8003,121 @@ function fnL(ctx: FnContext, n: number): Image {
 ID: toolu_017oZ1h6Quy2jyZPKJm9Lauy
 
 <tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Rewrite line weave to ensure complete coverage with no gaps
 </tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+
+# ASSISTANT
+
+Hmm, that approach still writes to destination positions which can leave gaps. Let me do it properly - work backwards from each output pixel:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XHw3HpdCKAygyuj9tfwsjF
+
+## path
+
+<tool.toolu_01XHw3HpdCKAygyuj9tfwsjF>
+character-defs.ts
+</tool.toolu_01XHw3HpdCKAygyuj9tfwsjF>
+
+## git-commit-message
+
+<tool.toolu_01XHw3HpdCKAygyuj9tfwsjF>
+Fix line weave - sample backwards to guarantee no gaps
+</tool.toolu_01XHw3HpdCKAygyuj9tfwsjF>
+
+## diff
+
+<tool.toolu_01XHw3HpdCKAygyuj9tfwsjF>
+ function fnL(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+   const stripHeight = Math.max(4, n * 2 + 4);
+   const waveAmplitude = stripHeight * 1.2;
+   const waveFrequency = 0.02;
++  const numStrips = Math.ceil(ctx.height / stripHeight) + 4;
+   
+   for (let pass = 0; pass < 2; pass++) {
+     for (let y = 0; y < ctx.height; y++) {
+       for (let x = 0; x < ctx.width; x++) {
+-        const stripIndex = Math.floor(y / stripHeight);
+-        if (stripIndex % 2 !== pass) continue;
++        let bestStrip = -1;
++        let bestDist = Infinity;
+         
+-        const phase = stripIndex * 0.8;
+-        const hueShift = (stripIndex * 25) % 360;
+-        const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
++        for (let i = -2; i < numStrips; i++) {
++          if (i % 2 !== ((pass + Math.abs(i)) % 2)) continue;
++          
++          const phase = i * 0.8;
++          const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
++          const stripCenterY = i * stripHeight + stripHeight / 2 + wave;
++          const dist = Math.abs(y - stripCenterY);
++          
++          if (dist < stripHeight / 2 && dist < bestDist) {
++            bestDist = dist;
++            bestStrip = i;
++          }
++        }
+         
+-        const dstY = Math.floor(y + wave);
+-        if (dstY < 0 || dstY >= ctx.height) continue;
+-        
+-        const [r, g, b] = getPixel(prev, x, y);
+-        const [h, s, l] = rgbToHsl(r, g, b);
+-        const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
+-        
+-        const localY = y % stripHeight;
+-        const edgeDist = Math.min(localY, stripHeight - 1 - localY);
+-        const shadow = edgeDist < 2 ? 0.7 : 1.0;
+-        
+-        setPixel(out, x, dstY,
+-          Math.round(nr * shadow),
+-          Math.round(ng * shadow),
+-          Math.round(nb * shadow)
+-        );
++        if (bestStrip >= 0) {
++          const phase = bestStrip * 0.8;
++          const hueShift = (bestStrip * 25) % 360;
++          const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
++          
++          const stripTopY = bestStrip * stripHeight + wave;
++          const localY = y - stripTopY;
++          const srcY = bestStrip * stripHeight + localY;
++          
++          if (srcY >= 0 && srcY < ctx.height) {
++            const [r, g, b] = getPixel(prev, x, Math.floor(srcY));
++            const [h, s, l] = rgbToHsl(r, g, b);
++            const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
++            
++            const edgeDist = Math.min(localY, stripHeight - 1 - localY);
++            const shadow = edgeDist < 2 ? 0.7 : 1.0;
++            
++            setPixel(out, x, y,
++              Math.round(nr * shadow),
++              Math.round(ng * shadow),
++              Math.round(nb * shadow)
++            );
++          }
++        }
+       }
+     }
+   }
+   
+   return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_01XHw3HpdCKAygyuj9tfwsjF>
+
+# TOOL RESULT
+
+ID: toolu_01XHw3HpdCKAygyuj9tfwsjF
+
+<tool.toolu_01XHw3HpdCKAygyuj9tfwsjF>
+
+</tool.toolu_01XHw3HpdCKAygyuj9tfwsjF>
