@@ -12761,5 +12761,45 @@ Add old texture and make tubes thicker in fnH
 ID: toolu_01KUqUYNRb7Y6msSBpQwM5u2
 
 <tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add old texture and make tubes thicker in fnH
 </tool.toolu_01KUqUYNRb7Y6msSBpQwM5u2>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RVYiZvQPsK36t6oX5RpUwz
+
+## path
+
+<tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
+character-defs.ts
+</tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
+
+## git-commit-message
+
+<tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
+Use old texture for tubes in fnH
+</tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
+
+## diff
+
+<tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
+   gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 2.0, 2.0, 3.0);
+-  gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 0);
+   
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
++  gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 1);
++  
+   gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
+\ No newline at end of file
+
+</tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
+
+# TOOL RESULT
+
+ID: toolu_01RVYiZvQPsK36t6oX5RpUwz
+
+<tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
+
+</tool.toolu_01RVYiZvQPsK36t6oX5RpUwz>
