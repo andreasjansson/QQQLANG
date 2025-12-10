@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-224426742915>
+${greger-prompt-code-style<eval-result-224502874687>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-224426742915>}
+</eval-result-224502874687>}
 
 # USER
 
@@ -5511,5 +5511,116 @@ Brighten corrugated effect
 ID: toolu_0193bHJP67LLJnDp7M6HGZ48
 
 <tool.toolu_0193bHJP67LLJnDp7M6HGZ48>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Brighten corrugated effect
 </tool.toolu_0193bHJP67LLJnDp7M6HGZ48>
+
+# USER
+
+Can you not use an actual light source and render this as a world in webgl?
+
+# THINKING
+
+Signature: EqcDCkYIChgCKkB0glmwTjDvvu+m7u1r0vHt5F9dsgQI8awSMUCZpR5sreuYG1jwkyTRf9fTYbIm3flC9Rj0yobpE78/eU/oDhIuEgz/ci1KH+mbRtdUPhsaDN8bIbTQgIsS7nCmDiIwrvnnUSrFkJMa6EFe6Fx47Cl0+SEJ4Xw/XC2OTqWQTP6ekFN4F4cRRBHzrM2IFdvyKo4C3J3Yur8vPtegyvNtHdFicR5UyjmoQrkyeTwn8P5X6OWOZ1ijEgEUO3MYSJKLK1LyqvYjKhNqPWirRxlX3Dama8i5iO+QKr0E8MTB4Wxpu1UOprqCeVRtgKRMQE71VXHCqcaDVbem4Wly/G3Ume1EIik6dZ2ZDstC7Rg+S0uwxNR2EXgLXL3cAvMgG2hvAwd0ml1WyhO/2kkhjuH1U8ssXly3bVmBnU/UgWdcjb5Nu2phZSWkwi4Tlw5fxhXP3JK106vVn1RzUk5w9bAkLGLAVz9APXePr2npH+8yRQiEbJYxOytekhD9Dh21iCGbDIyqrMwdZTvPpqyUL1mhfuWC7dw/KDGaE2pZa1rv3/AWGAE=
+
+The user wants the corrugated effect to use actual 3D geometry with a light source in WebGL, rather than just faking the shading with a simple formula. I should render actual corrugated 3D geometry (like a wavy surface) with proper lighting calculations.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01517d7yrBEBxzAL5eR24Lgw
+
+## path
+
+<tool.toolu_01517d7yrBEBxzAL5eR24Lgw>
+character-defs.ts
+</tool.toolu_01517d7yrBEBxzAL5eR24Lgw>
+
+## git-commit-message
+
+<tool.toolu_01517d7yrBEBxzAL5eR24Lgw>
+Rewrite corrugated as proper 3D surface with lighting in WebGL
+</tool.toolu_01517d7yrBEBxzAL5eR24Lgw>
+
+## diff
+
+<tool.toolu_01517d7yrBEBxzAL5eR24Lgw>
+ function fnCorrugated(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
+   const vertexShader = `
+     attribute vec2 position;
+     varying vec2 vUV;
+     void main() {
+       vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+       gl_Position = vec4(position, 0.0, 1.0);
+     }
+   `;
+   
+   const fragmentShader = `
+-    precision mediump float;
+-    uniform sampler2D texture;
+-    uniform vec2 resolution;
++    precision highp float;
++    uniform sampler2D uTexture;
++    uniform vec2 uResolution;
+     varying vec2 vUV;
+     
+     void main() {
+       vec2 uv = vUV;
+-      float wave = sin(uv.x * 20.0) * 0.1;
+-      float shade = 0.85 + 0.15 * cos(uv.x * 20.0);
++      float aspect = uResolution.x / uResolution.y;
+       
+-      vec2 distortedUV = vec2(uv.x, uv.y + wave * (0.5 - abs(uv.y - 0.5)));
+-      vec3 color = texture2D(texture, distortedUV).rgb * shade;
++      // Corrugated surface: z = sin(x * freq) * amplitude
++      float freq = 25.0;
++      float amplitude = 0.08;
+       
++      // Calculate the z position on the corrugated surface
++      float x = uv.x * freq;
++      float z = sin(x) * amplitude;
++      
++      // Calculate normal by taking derivative of the surface
++      // dz/dx = cos(x * freq) * amplitude * freq
++      float dzdx = cos(x) * amplitude * freq / freq;
++      vec3 normal = normalize(vec3(-dzdx, 0.0, 1.0));
++      
++      // Light coming from front-top-right
++      vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0));
++      
++      // Diffuse lighting
++      float diff = max(dot(normal, lightDir), 0.0);
++      
++      // Ambient
++      float ambient = 0.4;
++      
++      // Specular
++      vec3 viewDir = vec3(0.0, 0.0, 1.0);
++      vec3 reflectDir = reflect(-lightDir, normal);
++      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0) * 0.3;
++      
++      float lighting = ambient + diff * 0.6 + spec;
++      
++      // Sample texture with slight displacement based on surface angle
++      vec2 texCoord = uv + vec2(z * 0.5, 0.0);
++      texCoord = clamp(texCoord, 0.0, 1.0);
++      vec3 texColor = texture2D(uTexture, texCoord).rgb;
++      
++      vec3 color = texColor * lighting;
++      
+       gl_FragColor = vec4(color, 1.0);
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_01517d7yrBEBxzAL5eR24Lgw>
+
+# TOOL RESULT
+
+ID: toolu_01517d7yrBEBxzAL5eR24Lgw
+
+<tool.toolu_01517d7yrBEBxzAL5eR24Lgw>
+
+</tool.toolu_01517d7yrBEBxzAL5eR24Lgw>

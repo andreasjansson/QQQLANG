@@ -972,18 +972,50 @@ function fnCorrugated(ctx: FnContext): Image {
   `;
   
   const fragmentShader = `
-    precision mediump float;
-    uniform sampler2D texture;
-    uniform vec2 resolution;
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
     varying vec2 vUV;
     
     void main() {
       vec2 uv = vUV;
-      float wave = sin(uv.x * 20.0) * 0.1;
-      float shade = 0.85 + 0.15 * cos(uv.x * 20.0);
+      float aspect = uResolution.x / uResolution.y;
       
-      vec2 distortedUV = vec2(uv.x, uv.y + wave * (0.5 - abs(uv.y - 0.5)));
-      vec3 color = texture2D(texture, distortedUV).rgb * shade;
+      // Corrugated surface: z = sin(x * freq) * amplitude
+      float freq = 25.0;
+      float amplitude = 0.08;
+      
+      // Calculate the z position on the corrugated surface
+      float x = uv.x * freq;
+      float z = sin(x) * amplitude;
+      
+      // Calculate normal by taking derivative of the surface
+      // dz/dx = cos(x * freq) * amplitude * freq
+      float dzdx = cos(x) * amplitude * freq / freq;
+      vec3 normal = normalize(vec3(-dzdx, 0.0, 1.0));
+      
+      // Light coming from front-top-right
+      vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0));
+      
+      // Diffuse lighting
+      float diff = max(dot(normal, lightDir), 0.0);
+      
+      // Ambient
+      float ambient = 0.4;
+      
+      // Specular
+      vec3 viewDir = vec3(0.0, 0.0, 1.0);
+      vec3 reflectDir = reflect(-lightDir, normal);
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0) * 0.3;
+      
+      float lighting = ambient + diff * 0.6 + spec;
+      
+      // Sample texture with slight displacement based on surface angle
+      vec2 texCoord = uv + vec2(z * 0.5, 0.0);
+      texCoord = clamp(texCoord, 0.0, 1.0);
+      vec3 texColor = texture2D(uTexture, texCoord).rgb;
+      
+      vec3 color = texColor * lighting;
       
       gl_FragColor = vec4(color, 1.0);
     }
