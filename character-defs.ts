@@ -980,7 +980,7 @@ function fnCorrugated(ctx: FnContext): Image {
     void main() {
       vec2 uv = vUV;
       float wave = sin(uv.x * 20.0) * 0.1;
-      float shade = 0.7 + 0.3 * cos(uv.x * 20.0);
+      float shade = 0.85 + 0.15 * cos(uv.x * 20.0);
       
       vec2 distortedUV = vec2(uv.x, uv.y + wave * (0.5 - abs(uv.y - 0.5)));
       vec3 color = texture2D(texture, distortedUV).rgb * shade;
