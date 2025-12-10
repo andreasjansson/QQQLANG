@@ -3599,11 +3599,11 @@ export const characterDefs: Record<string, CharDef> = {
   'E': {
     color: '#00CED1',
     number: 5,
-    fn: fnCorrugated,
-    arity: 0,
-    argTypes: [],
-    functionName: "corrugated",
-    documentation: "Image transformed with sinusoidal shape in z dimension, looks vertically corrugated"
+    fn: fnEntangle,
+    arity: 2,
+    argTypes: ['int', 'int'],
+    functionName: "entangle",
+    documentation: "Procedural vines grow following edge contours, revealing old_image underneath; n controls density, j selects old image"
   },
   
   'F': {
