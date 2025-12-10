@@ -3945,8 +3945,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnH,
     arity: 1,
     argTypes: ['int'],
-    functionName: "horizontal-strips",
-    documentation: "Horizontal strips alternate between prev and old_image, strip height varies with sin"
+    functionName: "halftone",
+    documentation: "Halftone print effect: prev as dots at 0°, old_image as dots at 45°, overlaid on white"
   },
   
   'I': {
