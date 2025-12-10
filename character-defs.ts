@@ -2347,7 +2347,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "melt",
-    documentation: "Paint drip effect with vertical streaking and wobble, strength controlled by n"
+    documentation: "Metaball-based dripping effect with blobby liquid drips flowing down, n controls number and strength"
   },
   
   '6': {
