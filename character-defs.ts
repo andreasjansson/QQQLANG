@@ -4006,11 +4006,11 @@ export const characterDefs: Record<string, CharDef> = {
   'V': {
     color: '#40E0D0',
     number: 22,
-    fn: fnV,
+    fn: fnB,
     arity: 1,
-    argTypes: ['color'],
-    functionName: "vignette-tint",
-    documentation: "Vignette with radius 0.7, darkened edges tinted toward color c"
+    argTypes: ['int'],
+    functionName: "voronoi",
+    documentation: "Breaks image into 36 voronoi cells, alternating between prev and old image"
   },
   
   'W': {
