@@ -857,28 +857,28 @@ function fnN(ctx: FnContext): Image {
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const idx = (y * ctx.width + x) * 3;
-      let tr = blurred[idx] * 3;
-      let tg = blurred[idx + 1] * 3;
-      let tb = blurred[idx + 2] * 3;
+      let tr = blurred[idx] * 1.5;
+      let tg = blurred[idx + 1] * 1.5;
+      let tb = blurred[idx + 2] * 1.5;
       
       const [pr, pg, pb] = getPixel(prev, x, y);
-      tr += pr / 255;
-      tg += pg / 255;
-      tb += pb / 255;
+      tr += (pr / 255) * 0.5;
+      tg += (pg / 255) * 0.5;
+      tb += (pb / 255) * 0.5;
       
       for (const light of lights) {
         const dx = x - light.x;
         const dy = y - light.y;
         const dist = Math.sqrt(dx * dx + dy * dy) / scale;
-        const glow = 0.015 / Math.max(0.01, dist);
+        const glow = 0.008 / Math.max(0.01, dist);
         tr += glow * light.r;
         tg += glow * light.g;
         tb += glow * light.b;
       }
       
-      tr = Math.pow(Math.min(1, tr), 0.6);
-      tg = Math.pow(Math.min(1, tg), 0.6);
-      tb = Math.pow(Math.min(1, tb), 0.6);
+      tr = tr / (1 + tr);
+      tg = tg / (1 + tg);
+      tb = tb / (1 + tb);
       
       setPixel(out, x, y,
         Math.min(255, Math.floor(tr * 255)),
