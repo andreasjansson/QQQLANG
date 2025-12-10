@@ -2206,7 +2206,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 0,
     argTypes: [],
     functionName: "time-echo",
-    documentation: "Left third shows oldest image, middle shows mid-history image, right shows prev - temporal triptych"
+    documentation: "Left third shows 3rd previous image, middle shows 2nd previous, right shows prev - recent history triptych"
   },
   
   '3': {
