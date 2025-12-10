@@ -6272,5 +6272,78 @@ Auto-uppercase input, reject invalid characters with visual bell
 ID: toolu_012yNr8TguwGPbnSx3fucH98
 
 <tool.toolu_012yNr8TguwGPbnSx3fucH98>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Auto-uppercase input, reject invalid characters with visual bell
 </tool.toolu_012yNr8TguwGPbnSx3fucH98>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01LbYpzR8pa3ULbjaTkrwehU
+
+## path
+
+<tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+index.html
+</tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+
+## git-commit-message
+
+<tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+Import characterDefs and add input validation with visual bell
+</tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+
+## original-content
+
+<tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+  <script type="module">
+    import { runProgram, getParsedOperations } from './runtime.ts';
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const input = document.getElementById('program-input');
+    const inputBackground = document.getElementById('input-background');
+    const debugPane = document.getElementById('debug-pane');
+
+    const isDebugMode = window.location.search.includes('debug');
+    if (isDebugMode) {
+      debugPane.classList.add('visible');
+    }
+</tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+
+## new-content
+
+<tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+  <script type="module">
+    import { runProgram, getParsedOperations } from './runtime.ts';
+    import { characterDefs } from './character-defs.ts';
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const input = document.getElementById('program-input');
+    const inputContainer = document.getElementById('input-container');
+    const inputBackground = document.getElementById('input-background');
+    const debugPane = document.getElementById('debug-pane');
+
+    const isDebugMode = window.location.search.includes('debug');
+    if (isDebugMode) {
+      debugPane.classList.add('visible');
+    }
+    
+    function visualBell() {
+      inputContainer.classList.remove('bell');
+      void inputContainer.offsetWidth;
+      inputContainer.classList.add('bell');
+    }
+    
+    function isValidChar(char) {
+      return char in characterDefs;
+    }
+</tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+
+# TOOL RESULT
+
+ID: toolu_01LbYpzR8pa3ULbjaTkrwehU
+
+<tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+
+</tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>

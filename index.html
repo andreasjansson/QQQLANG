@@ -134,16 +134,28 @@
 
   <script type="module">
     import { runProgram, getParsedOperations } from './runtime.ts';
+    import { characterDefs } from './character-defs.ts';
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const input = document.getElementById('program-input');
+    const inputContainer = document.getElementById('input-container');
     const inputBackground = document.getElementById('input-background');
     const debugPane = document.getElementById('debug-pane');
 
     const isDebugMode = window.location.search.includes('debug');
     if (isDebugMode) {
       debugPane.classList.add('visible');
+    }
+    
+    function visualBell() {
+      inputContainer.classList.remove('bell');
+      void inputContainer.offsetWidth;
+      inputContainer.classList.add('bell');
+    }
+    
+    function isValidChar(char) {
+      return char in characterDefs;
     }
 
     function getProgramFromURL() {
