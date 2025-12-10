@@ -808,12 +808,42 @@ function fnN(ctx: FnContext): Image {
     });
   }
   
+  const glowRadius = 8;
+  
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const [pr, pg, pb] = getPixel(prev, x, y);
-      let tr = (pr / 255) * 0.4;
-      let tg = (pg / 255) * 0.4;
-      let tb = (pb / 255) * 0.4;
+      const brightness = (pr + pg + pb) / (255 * 3);
+      
+      let tr = (pr / 255) * 0.3;
+      let tg = (pg / 255) * 0.3;
+      let tb = (pb / 255) * 0.3;
+      
+      if (brightness > 0.3) {
+        let glowSum = 0;
+        let glowR = 0, glowG = 0, glowB = 0;
+        for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
+          for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
+            const sx = Math.max(0, Math.min(ctx.width - 1, x + dx));
+            const sy = Math.max(0, Math.min(ctx.height - 1, y + dy));
+            const [sr, sg, sb] = getPixel(prev, sx, sy);
+            const sBright = (sr + sg + sb) / (255 * 3);
+            if (sBright > 0.3) {
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const weight = Math.max(0, 1 - dist / glowRadius);
+              glowR += (sr / 255) * weight * sBright;
+              glowG += (sg / 255) * weight * sBright;
+              glowB += (sb / 255) * weight * sBright;
+              glowSum += weight;
+            }
+          }
+        }
+        if (glowSum > 0) {
+          tr += (glowR / glowSum) * brightness * 1.5;
+          tg += (glowG / glowSum) * brightness * 1.5;
+          tb += (glowB / glowSum) * brightness * 1.5;
+        }
+      }
       
       for (const light of lights) {
         const dx = (x - light.x) / scale;
