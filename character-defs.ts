@@ -2039,39 +2039,17 @@ function fn8(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fn9(ctx: FnContext, n: number): Image {
+function fn9(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const mode = Math.abs(n) % 9;
-  
-  const blend = (a: number, b: number, mode: number): number => {
-    const an = a / 255;
-    const bn = b / 255;
-    let result: number;
-    
-    switch (mode) {
-      case 0: result = an * bn; break;
-      case 1: result = 1 - (1 - an) * (1 - bn); break;
-      case 2: result = an < 0.5 ? 2 * an * bn : 1 - 2 * (1 - an) * (1 - bn); break;
-      case 3: result = Math.min(an, bn); break;
-      case 4: result = Math.max(an, bn); break;
-      case 5: result = bn === 0 ? 0 : Math.min(1, an / (1 - bn)); break;
-      case 6: result = bn === 1 ? 1 : Math.max(0, 1 - (1 - an) / bn); break;
-      case 7: result = bn < 0.5 ? 2 * an * bn : 1 - 2 * (1 - an) * (1 - bn); break;
-      case 8: result = bn < 0.5 
-        ? an - (1 - 2 * bn) * an * (1 - an) 
-        : an + (2 * bn - 1) * (Math.sqrt(an) - an); break;
-      default: result = an;
-    }
-    
-    return Math.round(Math.max(0, Math.min(1, result)) * 255);
-  };
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      setPixel(out, x, y, blend(r, r, mode), blend(g, g, mode), blend(b, b, mode));
+      const [r1, g1, b1] = getPixel(prev, x, y);
+      const [r2, g2, b2] = getPixel(old, x, y);
+      
+      setPixel(out, x, y, r1 ^ r2, g1 ^ g2, b1 ^ b2);
     }
   }
   
