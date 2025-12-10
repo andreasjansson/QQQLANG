@@ -2491,7 +2491,7 @@ function fnDollar(ctx: FnContext, n: number): Image {
   gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
   gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
   gl.uniform1f(gl.getUniformLocation(program, 'uCrackIntensity'), crackIntensity);
-  gl.uniform1f(gl.getUniformLocation(program, 'uNumRadialCracks'), numRadialCracks);
+  gl.uniform1f(gl.getUniformLocation(program, 'uNumCracks'), numRadialCracks);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
