@@ -98,7 +98,7 @@ function getPrevImage(ctx: FnContext): Image {
 
 function getOldImage(ctx: FnContext, j: number): Image {
   if (ctx.images.length <= 1) return getPrevImage(ctx);
-  const idx = Math.abs(j) % ctx.images.length;
+  const idx = Math.abs(j) % (ctx.images.length - 1);
   return ctx.images[idx];
 }
 
