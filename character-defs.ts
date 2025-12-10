@@ -634,12 +634,20 @@ function fnH(ctx: FnContext, j: number, rot: number): Image {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   
+  const oldTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
   const positions: number[] = [];
   const normals: number[] = [];
   const texCoords: number[] = [];
   
   const numFibers = 12;
-  const tubeRadius = 0.025;
+  const tubeRadius = 0.06;
   const fiberSegments = 80;
   const radialSegments = 8;
   
