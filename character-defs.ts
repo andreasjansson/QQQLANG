@@ -1728,7 +1728,7 @@ function fn5(ctx: FnContext, n: number): Image {
         float clusterY = (hash(fi * 311.7 + uSeed) * 2.0 - 1.0) * 1.2;
         
         // Cluster size
-        float clusterSize = 0.15 + hash(fi * 74.3) * 0.15;
+        float clusterSize = 0.15 + hash(fi * 74.3 + uSeed) * 0.15;
         
         // 4 balls per cluster (fixed to avoid dynamic loop issues)
         for (int j = 0; j < 4; j++) {
