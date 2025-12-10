@@ -3543,10 +3543,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#00CED1',
     number: 5,
     fn: fnEntangle,
-    arity: 2,
-    argTypes: ['int', 'int'],
+    arity: 1,
+    argTypes: ['int'],
     functionName: "entangle",
-    documentation: "Procedural vines grow following edge contours, revealing old_image underneath; n controls density, j selects old image"
+    documentation: "Quantum-style entanglement: prev and mirrored old_image blend via interference waves, correlation affects pattern"
   },
   
   'F': {
