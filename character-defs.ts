@@ -635,12 +635,12 @@ function fnK(ctx: FnContext, n: number): Image {
 
 function fnL(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const out = cloneImage(prev);
   
   const stripHeight = Math.max(4, n * 2 + 4);
-  const waveAmplitude = stripHeight * 1.5;
-  const waveFrequency = 0.02;
-  const numStrips = Math.ceil(ctx.height / stripHeight) + 4;
+  const waveAmplitude = stripHeight * 0.8;
+  const waveFrequency = 0.015;
+  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
   
   const strips: { y: number; hueShift: number; phase: number }[] = [];
   for (let i = 0; i < numStrips; i++) {
