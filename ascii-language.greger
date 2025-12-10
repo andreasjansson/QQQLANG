@@ -6292,52 +6292,36 @@ index.html
 Import characterDefs and add input validation with visual bell
 </tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
 
-## original-content
+## diff
 
 <tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
-  <script type="module">
-    import { runProgram, getParsedOperations } from './runtime.ts';
+   <script type="module">
+     import { runProgram, getParsedOperations } from './runtime.ts';
++    import { characterDefs } from './character-defs.ts';
+ 
+     const canvas = document.getElementById('canvas');
+     const ctx = canvas.getContext('2d');
+     const input = document.getElementById('program-input');
++    const inputContainer = document.getElementById('input-container');
+     const inputBackground = document.getElementById('input-background');
+     const debugPane = document.getElementById('debug-pane');
+ 
+     const isDebugMode = window.location.search.includes('debug');
+     if (isDebugMode) {
+       debugPane.classList.add('visible');
++    }
++    
++    function visualBell() {
++      inputContainer.classList.remove('bell');
++      void inputContainer.offsetWidth;
++      inputContainer.classList.add('bell');
++    }
++    
++    function isValidChar(char) {
++      return char in characterDefs;
+     }
+\ No newline at end of file
 
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const input = document.getElementById('program-input');
-    const inputBackground = document.getElementById('input-background');
-    const debugPane = document.getElementById('debug-pane');
-
-    const isDebugMode = window.location.search.includes('debug');
-    if (isDebugMode) {
-      debugPane.classList.add('visible');
-    }
-</tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
-
-## new-content
-
-<tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
-  <script type="module">
-    import { runProgram, getParsedOperations } from './runtime.ts';
-    import { characterDefs } from './character-defs.ts';
-
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const input = document.getElementById('program-input');
-    const inputContainer = document.getElementById('input-container');
-    const inputBackground = document.getElementById('input-background');
-    const debugPane = document.getElementById('debug-pane');
-
-    const isDebugMode = window.location.search.includes('debug');
-    if (isDebugMode) {
-      debugPane.classList.add('visible');
-    }
-    
-    function visualBell() {
-      inputContainer.classList.remove('bell');
-      void inputContainer.offsetWidth;
-      inputContainer.classList.add('bell');
-    }
-    
-    function isValidChar(char) {
-      return char in characterDefs;
-    }
 </tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
 
 # TOOL RESULT
@@ -6345,5 +6329,75 @@ Import characterDefs and add input validation with visual bell
 ID: toolu_01LbYpzR8pa3ULbjaTkrwehU
 
 <tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Import characterDefs and add input validation with visual bell
 </tool.toolu_01LbYpzR8pa3ULbjaTkrwehU>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TFjJvGyhJ8DQuLL71pR6oL
+
+## path
+
+<tool.toolu_01TFjJvGyhJ8DQuLL71pR6oL>
+index.html
+</tool.toolu_01TFjJvGyhJ8DQuLL71pR6oL>
+
+## git-commit-message
+
+<tool.toolu_01TFjJvGyhJ8DQuLL71pR6oL>
+Add beforeinput handler for uppercase and validation
+</tool.toolu_01TFjJvGyhJ8DQuLL71pR6oL>
+
+## diff
+
+<tool.toolu_01TFjJvGyhJ8DQuLL71pR6oL>
+     window.addEventListener('resize', resize);
+     
++    input.addEventListener('beforeinput', (e) => {
++      if (e.inputType === 'insertText' && e.data) {
++        const transformed = e.data.toUpperCase();
++        let hasInvalid = false;
++        
++        for (const char of transformed) {
++          if (!isValidChar(char)) {
++            hasInvalid = true;
++            break;
++          }
++        }
++        
++        if (hasInvalid) {
++          e.preventDefault();
++          visualBell();
++          return;
++        }
++        
++        if (transformed !== e.data) {
++          e.preventDefault();
++          const start = input.selectionStart;
++          const end = input.selectionEnd;
++          const before = input.value.substring(0, start);
++          const after = input.value.substring(end);
++          input.value = before + transformed + after;
++          input.selectionStart = input.selectionEnd = start + transformed.length;
++          updateURL(input.value);
++          render();
++        }
++      }
++    });
++    
+     input.addEventListener('input', () => {
+       updateURL(input.value);
+       render();
+     });
+\ No newline at end of file
+
+</tool.toolu_01TFjJvGyhJ8DQuLL71pR6oL>
+
+# TOOL RESULT
+
+ID: toolu_01TFjJvGyhJ8DQuLL71pR6oL
+
+<tool.toolu_01TFjJvGyhJ8DQuLL71pR6oL>
+
+</tool.toolu_01TFjJvGyhJ8DQuLL71pR6oL>
