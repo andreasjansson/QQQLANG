@@ -639,7 +639,7 @@ function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: 
   const [cr, cg, cb] = hexToRgb(c);
   
   const maxDepth = Math.max(2, Math.min(recursionDepth, 15));
-  const angleVar = Math.max(0.1, Math.min(angleVariation * 0.15, Math.PI));
+  const angleVar = Math.max(0.1, angleVariation * 0.15);
   
   const seededRandom = (seed: number) => {
     let state = seed;
