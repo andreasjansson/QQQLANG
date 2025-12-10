@@ -638,7 +638,7 @@ function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: 
   const out = cloneImage(prev);
   const [cr, cg, cb] = hexToRgb(c);
   
-  const maxDepth = Math.max(2, Math.min(recursionDepth, 15));
+  const maxDepth = Math.max(2, recursionDepth);
   const angleVar = Math.max(0.1, angleVariation * 0.15);
   
   const seededRandom = (seed: number) => {
