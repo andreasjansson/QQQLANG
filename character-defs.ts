@@ -1639,7 +1639,6 @@ function fn4(ctx: FnContext): Image {
   
   const hw = Math.floor(ctx.width / 2);
   const hh = Math.floor(ctx.height / 2);
-  const feather = 5;
   
   const rotatePoint = (x: number, y: number, cx: number, cy: number, angle: number): [number, number] => {
     const cos = Math.cos(angle);
@@ -1662,22 +1661,7 @@ function fn4(ctx: FnContext): Image {
       
       const [srcX, srcY] = rotatePoint(x, y, localCx, localCy, -angle);
       const [r, g, b] = getPixel(prev, Math.floor(srcX), Math.floor(srcY));
-      
-      const distToHorizSeam = Math.abs(y - hh);
-      const distToVertSeam = Math.abs(x - hw);
-      const minDist = Math.min(distToHorizSeam, distToVertSeam);
-      
-      if (minDist < feather) {
-        const blend = minDist / feather;
-        const [or, og, ob] = getPixel(prev, x, y);
-        setPixel(out, x, y,
-          Math.round(r * blend + or * (1 - blend)),
-          Math.round(g * blend + og * (1 - blend)),
-          Math.round(b * blend + ob * (1 - blend))
-        );
-      } else {
-        setPixel(out, x, y, r, g, b);
-      }
+      setPixel(out, x, y, r, g, b);
     }
   }
   
