@@ -987,8 +987,6 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   
   gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
   
-  gl.deleteTexture(tubeTexture);
-  
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
   
@@ -1008,6 +1006,12 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   gl.disableVertexAttribArray(posLoc);
   gl.disableVertexAttribArray(normLoc);
   gl.disableVertexAttribArray(texLoc);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.deleteTexture(tubeTexture);
   gl.deleteTexture(prevTexture);
   gl.deleteTexture(oldTexture);
   gl.deleteBuffer(bgBuffer);
@@ -1016,6 +1020,7 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   gl.deleteBuffer(texBuffer);
   gl.deleteProgram(tubeProgram);
   gl.deleteProgram(bgProgram);
+  gl.useProgram(null);
   
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
