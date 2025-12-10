@@ -1005,37 +1005,13 @@ function fnT(ctx: FnContext, n: number): Image {
       return fract(sin(n) * 43758.5453);
     }
     
-    bool rayBoxIntersect(vec3 ro, vec3 rd, vec3 boxMin, vec3 boxMax, out float tNear, out float tFar, out vec3 normal) {
-      vec3 invRd = 1.0 / rd;
-      vec3 t1 = (boxMin - ro) * invRd;
-      vec3 t2 = (boxMax - ro) * invRd;
-      vec3 tMin = min(t1, t2);
-      vec3 tMax = max(t1, t2);
-      tNear = max(max(tMin.x, tMin.y), tMin.z);
-      tFar = min(min(tMax.x, tMax.y), tMax.z);
-      
-      if (tNear > tFar || tFar < 0.0) return false;
-      
-      if (tMin.x > tMin.y && tMin.x > tMin.z) normal = vec3(-sign(rd.x), 0.0, 0.0);
-      else if (tMin.y > tMin.z) normal = vec3(0.0, -sign(rd.y), 0.0);
-      else normal = vec3(0.0, 0.0, -sign(rd.z));
-      
-      return true;
-    }
-    
     void main() {
       vec2 uv = vUV;
       vec3 baseColor = texture2D(texture, uv).rgb;
       
-      vec3 ro = vec3(uv.x, uv.y, 1.5);
-      vec3 rd = vec3(0.0, 0.0, -1.0);
-      
-      vec3 lightDir = normalize(vec3(0.4, 0.5, 0.8));
-      
-      float closestT = 1000.0;
+      float maxDepth = -1.0;
       vec3 finalColor = baseColor;
-      vec2 finalTexCoord = uv;
-      int hitType = 0;
+      int hitFace = 0;
       
       for (int i = 0; i < 12; i++) {
         if (i >= numDrawers) break;
@@ -1043,59 +1019,60 @@ function fnT(ctx: FnContext, n: number): Image {
         float fi = float(i);
         float bx = hash(fi * 127.1);
         float by = hash(fi * 311.7);
-        float bw = 0.08 + hash(fi * 74.3) * 0.15;
-        float bh = 0.06 + hash(fi * 183.9) * 0.12;
-        float depth = 0.2 + hash(fi * 271.3) * 0.6;
+        float bw = 0.06 + hash(fi * 74.3) * 0.12;
+        float bh = 0.05 + hash(fi * 183.9) * 0.10;
+        float depth = 0.15 + hash(fi * 271.3) * 0.25;
         
-        vec3 boxMin = vec3(bx - bw, by - bh, 0.0);
-        vec3 boxMax = vec3(bx + bw, by + bh, depth);
+        vec2 boxMin = vec2(bx - bw, by - bh);
+        vec2 boxMax = vec2(bx + bw, by + bh);
         
-        float tNear, tFar;
-        vec3 normal;
+        float perspScale = 1.0 + depth * 0.8;
+        vec2 center = (boxMin + boxMax) * 0.5;
+        vec2 scaledMin = center + (boxMin - center) * perspScale;
+        vec2 scaledMax = center + (boxMax - center) * perspScale;
         
-        if (rayBoxIntersect(ro, rd, boxMin, boxMax, tNear, tFar, normal)) {
-          if (tNear < closestT && tNear > 0.0) {
-            closestT = tNear;
-            vec3 hitPos = ro + rd * tNear;
-            
-            if (normal.z > 0.5) {
-              hitType = 1;
-              finalTexCoord = vec2(
-                boxMin.x + (hitPos.x - boxMin.x),
-                boxMin.y + (hitPos.y - boxMin.y)
-              );
-            } else if (abs(normal.x) > 0.5) {
-              hitType = 2;
-              float t = (hitPos.z - boxMin.z) / (boxMax.z - boxMin.z);
-              if (normal.x > 0.0) {
-                finalTexCoord = vec2(boxMin.x, hitPos.y);
-              } else {
-                finalTexCoord = vec2(boxMax.x, hitPos.y);
-              }
-            } else {
-              hitType = 3;
-              float t = (hitPos.z - boxMin.z) / (boxMax.z - boxMin.z);
-              if (normal.y > 0.0) {
-                finalTexCoord = vec2(hitPos.x, boxMin.y);
-              } else {
-                finalTexCoord = vec2(hitPos.x, boxMax.y);
-              }
-            }
+        bool inFront = uv.x >= scaledMin.x && uv.x <= scaledMax.x && 
+                       uv.y >= scaledMin.y && uv.y <= scaledMax.y;
+        
+        bool inOriginal = uv.x >= boxMin.x && uv.x <= boxMax.x && 
+                          uv.y >= boxMin.y && uv.y <= boxMax.y;
+        
+        if (inFront && depth > maxDepth) {
+          maxDepth = depth;
+          
+          vec2 localUV = (uv - scaledMin) / (scaledMax - scaledMin);
+          vec2 texCoord = boxMin + localUV * (boxMax - boxMin);
+          
+          bool onLeft = uv.x < boxMin.x + (scaledMin.x - boxMin.x) * (1.0 - localUV.x);
+          bool onRight = uv.x > boxMax.x + (scaledMax.x - boxMax.x) * localUV.x;
+          bool onTop = uv.y > boxMax.y + (scaledMax.y - boxMax.y) * localUV.y;
+          bool onBottom = uv.y < boxMin.y + (scaledMin.y - boxMin.y) * (1.0 - localUV.y);
+          
+          float edgeL = boxMin.x + (scaledMin.x - boxMin.x) * (1.0 - localUV.y);
+          float edgeR = boxMax.x + (scaledMax.x - boxMax.x) * localUV.y;
+          float edgeT = boxMax.y + (scaledMax.y - boxMax.y) * localUV.x;
+          float edgeB = boxMin.y + (scaledMin.y - boxMin.y) * (1.0 - localUV.x);
+          
+          if (uv.x < edgeL && !inOriginal) {
+            finalColor = texture2D(texture, vec2(boxMin.x, texCoord.y)).rgb * 0.4;
+            hitFace = 1;
+          } else if (uv.x > edgeR && !inOriginal) {
+            finalColor = texture2D(texture, vec2(boxMax.x, texCoord.y)).rgb * 0.5;
+            hitFace = 2;
+          } else if (uv.y > edgeT && !inOriginal) {
+            finalColor = texture2D(texture, vec2(texCoord.x, boxMax.y)).rgb * 0.7;
+            hitFace = 3;
+          } else if (uv.y < edgeB && !inOriginal) {
+            finalColor = texture2D(texture, vec2(texCoord.x, boxMin.y)).rgb * 0.6;
+            hitFace = 4;
+          } else {
+            finalColor = texture2D(texture, texCoord).rgb * 1.05;
+            hitFace = 5;
           }
         }
       }
       
-      vec3 color = texture2D(texture, clamp(finalTexCoord, 0.0, 1.0)).rgb;
-      if (hitType == 2) {
-        color *= 0.5;
-      } else if (hitType == 3) {
-        color *= 0.7;
-      } else if (hitType == 1) {
-        color *= 1.1;
-        color = min(color, vec3(1.0));
-      }
-      
-      gl_FragColor = vec4(color, 1.0);
+      gl_FragColor = vec4(finalColor, 1.0);
     }
   `;
   
