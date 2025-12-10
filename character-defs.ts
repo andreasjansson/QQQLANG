@@ -2163,10 +2163,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#00CED1',
     number: 5,
     fn: fnE,
-    arity: 2,
-    argTypes: ['color', 'int'],
-    functionName: "sinusoidal-waves",
-    documentation: "Superimposes n sinusoidal waves of varying thickness and period in color c"
+    arity: 0,
+    argTypes: [],
+    functionName: "eclipse",
+    documentation: "Solar eclipse with glowing corona, rays, and moon silhouette, tinted by prev image"
   },
   
   'F': {
