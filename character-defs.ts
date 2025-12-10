@@ -958,115 +958,104 @@ function fnP(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnCorrugated(ctx: FnContext): Image {
+function fnEntangle(ctx: FnContext, n: number, j: number): Image {
   const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
+  const old = getOldImage(ctx, j);
+  const out = cloneImage(prev);
   
-  const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
+  const numTendrils = Math.max(3, Math.min(n * 2 + 5, 30));
+  const tendrilLength = Math.max(200, Math.min(ctx.width + ctx.height, 1000));
+  const thickness = Math.max(2, Math.min(n + 2, 8));
   
-  const fragmentShader = `
-    precision highp float;
-    uniform sampler2D uTexture;
-    uniform vec2 uResolution;
-    varying vec2 vUV;
+  const hash = (a: number, b: number) => {
+    const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  
+  const getLuminance = (x: number, y: number): number => {
+    const [r, g, b] = getPixel(prev, x, y);
+    return (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+  };
+  
+  const getGradient = (x: number, y: number): [number, number] => {
+    const left = getLuminance(x - 2, y);
+    const right = getLuminance(x + 2, y);
+    const up = getLuminance(x, y - 2);
+    const down = getLuminance(x, y + 2);
+    return [right - left, down - up];
+  };
+  
+  const tendrilMask = new Float32Array(ctx.width * ctx.height);
+  
+  for (let t = 0; t < numTendrils; t++) {
+    let x = hash(t, 0) * ctx.width;
+    let y = hash(t, 1) * ctx.height;
     
-    void main() {
-      vec2 uv = vUV;
+    let angle = hash(t, 2) * Math.PI * 2;
+    const baseSpeed = 1.5 + hash(t, 3) * 1.5;
+    
+    for (let step = 0; step < tendrilLength; step++) {
+      const ix = Math.floor(x);
+      const iy = Math.floor(y);
       
-      // Corrugated surface: z = sin(x * freq) * amplitude
-      float freq = 20.0;
-      float amplitude = 0.15;
+      if (ix < 0 || ix >= ctx.width || iy < 0 || iy >= ctx.height) break;
       
-      // Calculate the z position on the corrugated surface
-      float x = uv.x * freq;
-      float z = sin(x) * amplitude;
+      const [gx, gy] = getGradient(ix, iy);
+      const gradMag = Math.sqrt(gx * gx + gy * gy);
       
-      // Calculate normal by taking derivative of the surface
-      // Surface is z = sin(uv.x * freq) * amplitude
-      // dz/duv.x = cos(uv.x * freq) * freq * amplitude
-      float dzdx = cos(x) * freq * amplitude;
-      vec3 normal = normalize(vec3(-dzdx, 0.0, 1.0));
+      if (gradMag > 0.01) {
+        const perpX = -gy / gradMag;
+        const perpY = gx / gradMag;
+        const targetAngle = Math.atan2(perpY, perpX);
+        
+        let angleDiff = targetAngle - angle;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        angle += angleDiff * 0.3;
+      }
       
-      // Light coming from front-top-left
-      vec3 lightDir = normalize(vec3(-0.4, 0.6, 0.8));
+      angle += (hash(t * 1000 + step, 5) - 0.5) * 0.4;
       
-      // Diffuse lighting
-      float diff = max(dot(normal, lightDir), 0.0);
+      const dynamicThickness = thickness * (0.5 + 0.5 * Math.sin(step * 0.05 + t));
       
-      // Ambient
-      float ambient = 0.35;
+      for (let dy = -dynamicThickness; dy <= dynamicThickness; dy++) {
+        for (let dx = -dynamicThickness; dx <= dynamicThickness; dx++) {
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist <= dynamicThickness) {
+            const px = Math.floor(x + dx);
+            const py = Math.floor(y + dy);
+            if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+              const falloff = 1 - dist / dynamicThickness;
+              const idx = py * ctx.width + px;
+              tendrilMask[idx] = Math.max(tendrilMask[idx], falloff);
+            }
+          }
+        }
+      }
       
-      // Specular
-      vec3 viewDir = vec3(0.0, 0.0, 1.0);
-      vec3 reflectDir = reflect(-lightDir, normal);
-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0) * 0.4;
-      
-      float lighting = ambient + diff * 0.65 + spec;
-      
-      // Sample texture with displacement based on surface depth
-      vec2 texCoord = uv + vec2(z * 0.3, 0.0);
-      texCoord = clamp(texCoord, 0.0, 1.0);
-      vec3 texColor = texture2D(uTexture, texCoord).rgb;
-      
-      vec3 color = texColor * lighting;
-      
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
-  
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
-  
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+      x += Math.cos(angle) * baseSpeed;
+      y += Math.sin(angle) * baseSpeed;
     }
   }
   
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(program);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const maskVal = tendrilMask[y * ctx.width + x];
+      if (maskVal > 0) {
+        const [pr, pg, pb] = getPixel(prev, x, y);
+        const [or, og, ob] = getPixel(old, x, y);
+        
+        const blend = maskVal * 0.9;
+        const nr = Math.round(pr * (1 - blend) + or * blend);
+        const ng = Math.round(pg * (1 - blend) + og * blend);
+        const nb = Math.round(pb * (1 - blend) + ob * blend);
+        
+        setPixel(out, x, y, nr, ng, nb);
+      }
+    }
+  }
   
-  return { width: ctx.width, height: ctx.height, data: flipped };
+  return out;
 }
 
 function fnR(ctx: FnContext): Image {
