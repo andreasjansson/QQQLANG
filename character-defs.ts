@@ -421,28 +421,26 @@ function fnE(ctx: FnContext, j: number): Image {
         
         let intensity = 0;
         if (coronaDist > 0) {
-          const coronaFalloff = Math.exp(-coronaDist / (scale * 0.15));
-          const innerCorona = Math.exp(-coronaDist / (scale * 0.05));
+          const coronaFalloff = Math.exp(-coronaDist / (scale * 0.25));
+          const innerCorona = Math.exp(-coronaDist / (scale * 0.08)) * 3;
           
           const angle = Math.atan2(dy, dx);
           const rays = 0.5 + 0.5 * Math.sin(angle * 12) * Math.sin(angle * 5);
-          const rayIntensity = rays * Math.exp(-coronaDist / (scale * 0.3));
+          const rayIntensity = rays * Math.exp(-coronaDist / (scale * 0.5)) * 2;
           
-          intensity = innerCorona + coronaFalloff * 0.7 + rayIntensity * 0.5;
+          intensity = innerCorona + coronaFalloff * 1.5 + rayIntensity;
         } else {
-          intensity = 1.0;
+          intensity = 4.0;
         }
         
-        if (distFromCenter < moonRadius + 3 && distFromCenter >= moonRadius) {
-          const edgeGlow = 1 - (distFromCenter - moonRadius) / 3;
-          intensity += edgeGlow * 1.5;
+        if (distFromCenter < moonRadius + 8 && distFromCenter >= moonRadius) {
+          const edgeGlow = 1 - (distFromCenter - moonRadius) / 8;
+          intensity += edgeGlow * 5;
         }
         
-        intensity = Math.min(1, intensity);
-        
-        const tr = (pr / 255) * intensity;
-        const tg = (pg / 255) * intensity;
-        const tb = (pb / 255) * intensity;
+        const tr = Math.min(1, (pr / 255) * intensity + intensity * 0.1);
+        const tg = Math.min(1, (pg / 255) * intensity + intensity * 0.05);
+        const tb = Math.min(1, (pb / 255) * intensity);
         
         setPixel(out, x, y,
           Math.floor(tr * 255),
