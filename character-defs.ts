@@ -796,7 +796,7 @@ function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const strength = Math.max(0.2, Math.min(n / 5, 5));
+  const strength = Math.max(0.2, Math.min(0.3 + n / 12, 4));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   
@@ -805,9 +805,9 @@ function fnO(ctx: FnContext, n: number): Image {
       const dx = x - cx;
       const dy = y - cy;
       
-      const normX = Math.abs(dx) / cx;
-      const normY = Math.abs(dy) / cy;
-      const normR = Math.max(normX, normY);
+      const normX = dx / cx;
+      const normY = dy / cy;
+      const normR = Math.min(1, Math.sqrt(normX * normX + normY * normY));
       
       if (normR < 0.001) {
         const [pr, pg, pb] = getPixel(prev, Math.floor(cx), Math.floor(cy));
