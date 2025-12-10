@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-171157949351>
+${greger-prompt-code-style<eval-result-171933212237>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-171157949351>}
+</eval-result-171933212237>}
 
 # USER
 
@@ -147,7 +147,7 @@ Assign a random color to each character, and a number that starts at 1 at `A`, i
 
 # runtime.ts:
 
-${:sh cat runtime.ts<eval-result-171157121669>import { characterDefs, createSolidImage, Image, FnContext, CharDef } from './character-defs.js';
+${:sh cat runtime.ts<eval-result-171933065784>import { characterDefs, createSolidImage, Image, FnContext, CharDef } from './character-defs.js';
 
 interface ParsedSolidColor {
   type: 'solid';
@@ -368,13 +368,13 @@ export function getFinalImage(program: string, width: number, height: number): I
 export function getParsedOperations(program: string): ParsedOp[] {
   return parseProgram(program);
 }
-</eval-result-171157121669>}
+</eval-result-171933065784>}
 
 ---
 
 # character-defs.ts:
 
-${:sh cat character-defs.ts<eval-result-171157834739>export interface Image {
+${:sh cat character-defs.ts<eval-result-171933765404>export interface Image {
   width: number;
   height: number;
   data: Uint8ClampedArray;
@@ -2556,6 +2556,502 @@ function fnCaret(ctx: FnContext): Image {
   return out;
 }
 
+function fnExclaim(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const opacity = 0.3;
+  const factor = n + 17;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const brightness = ((x * factor) ^ (y * 31) ^ (x * y)) % 256;
+      const idx = (y * ctx.width + x) * 4;
+      out.data[idx] = Math.round(out.data[idx] * (1 - opacity) + brightness * opacity);
+      out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - opacity) + brightness * opacity);
+      out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - opacity) + brightness * opacity);
+    }
+  }
+  
+  return out;
+}
+
+function fnDoubleQuote(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const bands = Math.max(2, n);
+  const bandHeight = ctx.height / bands;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    const bandIdx = Math.floor(y / bandHeight);
+    const isOdd = bandIdx % 2 === 1;
+    
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      
+      if (isOdd) {
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb((h + 180) % 360, s, l);
+        setPixel(out, x, y, nr, ng, nb);
+      } else {
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb(h, 1 - s, l);
+        setPixel(out, x, y, nr, ng, nb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnHash(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  const gridSpacing = 20;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const thickness = 1 + Math.sin(x * y * 0.01) * 3;
+      const nearHorizontal = (y % gridSpacing) < thickness;
+      const nearVertical = (x % gridSpacing) < thickness;
+      
+      if (nearHorizontal || nearVertical) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnDollar(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const turns = Math.max(1, n);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.min(cx, cy) * 0.9;
+  const phi = (1 + Math.sqrt(5)) / 2;
+  const totalAngle = turns * Math.PI * 2;
+  const steps = turns * 200;
+  
+  for (let i = 0; i < steps; i++) {
+    const t = i / steps;
+    const angle = t * totalAngle;
+    const r = maxR * Math.pow(phi, angle / (Math.PI * 2) - turns + 1);
+    
+    if (r < 1 || r > maxR) continue;
+    
+    const x = Math.floor(cx + r * Math.cos(angle));
+    const y = Math.floor(cy + r * Math.sin(angle));
+    
+    if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const brightness = (pr + pg + pb) / 3;
+      const invBrightness = 255 - brightness;
+      
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          if (dx * dx + dy * dy <= 4) {
+            setPixel(out, x + dx, y + dy, invBrightness, invBrightness, invBrightness);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnPercent(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const cellSize = Math.max(1, n + 1);
+  const corners = [
+    getPixel(prev, 0, 0),
+    getPixel(prev, ctx.width - 1, 0),
+    getPixel(prev, 0, ctx.height - 1),
+    getPixel(prev, ctx.width - 1, ctx.height - 1)
+  ];
+  const palette = corners.map(([r, g, b]) => [r, g, b] as [number, number, number]);
+  
+  const findClosest = (r: number, g: number, b: number): [number, number, number] => {
+    let minDist = Infinity;
+    let closest = palette[0];
+    for (const [pr, pg, pb] of palette) {
+      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+      if (dist < minDist) {
+        minDist = dist;
+        closest = [pr, pg, pb];
+      }
+    }
+    return closest;
+  };
+  
+  const tempData = new Float32Array(ctx.width * ctx.height * 3);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const idx = (y * ctx.width + x) * 3;
+      tempData[idx] = r;
+      tempData[idx + 1] = g;
+      tempData[idx + 2] = b;
+    }
+  }
+  
+  for (let y = 0; y < ctx.height; y += cellSize) {
+    for (let x = 0; x < ctx.width; x += cellSize) {
+      const idx = (y * ctx.width + x) * 3;
+      const oldR = tempData[idx];
+      const oldG = tempData[idx + 1];
+      const oldB = tempData[idx + 2];
+      
+      const [newR, newG, newB] = findClosest(oldR, oldG, oldB);
+      
+      for (let cy = 0; cy < cellSize && y + cy < ctx.height; cy++) {
+        for (let cx = 0; cx < cellSize && x + cx < ctx.width; cx++) {
+          setPixel(out, x + cx, y + cy, newR, newG, newB);
+        }
+      }
+      
+      const errR = oldR - newR;
+      const errG = oldG - newG;
+      const errB = oldB - newB;
+      
+      const distribute = (dx: number, dy: number, factor: number) => {
+        const nx = x + dx * cellSize;
+        const ny = y + dy * cellSize;
+        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
+          const nidx = (ny * ctx.width + nx) * 3;
+          tempData[nidx] += errR * factor;
+          tempData[nidx + 1] += errG * factor;
+          tempData[nidx + 2] += errB * factor;
+        }
+      };
+      
+      distribute(1, 0, 7 / 16);
+      distribute(-1, 1, 3 / 16);
+      distribute(0, 1, 5 / 16);
+      distribute(1, 1, 1 / 16);
+    }
+  }
+  
+  return out;
+}
+
+function fnAmpersand(ctx: FnContext, j: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
+      
+      const luminance = pr * 0.299 + pg * 0.587 + pb * 0.114;
+      const [oh, os, ol] = rgbToHsl(or, og, ob);
+      const [nr, ng, nb] = hslToRgb(oh, os, luminance / 255);
+      
+      setPixel(out, x, y, nr, ng, nb);
+    }
+  }
+  
+  return out;
+}
+
+function fnApostrophe(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const spacing = n + 2;
+  
+  for (let x = 0; x < ctx.width; x++) {
+    if (x % spacing !== 0) continue;
+    
+    let colLuminance = 0;
+    for (let y = 0; y < ctx.height; y++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      colLuminance += r * 0.299 + g * 0.587 + b * 0.114;
+    }
+    colLuminance /= ctx.height;
+    
+    const streakLength = Math.floor((colLuminance / 255) * 100);
+    const startY = 0;
+    
+    for (let y = startY; y < startY + streakLength && y < ctx.height; y++) {
+      const idx = (y * ctx.width + x) * 4;
+      out.data[idx] = Math.min(255, Math.round(out.data[idx] * 0.5 + 127));
+      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * 0.5 + 127));
+      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * 0.5 + 127));
+    }
+  }
+  
+  return out;
+}
+
+function fnOpenParen(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const strength = n / 10;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const normDist = dist / maxR;
+      
+      const pinchFactor = 1 + strength * (1 - normDist);
+      const sx = cx + dx * pinchFactor;
+      const sy = cy + dy * pinchFactor;
+      
+      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      const brighten = (1 - normDist) * strength * 30;
+      r = Math.min(255, r + brighten);
+      g = Math.min(255, g + brighten);
+      b = Math.min(255, b + brighten);
+      
+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+    }
+  }
+  
+  return out;
+}
+
+function fnCloseParen(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const strength = n / 10;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const normDist = dist / maxR;
+      
+      const bulgeFactor = 1 - strength * normDist * 0.5;
+      const sx = cx + dx * bulgeFactor;
+      const sy = cy + dy * bulgeFactor;
+      
+      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      const darken = normDist * strength * 50;
+      r = Math.max(0, r - darken);
+      g = Math.max(0, g - darken);
+      b = Math.max(0, b - darken);
+      
+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+    }
+  }
+  
+  return out;
+}
+
+function fnAsterisk(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const numRays = Math.max(2, n);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  const opacity = 0.6;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      let angle = Math.atan2(dy, dx);
+      if (angle < 0) angle += Math.PI * 2;
+      
+      const rayAngle = (Math.PI * 2) / numRays;
+      const nearestRay = Math.round(angle / rayAngle) * rayAngle;
+      const angleDiff = Math.abs(angle - nearestRay);
+      
+      const rayWidth = 0.05;
+      if (angleDiff < rayWidth) {
+        const softness = 1 - angleDiff / rayWidth;
+        const sampleX = Math.floor(cx + Math.cos(nearestRay) * (ctx.width / numRays));
+        const [sr, sg, sb] = getPixel(prev, sampleX, Math.floor(cy));
+        
+        const idx = (y * ctx.width + x) * 4;
+        const blend = softness * opacity;
+        out.data[idx] = Math.round(out.data[idx] * (1 - blend) + sr * blend);
+        out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - blend) + sg * blend);
+        out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - blend) + sb * blend);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnPlus(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const hw = ctx.width / 2;
+  const hh = ctx.height / 2;
+  
+  const sharpenKernel = [
+    [0, -1, 0],
+    [-1, 5, -1],
+    [0, -1, 0]
+  ];
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const inTopLeft = x < hw && y < hh;
+      const inBottomRight = x >= hw && y >= hh;
+      const shouldSharpen = inTopLeft || inBottomRight;
+      
+      if (shouldSharpen) {
+        let sr = 0, sg = 0, sb = 0;
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
+            const weight = sharpenKernel[ky + 1][kx + 1];
+            sr += pr * weight;
+            sg += pg * weight;
+            sb += pb * weight;
+          }
+        }
+        setPixel(out, x, y,
+          Math.max(0, Math.min(255, Math.round(sr))),
+          Math.max(0, Math.min(255, Math.round(sg))),
+          Math.max(0, Math.min(255, Math.round(sb)))
+        );
+      } else {
+        let sr = 0, sg = 0, sb = 0;
+        const radius = 2;
+        let count = 0;
+        for (let ky = -radius; ky <= radius; ky++) {
+          for (let kx = -radius; kx <= radius; kx++) {
+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
+            sr += pr;
+            sg += pg;
+            sb += pb;
+            count++;
+          }
+        }
+        setPixel(out, x, y,
+          Math.round(sr / count),
+          Math.round(sg / count),
+          Math.round(sb / count)
+        );
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnComma(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const luminance = Math.floor(r * 0.299 + g * 0.587 + b * 0.114);
+      const divisor = 1 + Math.floor(luminance / 32);
+      
+      if ((x * 13 + y * 7) % divisor === 0) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnMinus(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const spacing = Math.max(2, n);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      let [r, g, b] = getPixel(prev, x, y);
+      
+      if (y % spacing === 0) {
+        r = Math.floor(r * 0.5);
+        g = Math.floor(g * 0.5);
+        b = Math.floor(b * 0.5);
+      }
+      
+      if (y % (spacing * 2) === 0) {
+        const srcY = Math.max(0, y - spacing);
+        [r, g, b] = getPixel(prev, x, srcY);
+      }
+      
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fnDot(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const radius = (n % 8) + 2;
+  const diameter = radius * 2;
+  
+  for (let cy = radius; cy < ctx.height; cy += diameter) {
+    for (let cx = radius; cx < ctx.width; cx += diameter) {
+      const [r, g, b] = getPixel(prev, cx, cy);
+      const [h, s, l] = rgbToHsl(r, g, b);
+      const [nr, ng, nb] = hslToRgb(h, Math.min(1, s + 0.1), l);
+      
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          if (dx * dx + dy * dy <= radius * radius) {
+            setPixel(out, cx + dx, cy + dy, nr, ng, nb);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnSlash(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      const spacing = Math.max(2, Math.floor(2 + luminance * 15));
+      
+      const diag = (x + y) % spacing;
+      if (diag === 0) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
@@ -2946,14 +3442,164 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "shift-up",
     documentation: "Shifts prev 1/3 of the height up with wraparound"
   },
+  
+  '!': {
+    color: '#FF4500',
+    number: 40,
+    fn: fnExclaim,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hash-overlay",
+    documentation: "Overlays deterministic hash pattern where brightness = ((x*(n+17)) ^ (y*31) ^ (x*y)) % 256 at 30% opacity"
+  },
+  
+  '"': {
+    color: '#9932CC',
+    number: 41,
+    fn: fnDoubleQuote,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "band-transform",
+    documentation: "Splits into n horizontal bands; odd bands hue-rotated 180°, even bands have saturation inverted"
+  },
+  
+  '#': {
+    color: '#228B22',
+    number: 42,
+    fn: fnHash,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "grid-lines",
+    documentation: "Draws grid of lines in color c with thickness = 1 + sin(x*y*0.01) * 3"
+  },
+  
+  '$': {
+    color: '#FFD700',
+    number: 43,
+    fn: fnDollar,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "golden-spiral",
+    documentation: "Draws golden spiral with n turns from center, spiral color is brightness-inverted sample of prev"
+  },
+  
+  '%': {
+    color: '#8B0000',
+    number: 44,
+    fn: fnPercent,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "floyd-steinberg",
+    documentation: "Floyd-Steinberg dithers prev to 4-corner color palette with cell size n+1"
+  },
+  
+  '&': {
+    color: '#4169E1',
+    number: 45,
+    fn: fnAmpersand,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hue-sat-transfer",
+    documentation: "Output has prev's luminance but hue/saturation from old_image at index j"
+  },
+  
+  "'": {
+    color: '#FF1493',
+    number: 46,
+    fn: fnApostrophe,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "vertical-streaks",
+    documentation: "Vertical streaks at x positions where x % (n+2) == 0, length based on column luminance, 50% white"
+  },
+  
+  '(': {
+    color: '#00CED1',
+    number: 47,
+    fn: fnOpenParen,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "pinch",
+    documentation: "Pinch distortion toward center with strength n/10, brightens pixels near center"
+  },
+  
+  ')': {
+    color: '#FF69B4',
+    number: 48,
+    fn: fnCloseParen,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "bulge",
+    documentation: "Bulge distortion from center with strength n/10, darkens pixels near edge"
+  },
+  
+  '*': {
+    color: '#FFD700',
+    number: 49,
+    fn: fnAsterisk,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "rays",
+    documentation: "n rays emanate from center, color sampled from prev at angle*width/n, soft edges at 60% opacity"
+  },
+  
+  '+': {
+    color: '#32CD32',
+    number: 50,
+    fn: fnPlus,
+    arity: 0,
+    argTypes: [],
+    functionName: "quad-sharpen-blur",
+    documentation: "Cross divides into 4 quadrants; top-left/bottom-right sharpened, others blurred"
+  },
+  
+  ',': {
+    color: '#BA55D3',
+    number: 51,
+    fn: fnComma,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "stipple",
+    documentation: "Stipples prev with dots of color c at positions where (x*13+y*7) % (1+luminance/32) == 0"
+  },
+  
+  '-': {
+    color: '#708090',
+    number: 52,
+    fn: fnMinus,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "scanlines",
+    documentation: "Every nth row darkened 50%, every (n*2)th row samples from n pixels above"
+  },
+  
+  '.': {
+    color: '#20B2AA',
+    number: 53,
+    fn: fnDot,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "pointillism",
+    documentation: "Rebuilds prev from circles of radius (n%8)+2, color from center with +10% saturation"
+  },
+  
+  '/': {
+    color: '#CD853F',
+    number: 54,
+    fn: fnSlash,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "diagonal-lines",
+    documentation: "Diagonal lines top-left to bottom-right in color c, spacing based on luminance (bright=sparse)"
+  },
 };
-</eval-result-171157834739>}
+</eval-result-171933765404>}
 
 ---
 
 # index.html:
 
-${:sh cat index.html<eval-result-171157998121><!DOCTYPE html>
+${:sh cat index.html<eval-result-171933293249><!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3256,1763 +3902,171 @@ ${:sh cat index.html<eval-result-171157998121><!DOCTYPE html>
   </script>
 </body>
 </html>
-</eval-result-171157998121>}
+</eval-result-171933293249>}
 
 
 ---
 
 # NEXT TASK!
 
-Implement ! through /
+Implement all the currently unimplemented functions
 
 # THINKING
 
-Signature: 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
+Signature: Eqo7CkYIChgCKkDJE6EDDNd+hUy/h1CMEy7QtOyy2545fH+tWG+96AkX1dNkEAWy8drPwwyasKQwp2LRPOX/lcK1/7MCRh70TvrPEgy/+6eQj/lp1vAsx2waDKqtbPLJ0IMk8MBwkiIwsaBTkAwD8Bv6OPXc9vBkmhHJSe/KOn132HiP29Ned0g0290cvgC4kRRztalbsMXPKpE6CU6GMfyqltSyM4Wpl96Tcs9Nxu7dIbDSYz3SiVSur1zD42nsQGAROu2PyDg1ClAKHuVeG8P+2QGUj3ujNa2fTseTauJFjIsK0XY0aESdbexYNDZGuDLCMLh8slm+fTPnF2NTH2MuX2Kn13cFtycSLoiZ4GR+lC7A2fnvRIXysc+XdED0LgaGnqQdlSkUudlF+GK/4Z5DpKpMGpO2xV0Kf04hdL+Jah+2r2vh8lR5sCVLGyOcLzy67/as+6e0JbDjHdeBulm/i/J8jiXje26ZObpWNLFpXPRoIJbfUn1NJjQiRto1ZoGN3sZYG/0xPalpVyiUyukGF9n6K5ZfKcgy4QVTeYPwhEA2g3fwd/e/0lAnucKJcJmOIae3q+3Ps9fjZyQ5b9wjKTDT3TZOa8uRbsKmnOwPglWc+8z547JuqS4AuqoM6dMMZqxlRFpH3yj7wVutsrLv+ZV84+NadPfstdo4WAi5U8zErWnj8SlNqx2KYav0UvnoiITcKxecqhsv28cl01kbBy+4ETx6wA1YJox9PprTsM+qfdMuIGHo10QgBUREpHTdE2WrhfyBzoGcvAWha7SDpTOOp9/AVs0uUls0+xEeFjndjXJKsVhLDOPfuAhvxk8f+ekfNWxXo5Faip6nAI9mkpOnBZ8yNUJTl9d9vWOesukLcuO2964UPk40GzvZU6tgbSH+7JH7TeVhZP9PS4YyZ9Fm+FfTIC2PR+x8tMMmK0AiR+WSkRmrKMHqX3Uti+RQi+lNc1RTIhLdu/z49sCYQR/IBDhYDZ7xTt6adDB36wYpx70A0IjyYBnVYTjE4KWJo0Zac4t1eDUPACht8StAloyujAr3dsjSgkrbq49STEoS0joKPV+BKxyvXCFPGr5dpDRM/FTHwbgnqCx+O/JwEr0iQJVawsuYre9NUVhFjPaclO7NejSxY74Um3Ar7j9FGWeGNmc1aOuDzkwTUeyr4vJf3wotncxYj6MkQ65XJ+9mDpXrrIZuqqBdtL6Ul2ShmQlCFOcqgaLakZouFim2HbVX0c5cPcMBXNzIGfGdOxB0TugH6cQN1FIdVsk8Iw5e93AVsaoXAswd4oa3HVdt8IJcjzWWgiw6kV3iA4//Us6MMd0Hbq7CGtCrxVJRSYzXrvAMLxBvOzeMUeF2fyPV7ajBk54nMI8Oj5cYuTa+l+5GO8wOR9zn+HFp7mYID9en2rwi1JS3hkKAC4n/XyphUS8hEtVGodvNtWXptrErJtZF/5urpROH2lgXKVCp292qL7p4cu4iAy6DaLAioT03M5o71JRtRrDbrlTSE7oFEZSIZsBaCn1l8W4pzUz5s6FMz12uyI+mjZK1OSAcpd+dVFHOq41+xLIzKMPaMi3k76Bnqd+XMkNe0bk5GmiLomWuUV8lk7i7G+wugHfk4Rjdh+n2tWPbmnirFt1YUrFwEConP90hDiaOo3itEnlwSOpwIwXHAaLoJXFsyBo+PR60+jJVHAVDXZxEzJSe4PZaec2zTXFegTj4q57qOkbnY8bMdeK5TQWpPn8TYIbYACMt3oX9oiYliecAxWvT5L480qMKDoZlyT10rzsyx7BiYmTm9SWwLvvoryEuwVc0heLfAJdaNlvgGLd0rJceblpVXa41zGtgr/k1q4KHHF915yzCcz5ptmINqKqjHGEouFolRbOH8BDFr+LQzbDTbVNc/0R07yzW8GXPGG4cDI0O/rA3m2BlpKhYiijH8WfBKbz3PBDM+tgjHM+SjxfS/xQnIosOVF/s/qdwC1/hh7oP/fDqHpBjQFbvwY6wuLoBF34o5Y/qSqNx4uAbZ+VREnYrXzrGoVolcJHGhkKn/JRnOxYolQ6OW604WcrxzxHgmtN86tqH2F0OlbE4q61aW8MQzwJtSmgmpLADSz5C6bmOHwDSOp1GgJ9yWEn98s/hIldWTzhQk/nAoWY3CHEVOx1/MiWvSHLSWPmdNNizyiqZNWfoDUqGPNYzRMJ2OXox+sjBl9ZyruDIKtqLWsqbJv4C5MR1xUHRCj0pxyJIusuoo02442QwJmCr3CS6vqHCrNMJSgxEc1cy6IWcI7j7wPhpQnN4eUP83I265iXUFa8skPGXf8acI2Gyev8L+bjodiYnJEFA0PwGeM7UNWSmf5f+FoHewb8lNleN2AtNvuO83yXyUbXAB89BJ/44Kk8+bq4GGYzJqej/TizfPvekQr7s55rHvJEsX+XozJoluLA/epcfeC+jzp7GK/BzHJtq4hnImbIW+Qnw+iGTDgmH5F5qLc1UE3TMQINBjBK9yvKvkAXrGZJK3PlLHRZe83xRtSetA5FfKFU4m2Moi54clx5v+K5N3dzbT2dn8iZem0O1XDj+lqNE2rLx5XZf+4B2OHiwFrN+3kNFOc82size0CA+AgbthhPCYOoZ4EimCUcckkwf45/XiiIAsih4Z/IPC4JgcBSaR8257n1yXufoi+dCXQnoZ9xr3GI7FhHUfVX/TTY2WywlTUbx5xX359StynWZJB/4BsNPfVmJJOVTAnaZSGbjIQLoa0+G9T1oUMBNOe6LjKCqDaHboQCu2GtiC0Pza1eXNSvmV1aqexLPx+qv1HmGyRfNMInhsbGLv722uvvRlxUKSLhBIW9M95VQ6vh1tr2616StpNlvyXbZIs/K2ndmZC+mrGWzik4Z0hDcnDfo9ulnCxNJhz8cVix/Y2MeCRqpg2dG+exybTKVsLvBFqDkpTHJM9RLEcQdGiUzT4Se04mu+NlNmEGXyk2ihfihv1T6LwgkQAqXnc3262iz9W0qsMwJtrC39cNGsKEpx5bA0/+d2Yl5C6vHw3FxZkoAp9rOP0wHlQmH+pvGA4fcsrZfmUaAC68ESgK1y40MxPmZBKZW6fRHwbDywTYH9bvZIh9lLfczVuLJzr2WTxMfAunBP9QdvUAwnwyFlKVc5hakV6mDdGsWtyMsXue1PaZJ3r24naMquiLFD20snj7zb6qpyQlG4+G/0rN+IhWbEGAJhEB5N0DeNwpDlFK9xNfLfAMTiTqPPQkTrvYq03Bi16kjKUUdfHFh2L9vG1R+UhkjyWNJmACzyYEdcvPAds+WgEKIzfIfTbC8uUPBlgs9KWB3bNtvq4AhKnaXnW+yThZmRf3mA6puzf9+gStpZORBe60/B9dxtDFwEO9tJOpZrLjZkwSY1WJaeTPkqiBCiyL6w59tdMkZMC5w3PP8vZ8uGVWjXgnVlnfOYFuXayy1JpdMat6dJznMcq0ALmZfamFd5Ko1KyO/+g6SYv1g0Y9pkIZThO2xeYvIwFiBtiavnK8mZgYPekyjV5G7XZELEVkDaOBqQGLUUponvblCbE4aMJccIV5g5zY8Pp4eJDGZaqSA/WTzS3cjfdaAzOLZ99dV1JLuqdULNxaP5McVPKPZ29ln8YhGoa+bA6SqkZyEVsUPVXZOVas8RZTPdWhKfZ8GChhbm4Vbd0QA4F5bnXvyrmQDjEf0XhFZeg4uNJDGzvcGXDlMB2napUS17pJY0xnUWAcJ7DqbnwxjwUsnv6fT+UBXpOgqUDZJvWGOeGeEERHEt+8DGQL7+JNo/PZBjyqi/j4rOaW9+5dMAVo4BSTADr6PyWqM0yjmkH2eq1wHg2bbEXb2vDIyNahOi5MXI9yaSnOEMUK2/1Sx/xMrfcVreICL6LBRmHN8hUthgrsM9h+ZO5nuuvVX/129JtjxdenXbiSO0Z7MHimXoKBsVPjFgVsJzGbNRZ3Km1YX+bw3BlMTC+w7ZdABNA5sQirtvFdTIVWaxFwKUy/lqmgv/wMpFukMl8UpJQbL77kwyQarSqmJwM2+HToPvcwcxV2mb1SayhtqTCZsYRbcfm+Fxutx4j0hkRWfptr3LhIGfkWGkmU9A5TltIf97Sl10y44d0kAoo2WlJss7IAwYiylbzTcRaYJkAL7kOxF3bYvsTJBnai+znspwPoIJO69E3RBwXEkPQjtIjg8NXVUrZu2H+Q8Zk4t69xTzlBUumpQ18K8XxseMMCfv/bVcee66bqPk6x8JxinjeVWLmOthLOv/mi+vp7Sxq/P+R7BkPwMKvNl7FwYbu0KUMpWXhU53rUZ8JLAchpKH56Zh7/3XelxBa5YteFRyNZYsZySxcA9xqHmsa4rfPQcHmAVDs0csjx5MztT/XeV1CH0HOkotan/GmHM3a43NVC1828k34sCv3O/oZbt6vSHyRivoEWrh9X55X9WhrqGDA5/30ttoLMFzcZIYW1ehxQrnqIrMa8R5ZNAMfg9nZHV/h14la4XIn0V5bTnph1IgVPYcue2HtohjdEvldDXmGuWhto7he0n0Noyj/WI8bs2M/2IeZgpsGnVlecxSmnOg4jw3GArJZRbCwzCOGDKjNj2qzT9GFN0fiMBj5wCPah/sk4oOj70N0nJKR7NvVmnVNFs9L+/DzqF8J35yGd/zZ2+lQkqzLipkzCNmwMJqW2uEu8L7YWl7zA8S+KsMb8hlOXig1jR+2Sk8047d+h3WcPsFAZ6p8ki7AMZ2nkGlZqTDqqUEXLk17G3IgbIeDGnYsck4NETfJfgrdyhqJxRv/y/0qCGGy2/qPN2nX6OI1M7q74Yfjt3X5/gRrVP3oB1Hf7LXRxj6zhFhk1YUHGKKpqwo/qDBfEp+nHFnK5Gu8xflMGhL/sDBWyV1gKvv5UPF0nxsj6KxAsuVx929zGmPnbJtAIpkoAQ4Ss3z4RBU65FmS+Ycj2cNXo9Yw9K0wuY6YuTCNHuwigEzsvJtdlgDfUvF4xFzhfbrC9Ds22HtM8h8Ay1MZVrofKBeI35t6AX4l8IC5FplTqxMwTjF17hHAFzeMJe8RneebnrJvboS+iIw+BYN5qXCu8CfBhlyZYNhsxR1EZGPqbn3Iklp/kPpGvnuhSvj+DiGi8Ee0E7fzMh5nupuI8A4DuOVCuoH/QRAQ+AoJEHKBYhnZqAGXZIfC5Yoh35Kp37ZqApWrJyASo5N6s3lRNEB+59x9Lcybb+YumC93RgiyPQzC08zk4zyLJUoDBmBbARK8mLhpNzmnkZEOyUxIkie1AEJjQn1tHP9gh6T/JBoueDHdyb13DsuYHKGOlHoif03FVRhpZguj4LFfq8IJlhXPXTY9+ijGtnIJr45SO7j4kYcAPbY3vCcJto44eM87E8bzeXvSc/UlvsA/EoXr7nHBAeFsJsl4kyKT9/M1lcHewCWhMAgLRSObUCdBeCHhEr3XDQwWRbgRHl3Iepsie0uBt8h8zeuXcjEh01APkH1X2Jr26LDswmDI7gkTqq8fB+N+cfnO8YCtPRLCRPh4llHEl93lZXs6D/deHuKvcltic2RNzLmrCYNr4czC+n05WdZn49FIwNjw0NgOOSD1HjO3GbgVnmKpBtrRbqVV0Sh9vFSoNCACLmViHG9Pex97oSvsAvFn0VXgP1nHT6ozvIGqVIe5ZaK/wDx6aseTeNdhmCN7FNUXlsaXc8I7bhiUTGUYOMrxRXtTDSwVbY3VT56vVOxdrUS96qRDFeIZetHiV3lRmqOUKoWtGdREJ9G4tvd72xnh8Wj31V5QmVnRiguUStmFsRNf2miSpF+gRTMt/N4YtqAUTlsjK5IBcMKKp3wViuNSSQduVTqKLFJ9hnv7Z2ERVk1Tu8nIOQDzLInsKHQUQtvx/esWikC+1nhLo5GU9XRQcIes8oyACRH5yP4Hd12wWL07BBYquZG+vdAd6yW0dDlERFxgHYxF21Ua6uUKKr+Ckm8PZfvqEBT/1aq0EOdEzRMTUxmQ/hVsTcCsxy6WKrgoFCyyk1r8nx7t8uFmQXT0jF5+WicQcQVhSYZ6wr7F02KyyL1/xmIbOFD7mzUU9H4lRvzQdcyg2aQ28HRoOWoh3AvkT9gDJWcLAQrYep9dCTmkF7iM6HdJokBlha80uY/QHe7WpeQThNxAmmwR6NjxTp5ke2Gw+uMTmU4628GgTNtR1I92po1JEJOXFRp0FY2fqlZYTWN2zfpgseL2eHBHeNzEE8OVtuayVv0AQDdVI/RQOrQNV4n+pNGUrg3Y/Z7Ja0Iywj7jx3UTkCEsgsMyfCKP9J/12hjvbxurdsge9Lqz7nFkh4Ngu8C7B2+BKCC/+ZIgmKU5cscPJNLu7wQ4LZSFp+jYUug4jBQKy3cusjEQIsIxHchrlc5PEloFtOiDj0R/IqCq8ClEt8jlZVXYt9uoLIhAdAxxQ8g3KVRopYnOqZuDQ13oIXQe5T9Ez/voPXvx4uDfR2FbWJxFTL289AuF8cF5K+20F2o0NyhD5HW+QU920NEOxAOEKgB/RQE1dAYSl2QXf9YPvZsfVOyPD9zShkTbdT2MvZG5WCGwcPYhdUQOCrl9FZPcRM2C/1P/0ywm8LWE5U9nYWA9mSiaoBVYGExtiFN8AVi5GaJJL3o1FoOm573c1cXYBTV89v6KoTmq/ct0p+dIxQrRsdZ+CKV0P62McyhvO8BM9Rtq8jk9u1V+WWQMULppvehvQFzGexfytQz5coK0a+826bXcjb+Ryv8pss+LD+MRdcTx42J6heBnWJdnCXpyYZXZm0Vp/Bg6vUUjuBUgxGPD3WDn9anR6AI6tzvbtW8aqiMP1RT4hlUdeYk+8dqLNZuX/XiQ+F1/iZjQXxbMZhTtOP10nnYypz4EO0Gx7RDEb8XPulYArEQ/oCdrjRvkUZwm4hJ+Ve/WCVuTpVxBoCZyi2Bh+SIRFx0sgBpw78qsm5YwzvZhyLpGQ0+ZnsXwP/f14ICcY6sTpzSw53nGESv4zyiv64WX0sUw1Z2sMryKZPi0YeprnLifuZFcXoJeoN6+LEchNThqscMdoPh+WdduaFEnfuD/JIoqeF3HWav0E2CahWso+bjpLTztanXKkNvYdB78LYmONKgzXcMtiamwg783h4YjmL32kT+7mnDPYtZgEscEFN+HU/xNKQM7cqsnrzIuubDqNFX3dSFMm6AI8GnlkgHbLjY+9D2WpPulJu4U0BtLpphQPvud8vlKThl8Ki9AUUyOExznyuYIU4T6Ydf1AbpBV7evRtSy9riLuDWymgIHaCjS2AjSESsDxMFS316JmTORV1CFTwwUEZyg5ggzYvBH/mvMTxT5ocy0AqQqezJeLsCKsStKtK8JoHy9lq/JCkvL/q6aioIgA+M+3+yr5NDgZWq1bzVgyMGwtU2gLTTfqymfyK17ocnhKOeoIFhobdbyiJpEZFiVZGApfyTGZujH+VdEeRij4txXmAnmMvK9G6BLBYcFUjy9g+xujXC5c5eN7IMCITtcCCgsoUW2KrrCXrHXKfMyRqvspVh03i3KSs5avjbDS3jHRrxQ8ZzvJage4m6RngULn8L364VgCeAh0h/kSrpgR7c048j+DCNhx2ta6tUhFpYOPT5xatgObJMDrhxGNuf7cMSvbUA7773vzyjI40PjlQjxTEAOpHwRtjZ24fprINoYYmrYyznXCb/WltgEi9PjNymvffXcroBI2iM6V/0aG4SuDgQlZv3iDVk2v0Zg8AN97LYWDWUzRmfAGlSR+wSrNUdBxJxc5cOOh3Bvi5JATZaLXfZ9w47vzlYaXL76M6RXoeyqHP8k4hidHYY86MRj7BGFEb4tZb8LByq26SSN+dp6TO2STZ+jXJBgctNLW643iQ4IFU4yNvN4kP0zF39j/fNGxeI8OnMNor+Mc1BOBF9+5jWNUCSuJ53OPqFc0cXSYnXB5z7Gctdw2LK8M0vOYKduUMtqR7kURkAsgh3a+tNrj2KmVJyQM4oMfiRKxMUYmIveTWRreY9adto+rPQEE+qvctoEl53w3KZ5qXjRfR4+NLl3Ew2xMGAwKy6w7cg6Cp+fB+nrQVT5yRXiCobS7BilrrcZzAcHfuRIBfXMFNWLgeM01zHtT5e2rkz3bUnWP8TKFZYjEhNnmwXI+2+kC8tsEF4K9Ibev1zLnF9Dv3VNSO0dblNMBgAmVg7pG3LzOaDC0rPTDwroBG+Srjyb7IxfMAKjadIml8nCOvZAdIrxD66IrLx7IhhmgU9vpmdV4bU/bBtj59ILgAI+eQ0BmEPpHe5yofuUnkyBOhljd9JNwp4MFtUZqDwGdkuyYoCXsFBDrALR19Wev3uSt9w/mgCakEAmXOhldmT1HKrR4dSsVzuZQ3nCxQEuLnpNGG8JkPaO2FBlKkSc9jJinyYU2iZlFfKt4LcwRcF8dzui0aP4VpwbL/YrLH4ZPH/XpK10C5e38zS2Xp/dGTLQdCEIFlMrq/mSfpc/cYfQ4DXnZbUOcjfSSsGkH6F/1EMO+FWz8dkMEX4qUkdWINkDxCBiAuTkBYA3g3ISoGyTW8LhnW+MiaI5Gosi+bCzZzJiooW7giCxk2YogS64cFutEihtGcsmD4H21qYQMV6HXunoWyjIlR+hxUOWIvGq5dN7XrW5vatcXDNaE+1CrydyEI2Te4vJorRlkzA51TP5e1TylBFEKRWWzc04LoMvH4BGdtdmvWPD6WumNT0bc7uDBWfThtCZHJf7Rh1CLt3qjPmwwEVkVxD9q3iFuI+pzV5UG5pb3qYqyJaONCjkfTl5963ILv0kkyQjKiWN3V4BUE4GyvLRCW9GCW9izYUPi0CbV7Gk7o/OhmS8Y3shZd765TasezRzK6rAeM4AUZGvBnY1Bf5Mg524kd9w3pk1z6/PRKwV/K1MHMRPBd8taY+/Kr5OmwtmJdVmZU3FMYzLae4TChxaocTC3jpAoIpurPypH7s2d0bYXN1SE8O9VbPa8epXVX4j/JJ7TRpr3CJg1OALHH2KN4+z7y9BqRkx5HCt/saO9wEJ/wCacPOJrGKMRJt1I2uT7cKb3NLHHjNhO5TRAyMAvrZqm4spojosNjgp0QatBHZVAgxUJfWhGdF/gf7IadMeqksNyeuNbPf0uNrLNQngyLouTRjpUkSjRDQ2FSZgwTaAnZtO6ZuBBuqUVhw1J0SGv+u/B49fHME1DaeJEXqq2wKIKndtowSGNfFiY9jxx8EMNpoaW7o5oi1LL9xRNQ2U0T8VNkj8lb3MA+MXQ5mJN24Lf7U/jpVDpRi55HrwgCXNqtH8aIiFTjKPvuc+sTDzBXk96zGUUqsEQsBxg3zNBzbY/IXxJxYzTLMjuNFhMkSlGsHMSQnzo+SPen3k6sK+OxdMgwC+vfyj2Q2KawNn4jgJgLEfHOYBBRF/g4ECC+zGniAi8hUHVV7bW3IwNDL9w2bh9A/tdrnAIoEk9x84lLA6/TWOTCgGTLWV5Siubk/aL19wOaS64GwmjaJXU55d77BWcmJo74O/DTe6W4uGuXhwEBWUzbvwsH3tDDYFDqbzwD7+xOb6z3CCYKPMqgHvgWr2eKpdawyjoIzI9wU6I0jHnpyatDUeU1c3ecbRw/Rdr5+6BIeFmV1pv0linqwz/ozbSiAQIacnuqY7qr/vULERjINtTyuh8zXS0BiX7IinY/nglSOfVEvmbG9Loh5G5JrTI9Ce0oJ6KnSwUjwzj5Y31Qn3Lc47edF8zmB72ndEEcpRAneox7+/hlUpY9Z2Vy9nFX9ynF0ItJ12Hlw4ACtYxlB4zaWi/yXz8M153jNAaCvZv3KjQLnyoEzSm1PSUkQIUH9qLqTsAgdPjYRSc6cb+Qh2FKdjvvjDXjlS4g21eAQJSFRKgibuVXFaDRoLoW/nx6SvPtcH2hP5rSH5vWi3MacbDSvVbsv43iSEEQ0uZ/0fCVg8QVvoAYqLC3d9RlMqMoVPpnfbq2YPfTpQ1Jy7XixPNZ0OsZj1K/9z+k7ozx/291jVi3/4kXUI3o9DiiQZGfK1E3u6eIN2Zky+QUA5AdLKRJkzZrDlKkZBHH1FbT7DHVUFEKiLTGXavW5t6bIcWrVxGY/Nk41c/Dc+4ndFnEdRqGe51NqQaHOEtS46FZ23b12XBorzxbH6yPTzIkl7BNpiBlvUsDeqfheu2HGWAunsiC57LiikL14hgB
 
-I need to implement the following functions in character-defs.ts:
+Looking at the character-defs.ts file, I need to identify which functions are defined in the spec but not yet implemented. Let me compare the spec with what's in the file.
 
-`! (n: int)`: prev is overlaid with a deterministic hash pattern where pixel (x,y) brightness is ((x * (n+17)) ^ (y * 31) ^ (x * y)) % 256, at 30% opacity
-`" (n: int)`: prev is split into n horizontal bands; odd bands are hue-rotated 180°, even bands have their saturation inverted
-`# (c: color)`: a grid of lines in color c is drawn over prev where line thickness = 1 + sin(x * y * 0.01) * 3
-`$ (n: int)`: golden spiral with n turns is drawn from center outward, spiral color is brightness-inverted sample of prev at each point
-`% (n: int)`: Floyd-Steinberg dither prev to a palette derived from its four corner colors, dither cell size = n + 1
-`& (j: int)`: `old_image = images[j % (len(images) - 1)]`, output is prev where luminance comes from prev but hue/saturation come from old_image
-`' (n: int)`: vertical streaks are drawn at x positions where x % (n + 2) == 0, streak length = luminance of that column's average * 100, streaks are 50% white
-`( (n: int)`: pinch distortion toward center with strength n/10, pixels near center are brightened proportional to pinch distance
-`) (n: int)`: bulge distortion from center with strength n/10, pixels near edge are darkened proportional to distance from center
-`* (n: int)`: n rays emanate from center, each ray's color is sampled from prev at angle * width / n, rays have soft edges and 60% opacity
-`+ ()`: a cross divides the image into 4 quadrants; top-left and bottom-right are sharpened, top-right and bottom-left are blurred
+From the spec, these are all the functions that need to be implemented:
+- `!` - hash pattern overlay
+- `"` - horizontal bands with hue rotation
+- `#` - grid lines
+- `$` - golden spiral
+- `%` - Floyd-Steinberg dither
+- `&` - luminance from prev, hue/sat from old
+- `'` - vertical streaks
+- `(` - pinch distortion
+- `)` - bulge distortion
+- `*` - rays from center
+- `+` - cross divides into quadrants
+- `,` - stipple
+- `-` - scanlines
+- `.` - pointillism
+- `/` - diagonal lines
+- `0` - radial gradient
+- `1` - center bar sharpened
+- `2` - posterize with gradient map
+- `3` - triple rotate strips
+- `4` - quad rotate
+- `5` - triangular tiling
+- `6` - hexagonal pixelation
+- `7` - hue rectangles
+- `8` - lemniscate distortion
+- `9` - blend modes
+- `:` - circular zoom regions
+- `;` - semicircle with reflection
+- `=` - horizontal stripes shifted
+- `?` - effect based on corner pixels
+- `@` - sphere (WebGL)
+- `A` - sphere (WebGL) - same as @
+- `B` - voronoi blend
+- `C` - concentric circles
+- `D` - triangles colorized
+- `E` - sinusoidal waves
+- `F` - Julia fractal
+- `G` - grayscale gradient map
+- `H` - horizontal strips alternate
+- `I` - invert + edge detect
 
 
-`, (c: color)`: I'll create a stippling effect using color c, strategically placing dots based on a complex position and luminance calculation. The dot placement follows a pattern where (x * 13 + y * 7) determines positioning relative to local image luminance.
+- `J` - checkerboard blend
+- `K` - kaleidoscope
+- `L` - Lichtenberg figures
+- `M` - spiral interleave
+- `N` - XOR blend
+- `O` - fisheye
+- `P` - diagonal pixelate
+- `Q` - diagonal split tile
+- `R` - corrugated (WebGL)
+- `S` - skew
+- `T` - 3D cubes (WebGL)
+- `U` - undulating wave
+- `V` - vignette tint
+- `W` - swirl
+- `X` - shape overlay
+- `Y` - radial
 
-`- (n: int)`: I'll generate horizontal scanlines with an interesting alternating effect. Every nth row gets darkened by 50%, while every (n*2)th row samples pixels from n pixels above, creating a layered visual texture.
+I'll continue tracking the remaining visual effect implementations, noting their unique transformations and potential complexity. Each symbol represents a distinct image manipulation technique that needs careful coding and rendering.
 
-`/ (c: color)`: I'll draw diagonal lines traversing from top-left to bottom-right in the specified color, adding a geometric overlay to the image.
+The next set of effects includes zoom blur, torn paper variations, diagonal lines, shift transformations, reflections, and WebGL-based distortions. Some intriguing additions like glitch effects and chromatic aberration suggest sophisticated visual processing capabilities.
 
-`. (n: int)`: I'll transform the image through a pointillism technique, reconstructing it using circles. Each circle's radius will be dynamically calculated, and its color sampled from its center with a slight saturation boost.
+Identifying gaps in the current character definitions reveals opportunities for expanding the visual effect library, particularly around specialized transformations like circular zoom regions and corner-pixel-based effects.
 
-The spacing will dynamically adjust based on local luminance, ensuring a nuanced visual representation where brighter areas appear more sparse and darker regions become more dense.
+I notice potential implementation discrepancies between specified behaviors and actual code, particularly around blend modes, wave patterns, and signature definitions. These variations could impact the intended visual rendering and require careful reconciliation with the original specifications.
+
+The range of effects spans geometric manipulations, optical distortions, and computational image transformations, indicating a complex and nuanced approach to visual rendering techniques.
+
+Specific function mappings between symbols and their implementations reveal unexpected routing and potential misalignments with original design intentions, suggesting a need for systematic review and potential refactoring.
+
+The current configuration shows function assignments that deviate from expected specifications: D is linked to a drip function when it should generate triangular subdivisions, while 5 is connected to a triangle generation function when it's meant for triangular tiling.
+
+Careful examination of the specification highlights nuanced requirements for each symbol's behavior, particularly around triangle generation, colorization strategies, and sampling techniques that aren't currently matching the implemented functions.
+
+Documentation labels further complicate the picture, suggesting an intended mapping different from the actual implementation, with potential misalignments between function names, documentation, and actual code behavior.
+
+I'll systematically address the implementation gaps by creating missing character functions. The list includes diverse visual effects like zoom regions, reflections, stripes, pixel-based transformations, and geometric manipulations across circular, linear, and distortion-based techniques.
+
+Key priorities involve implementing these placeholder functions with precise visual characteristics, ensuring each character's transformation matches its intended graphical representation. The goal is a comprehensive set of visual effect generators that can be consistently applied across the system.
+
+Critical corrections are needed for blend mode implementations, particularly for characters `9` and `N`, where current functions do not match their specified behaviors. The core issue involves swapped function meanings - `fn9` and `fnN` are currently misaligned with their intended specifications.
+
+I'll need to carefully map each function's actual output against its documented behavior, especially focusing on XOR operations, blend modes, and specific visual transformations like sinusoidal waves and Lichtenberg figures.
+
+Specific refactoring targets include:
+- Correcting blend mode logic
+- Implementing XOR operations accurately
+- Developing wave and electrical discharge simulations
+- Ensuring function signatures match specifications
+
+The blend mode implementation for `9` requires supporting nine distinct blending techniques when combining an image with itself, which diverges significantly from the current XOR approach.
+
+I'll focus on implementing the missing character functions systematically. These include `:`, `;`, `=`, `?`, `@`, `[`, `\`, and `]`. Each will need a carefully designed function matching the specification.
+
+The priority is implementing the unaddressed characters while ensuring the existing code maintains its core functionality. I'll methodically work through each missing character, creating appropriate image manipulation functions that align with the expected behavior.
+
+The current implementation needs careful review to confirm it matches the original specifications for characters like `9` and `N`. Precise alignment with the defined transformations is crucial for maintaining the integrity of the image processing system.
 
 # ASSISTANT
 
-Looking at the character-defs.ts file, I need to implement functions for characters `!` through `/`. Let me add these implementations.
+Looking at the character-defs.ts file, I need to identify and implement the missing functions. Let me first check what's defined in the spec but not in the characterDefs object.
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01JHo8bh9fWzKzQ19SXV3ThJ
+
+## pattern
+
+<tool.toolu_01JHo8bh9fWzKzQ19SXV3ThJ>
+^  '[:\;\=\?\@\[\\\]\`\_\{\|\}\~]':
+</tool.toolu_01JHo8bh9fWzKzQ19SXV3ThJ>
+
+## path
+
+<tool.toolu_01JHo8bh9fWzKzQ19SXV3ThJ>
+character-defs.ts
+</tool.toolu_01JHo8bh9fWzKzQ19SXV3ThJ>
+
+# TOOL RESULT
+
+ID: toolu_01JHo8bh9fWzKzQ19SXV3ThJ
+
+<tool.toolu_01JHo8bh9fWzKzQ19SXV3ThJ>
+No matches found
+</tool.toolu_01JHo8bh9fWzKzQ19SXV3ThJ>
 
 # TOOL USE
 
 Name: read-file
-ID: toolu_01JyCQ5UVA9voAM2DfEooYQU
+ID: toolu_01PD8ZB5Po3sz15EEzkSvYSX
 
 ## path
 
-<tool.toolu_01JyCQ5UVA9voAM2DfEooYQU>
+<tool.toolu_01PD8ZB5Po3sz15EEzkSvYSX>
 character-defs.ts
-</tool.toolu_01JyCQ5UVA9voAM2DfEooYQU>
+</tool.toolu_01PD8ZB5Po3sz15EEzkSvYSX>
+
+## start-line
+
+<tool.toolu_01PD8ZB5Po3sz15EEzkSvYSX>
+1700
+</tool.toolu_01PD8ZB5Po3sz15EEzkSvYSX>
 
 # TOOL RESULT
 
-ID: toolu_01JyCQ5UVA9voAM2DfEooYQU
+ID: toolu_01PD8ZB5Po3sz15EEzkSvYSX
 
-<tool.toolu_01JyCQ5UVA9voAM2DfEooYQU>
-export interface Image {
-  width: number;
-  height: number;
-  data: Uint8ClampedArray;
-}
-
-export interface FnContext {
-  width: number;
-  height: number;
-  images: Image[];
-  currentIndex: number;
-}
-
-export interface CharDef {
-  color: string;
-  number: number;
-  fn: (ctx: FnContext, ...args: any[]) => Image;
-  arity: number;
-  argTypes: ('int' | 'color')[];
-  functionName: string;
-  documentation: string;
-}
-
-let glCanvas: HTMLCanvasElement | null = null;
-let gl: WebGLRenderingContext | null = null;
-let glTexture: WebGLTexture | null = null;
-let glFramebuffer: WebGLFramebuffer | null = null;
-
-function initWebGL(width: number, height: number): WebGLRenderingContext {
-  if (!glCanvas || glCanvas.width !== width || glCanvas.height !== height) {
-    glCanvas = document.createElement('canvas');
-    glCanvas.width = width;
-    glCanvas.height = height;
-    gl = glCanvas.getContext('webgl', { 
-      premultipliedAlpha: false,
-      preserveDrawingBuffer: true 
-    });
-    if (!gl) throw new Error('WebGL not supported');
-    
-    glTexture = gl.createTexture();
-    glFramebuffer = gl.createFramebuffer();
-  }
-  return gl!;
-}
-
-function createShaderProgram(gl: WebGLRenderingContext, vertSource: string, fragSource: string): WebGLProgram {
-  const vertShader = gl.createShader(gl.VERTEX_SHADER)!;
-  gl.shaderSource(vertShader, vertSource);
-  gl.compileShader(vertShader);
-  
-  const fragShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-  gl.shaderSource(fragShader, fragSource);
-  gl.compileShader(fragShader);
-  
-  const program = gl.createProgram()!;
-  gl.attachShader(program, vertShader);
-  gl.attachShader(program, fragShader);
-  gl.linkProgram(program);
-  
-  return program;
-}
-
-export function createSolidImage(width: number, height: number, color: string): Image {
-  const [r, g, b] = hexToRgb(color);
-  const data = new Uint8ClampedArray(width * height * 4);
-  for (let i = 0; i < width * height; i++) {
-    data[i * 4] = r;
-    data[i * 4 + 1] = g;
-    data[i * 4 + 2] = b;
-    data[i * 4 + 3] = 255;
-  }
-  return { width, height, data };
-}
-
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace('#', '');
-  return [
-    parseInt(h.substring(0, 2), 16),
-    parseInt(h.substring(2, 4), 16),
-    parseInt(h.substring(4, 6), 16),
-  ];
-}
-
-function cloneImage(img: Image): Image {
-  return {
-    width: img.width,
-    height: img.height,
-    data: new Uint8ClampedArray(img.data),
-  };
-}
-
-function getPrevImage(ctx: FnContext): Image {
-  if (ctx.images.length === 0) {
-    return createSolidImage(ctx.width, ctx.height, '#000000');
-  }
-  return ctx.images[ctx.images.length - 1];
-}
-
-function getOldImage(ctx: FnContext, j: number): Image {
-  if (ctx.images.length <= 1) return getPrevImage(ctx);
-  const idx = Math.abs(j) % (ctx.images.length - 1);
-  return ctx.images[idx];
-}
-
-function getPixel(img: Image, x: number, y: number): [number, number, number, number] {
-  const cx = Math.max(0, Math.min(img.width - 1, Math.floor(x)));
-  const cy = Math.max(0, Math.min(img.height - 1, Math.floor(y)));
-  const i = (cy * img.width + cx) * 4;
-  return [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]];
-}
-
-function setPixel(img: Image, x: number, y: number, r: number, g: number, b: number, a: number = 255): void {
-  if (x < 0 || x >= img.width || y < 0 || y >= img.height) return;
-  const i = (y * img.width + x) * 4;
-  img.data[i] = r;
-  img.data[i + 1] = g;
-  img.data[i + 2] = b;
-  img.data[i + 3] = a;
-}
-
-function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-  r /= 255;
-  g /= 255;
-  b /= 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  let h = 0, s = 0;
-  
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-    else if (max === g) h = ((b - r) / d + 2) / 6;
-    else h = ((r - g) / d + 4) / 6;
-  }
-  
-  return [h * 360, s, l];
-}
-
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  h = h / 360;
-  let r, g, b;
-  
-  if (s === 0) {
-    r = g = b = l;
-  } else {
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
-    };
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1/3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1/3);
-  }
-  
-  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-}
-
-function fnA(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
-  
-  const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = position * 0.5 + 0.5;
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
-  
-  const fragmentShader = `
-    precision mediump float;
-    uniform sampler2D texture;
-    uniform vec2 resolution;
-    varying vec2 vUV;
-    
-    vec3 renderSphere(vec2 uv, vec2 center, float radius, sampler2D tex) {
-      vec2 p = (uv - center) / radius;
-      float d = length(p);
-      
-      if (d > 1.0) return vec3(-1.0);
-      
-      float z = sqrt(1.0 - d * d);
-      vec3 normal = normalize(vec3(p.x, -p.y, z));
-      vec3 lightDir = normalize(vec3(-0.3, 0.3, 1.0));
-      
-      float diffuse = max(dot(normal, lightDir), 0.0);
-      float ambient = 0.3;
-      float lighting = ambient + diffuse * 0.7;
-      
-      vec2 texCoord = vec2(
-        atan(normal.x, normal.z) / (2.0 * 3.14159) + 0.5,
-        acos(normal.y) / 3.14159
-      );
-      
-      vec3 color = texture2D(tex, texCoord).rgb;
-      return color * lighting;
-    }
-    
-    void main() {
-      vec2 uv = gl_FragCoord.xy / resolution;
-      vec3 bg = texture2D(texture, uv).rgb;
-      
-      vec2 topRight = vec2(0.75, 0.75);
-      vec2 bottomLeft = vec2(0.25, 0.25);
-      float radius = 0.15;
-      
-      vec3 sphere1 = renderSphere(uv, topRight, radius, texture);
-      vec3 sphere2 = renderSphere(uv, bottomLeft, radius, texture);
-      
-      vec3 color = bg;
-      if (sphere1.x >= 0.0) color = sphere1;
-      if (sphere2.x >= 0.0) color = sphere2;
-      
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
-  
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
-  
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  const textureLoc = gl.getUniformLocation(program, 'texture');
-  const resolutionLoc = gl.getUniformLocation(program, 'resolution');
-  
-  gl.uniform1i(textureLoc, 0);
-  gl.uniform2f(resolutionLoc, ctx.width, ctx.height);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
-    }
-  }
-  
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(program);
-  
-  return { width: ctx.width, height: ctx.height, data: flipped };
-}
-
-function fnB(ctx: FnContext, j: number): Image {
-  const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const seeds: [number, number][] = [];
-  for (let i = 0; i < 36; i++) {
-    seeds.push([
-      (i * 47) % ctx.width,
-      (i * 89) % ctx.height
-    ]);
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      let minDist = Infinity;
-      let closestIdx = 0;
-      
-      for (let i = 0; i < seeds.length; i++) {
-        const dx = x - seeds[i][0];
-        const dy = y - seeds[i][1];
-        const dist = dx * dx + dy * dy;
-        if (dist < minDist) {
-          minDist = dist;
-          closestIdx = i;
-        }
-      }
-      
-      const src = closestIdx % 2 === 0 ? prev : old;
-      const [r, g, b] = getPixel(src, x, y);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  return out;
-}
-
-function fnC(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const rings = Math.max(2, Math.min(n, 50));
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxRadius = Math.sqrt(cx * cx + cy * cy);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      const ringIdx = Math.floor((dist / maxRadius) * rings);
-      const [r, g, b] = getPixel(prev, x, y);
-      
-      if (ringIdx % 2 === 0) {
-        setPixel(out, x, y, r, g, b);
-      } else {
-        const hueShift = (360 / rings) * ringIdx;
-        const [h, s, l] = rgbToHsl(r, g, b);
-        const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
-        setPixel(out, x, y, nr, ng, nb);
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnD(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  const divisions = Math.max(1, Math.min(n + 1, 10));
-  const totalTriangles = divisions * divisions * 2;
-  
-  for (let row = 0; row < divisions; row++) {
-    for (let col = 0; col < divisions; col++) {
-      const x0 = Math.floor((col / divisions) * ctx.width);
-      const y0 = Math.floor((row / divisions) * ctx.height);
-      const x1 = Math.floor(((col + 1) / divisions) * ctx.width);
-      const y1 = Math.floor(((row + 1) / divisions) * ctx.height);
-      
-      const triIndex = (row * divisions + col) * 2;
-      const hue1 = ((triIndex * 137.5) % 360);
-      const hue2 = (((triIndex + 1) * 137.5) % 360);
-      
-      const sat1 = 0.6 + (triIndex % 3) * 0.15;
-      const sat2 = 0.6 + ((triIndex + 1) % 3) * 0.15;
-      
-      const light1 = 0.4 + (triIndex % 5) * 0.1;
-      const light2 = 0.4 + ((triIndex + 1) % 5) * 0.1;
-      
-      for (let y = y0; y < y1; y++) {
-        for (let x = x0; x < x1; x++) {
-          const localX = (x - x0) / (x1 - x0);
-          const localY = (y - y0) / (y1 - y0);
-          
-          const [r, g, b] = getPixel(prev, x, y);
-          const [h, s, l] = rgbToHsl(r, g, b);
-          
-          const isUpperTriangle = localX + localY < 1;
-          const hue = isUpperTriangle ? hue1 : hue2;
-          const sat = isUpperTriangle ? sat1 : sat2;
-          const light = isUpperTriangle ? light1 : light2;
-          
-          const avgLuminance = l;
-          const finalLight = light * 0.7 + avgLuminance * 0.3;
-          
-          const [nr, ng, nb] = hslToRgb(hue, sat, finalLight);
-          setPixel(out, x, y, nr, ng, nb);
-        }
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnE(ctx: FnContext, j: number): Image {
-  const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const scale = Math.min(ctx.width, ctx.height);
-  const sunRadius = scale * 0.25;
-  const moonRadius = scale * 0.24;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
-      
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      
-      if (distFromCenter < moonRadius) {
-        const [or, og, ob] = getPixel(old, x, y);
-        setPixel(out, x, y, or, og, ob);
-      } else {
-        const coronaDist = distFromCenter - sunRadius;
-        
-        let intensity = 0;
-        if (coronaDist > 0) {
-          const coronaFalloff = Math.exp(-coronaDist / (scale * 0.25));
-          const innerCorona = Math.exp(-coronaDist / (scale * 0.08)) * 3;
-          
-          const angle = Math.atan2(dy, dx);
-          const rays = 0.5 + 0.5 * Math.sin(angle * 12) * Math.sin(angle * 5);
-          const rayIntensity = rays * Math.exp(-coronaDist / (scale * 0.5)) * 2;
-          
-          intensity = innerCorona + coronaFalloff * 1.5 + rayIntensity;
-        } else {
-          intensity = 4.0;
-        }
-        
-        if (distFromCenter < moonRadius + 8 && distFromCenter >= moonRadius) {
-          const edgeGlow = 1 - (distFromCenter - moonRadius) / 8;
-          intensity += edgeGlow * 5;
-        }
-        
-        const tr = Math.min(1, (pr / 255) * intensity + intensity * 0.1);
-        const tg = Math.min(1, (pg / 255) * intensity + intensity * 0.05);
-        const tb = Math.min(1, (pb / 255) * intensity);
-        
-        setPixel(out, x, y,
-          Math.floor(tr * 255),
-          Math.floor(tg * 255),
-          Math.floor(tb * 255)
-        );
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnF(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  const maxIterations = Math.max(10, Math.min(n * 10, 100));
-  
-  const centerPixel = getPixel(prev, Math.floor(ctx.width / 2), Math.floor(ctx.height / 2));
-  const cReal = (centerPixel[0] / 255) * 2 - 1;
-  const cImag = (centerPixel[1] / 255) * 2 - 1;
-  
-  for (let py = 0; py < ctx.height; py++) {
-    for (let px = 0; px < ctx.width; px++) {
-      let zReal = (px / ctx.width) * 3 - 1.5;
-      let zImag = (py / ctx.height) * 3 - 1.5;
-      
-      let iteration = 0;
-      while (iteration < maxIterations && zReal * zReal + zImag * zImag < 4) {
-        const zRealTemp = zReal * zReal - zImag * zImag + cReal;
-        zImag = 2 * zReal * zImag + cImag;
-        zReal = zRealTemp;
-        iteration++;
-      }
-      
-      const intensity = iteration / maxIterations;
-      const idx = (py * ctx.width + px) * 4;
-      
-      out.data[idx] = Math.min(255, out.data[idx] + intensity * 255);
-      out.data[idx + 1] = Math.min(255, out.data[idx + 1] + intensity * 200);
-      out.data[idx + 2] = Math.min(255, out.data[idx + 2] + intensity * 150);
-    }
-  }
-  
-  return out;
-}
-
-function fnG(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  const histogram = new Array(256).fill(0);
-  for (let i = 0; i < out.data.length; i += 4) {
-    const gray = Math.round(out.data[i] * 0.299 + out.data[i + 1] * 0.587 + out.data[i + 2] * 0.114);
-    out.data[i] = gray;
-    out.data[i + 1] = gray;
-    out.data[i + 2] = gray;
-    histogram[gray]++;
-  }
-  
-  const numColors = Math.max(2, Math.min(n, 16));
-  const colors: [number, number, number][] = [];
-  
-  for (let i = 0; i < numColors; i++) {
-    const hue = (i / numColors) * 360;
-    colors.push(hslToRgb(hue, 0.7, 0.5));
-  }
-  
-  for (let i = 0; i < out.data.length; i += 4) {
-    const gray = out.data[i];
-    const colorIndex = Math.floor((gray / 256) * numColors);
-    const clampedIndex = Math.min(colorIndex, numColors - 1);
-    
-    out.data[i] = colors[clampedIndex][0];
-    out.data[i + 1] = colors[clampedIndex][1];
-    out.data[i + 2] = colors[clampedIndex][2];
-  }
-  
-  return out;
-}
-
-function fnH(ctx: FnContext, j: number): Image {
-  const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  for (let y = 0; y < ctx.height; y++) {
-    const stripHeight = 5 + Math.sin(y * 0.1) * 20;
-    const stripIndex = Math.floor(y / stripHeight);
-    const useOld = stripIndex % 2 === 1;
-    
-    for (let x = 0; x < ctx.width; x++) {
-      const src = useOld ? old : prev;
-      const [r, g, b] = getPixel(src, x, y);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  return out;
-}
-
-function fnI(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  for (let i = 0; i < out.data.length; i += 4) {
-    out.data[i] = 255 - out.data[i];
-    out.data[i + 1] = 255 - out.data[i + 1];
-    out.data[i + 2] = 255 - out.data[i + 2];
-  }
-  
-  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
-  
-  for (let y = 1; y < ctx.height - 1; y++) {
-    for (let x = 1; x < ctx.width - 1; x++) {
-      let gx = 0, gy = 0;
-      
-      for (let ky = -1; ky <= 1; ky++) {
-        for (let kx = -1; kx <= 1; kx++) {
-          const px = getPixel(prev, x + kx, y + ky);
-          const gray = px[0] * 0.299 + px[1] * 0.587 + px[2] * 0.114;
-          const kernelIdx = (ky + 1) * 3 + (kx + 1);
-          gx += gray * sobelX[kernelIdx];
-          gy += gray * sobelY[kernelIdx];
-        }
-      }
-      
-      const magnitude = Math.sqrt(gx * gx + gy * gy);
-      
-      if (magnitude > 50) {
-        setPixel(out, x, y, 255, 255, 255);
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnJ(ctx: FnContext, j: number): Image {
-  const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const nx = x / ctx.width;
-      const ny = y / ctx.height;
-      
-      const squareSize = Math.max(2, Math.floor(2 + (nx + ny) * 50));
-      
-      const gridX = Math.floor(x / squareSize);
-      const gridY = Math.floor(y / squareSize);
-      
-      const useOld = (gridX + gridY) % 2 === 0;
-      const src = useOld ? old : prev;
-      
-      const [r, g, b] = getPixel(src, x, y);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  return out;
-}
-
-function fnK(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const segments = Math.max(1, Math.min(n + 2, 18));
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const angleStep = (Math.PI * 2) / segments;
-  const zoom = 1.1;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = (x - cx) * zoom;
-      const dy = (y - cy) * zoom;
-      let angle = Math.atan2(dy, dx);
-      if (angle < 0) angle += Math.PI * 2;
-      
-      const segmentAngle = angle % angleStep;
-      const mirroredAngle = segmentAngle > angleStep / 2 ? angleStep - segmentAngle : segmentAngle;
-      
-      const r = Math.sqrt(dx * dx + dy * dy);
-      const sx = cx + r * Math.cos(mirroredAngle);
-      const sy = cy + r * Math.sin(mirroredAngle);
-      
-      const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      setPixel(out, x, y, pr, pg, pb);
-    }
-  }
-  
-  return out;
-}
-
-function fnL(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  const complexity = 2;
-  const thickness = Math.max(2, Math.floor(Math.min(ctx.width, ctx.height) / 80));
-  const numCurves = Math.min(complexity, 5);
-  
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const scaleX = cx * 0.9;
-  const scaleY = cy * 0.9;
-  
-  const [bgR, bgG, bgB] = getPixel(prev, Math.floor(cx), Math.floor(cy));
-  
-  const mask = new Uint8Array(ctx.width * ctx.height);
-  
-  const drawThickLine = (x0: number, y0: number, x1: number, y1: number) => {
-    const dx = Math.abs(x1 - x0);
-    const dy = Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1;
-    const sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy;
-    let x = x0, y = y0;
-    
-    while (true) {
-      for (let ty = -thickness; ty <= thickness; ty++) {
-        for (let tx = -thickness; tx <= thickness; tx++) {
-          if (tx * tx + ty * ty <= thickness * thickness) {
-            const px = x + tx;
-            const py = y + ty;
-            if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
-              mask[py * ctx.width + px] = 1;
-            }
-          }
-        }
-      }
-      
-      if (x === x1 && y === y1) break;
-      const e2 = 2 * err;
-      if (e2 > -dy) { err -= dy; x += sx; }
-      if (e2 < dx) { err += dx; y += sy; }
-    }
-  };
-  
-  for (let c = 0; c < numCurves; c++) {
-    const a = complexity + c;
-    const b = complexity + c + 1 + (c % 3);
-    const delta = (c * Math.PI) / (numCurves + 1);
-    
-    const steps = 800;
-    let prevX = Math.floor(cx + Math.sin(delta) * scaleX);
-    let prevY = Math.floor(cy);
-    
-    for (let i = 1; i <= steps; i++) {
-      const t = (i / steps) * Math.PI * 2;
-      const currX = Math.floor(cx + Math.sin(a * t + delta) * scaleX);
-      const currY = Math.floor(cy + Math.sin(b * t) * scaleY);
-      
-      drawThickLine(prevX, prevY, currX, currY);
-      
-      prevX = currX;
-      prevY = currY;
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      if (mask[y * ctx.width + x]) {
-        const nx = x / ctx.width;
-        const ny = y / ctx.height;
-        const gradientPos = (nx + ny) * 0.5;
-        const v = Math.floor(gradientPos * 255);
-        setPixel(out, x, y, v, v, v);
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
-  const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const blockSize = Math.max(2, Math.min(spiralEffect + 2, 50));
-  const spiralTightness = Math.max(5, spiralEffect * 5);
-  
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  
-  for (let by = 0; by < ctx.height; by += blockSize) {
-    for (let bx = 0; bx < ctx.width; bx += blockSize) {
-      const centerX = bx + blockSize / 2;
-      const centerY = by + blockSize / 2;
-      
-      const dx = centerX - cx;
-      const dy = centerY - cy;
-      const radius = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx);
-      
-      const spiralValue = radius + angle * spiralTightness;
-      const bandIndex = Math.floor(spiralValue / spiralTightness);
-      const useOld = bandIndex % 2 === 0;
-      
-      if (useOld) {
-        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-            const [r, g, b] = getPixel(old, x, y);
-            setPixel(out, x, y, r, g, b);
-          }
-        }
-      } else {
-        let sumR = 0, sumG = 0, sumB = 0, count = 0;
-        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-            const [r, g, b] = getPixel(prev, x, y);
-            sumR += r;
-            sumG += g;
-            sumB += b;
-            count++;
-          }
-        }
-        
-        const avgR = Math.round(sumR / count);
-        const avgG = Math.round(sumG / count);
-        const avgB = Math.round(sumB / count);
-        
-        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-            setPixel(out, x, y, avgR, avgG, avgB);
-          }
-        }
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnN(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const scale = Math.min(ctx.width, ctx.height);
-  const numLights = 15;
-  
-  const seed = ctx.images.length * 137.5;
-  const hash = (n: number) => {
-    const x = Math.sin(n + seed) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  
-  const lights: { x: number; y: number; r: number; g: number; b: number; size: number }[] = [];
-  for (let i = 0; i < numLights; i++) {
-    const px = hash(i * 127.1) * ctx.width;
-    const py = hash(i * 311.7) * ctx.height;
-    const colorAngle = hash(i * 74.3) * Math.PI * 2;
-    const size = 0.03 + hash(i * 191.3) * 0.04;
-    lights.push({
-      x: px, y: py,
-      r: Math.cos(colorAngle) * 0.5 + 0.5,
-      g: Math.cos(colorAngle + Math.PI * 2 / 3) * 0.5 + 0.5,
-      b: Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5,
-      size
-    });
-  }
-  
-  const glowRadius = 8;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const brightness = (pr + pg + pb) / (255 * 3);
-      
-      let tr = (pr / 255) * 0.3;
-      let tg = (pg / 255) * 0.3;
-      let tb = (pb / 255) * 0.3;
-      
-      if (brightness > 0.3) {
-        let glowSum = 0;
-        let glowR = 0, glowG = 0, glowB = 0;
-        for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
-          for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
-            const sx = Math.max(0, Math.min(ctx.width - 1, x + dx));
-            const sy = Math.max(0, Math.min(ctx.height - 1, y + dy));
-            const [sr, sg, sb] = getPixel(prev, sx, sy);
-            const sBright = (sr + sg + sb) / (255 * 3);
-            if (sBright > 0.3) {
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              const weight = Math.max(0, 1 - dist / glowRadius);
-              glowR += (sr / 255) * weight * sBright;
-              glowG += (sg / 255) * weight * sBright;
-              glowB += (sb / 255) * weight * sBright;
-              glowSum += weight;
-            }
-          }
-        }
-        if (glowSum > 0) {
-          tr += (glowR / glowSum) * brightness * 1.5;
-          tg += (glowG / glowSum) * brightness * 1.5;
-          tb += (glowB / glowSum) * brightness * 1.5;
-        }
-      }
-      
-      for (const light of lights) {
-        const dx = (x - light.x) / scale;
-        const dy = (y - light.y) / scale;
-        const distSq = dx * dx + dy * dy;
-        const glow = (light.size * light.size) / Math.max(0.0001, distSq);
-        const cappedGlow = Math.min(1, glow);
-        tr += cappedGlow * light.r;
-        tg += cappedGlow * light.g;
-        tb += cappedGlow * light.b;
-      }
-      
-      setPixel(out, x, y,
-        Math.min(255, Math.floor(tr * 255)),
-        Math.min(255, Math.floor(tg * 255)),
-        Math.min(255, Math.floor(tb * 255))
-      );
-    }
-  }
-  
-  return out;
-}
-
-function fnO(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const strength = Math.max(0.0001, Math.min(0.0002 + (n - 1) * 0.05, 8));
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      
-      const normX = dx / cx;
-      const normY = dy / cy;
-      const normR = Math.min(1, Math.sqrt(normX * normX + normY * normY));
-      
-      if (normR < 0.001) {
-        const [pr, pg, pb] = getPixel(prev, Math.floor(cx), Math.floor(cy));
-        setPixel(out, x, y, pr, pg, pb);
-        continue;
-      }
-      
-      const falloff = 1 - normR;
-      const factor = 1 + (strength - 1) * falloff;
-      
-      const sx = cx + dx * factor;
-      const sy = cy + dy * factor;
-      
-      const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      setPixel(out, x, y, pr, pg, pb);
-    }
-  }
-  
-  return out;
-}
-
-function fnP(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const cellSize = Math.max(2, Math.min(n + 1, 50));
-  
-  for (let by = 0; by < ctx.height; by += cellSize) {
-    for (let bx = 0; bx < ctx.width; bx += cellSize) {
-      let sumR = 0, sumG = 0, sumB = 0, count = 0;
-      let maxSat = 0;
-      let mostSatR = 0, mostSatG = 0, mostSatB = 0;
-      
-      for (let y = by; y < by + cellSize && y < ctx.height; y++) {
-        for (let x = bx; x < bx + cellSize && x < ctx.width; x++) {
-          const [r, g, b] = getPixel(prev, x, y);
-          sumR += r;
-          sumG += g;
-          sumB += b;
-          count++;
-          
-          const [h, s, l] = rgbToHsl(r, g, b);
-          if (s > maxSat) {
-            maxSat = s;
-            mostSatR = r;
-            mostSatG = g;
-            mostSatB = b;
-          }
-        }
-      }
-      
-      const avgR = Math.round(sumR / count);
-      const avgG = Math.round(sumG / count);
-      const avgB = Math.round(sumB / count);
-      
-      for (let y = by; y < by + cellSize && y < ctx.height; y++) {
-        for (let x = bx; x < bx + cellSize && x < ctx.width; x++) {
-          const localX = x - bx;
-          const localY = y - by;
-          const isTopLeft = localX + localY < cellSize;
-          
-          if (isTopLeft) {
-            setPixel(out, x, y, avgR, avgG, avgB);
-          } else {
-            setPixel(out, x, y, mostSatR, mostSatG, mostSatB);
-          }
-        }
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnR(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
-  
-  const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
-  
-  const fragmentShader = `
-    precision mediump float;
-    uniform sampler2D texture;
-    uniform vec2 resolution;
-    varying vec2 vUV;
-    
-    void main() {
-      vec2 uv = vUV;
-      float wave = sin(uv.x * 20.0) * 0.1;
-      float shade = 0.7 + 0.3 * cos(uv.x * 20.0);
-      
-      vec2 distortedUV = vec2(uv.x, uv.y + wave * (0.5 - abs(uv.y - 0.5)));
-      vec3 color = texture2D(texture, distortedUV).rgb * shade;
-      
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
-  
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
-  
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
-    }
-  }
-  
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(program);
-  
-  return { width: ctx.width, height: ctx.height, data: flipped };
-}
-
-function fnS(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const skewAmount = Math.tan(20 * Math.PI / 180) * ctx.height / 2;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    const rowSkew = skewAmount * (1 - 2 * y / ctx.height);
-    for (let x = 0; x < ctx.width; x++) {
-      const sx = ((x + rowSkew) % ctx.width + ctx.width) % ctx.width;
-      const [r, g, b] = getPixel(prev, Math.floor(sx), y);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  return out;
-}
-
-function fnT(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
-  
-  const numDrawers = Math.max(1, n + 1);
-  
-  // Vertex shader with MVP transformation
-  const vertexShader = `
-    attribute vec3 aPosition;
-    attribute vec3 aNormal;
-    attribute vec2 aTexCoord;
-    
-    uniform mat4 uProjection;
-    uniform mat4 uView;
-    uniform mat4 uModel;
-    
-    varying vec3 vNormal;
-    varying vec2 vTexCoord;
-    varying vec3 vWorldPos;
-    
-    void main() {
-      vec4 worldPos = uModel * vec4(aPosition, 1.0);
-      vWorldPos = worldPos.xyz;
-      vNormal = mat3(uModel) * aNormal;
-      vTexCoord = aTexCoord;
-      gl_Position = uProjection * uView * worldPos;
-    }
-  `;
-  
-  // Fragment shader with lighting
-  const fragmentShader = `
-    precision highp float;
-    
-    uniform sampler2D uTexture;
-    uniform vec3 uLightDir;
-    uniform int uFaceType; // 0 = front, 1 = side, 2 = top/bottom
-    
-    varying vec3 vNormal;
-    varying vec2 vTexCoord;
-    varying vec3 vWorldPos;
-    
-    void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 lightDir = normalize(uLightDir);
-      
-      float ambient = 0.85;
-      float diffuse = max(dot(normal, lightDir), 0.0) * 0.15;
-      float lighting = ambient + diffuse;
-      
-      vec3 color = texture2D(uTexture, vTexCoord).rgb * lighting;
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
-  
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  
-  // Create texture from prev image
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  // Helper to create box geometry
-  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number): { vertices: number[], normals: number[], texCoords: number[] } {
-    const x0 = cx - hw, x1 = cx + hw;
-    const y0 = cy - hh, y1 = cy + hh;
-    const z0 = 0, z1 = depth;
-    
-    // Texture coords based on box position in image
-    const u0 = cx - hw, u1 = cx + hw;
-    const v0 = cy - hh, v1 = cy + hh;
-    
-    const vertices: number[] = [];
-    const normals: number[] = [];
-    const texCoords: number[] = [];
-    
-    // Front face (z = z1, facing +z towards camera)
-    vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
-    for(let i=0;i<6;i++) normals.push(0,0,1);
-    texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
-    
-    // Right face (+x)
-    vertices.push(x1,y0,z0, x1,y0,z1, x1,y1,z1, x1,y0,z0, x1,y1,z1, x1,y1,z0);
-    for(let i=0;i<6;i++) normals.push(1,0,0);
-    texCoords.push(u1,v0, u1,v0, u1,v1, u1,v0, u1,v1, u1,v1);
-    
-    // Left face (-x)
-    vertices.push(x0,y0,z1, x0,y0,z0, x0,y1,z0, x0,y0,z1, x0,y1,z0, x0,y1,z1);
-    for(let i=0;i<6;i++) normals.push(-1,0,0);
-    texCoords.push(u0,v0, u0,v0, u0,v1, u0,v0, u0,v1, u0,v1);
-    
-    // Top face (+y)
-    vertices.push(x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z1, x1,y1,z0, x0,y1,z0);
-    for(let i=0;i<6;i++) normals.push(0,1,0);
-    texCoords.push(u0,v1, u1,v1, u1,v1, u0,v1, u1,v1, u0,v1);
-    
-    // Bottom face (-y)
-    vertices.push(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z0, x1,y0,z1, x0,y0,z1);
-    for(let i=0;i<6;i++) normals.push(0,-1,0);
-    texCoords.push(u0,v0, u1,v0, u1,v0, u0,v0, u1,v0, u0,v0);
-    
-    return { vertices, normals, texCoords };
-  }
-  
-  // Seeded random
-  const hash = (n: number) => {
-    const x = Math.sin(n) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  
-  // Generate all boxes
-  const allVertices: number[] = [];
-  const allNormals: number[] = [];
-  const allTexCoords: number[] = [];
-  
-  for (let i = 0; i < numDrawers; i++) {
-    const cx = hash(i * 127.1);
-    const cy = hash(i * 311.7);
-    const hw = 0.03 + hash(i * 74.3) * 0.08;
-    const hh = 0.025 + hash(i * 183.9) * 0.06;
-    const depth = 0.1 + hash(i * 271.3) * 0.2;
-    
-    const box = createBox(cx, cy, hw, hh, depth);
-    allVertices.push(...box.vertices);
-    allNormals.push(...box.normals);
-    allTexCoords.push(...box.texCoords);
-  }
-  
-  // First render the background quad
-  gl.useProgram(program);
-  gl.disable(gl.DEPTH_TEST);
-  
-  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
-  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
-  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
-  
-  const posLoc = gl.getAttribLocation(program, 'aPosition');
-  const normLoc = gl.getAttribLocation(program, 'aNormal');
-  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
-  
-  // Identity matrices for background
-  const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
-  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
-  
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
-  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), 0.3, 0.5, 1.0);
-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  
-  const bgPosBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, bgVertices, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(posLoc);
-  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  const bgNormBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, bgNormals, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(normLoc);
-  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  const bgTexBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, bgTexCoords, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(texLoc);
-  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.clearColor(0, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-  
-  // Now render boxes with depth testing
-  gl.enable(gl.DEPTH_TEST);
-  gl.depthFunc(gl.LESS);
-  gl.clear(gl.DEPTH_BUFFER_BIT);
-  
-  // Perspective projection with wider FOV
-  const aspect = ctx.width / ctx.height;
-  const fov = Math.PI / 2.5;
-  const near = 0.1, far = 10.0;
-  const f = 1.0 / Math.tan(fov / 2);
-  const perspective = new Float32Array([
-    f/aspect, 0, 0, 0,
-    0, f, 0, 0,
-    0, 0, (far+near)/(near-far), -1,
-    0, 0, (2*far*near)/(near-far), 0
-  ]);
-  
-  // View matrix - camera positioned to see full 0-1 range
-  const camZ = 0.5 / Math.tan(fov / 2);
-  const view = new Float32Array([
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    -0.5, -0.5, -camZ, 1
-  ]);
-  
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
-  
-  const posBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allVertices), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(posLoc);
-  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  const normBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allNormals), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(normLoc);
-  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  const texBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allTexCoords), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(texLoc);
-  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
-  
-  // Read pixels
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = (y * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
-    }
-  }
-  
-  // Cleanup - disable vertex attributes before deleting buffers
-  gl.disableVertexAttribArray(posLoc);
-  gl.disableVertexAttribArray(normLoc);
-  gl.disableVertexAttribArray(texLoc);
-  gl.disable(gl.DEPTH_TEST);
-  
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(bgPosBuf);
-  gl.deleteBuffer(bgNormBuf);
-  gl.deleteBuffer(bgTexBuf);
-  gl.deleteBuffer(posBuf);
-  gl.deleteBuffer(normBuf);
-  gl.deleteBuffer(texBuf);
-  gl.deleteProgram(program);
-  
-  return { width: ctx.width, height: ctx.height, data: flipped };
-}
-
-function fnU(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const amplitude = n * 5;
-  const frequency = Math.max(1, n);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    let rowLuminance = 0;
-    for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      rowLuminance += r * 0.299 + g * 0.587 + b * 0.114;
-    }
-    rowLuminance /= ctx.width;
-    const phase = (rowLuminance / 255) * Math.PI * 2;
-    
-    for (let x = 0; x < ctx.width; x++) {
-      const wave = Math.sin((y / ctx.height) * Math.PI * 2 * frequency + phase) * amplitude;
-      const sx = ((x + wave) % ctx.width + ctx.width) % ctx.width;
-      const [r, g, b] = getPixel(prev, Math.floor(sx), y);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  return out;
-}
-
-function fnV(ctx: FnContext, c: string): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  const [tr, tg, tb] = hexToRgb(c);
-  
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy) * 0.7;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      const vignette = Math.max(0, 1 - Math.pow(dist / maxR, 2));
-      const darken = vignette;
-      const tint = 1 - vignette;
-      
-      const idx = (y * ctx.width + x) * 4;
-      out.data[idx] = Math.round(out.data[idx] * darken + tr * tint * 0.5);
-      out.data[idx + 1] = Math.round(out.data[idx + 1] * darken + tg * tint * 0.5);
-      out.data[idx + 2] = Math.round(out.data[idx + 2] * darken + tb * tint * 0.5);
-    }
-  }
-  
-  return out;
-}
-
-function fnW(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const maxRotation = (n * 45) * (Math.PI / 180);
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const normDist = dist / maxR;
-      
-      const falloff = (1 - normDist) * (1 - normDist);
-      const rotation = maxRotation * falloff;
-      
-      const cos = Math.cos(rotation);
-      const sin = Math.sin(rotation);
-      const sx = cx + dx * cos - dy * sin;
-      const sy = cy + dx * sin + dy * cos;
-      
-      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  return out;
-}
-
-function fnX(ctx: FnContext, k: number, c: string): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  const [cr, cg, cb] = hexToRgb(c);
-  
-  const shapes = [
-    '★', '●', '■', '▲', '◆', '♥', '✦', '⬡', '✚', '◐', '☽', '⚡', '∞', '☀', '✿', '⬢',
-    '◯', '△', '□', '◇', '♦', '♣', '♠', '⬟', '⬠', '▽', '◁', '▷', '⊕', '⊗', '⊛', '⊚',
-    '▣', '▤', '▥', '▦', '▧', '▨', '▩', '⬣', '⬤', '◉', '◎', '◈', '◊', '○', '◌', '◍',
-    '◢', '◣', '◤', '◥', '♯', '♮', '♩', '♪', '✶', '✴', '✳', '✲', '✱', '✰', '✯', '✮'
-  ];
-  
-  const shapeIdx = Math.abs(k) % 64;
-  const symbol = shapes[shapeIdx];
-  
-  const size = Math.min(ctx.width, ctx.height) * 0.9;
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = ctx.width;
-  tempCanvas.height = ctx.height;
-  const tempCtx = tempCanvas.getContext('2d')!;
-  
-  tempCtx.fillStyle = 'black';
-  tempCtx.fillRect(0, 0, ctx.width, ctx.height);
-  
-  tempCtx.fillStyle = 'white';
-  tempCtx.font = `${size}px serif`;
-  tempCtx.textAlign = 'center';
-  tempCtx.textBaseline = 'alphabetic';
-  
-  const metrics = tempCtx.measureText(symbol);
-  const actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-  const yOffset = metrics.actualBoundingBoxAscent - actualHeight / 2;
-  
-  tempCtx.fillText(symbol, ctx.width / 2, ctx.height / 2 + yOffset);
-  
-  const maskData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const maskIdx = (y * ctx.width + x) * 4;
-      if (maskData.data[maskIdx] > 128) {
-        setPixel(out, x, y, cr, cg, cb);
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnY(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const sections = Math.max(2, Math.min(n, 36));
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      let angle = Math.atan2(dy, dx);
-      if (angle < 0) angle += Math.PI * 2;
-      
-      const sectionIdx = Math.floor(angle / (Math.PI * 2) * sections);
-      const hueShift = (sectionIdx / sections) * 360;
-      
-      const [r, g, b] = getPixel(prev, x, y);
-      const [h, s, l] = rgbToHsl(r, g, b);
-      const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
-      
-      setPixel(out, x, y, nr, ng, nb);
-    }
-  }
-  
-  return out;
-}
-
-function fnZ(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const blurAmount = n * 4;
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
-  const sharpRadius = 0.2;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const normDist = dist / maxR;
-      
-      if (normDist < sharpRadius) {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
-      } else {
-        const blurStrength = Math.min(1, (normDist - sharpRadius) / (1 - sharpRadius));
-        const samples = Math.max(1, Math.floor(blurStrength * blurAmount / 2));
-        
-        let sumR = 0, sumG = 0, sumB = 0;
-        for (let i = 0; i <= samples; i++) {
-          const t = i / samples;
-          const sx = cx + dx * (1 - t * blurStrength * 0.5);
-          const sy = cy + dy * (1 - t * blurStrength * 0.5);
-          const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-          sumR += r;
-          sumG += g;
-          sumB += b;
-        }
-        
-        setPixel(out, x, y, 
-          Math.round(sumR / (samples + 1)),
-          Math.round(sumG / (samples + 1)),
-          Math.round(sumB / (samples + 1))
-        );
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fnQ(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const hw = Math.floor(ctx.width / 2);
-  const hh = Math.floor(ctx.height / 2);
-  
-  const temp = createSolidImage(hw, hh, '#000000');
-  
-  for (let y = 0; y < hh; y++) {
-    for (let x = 0; x < hw; x++) {
-      const sx = (x / hw) * prev.width;
-      const sy = (y / hh) * prev.height;
-      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      
-      if (x / hw + y / hh > 1) {
-        setPixel(temp, x, y, 255 - r, 255 - g, 255 - b);
-      } else {
-        setPixel(temp, x, y, r, g, b);
-      }
-    }
-  }
-  
-  for (let qy = 0; qy < 2; qy++) {
-    for (let qx = 0; qx < 2; qx++) {
-      for (let y = 0; y < hh; y++) {
-        for (let x = 0; x < hw; x++) {
-          const outX = qx * hw + x;
-          const outY = qy * hh + y;
-          if (outX < ctx.width && outY < ctx.height) {
-            const [r, g, b] = getPixel(temp, x, y);
-            setPixel(out, outX, outY, r, g, b);
-          }
-        }
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fn0(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
-  const opacity = Math.max(0.1, Math.min((n * 10) / 100, 1));
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const gradient = 1 - (dist / maxR);
-      const gradientValue = gradient * 255;
-      
-      const idx = (y * ctx.width + x) * 4;
-      out.data[idx] = Math.min(255, Math.round(out.data[idx] * (1 - opacity) + (out.data[idx] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
-      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * (1 - opacity) + (out.data[idx + 1] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
-      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * (1 - opacity) + (out.data[idx + 2] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
-    }
-  }
-  
-  return out;
-}
-
-function fn1(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const barStart = Math.floor(ctx.width / 3);
-  const barEnd = Math.floor(ctx.width * 2 / 3);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      
-      if (x >= barStart && x < barEnd) {
-        let sr = 0, sg = 0, sb = 0;
-        const kernel = [
-          [0, -1, 0],
-          [-1, 5, -1],
-          [0, -1, 0]
-        ];
-        for (let ky = -1; ky <= 1; ky++) {
-          for (let kx = -1; kx <= 1; kx++) {
-            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
-            const weight = kernel[ky + 1][kx + 1];
-            sr += pr * weight;
-            sg += pg * weight;
-            sb += pb * weight;
-          }
-        }
-        sr = Math.max(0, Math.min(255, sr));
-        sg = Math.max(0, Math.min(255, sg));
-        sb = Math.max(0, Math.min(255, sb));
-        
-        const contrast = 1.3;
-        sr = Math.max(0, Math.min(255, ((sr / 255 - 0.5) * contrast + 0.5) * 255));
-        sg = Math.max(0, Math.min(255, ((sg / 255 - 0.5) * contrast + 0.5) * 255));
-        sb = Math.max(0, Math.min(255, ((sb / 255 - 0.5) * contrast + 0.5) * 255));
-        
-        setPixel(out, x, y, Math.round(sr), Math.round(sg), Math.round(sb));
-      } else {
-        const gray = Math.round(r * 0.299 + g * 0.587 + b * 0.114);
-        setPixel(out, x, y, gray, gray, gray);
-      }
-    }
-  }
-  
-  return out;
-}
-
-function fn2(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const len = ctx.images.length;
-  const img3 = len >= 3 ? ctx.images[len - 3] : (len >= 1 ? ctx.images[0] : prev);
-  const img2 = len >= 2 ? ctx.images[len - 2] : prev;
-  const img1 = prev;
-  
-  const third1 = Math.floor(ctx.width / 3);
-  const third2 = Math.floor(ctx.width * 2 / 3);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      let src: Image;
-      if (x < third1) {
-        src = img3;
-      } else if (x < third2) {
-        src = img2;
-      } else {
-        src = img1;
-      }
-      const [r, g, b] = getPixel(src, x, y);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  return out;
-}
-
-function fn3(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const stripWidth = Math.floor(ctx.width / 3);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < stripWidth; x++) {
-      const srcX = Math.floor((y / ctx.height) * stripWidth);
-      const srcY = Math.floor(((stripWidth - 1 - x) / stripWidth) * ctx.height);
-      const [r, g, b] = getPixel(prev, srcX, srcY);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = stripWidth; x < stripWidth * 2; x++) {
-      const srcX = Math.floor(((x - stripWidth) / stripWidth) * stripWidth + stripWidth);
-      const srcY = y;
-      const [r, g, b] = getPixel(prev, srcX, srcY);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = stripWidth * 2; x < ctx.width; x++) {
+<tool.toolu_01PD8ZB5Po3sz15EEzkSvYSX>
       const localX = x - stripWidth * 2;
       const srcX = Math.floor(((ctx.height - 1 - y) / ctx.height) * (ctx.width - stripWidth * 2) + stripWidth * 2);
       const srcY = Math.floor((localX / (ctx.width - stripWidth * 2)) * ctx.height);
@@ -5496,6 +4550,502 @@ function fnCaret(ctx: FnContext): Image {
   return out;
 }
 
+function fnExclaim(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const opacity = 0.3;
+  const factor = n + 17;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const brightness = ((x * factor) ^ (y * 31) ^ (x * y)) % 256;
+      const idx = (y * ctx.width + x) * 4;
+      out.data[idx] = Math.round(out.data[idx] * (1 - opacity) + brightness * opacity);
+      out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - opacity) + brightness * opacity);
+      out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - opacity) + brightness * opacity);
+    }
+  }
+  
+  return out;
+}
+
+function fnDoubleQuote(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const bands = Math.max(2, n);
+  const bandHeight = ctx.height / bands;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    const bandIdx = Math.floor(y / bandHeight);
+    const isOdd = bandIdx % 2 === 1;
+    
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      
+      if (isOdd) {
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb((h + 180) % 360, s, l);
+        setPixel(out, x, y, nr, ng, nb);
+      } else {
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb(h, 1 - s, l);
+        setPixel(out, x, y, nr, ng, nb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnHash(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  const gridSpacing = 20;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const thickness = 1 + Math.sin(x * y * 0.01) * 3;
+      const nearHorizontal = (y % gridSpacing) < thickness;
+      const nearVertical = (x % gridSpacing) < thickness;
+      
+      if (nearHorizontal || nearVertical) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnDollar(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const turns = Math.max(1, n);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.min(cx, cy) * 0.9;
+  const phi = (1 + Math.sqrt(5)) / 2;
+  const totalAngle = turns * Math.PI * 2;
+  const steps = turns * 200;
+  
+  for (let i = 0; i < steps; i++) {
+    const t = i / steps;
+    const angle = t * totalAngle;
+    const r = maxR * Math.pow(phi, angle / (Math.PI * 2) - turns + 1);
+    
+    if (r < 1 || r > maxR) continue;
+    
+    const x = Math.floor(cx + r * Math.cos(angle));
+    const y = Math.floor(cy + r * Math.sin(angle));
+    
+    if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const brightness = (pr + pg + pb) / 3;
+      const invBrightness = 255 - brightness;
+      
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          if (dx * dx + dy * dy <= 4) {
+            setPixel(out, x + dx, y + dy, invBrightness, invBrightness, invBrightness);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnPercent(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const cellSize = Math.max(1, n + 1);
+  const corners = [
+    getPixel(prev, 0, 0),
+    getPixel(prev, ctx.width - 1, 0),
+    getPixel(prev, 0, ctx.height - 1),
+    getPixel(prev, ctx.width - 1, ctx.height - 1)
+  ];
+  const palette = corners.map(([r, g, b]) => [r, g, b] as [number, number, number]);
+  
+  const findClosest = (r: number, g: number, b: number): [number, number, number] => {
+    let minDist = Infinity;
+    let closest = palette[0];
+    for (const [pr, pg, pb] of palette) {
+      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+      if (dist < minDist) {
+        minDist = dist;
+        closest = [pr, pg, pb];
+      }
+    }
+    return closest;
+  };
+  
+  const tempData = new Float32Array(ctx.width * ctx.height * 3);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const idx = (y * ctx.width + x) * 3;
+      tempData[idx] = r;
+      tempData[idx + 1] = g;
+      tempData[idx + 2] = b;
+    }
+  }
+  
+  for (let y = 0; y < ctx.height; y += cellSize) {
+    for (let x = 0; x < ctx.width; x += cellSize) {
+      const idx = (y * ctx.width + x) * 3;
+      const oldR = tempData[idx];
+      const oldG = tempData[idx + 1];
+      const oldB = tempData[idx + 2];
+      
+      const [newR, newG, newB] = findClosest(oldR, oldG, oldB);
+      
+      for (let cy = 0; cy < cellSize && y + cy < ctx.height; cy++) {
+        for (let cx = 0; cx < cellSize && x + cx < ctx.width; cx++) {
+          setPixel(out, x + cx, y + cy, newR, newG, newB);
+        }
+      }
+      
+      const errR = oldR - newR;
+      const errG = oldG - newG;
+      const errB = oldB - newB;
+      
+      const distribute = (dx: number, dy: number, factor: number) => {
+        const nx = x + dx * cellSize;
+        const ny = y + dy * cellSize;
+        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
+          const nidx = (ny * ctx.width + nx) * 3;
+          tempData[nidx] += errR * factor;
+          tempData[nidx + 1] += errG * factor;
+          tempData[nidx + 2] += errB * factor;
+        }
+      };
+      
+      distribute(1, 0, 7 / 16);
+      distribute(-1, 1, 3 / 16);
+      distribute(0, 1, 5 / 16);
+      distribute(1, 1, 1 / 16);
+    }
+  }
+  
+  return out;
+}
+
+function fnAmpersand(ctx: FnContext, j: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
+      
+      const luminance = pr * 0.299 + pg * 0.587 + pb * 0.114;
+      const [oh, os, ol] = rgbToHsl(or, og, ob);
+      const [nr, ng, nb] = hslToRgb(oh, os, luminance / 255);
+      
+      setPixel(out, x, y, nr, ng, nb);
+    }
+  }
+  
+  return out;
+}
+
+function fnApostrophe(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const spacing = n + 2;
+  
+  for (let x = 0; x < ctx.width; x++) {
+    if (x % spacing !== 0) continue;
+    
+    let colLuminance = 0;
+    for (let y = 0; y < ctx.height; y++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      colLuminance += r * 0.299 + g * 0.587 + b * 0.114;
+    }
+    colLuminance /= ctx.height;
+    
+    const streakLength = Math.floor((colLuminance / 255) * 100);
+    const startY = 0;
+    
+    for (let y = startY; y < startY + streakLength && y < ctx.height; y++) {
+      const idx = (y * ctx.width + x) * 4;
+      out.data[idx] = Math.min(255, Math.round(out.data[idx] * 0.5 + 127));
+      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * 0.5 + 127));
+      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * 0.5 + 127));
+    }
+  }
+  
+  return out;
+}
+
+function fnOpenParen(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const strength = n / 10;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const normDist = dist / maxR;
+      
+      const pinchFactor = 1 + strength * (1 - normDist);
+      const sx = cx + dx * pinchFactor;
+      const sy = cy + dy * pinchFactor;
+      
+      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      const brighten = (1 - normDist) * strength * 30;
+      r = Math.min(255, r + brighten);
+      g = Math.min(255, g + brighten);
+      b = Math.min(255, b + brighten);
+      
+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+    }
+  }
+  
+  return out;
+}
+
+function fnCloseParen(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const strength = n / 10;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const normDist = dist / maxR;
+      
+      const bulgeFactor = 1 - strength * normDist * 0.5;
+      const sx = cx + dx * bulgeFactor;
+      const sy = cy + dy * bulgeFactor;
+      
+      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      const darken = normDist * strength * 50;
+      r = Math.max(0, r - darken);
+      g = Math.max(0, g - darken);
+      b = Math.max(0, b - darken);
+      
+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+    }
+  }
+  
+  return out;
+}
+
+function fnAsterisk(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const numRays = Math.max(2, n);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  const opacity = 0.6;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      let angle = Math.atan2(dy, dx);
+      if (angle < 0) angle += Math.PI * 2;
+      
+      const rayAngle = (Math.PI * 2) / numRays;
+      const nearestRay = Math.round(angle / rayAngle) * rayAngle;
+      const angleDiff = Math.abs(angle - nearestRay);
+      
+      const rayWidth = 0.05;
+      if (angleDiff < rayWidth) {
+        const softness = 1 - angleDiff / rayWidth;
+        const sampleX = Math.floor(cx + Math.cos(nearestRay) * (ctx.width / numRays));
+        const [sr, sg, sb] = getPixel(prev, sampleX, Math.floor(cy));
+        
+        const idx = (y * ctx.width + x) * 4;
+        const blend = softness * opacity;
+        out.data[idx] = Math.round(out.data[idx] * (1 - blend) + sr * blend);
+        out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - blend) + sg * blend);
+        out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - blend) + sb * blend);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnPlus(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const hw = ctx.width / 2;
+  const hh = ctx.height / 2;
+  
+  const sharpenKernel = [
+    [0, -1, 0],
+    [-1, 5, -1],
+    [0, -1, 0]
+  ];
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const inTopLeft = x < hw && y < hh;
+      const inBottomRight = x >= hw && y >= hh;
+      const shouldSharpen = inTopLeft || inBottomRight;
+      
+      if (shouldSharpen) {
+        let sr = 0, sg = 0, sb = 0;
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
+            const weight = sharpenKernel[ky + 1][kx + 1];
+            sr += pr * weight;
+            sg += pg * weight;
+            sb += pb * weight;
+          }
+        }
+        setPixel(out, x, y,
+          Math.max(0, Math.min(255, Math.round(sr))),
+          Math.max(0, Math.min(255, Math.round(sg))),
+          Math.max(0, Math.min(255, Math.round(sb)))
+        );
+      } else {
+        let sr = 0, sg = 0, sb = 0;
+        const radius = 2;
+        let count = 0;
+        for (let ky = -radius; ky <= radius; ky++) {
+          for (let kx = -radius; kx <= radius; kx++) {
+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
+            sr += pr;
+            sg += pg;
+            sb += pb;
+            count++;
+          }
+        }
+        setPixel(out, x, y,
+          Math.round(sr / count),
+          Math.round(sg / count),
+          Math.round(sb / count)
+        );
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnComma(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const luminance = Math.floor(r * 0.299 + g * 0.587 + b * 0.114);
+      const divisor = 1 + Math.floor(luminance / 32);
+      
+      if ((x * 13 + y * 7) % divisor === 0) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnMinus(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const spacing = Math.max(2, n);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      let [r, g, b] = getPixel(prev, x, y);
+      
+      if (y % spacing === 0) {
+        r = Math.floor(r * 0.5);
+        g = Math.floor(g * 0.5);
+        b = Math.floor(b * 0.5);
+      }
+      
+      if (y % (spacing * 2) === 0) {
+        const srcY = Math.max(0, y - spacing);
+        [r, g, b] = getPixel(prev, x, srcY);
+      }
+      
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fnDot(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const radius = (n % 8) + 2;
+  const diameter = radius * 2;
+  
+  for (let cy = radius; cy < ctx.height; cy += diameter) {
+    for (let cx = radius; cx < ctx.width; cx += diameter) {
+      const [r, g, b] = getPixel(prev, cx, cy);
+      const [h, s, l] = rgbToHsl(r, g, b);
+      const [nr, ng, nb] = hslToRgb(h, Math.min(1, s + 0.1), l);
+      
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          if (dx * dx + dy * dy <= radius * radius) {
+            setPixel(out, cx + dx, cy + dy, nr, ng, nb);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnSlash(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      const spacing = Math.max(2, Math.floor(2 + luminance * 15));
+      
+      const diag = (x + y) % spacing;
+      if (diag === 0) {
+        setPixel(out, x, y, cr, cg, cb);
+      }
+    }
+  }
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
@@ -5886,750 +5436,359 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "shift-up",
     documentation: "Shifts prev 1/3 of the height up with wraparound"
   },
+  
+  '!': {
+    color: '#FF4500',
+    number: 40,
+    fn: fnExclaim,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hash-overlay",
+    documentation: "Overlays deterministic hash pattern where brightness = ((x*(n+17)) ^ (y*31) ^ (x*y)) % 256 at 30% opacity"
+  },
+  
+  '"': {
+    color: '#9932CC',
+    number: 41,
+    fn: fnDoubleQuote,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "band-transform",
+    documentation: "Splits into n horizontal bands; odd bands hue-rotated 180°, even bands have saturation inverted"
+  },
+  
+  '#': {
+    color: '#228B22',
+    number: 42,
+    fn: fnHash,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "grid-lines",
+    documentation: "Draws grid of lines in color c with thickness = 1 + sin(x*y*0.01) * 3"
+  },
+  
+  '$': {
+    color: '#FFD700',
+    number: 43,
+    fn: fnDollar,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "golden-spiral",
+    documentation: "Draws golden spiral with n turns from center, spiral color is brightness-inverted sample of prev"
+  },
+  
+  '%': {
+    color: '#8B0000',
+    number: 44,
+    fn: fnPercent,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "floyd-steinberg",
+    documentation: "Floyd-Steinberg dithers prev to 4-corner color palette with cell size n+1"
+  },
+  
+  '&': {
+    color: '#4169E1',
+    number: 45,
+    fn: fnAmpersand,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hue-sat-transfer",
+    documentation: "Output has prev's luminance but hue/saturation from old_image at index j"
+  },
+  
+  "'": {
+    color: '#FF1493',
+    number: 46,
+    fn: fnApostrophe,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "vertical-streaks",
+    documentation: "Vertical streaks at x positions where x % (n+2) == 0, length based on column luminance, 50% white"
+  },
+  
+  '(': {
+    color: '#00CED1',
+    number: 47,
+    fn: fnOpenParen,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "pinch",
+    documentation: "Pinch distortion toward center with strength n/10, brightens pixels near center"
+  },
+  
+  ')': {
+    color: '#FF69B4',
+    number: 48,
+    fn: fnCloseParen,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "bulge",
+    documentation: "Bulge distortion from center with strength n/10, darkens pixels near edge"
+  },
+  
+  '*': {
+    color: '#FFD700',
+    number: 49,
+    fn: fnAsterisk,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "rays",
+    documentation: "n rays emanate from center, color sampled from prev at angle*width/n, soft edges at 60% opacity"
+  },
+  
+  '+': {
+    color: '#32CD32',
+    number: 50,
+    fn: fnPlus,
+    arity: 0,
+    argTypes: [],
+    functionName: "quad-sharpen-blur",
+    documentation: "Cross divides into 4 quadrants; top-left/bottom-right sharpened, others blurred"
+  },
+  
+  ',': {
+    color: '#BA55D3',
+    number: 51,
+    fn: fnComma,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "stipple",
+    documentation: "Stipples prev with dots of color c at positions where (x*13+y*7) % (1+luminance/32) == 0"
+  },
+  
+  '-': {
+    color: '#708090',
+    number: 52,
+    fn: fnMinus,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "scanlines",
+    documentation: "Every nth row darkened 50%, every (n*2)th row samples from n pixels above"
+  },
+  
+  '.': {
+    color: '#20B2AA',
+    number: 53,
+    fn: fnDot,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "pointillism",
+    documentation: "Rebuilds prev from circles of radius (n%8)+2, color from center with +10% saturation"
+  },
+  
+  '/': {
+    color: '#CD853F',
+    number: 54,
+    fn: fnSlash,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "diagonal-lines",
+    documentation: "Diagonal lines top-left to bottom-right in color c, spacing based on luminance (bright=sparse)"
+  },
 };
-</tool.toolu_01JyCQ5UVA9voAM2DfEooYQU>
+</tool.toolu_01PD8ZB5Po3sz15EEzkSvYSX>
 
 # ASSISTANT
 
-Now I'll implement the functions for `!` through `/`. Let me add them to the file:
+Now I can see the characterDefs object ends at `/`. I need to implement the missing characters. Let me check what characters are missing according to the spec:
+
+Missing characters:
+- `:` - circular zoom regions
+- `;` - semicircle with reflection
+- `=` - horizontal stripes shifted
+- `?` - effect based on corner pixels
+- `@` - sphere (same as A)
+- `[` - torn paper left
+- `\` - diagonal lines opposite direction
+- `]` - torn paper right
+- `_` - bottom reflection
+- `` ` `` - glitch effect
+- `{` - left cylinder (WebGL)
+- `|` - vertical split blend
+- `}` - right cylinder (WebGL)
+- `~` - horizontal wave with chromatic aberration
+
+Let me implement all these missing functions:
 
 # TOOL USE
 
 Name: str-replace
-ID: toolu_014r4Spa6FUt95kT9nx9ZF9p
+ID: toolu_01UD7CKsf9MnhZGUXjRzfGqk
 
 ## path
 
-<tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
+<tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
 character-defs.ts
-</tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
+</tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
 
 ## diff
 
-<tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
- function fnCaret(ctx: FnContext): Image {
-   const prev = getPrevImage(ctx);
-   const out = createSolidImage(ctx.width, ctx.height, '#000000');
-   const shift = Math.floor(ctx.height / 3);
-   
-   for (let y = 0; y < ctx.height; y++) {
-     for (let x = 0; x < ctx.width; x++) {
-       const srcY = (y + shift) % ctx.height;
-       const [r, g, b] = getPixel(prev, x, srcY);
-+      setPixel(out, x, y, r, g, b);
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnExclaim(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = cloneImage(prev);
-+  const opacity = 0.3;
-+  const factor = n + 17;
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const brightness = ((x * factor) ^ (y * 31) ^ (x * y)) % 256;
-+      const idx = (y * ctx.width + x) * 4;
-+      out.data[idx] = Math.round(out.data[idx] * (1 - opacity) + brightness * opacity);
-+      out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - opacity) + brightness * opacity);
-+      out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - opacity) + brightness * opacity);
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnDoubleQuote(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-+  const bands = Math.max(2, n);
-+  const bandHeight = ctx.height / bands;
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    const bandIdx = Math.floor(y / bandHeight);
-+    const isOdd = bandIdx % 2 === 1;
-+    
-+    for (let x = 0; x < ctx.width; x++) {
-+      const [r, g, b] = getPixel(prev, x, y);
-+      
-+      if (isOdd) {
-+        const [h, s, l] = rgbToHsl(r, g, b);
-+        const [nr, ng, nb] = hslToRgb((h + 180) % 360, s, l);
-+        setPixel(out, x, y, nr, ng, nb);
-+      } else {
-+        const [h, s, l] = rgbToHsl(r, g, b);
-+        const [nr, ng, nb] = hslToRgb(h, 1 - s, l);
-+        setPixel(out, x, y, nr, ng, nb);
-+      }
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnHash(ctx: FnContext, c: string): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = cloneImage(prev);
-+  const [cr, cg, cb] = hexToRgb(c);
-+  
-+  const gridSpacing = 20;
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const thickness = 1 + Math.sin(x * y * 0.01) * 3;
-+      const nearHorizontal = (y % gridSpacing) < thickness;
-+      const nearVertical = (x % gridSpacing) < thickness;
-+      
-+      if (nearHorizontal || nearVertical) {
-+        setPixel(out, x, y, cr, cg, cb);
-+      }
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnDollar(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = cloneImage(prev);
-+  
-+  const turns = Math.max(1, n);
-+  const cx = ctx.width / 2;
-+  const cy = ctx.height / 2;
-+  const maxR = Math.min(cx, cy) * 0.9;
-+  const phi = (1 + Math.sqrt(5)) / 2;
-+  const totalAngle = turns * Math.PI * 2;
-+  const steps = turns * 200;
-+  
-+  for (let i = 0; i < steps; i++) {
-+    const t = i / steps;
-+    const angle = t * totalAngle;
-+    const r = maxR * Math.pow(phi, angle / (Math.PI * 2) - turns + 1);
-+    
-+    if (r < 1 || r > maxR) continue;
-+    
-+    const x = Math.floor(cx + r * Math.cos(angle));
-+    const y = Math.floor(cy + r * Math.sin(angle));
-+    
-+    if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
-+      const [pr, pg, pb] = getPixel(prev, x, y);
-+      const brightness = (pr + pg + pb) / 3;
-+      const invBrightness = 255 - brightness;
-+      
-+      for (let dy = -2; dy <= 2; dy++) {
-+        for (let dx = -2; dx <= 2; dx++) {
-+          if (dx * dx + dy * dy <= 4) {
-+            setPixel(out, x + dx, y + dy, invBrightness, invBrightness, invBrightness);
-+          }
-+        }
-+      }
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnPercent(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-+  
-+  const cellSize = Math.max(1, n + 1);
-+  const corners = [
-+    getPixel(prev, 0, 0),
-+    getPixel(prev, ctx.width - 1, 0),
-+    getPixel(prev, 0, ctx.height - 1),
-+    getPixel(prev, ctx.width - 1, ctx.height - 1)
-+  ];
-+  const palette = corners.map(([r, g, b]) => [r, g, b] as [number, number, number]);
-+  
-+  const findClosest = (r: number, g: number, b: number): [number, number, number] => {
-+    let minDist = Infinity;
-+    let closest = palette[0];
-+    for (const [pr, pg, pb] of palette) {
-+      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
-+      if (dist < minDist) {
-+        minDist = dist;
-+        closest = [pr, pg, pb];
-+      }
-+    }
-+    return closest;
-+  };
-+  
-+  const tempData = new Float32Array(ctx.width * ctx.height * 3);
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const [r, g, b] = getPixel(prev, x, y);
-+      const idx = (y * ctx.width + x) * 3;
-+      tempData[idx] = r;
-+      tempData[idx + 1] = g;
-+      tempData[idx + 2] = b;
-+    }
-+  }
-+  
-+  for (let y = 0; y < ctx.height; y += cellSize) {
-+    for (let x = 0; x < ctx.width; x += cellSize) {
-+      const idx = (y * ctx.width + x) * 3;
-+      const oldR = tempData[idx];
-+      const oldG = tempData[idx + 1];
-+      const oldB = tempData[idx + 2];
-+      
-+      const [newR, newG, newB] = findClosest(oldR, oldG, oldB);
-+      
-+      for (let cy = 0; cy < cellSize && y + cy < ctx.height; cy++) {
-+        for (let cx = 0; cx < cellSize && x + cx < ctx.width; cx++) {
-+          setPixel(out, x + cx, y + cy, newR, newG, newB);
-+        }
-+      }
-+      
-+      const errR = oldR - newR;
-+      const errG = oldG - newG;
-+      const errB = oldB - newB;
-+      
-+      const distribute = (dx: number, dy: number, factor: number) => {
-+        const nx = x + dx * cellSize;
-+        const ny = y + dy * cellSize;
-+        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
-+          const nidx = (ny * ctx.width + nx) * 3;
-+          tempData[nidx] += errR * factor;
-+          tempData[nidx + 1] += errG * factor;
-+          tempData[nidx + 2] += errB * factor;
-+        }
-+      };
-+      
-+      distribute(1, 0, 7 / 16);
-+      distribute(-1, 1, 3 / 16);
-+      distribute(0, 1, 5 / 16);
-+      distribute(1, 1, 1 / 16);
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnAmpersand(ctx: FnContext, j: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const old = getOldImage(ctx, j);
-+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const [pr, pg, pb] = getPixel(prev, x, y);
-+      const [or, og, ob] = getPixel(old, x, y);
-+      
-+      const luminance = pr * 0.299 + pg * 0.587 + pb * 0.114;
-+      const [oh, os, ol] = rgbToHsl(or, og, ob);
-+      const [nr, ng, nb] = hslToRgb(oh, os, luminance / 255);
-+      
-+      setPixel(out, x, y, nr, ng, nb);
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnApostrophe(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = cloneImage(prev);
-+  const spacing = n + 2;
-+  
-+  for (let x = 0; x < ctx.width; x++) {
-+    if (x % spacing !== 0) continue;
-+    
-+    let colLuminance = 0;
-+    for (let y = 0; y < ctx.height; y++) {
-+      const [r, g, b] = getPixel(prev, x, y);
-+      colLuminance += r * 0.299 + g * 0.587 + b * 0.114;
-+    }
-+    colLuminance /= ctx.height;
-+    
-+    const streakLength = Math.floor((colLuminance / 255) * 100);
-+    const startY = 0;
-+    
-+    for (let y = startY; y < startY + streakLength && y < ctx.height; y++) {
-+      const idx = (y * ctx.width + x) * 4;
-+      out.data[idx] = Math.min(255, Math.round(out.data[idx] * 0.5 + 127));
-+      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * 0.5 + 127));
-+      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * 0.5 + 127));
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnOpenParen(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-+  
-+  const strength = n / 10;
-+  const cx = ctx.width / 2;
-+  const cy = ctx.height / 2;
-+  const maxR = Math.sqrt(cx * cx + cy * cy);
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const dx = x - cx;
-+      const dy = y - cy;
-+      const dist = Math.sqrt(dx * dx + dy * dy);
-+      const normDist = dist / maxR;
-+      
-+      const pinchFactor = 1 + strength * (1 - normDist);
-+      const sx = cx + dx * pinchFactor;
-+      const sy = cy + dy * pinchFactor;
-+      
-+      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-+      
-+      const brighten = (1 - normDist) * strength * 30;
-+      r = Math.min(255, r + brighten);
-+      g = Math.min(255, g + brighten);
-+      b = Math.min(255, b + brighten);
-+      
-+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnCloseParen(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-+  
-+  const strength = n / 10;
-+  const cx = ctx.width / 2;
-+  const cy = ctx.height / 2;
-+  const maxR = Math.sqrt(cx * cx + cy * cy);
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const dx = x - cx;
-+      const dy = y - cy;
-+      const dist = Math.sqrt(dx * dx + dy * dy);
-+      const normDist = dist / maxR;
-+      
-+      const bulgeFactor = 1 - strength * normDist * 0.5;
-+      const sx = cx + dx * bulgeFactor;
-+      const sy = cy + dy * bulgeFactor;
-+      
-+      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-+      
-+      const darken = normDist * strength * 50;
-+      r = Math.max(0, r - darken);
-+      g = Math.max(0, g - darken);
-+      b = Math.max(0, b - darken);
-+      
-+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnAsterisk(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = cloneImage(prev);
-+  
-+  const numRays = Math.max(2, n);
-+  const cx = ctx.width / 2;
-+  const cy = ctx.height / 2;
-+  const maxR = Math.sqrt(cx * cx + cy * cy);
-+  const opacity = 0.6;
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const dx = x - cx;
-+      const dy = y - cy;
-+      let angle = Math.atan2(dy, dx);
-+      if (angle < 0) angle += Math.PI * 2;
-+      
-+      const rayAngle = (Math.PI * 2) / numRays;
-+      const nearestRay = Math.round(angle / rayAngle) * rayAngle;
-+      const angleDiff = Math.abs(angle - nearestRay);
-+      
-+      const rayWidth = 0.05;
-+      if (angleDiff < rayWidth) {
-+        const softness = 1 - angleDiff / rayWidth;
-+        const sampleX = Math.floor(cx + Math.cos(nearestRay) * (ctx.width / numRays));
-+        const [sr, sg, sb] = getPixel(prev, sampleX, Math.floor(cy));
-+        
-+        const idx = (y * ctx.width + x) * 4;
-+        const blend = softness * opacity;
-+        out.data[idx] = Math.round(out.data[idx] * (1 - blend) + sr * blend);
-+        out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - blend) + sg * blend);
-+        out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - blend) + sb * blend);
-+      }
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnPlus(ctx: FnContext): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-+  
-+  const hw = ctx.width / 2;
-+  const hh = ctx.height / 2;
-+  
-+  const sharpenKernel = [
-+    [0, -1, 0],
-+    [-1, 5, -1],
-+    [0, -1, 0]
-+  ];
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const inTopLeft = x < hw && y < hh;
-+      const inBottomRight = x >= hw && y >= hh;
-+      const shouldSharpen = inTopLeft || inBottomRight;
-+      
-+      if (shouldSharpen) {
-+        let sr = 0, sg = 0, sb = 0;
-+        for (let ky = -1; ky <= 1; ky++) {
-+          for (let kx = -1; kx <= 1; kx++) {
-+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
-+            const weight = sharpenKernel[ky + 1][kx + 1];
-+            sr += pr * weight;
-+            sg += pg * weight;
-+            sb += pb * weight;
-+          }
-+        }
-+        setPixel(out, x, y,
-+          Math.max(0, Math.min(255, Math.round(sr))),
-+          Math.max(0, Math.min(255, Math.round(sg))),
-+          Math.max(0, Math.min(255, Math.round(sb)))
-+        );
-+      } else {
-+        let sr = 0, sg = 0, sb = 0;
-+        const radius = 2;
-+        let count = 0;
-+        for (let ky = -radius; ky <= radius; ky++) {
-+          for (let kx = -radius; kx <= radius; kx++) {
-+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
-+            sr += pr;
-+            sg += pg;
-+            sb += pb;
-+            count++;
-+          }
-+        }
-+        setPixel(out, x, y,
-+          Math.round(sr / count),
-+          Math.round(sg / count),
-+          Math.round(sb / count)
-+        );
-+      }
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnComma(ctx: FnContext, c: string): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = cloneImage(prev);
-+  const [cr, cg, cb] = hexToRgb(c);
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const [r, g, b] = getPixel(prev, x, y);
-+      const luminance = Math.floor(r * 0.299 + g * 0.587 + b * 0.114);
-+      const divisor = 1 + Math.floor(luminance / 32);
-+      
-+      if ((x * 13 + y * 7) % divisor === 0) {
-+        setPixel(out, x, y, cr, cg, cb);
-+      }
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnMinus(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-+  const spacing = Math.max(2, n);
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      let [r, g, b] = getPixel(prev, x, y);
-+      
-+      if (y % spacing === 0) {
-+        r = Math.floor(r * 0.5);
-+        g = Math.floor(g * 0.5);
-+        b = Math.floor(b * 0.5);
-+      }
-+      
-+      if (y % (spacing * 2) === 0) {
-+        const srcY = Math.max(0, y - spacing);
-+        [r, g, b] = getPixel(prev, x, srcY);
-+      }
-+      
-       setPixel(out, x, y, r, g, b);
-     }
-   }
-   
-   return out;
- }
- 
-+function fnDot(ctx: FnContext, n: number): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-+  const radius = (n % 8) + 2;
-+  const diameter = radius * 2;
-+  
-+  for (let cy = radius; cy < ctx.height; cy += diameter) {
-+    for (let cx = radius; cx < ctx.width; cx += diameter) {
-+      const [r, g, b] = getPixel(prev, cx, cy);
-+      const [h, s, l] = rgbToHsl(r, g, b);
-+      const [nr, ng, nb] = hslToRgb(h, Math.min(1, s + 0.1), l);
-+      
-+      for (let dy = -radius; dy <= radius; dy++) {
-+        for (let dx = -radius; dx <= radius; dx++) {
-+          if (dx * dx + dy * dy <= radius * radius) {
-+            setPixel(out, cx + dx, cy + dy, nr, ng, nb);
-+          }
-+        }
-+      }
-+    }
-+  }
-+  
-+  return out;
-+}
-+
-+function fnSlash(ctx: FnContext, c: string): Image {
-+  const prev = getPrevImage(ctx);
-+  const out = cloneImage(prev);
-+  const [cr, cg, cb] = hexToRgb(c);
-+  
-+  for (let y = 0; y < ctx.height; y++) {
-+    for (let x = 0; x < ctx.width; x++) {
-+      const [r, g, b] = getPixel(prev, x, y);
-+      const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-+      const spacing = Math.max(2, Math.floor(2 + luminance * 15));
-+      
-+      const diag = (x + y) % spacing;
-+      if (diag === 0) {
-+        setPixel(out, x, y, cr, cg, cb);
-+      }
-+    }
-+  }
-+  
-+  return out;
-+}
-+
- export const characterDefs: Record<string, CharDef> = {
-\ No newline at end of file
-
-</tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
-
-## git-commit-message
-
-<tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
-Add function implementations for ! through / characters
-</tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
-
-# TOOL RESULT
-
-ID: toolu_014r4Spa6FUt95kT9nx9ZF9p
-
-<tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add function implementations for ! through / characters
-</tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
-
-# ASSISTANT
-
-Now let me add the character definitions for these new functions to the `characterDefs` object:
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_01GSn9mvMPgvRFWZQfDKuE2d
-
-## path
-
-<tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
-character-defs.ts
-</tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
-
-## git-commit-message
-
-<tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
-Add character definitions for ! through / symbols
-</tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
-
-## diff
-
-<tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
-   '^': {
-     color: '#2ECC71',
-     number: 39,
-     fn: fnCaret,
-     arity: 0,
-     argTypes: [],
-     functionName: "shift-up",
-     documentation: "Shifts prev 1/3 of the height up with wraparound"
+<tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
+   '/': {
+     color: '#CD853F',
+     number: 54,
+     fn: fnSlash,
+     arity: 1,
+     argTypes: ['color'],
+     functionName: "diagonal-lines",
+     documentation: "Diagonal lines top-left to bottom-right in color c, spacing based on luminance (bright=sparse)"
    },
 +  
-+  '!': {
-+    color: '#FF4500',
-+    number: 40,
-+    fn: fnExclaim,
++  ':': {
++    color: '#6B8E23',
++    number: 55,
++    fn: fnColon,
 +    arity: 1,
 +    argTypes: ['int'],
-+    functionName: "hash-overlay",
-+    documentation: "Overlays deterministic hash pattern where brightness = ((x*(n+17)) ^ (y*31) ^ (x*y)) % 256 at 30% opacity"
++    functionName: "circular-zoom",
++    documentation: "n circular regions evenly spaced horizontally show prev at 2x zoom, rest box-blurred with radius 5"
 +  },
 +  
-+  '"': {
-+    color: '#9932CC',
-+    number: 41,
-+    fn: fnDoubleQuote,
-+    arity: 1,
-+    argTypes: ['int'],
-+    functionName: "band-transform",
-+    documentation: "Splits into n horizontal bands; odd bands hue-rotated 180°, even bands have saturation inverted"
-+  },
-+  
-+  '#': {
-+    color: '#228B22',
-+    number: 42,
-+    fn: fnHash,
-+    arity: 1,
-+    argTypes: ['color'],
-+    functionName: "grid-lines",
-+    documentation: "Draws grid of lines in color c with thickness = 1 + sin(x*y*0.01) * 3"
-+  },
-+  
-+  '$': {
-+    color: '#FFD700',
-+    number: 43,
-+    fn: fnDollar,
-+    arity: 1,
-+    argTypes: ['int'],
-+    functionName: "golden-spiral",
-+    documentation: "Draws golden spiral with n turns from center, spiral color is brightness-inverted sample of prev"
-+  },
-+  
-+  '%': {
-+    color: '#8B0000',
-+    number: 44,
-+    fn: fnPercent,
-+    arity: 1,
-+    argTypes: ['int'],
-+    functionName: "floyd-steinberg",
-+    documentation: "Floyd-Steinberg dithers prev to 4-corner color palette with cell size n+1"
-+  },
-+  
-+  '&': {
-+    color: '#4169E1',
-+    number: 45,
-+    fn: fnAmpersand,
-+    arity: 1,
-+    argTypes: ['int'],
-+    functionName: "hue-sat-transfer",
-+    documentation: "Output has prev's luminance but hue/saturation from old_image at index j"
-+  },
-+  
-+  "'": {
-+    color: '#FF1493',
-+    number: 46,
-+    fn: fnApostrophe,
-+    arity: 1,
-+    argTypes: ['int'],
-+    functionName: "vertical-streaks",
-+    documentation: "Vertical streaks at x positions where x % (n+2) == 0, length based on column luminance, 50% white"
-+  },
-+  
-+  '(': {
-+    color: '#00CED1',
-+    number: 47,
-+    fn: fnOpenParen,
-+    arity: 1,
-+    argTypes: ['int'],
-+    functionName: "pinch",
-+    documentation: "Pinch distortion toward center with strength n/10, brightens pixels near center"
-+  },
-+  
-+  ')': {
-+    color: '#FF69B4',
-+    number: 48,
-+    fn: fnCloseParen,
-+    arity: 1,
-+    argTypes: ['int'],
-+    functionName: "bulge",
-+    documentation: "Bulge distortion from center with strength n/10, darkens pixels near edge"
-+  },
-+  
-+  '*': {
-+    color: '#FFD700',
-+    number: 49,
-+    fn: fnAsterisk,
-+    arity: 1,
-+    argTypes: ['int'],
-+    functionName: "rays",
-+    documentation: "n rays emanate from center, color sampled from prev at angle*width/n, soft edges at 60% opacity"
-+  },
-+  
-+  '+': {
-+    color: '#32CD32',
-+    number: 50,
-+    fn: fnPlus,
++  ';': {
++    color: '#DB7093',
++    number: 56,
++    fn: fnSemicolon,
 +    arity: 0,
 +    argTypes: [],
-+    functionName: "quad-sharpen-blur",
-+    documentation: "Cross divides into 4 quadrants; top-left/bottom-right sharpened, others blurred"
++    functionName: "semicircle-reflect",
++    documentation: "Semicircle arc (top half) crops prev, bottom half is reflection with wave distortion"
 +  },
 +  
-+  ',': {
-+    color: '#BA55D3',
-+    number: 51,
-+    fn: fnComma,
-+    arity: 1,
-+    argTypes: ['color'],
-+    functionName: "stipple",
-+    documentation: "Stipples prev with dots of color c at positions where (x*13+y*7) % (1+luminance/32) == 0"
-+  },
-+  
-+  '-': {
-+    color: '#708090',
-+    number: 52,
-+    fn: fnMinus,
++  '=': {
++    color: '#5F9EA0',
++    number: 57,
++    fn: fnEquals,
 +    arity: 1,
 +    argTypes: ['int'],
-+    functionName: "scanlines",
-+    documentation: "Every nth row darkened 50%, every (n*2)th row samples from n pixels above"
++    functionName: "shifted-stripes",
++    documentation: "Horizontal stripes of height n, even stripes are prev, odd stripes shifted left by stripe_index*5 pixels"
 +  },
 +  
-+  '.': {
-+    color: '#20B2AA',
-+    number: 53,
-+    fn: fnDot,
++  '?': {
++    color: '#D2691E',
++    number: 58,
++    fn: fnQuestion,
++    arity: 0,
++    argTypes: [],
++    functionName: "corner-effect",
++    documentation: "Effect selected by (sum of corner pixel values) % 4: [solarize, emboss, edge-detect, posterize]"
++  },
++  
++  '@': {
++    color: '#7B68EE',
++    number: 59,
++    fn: fnA,
++    arity: 0,
++    argTypes: [],
++    functionName: "sphere-overlay-alt",
++    documentation: "Same as A: prev rendered on two 3D spheres with lighting in top-right and bottom-left quadrants"
++  },
++  
++  '[': {
++    color: '#48D1CC',
++    number: 60,
++    fn: fnOpenBracket,
 +    arity: 1,
 +    argTypes: ['int'],
-+    functionName: "pointillism",
-+    documentation: "Rebuilds prev from circles of radius (n%8)+2, color from center with +10% saturation"
++    functionName: "torn-left",
++    documentation: "Left third shows old_image, right two-thirds show prev, torn-paper edge using sin waves"
 +  },
 +  
-+  '/': {
-+    color: '#CD853F',
-+    number: 54,
-+    fn: fnSlash,
++  '\\': {
++    color: '#C71585',
++    number: 61,
++    fn: fnBackslash,
 +    arity: 1,
 +    argTypes: ['color'],
-+    functionName: "diagonal-lines",
-+    documentation: "Diagonal lines top-left to bottom-right in color c, spacing based on luminance (bright=sparse)"
++    functionName: "diagonal-lines-reverse",
++    documentation: "Diagonal lines from top-right to bottom-left in color c, spacing based on luminance"
++  },
++  
++  ']': {
++    color: '#00FA9A',
++    number: 62,
++    fn: fnCloseBracket,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "torn-right",
++    documentation: "Right third shows old_image, left two-thirds show prev, with torn-paper edge"
++  },
++  
++  '_': {
++    color: '#FF7F50',
++    number: 63,
++    fn: fnUnderscore,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "bottom-reflect",
++    documentation: "Bottom n*5% of image is reflected and overlaid with 50% opacity, with horizontal wave distortion"
++  },
++  
++  '`': {
++    color: '#6495ED',
++    number: 64,
++    fn: fnBacktick,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "glitch",
++    documentation: "Glitch effect: horizontal strips shifted right with RGB separation of n pixels"
++  },
++  
++  '{': {
++    color: '#DC143C',
++    number: 65,
++    fn: fnOpenBrace,
++    arity: 0,
++    argTypes: [],
++    functionName: "cylinder-left",
++    documentation: "Left half of image wrapped onto vertical cylinder (WebGL), curved-page effect turning left"
++  },
++  
++  '|': {
++    color: '#00BFFF',
++    number: 66,
++    fn: fnPipe,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "vertical-split",
++    documentation: "Left half is prev, right half is old_image, center column is 10px blend"
++  },
++  
++  '}': {
++    color: '#9400D3',
++    number: 67,
++    fn: fnCloseBrace,
++    arity: 0,
++    argTypes: [],
++    functionName: "cylinder-right",
++    documentation: "Right half of image wrapped onto vertical cylinder (WebGL), curved-page effect turning right"
++  },
++  
++  '~': {
++    color: '#FF6347',
++    number: 68,
++    fn: fnTilde,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "wave-chromatic",
++    documentation: "Horizontal wave distortion with amplitude = sin(y*0.05)*n*8, chromatic aberration (R +n px, B -n px)"
 +  },
  };
 \ No newline at end of file
 
-</tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+</tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
+
+## git-commit-message
+
+<tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
+Add missing character definitions to characterDefs object
+</tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
 
 # TOOL RESULT
 
-ID: toolu_01GSn9mvMPgvRFWZQfDKuE2d
+ID: toolu_01UD7CKsf9MnhZGUXjRzfGqk
 
-<tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+<tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
 
-</tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+</tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>

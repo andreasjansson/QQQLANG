@@ -3216,4 +3216,144 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "diagonal-lines",
     documentation: "Diagonal lines top-left to bottom-right in color c, spacing based on luminance (bright=sparse)"
   },
+  
+  ':': {
+    color: '#6B8E23',
+    number: 55,
+    fn: fnColon,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "circular-zoom",
+    documentation: "n circular regions evenly spaced horizontally show prev at 2x zoom, rest box-blurred with radius 5"
+  },
+  
+  ';': {
+    color: '#DB7093',
+    number: 56,
+    fn: fnSemicolon,
+    arity: 0,
+    argTypes: [],
+    functionName: "semicircle-reflect",
+    documentation: "Semicircle arc (top half) crops prev, bottom half is reflection with wave distortion"
+  },
+  
+  '=': {
+    color: '#5F9EA0',
+    number: 57,
+    fn: fnEquals,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "shifted-stripes",
+    documentation: "Horizontal stripes of height n, even stripes are prev, odd stripes shifted left by stripe_index*5 pixels"
+  },
+  
+  '?': {
+    color: '#D2691E',
+    number: 58,
+    fn: fnQuestion,
+    arity: 0,
+    argTypes: [],
+    functionName: "corner-effect",
+    documentation: "Effect selected by (sum of corner pixel values) % 4: [solarize, emboss, edge-detect, posterize]"
+  },
+  
+  '@': {
+    color: '#7B68EE',
+    number: 59,
+    fn: fnA,
+    arity: 0,
+    argTypes: [],
+    functionName: "sphere-overlay-alt",
+    documentation: "Same as A: prev rendered on two 3D spheres with lighting in top-right and bottom-left quadrants"
+  },
+  
+  '[': {
+    color: '#48D1CC',
+    number: 60,
+    fn: fnOpenBracket,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "torn-left",
+    documentation: "Left third shows old_image, right two-thirds show prev, torn-paper edge using sin waves"
+  },
+  
+  '\\': {
+    color: '#C71585',
+    number: 61,
+    fn: fnBackslash,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "diagonal-lines-reverse",
+    documentation: "Diagonal lines from top-right to bottom-left in color c, spacing based on luminance"
+  },
+  
+  ']': {
+    color: '#00FA9A',
+    number: 62,
+    fn: fnCloseBracket,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "torn-right",
+    documentation: "Right third shows old_image, left two-thirds show prev, with torn-paper edge"
+  },
+  
+  '_': {
+    color: '#FF7F50',
+    number: 63,
+    fn: fnUnderscore,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "bottom-reflect",
+    documentation: "Bottom n*5% of image is reflected and overlaid with 50% opacity, with horizontal wave distortion"
+  },
+  
+  '`': {
+    color: '#6495ED',
+    number: 64,
+    fn: fnBacktick,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "glitch",
+    documentation: "Glitch effect: horizontal strips shifted right with RGB separation of n pixels"
+  },
+  
+  '{': {
+    color: '#DC143C',
+    number: 65,
+    fn: fnOpenBrace,
+    arity: 0,
+    argTypes: [],
+    functionName: "cylinder-left",
+    documentation: "Left half of image wrapped onto vertical cylinder (WebGL), curved-page effect turning left"
+  },
+  
+  '|': {
+    color: '#00BFFF',
+    number: 66,
+    fn: fnPipe,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "vertical-split",
+    documentation: "Left half is prev, right half is old_image, center column is 10px blend"
+  },
+  
+  '}': {
+    color: '#9400D3',
+    number: 67,
+    fn: fnCloseBrace,
+    arity: 0,
+    argTypes: [],
+    functionName: "cylinder-right",
+    documentation: "Right half of image wrapped onto vertical cylinder (WebGL), curved-page effect turning right"
+  },
+  
+  '~': {
+    color: '#FF6347',
+    number: 68,
+    fn: fnTilde,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "wave-chromatic",
+    documentation: "Horizontal wave distortion with amplitude = sin(y*0.05)*n*8, chromatic aberration (R +n px, B -n px)"
+  },
 };
