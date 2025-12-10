@@ -2510,4 +2510,34 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "xor-blend",
     documentation: "XORs prev with old_image at index j, creating glitchy digital artifacts"
   },
+  
+  '<': {
+    color: '#E74C3C',
+    number: 37,
+    fn: fnLessThan,
+    arity: 0,
+    argTypes: [],
+    functionName: "shift-left",
+    documentation: "Shifts prev 1/3 of the width to the left with wraparound"
+  },
+  
+  '>': {
+    color: '#3498DB',
+    number: 38,
+    fn: fnGreaterThan,
+    arity: 0,
+    argTypes: [],
+    functionName: "shift-right",
+    documentation: "Shifts prev 1/3 of the width to the right with wraparound"
+  },
+  
+  '^': {
+    color: '#2ECC71',
+    number: 39,
+    fn: fnCaret,
+    arity: 0,
+    argTypes: [],
+    functionName: "shift-up",
+    documentation: "Shifts prev 1/3 of the height up with wraparound"
+  },
 };

@@ -12460,5 +12460,132 @@ Add shift functions: fnLessThan, fnGreaterThan, fnCaret
 ID: toolu_01VyyHnx2vqto3Duvz7ZQQjG
 
 <tool.toolu_01VyyHnx2vqto3Duvz7ZQQjG>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add shift functions: fnLessThan, fnGreaterThan, fnCaret
 </tool.toolu_01VyyHnx2vqto3Duvz7ZQQjG>
+
+# ASSISTANT
+
+Now add the character definitions:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01BfFpbKnp9pzK6RKYc2Xqkq
+
+## pattern
+
+<tool.toolu_01BfFpbKnp9pzK6RKYc2Xqkq>
+'9':
+</tool.toolu_01BfFpbKnp9pzK6RKYc2Xqkq>
+
+## path
+
+<tool.toolu_01BfFpbKnp9pzK6RKYc2Xqkq>
+character-defs.ts
+</tool.toolu_01BfFpbKnp9pzK6RKYc2Xqkq>
+
+## context-lines
+
+<tool.toolu_01BfFpbKnp9pzK6RKYc2Xqkq>
+10
+</tool.toolu_01BfFpbKnp9pzK6RKYc2Xqkq>
+
+# TOOL RESULT
+
+ID: toolu_01BfFpbKnp9pzK6RKYc2Xqkq
+
+<tool.toolu_01BfFpbKnp9pzK6RKYc2Xqkq>
+2494-  '8': {
+2495-    color: '#F8C471',
+2496-    number: 35,
+2497-    fn: fn8,
+2498-    arity: 1,
+2499-    argTypes: ['int'],
+2500-    functionName: "lemniscate",
+2501-    documentation: "Infinity-loop/lemniscate distortion centered on image with strength n/5, pixels flow along curve"
+2502-  },
+2503-  
+2504:  '9': {
+2505-    color: '#D7BDE2',
+2506-    number: 36,
+2507-    fn: fn9,
+2508-    arity: 1,
+2509-    argTypes: ['int'],
+2510-    functionName: "xor-blend",
+2511-    documentation: "XORs prev with old_image at index j, creating glitchy digital artifacts"
+2512-  },
+2513-};
+
+</tool.toolu_01BfFpbKnp9pzK6RKYc2Xqkq>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01SnWJQiXCyJw8vVbvEttM1H
+
+## path
+
+<tool.toolu_01SnWJQiXCyJw8vVbvEttM1H>
+character-defs.ts
+</tool.toolu_01SnWJQiXCyJw8vVbvEttM1H>
+
+## git-commit-message
+
+<tool.toolu_01SnWJQiXCyJw8vVbvEttM1H>
+Add character definitions for <, >, and ^
+</tool.toolu_01SnWJQiXCyJw8vVbvEttM1H>
+
+## diff
+
+<tool.toolu_01SnWJQiXCyJw8vVbvEttM1H>
+   '9': {
+     color: '#D7BDE2',
+     number: 36,
+     fn: fn9,
+     arity: 1,
+     argTypes: ['int'],
+     functionName: "xor-blend",
+     documentation: "XORs prev with old_image at index j, creating glitchy digital artifacts"
+   },
++  
++  '<': {
++    color: '#E74C3C',
++    number: 37,
++    fn: fnLessThan,
++    arity: 0,
++    argTypes: [],
++    functionName: "shift-left",
++    documentation: "Shifts prev 1/3 of the width to the left with wraparound"
++  },
++  
++  '>': {
++    color: '#3498DB',
++    number: 38,
++    fn: fnGreaterThan,
++    arity: 0,
++    argTypes: [],
++    functionName: "shift-right",
++    documentation: "Shifts prev 1/3 of the width to the right with wraparound"
++  },
++  
++  '^': {
++    color: '#2ECC71',
++    number: 39,
++    fn: fnCaret,
++    arity: 0,
++    argTypes: [],
++    functionName: "shift-up",
++    documentation: "Shifts prev 1/3 of the height up with wraparound"
++  },
+ };
+\ No newline at end of file
+
+</tool.toolu_01SnWJQiXCyJw8vVbvEttM1H>
+
+# TOOL RESULT
+
+ID: toolu_01SnWJQiXCyJw8vVbvEttM1H
+
+<tool.toolu_01SnWJQiXCyJw8vVbvEttM1H>
+
+</tool.toolu_01SnWJQiXCyJw8vVbvEttM1H>
