@@ -2287,42 +2287,170 @@ function fnHash(ctx: FnContext, n: number): Image {
 
 function fnDollar(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const turns = Math.max(1, n);
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.min(cx, cy) * 0.9;
-  const phi = (1 + Math.sqrt(5)) / 2;
-  const totalAngle = turns * Math.PI * 2;
-  const steps = turns * 200;
+  const shardCount = Math.max(8, (n + 2) * 4);
+  const displacement = 0.02 + n * 0.008;
+  const seed = ctx.images.length * 73.0 + n * 17.0;
   
-  for (let i = 0; i < steps; i++) {
-    const t = i / steps;
-    const angle = t * totalAngle;
-    const r = maxR * Math.pow(phi, angle / (Math.PI * 2) - turns + 1);
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uDisplacement;
+    uniform float uShardCount;
+    uniform float uSeed;
+    varying vec2 vUV;
     
-    if (r < 1 || r > maxR) continue;
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1 + uSeed, 311.7))) * 43758.5453);
+    }
     
-    const x = Math.floor(cx + r * Math.cos(angle));
-    const y = Math.floor(cy + r * Math.sin(angle));
+    vec2 hash2(vec2 p) {
+      return vec2(hash(p), hash(p + vec2(17.0, 31.0)));
+    }
     
-    if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const brightness = (pr + pg + pb) / 3;
-      const invBrightness = 255 - brightness;
+    // Voronoi to create shard cells
+    vec3 voronoi(vec2 uv, float scale) {
+      vec2 id = floor(uv * scale);
+      vec2 gv = fract(uv * scale);
       
-      for (let dy = -2; dy <= 2; dy++) {
-        for (let dx = -2; dx <= 2; dx++) {
-          if (dx * dx + dy * dy <= 4) {
-            setPixel(out, x + dx, y + dy, invBrightness, invBrightness, invBrightness);
+      float minDist = 1.0;
+      float secondDist = 1.0;
+      vec2 closestPoint = vec2(0.0);
+      vec2 closestId = vec2(0.0);
+      
+      for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+          vec2 offset = vec2(float(x), float(y));
+          vec2 cellId = id + offset;
+          vec2 point = hash2(cellId) * 0.8 + 0.1;
+          vec2 diff = offset + point - gv;
+          float dist = length(diff);
+          
+          if (dist < minDist) {
+            secondDist = minDist;
+            minDist = dist;
+            closestPoint = point;
+            closestId = cellId;
+          } else if (dist < secondDist) {
+            secondDist = dist;
           }
         }
       }
+      
+      return vec3(closestId, secondDist - minDist);
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      float aspect = uResolution.x / uResolution.y;
+      vec2 scaledUV = vec2(uv.x * aspect, uv.y);
+      
+      float scale = sqrt(uShardCount);
+      vec3 vor = voronoi(scaledUV, scale);
+      vec2 shardId = vor.xy;
+      float edgeDist = vor.z;
+      
+      // Random displacement per shard
+      vec2 shardHash = hash2(shardId);
+      float angle = shardHash.x * 6.28318;
+      float dist = shardHash.y * uDisplacement;
+      vec2 offset = vec2(cos(angle), sin(angle)) * dist;
+      
+      // Random rotation per shard
+      float rotation = (shardHash.x - 0.5) * 0.1 * uDisplacement * 10.0;
+      vec2 center = (shardId + 0.5) / scale;
+      center.x /= aspect;
+      
+      vec2 rotatedUV = uv - center;
+      float s = sin(rotation);
+      float c = cos(rotation);
+      rotatedUV = vec2(rotatedUV.x * c - rotatedUV.y * s, rotatedUV.x * s + rotatedUV.y * c);
+      rotatedUV += center;
+      
+      vec2 sampleUV = rotatedUV + offset;
+      sampleUV = clamp(sampleUV, 0.0, 1.0);
+      
+      vec3 color = texture2D(uTexture, sampleUV).rgb;
+      
+      // Brightness variation per shard (simulates angle to light)
+      float brightness = 0.85 + shardHash.y * 0.3;
+      color *= brightness;
+      
+      // Edge highlight (glass edge catching light)
+      float edgeWidth = 0.08;
+      float edge = smoothstep(0.0, edgeWidth, edgeDist);
+      float edgeHighlight = (1.0 - edge) * 0.6;
+      color += vec3(edgeHighlight);
+      
+      // Subtle refraction tint on edges
+      if (edgeDist < edgeWidth * 0.5) {
+        color += vec3(0.1, 0.15, 0.2) * (1.0 - edgeDist / (edgeWidth * 0.5));
+      }
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uDisplacement'), displacement);
+  gl.uniform1f(gl.getUniformLocation(program, 'uShardCount'), shardCount);
+  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnPercent(ctx: FnContext, n: number): Image {
