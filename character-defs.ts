@@ -1106,59 +1106,39 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
+function fnM(ctx: FnContext, freq: number, j: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const blockSize = Math.max(4, Math.min(spiralEffect + 4, 32));
-  const spiralTightness = Math.max(5, spiralEffect * 5);
+  const f1 = 0.02 + freq * 0.005;
+  const f2 = f1 * 1.1;
+  const f3 = f1 * 0.93;
   
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
-  
-  const pixelatedOld = createSolidImage(ctx.width, ctx.height, '#000000');
-  for (let by = 0; by < ctx.height; by += blockSize) {
-    for (let bx = 0; bx < ctx.width; bx += blockSize) {
-      let sumR = 0, sumG = 0, sumB = 0, count = 0;
-      for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-        for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-          const [r, g, b] = getPixel(old, x, y);
-          sumR += r;
-          sumG += g;
-          sumB += b;
-          count++;
-        }
-      }
-      const avgR = Math.round(sumR / count);
-      const avgG = Math.round(sumG / count);
-      const avgB = Math.round(sumB / count);
-      for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-        for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-          setPixel(pixelatedOld, x, y, avgR, avgG, avgB);
-        }
-      }
-    }
-  }
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const dx = x - cx;
       const dy = y - cy;
-      const radius = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx);
+      const dist = Math.sqrt(dx * dx + dy * dy);
       
-      const spiralValue = radius + angle * spiralTightness;
-      const bandIndex = Math.floor(spiralValue / spiralTightness);
-      const useOld = bandIndex % 2 === 0;
+      const wave1 = Math.sin(dist * f1);
+      const wave2 = Math.sin(dist * f2 + x * 0.01);
+      const wave3 = Math.sin(dx * f3) * Math.sin(dy * f3);
       
-      if (useOld) {
-        const [r, g, b] = getPixel(pixelatedOld, x, y);
-        setPixel(out, x, y, r, g, b);
-      } else {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
-      }
+      const moire = (wave1 + wave2 + wave3) / 3;
+      const t = moire * 0.5 + 0.5;
+      
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
+      
+      const nr = Math.round(pr * t + or * (1 - t));
+      const ng = Math.round(pg * t + ob * (1 - t));
+      const nb = Math.round(pb * t + ob * (1 - t));
+      
+      setPixel(out, x, y, nr, ng, nb);
     }
   }
   
