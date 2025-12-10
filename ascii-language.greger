@@ -11682,5 +11682,46 @@ Fix L texture binding - ensure prevTexture is properly bound before draw
 ID: toolu_014MNqBG8dpwCCdAtJXNvv9V
 
 <tool.toolu_014MNqBG8dpwCCdAtJXNvv9V>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix L texture binding - ensure prevTexture is properly bound before draw
 </tool.toolu_014MNqBG8dpwCCdAtJXNvv9V>
+
+# ASSISTANT
+
+Now let's put back the actual texture sampling to test:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_012KHaz2J9Hqm6VQpuNFqwsY
+
+## path
+
+<tool.toolu_012KHaz2J9Hqm6VQpuNFqwsY>
+character-defs.ts
+</tool.toolu_012KHaz2J9Hqm6VQpuNFqwsY>
+
+## git-commit-message
+
+<tool.toolu_012KHaz2J9Hqm6VQpuNFqwsY>
+Restore L texture sampling
+</tool.toolu_012KHaz2J9Hqm6VQpuNFqwsY>
+
+## diff
+
+<tool.toolu_012KHaz2J9Hqm6VQpuNFqwsY>
+-      // Debug: show tex coords as colors
+-      gl_FragColor = vec4(fract(vTexCoord.x), fract(vTexCoord.y), 0.5, 1.0);
+\ No newline at end of file
++      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
++      gl_FragColor = vec4(texColor, 1.0);
+\ No newline at end of file
+
+</tool.toolu_012KHaz2J9Hqm6VQpuNFqwsY>
+
+# TOOL RESULT
+
+ID: toolu_012KHaz2J9Hqm6VQpuNFqwsY
+
+<tool.toolu_012KHaz2J9Hqm6VQpuNFqwsY>
+
+</tool.toolu_012KHaz2J9Hqm6VQpuNFqwsY>

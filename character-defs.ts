@@ -719,8 +719,8 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
       vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
       vec3 color = texColor * (ambient + diffuse) + vec3(1.0, 1.0, 1.0) * specular;
       
-      // Debug: show tex coords as colors
-      gl_FragColor = vec4(fract(vTexCoord.x), fract(vTexCoord.y), 0.5, 1.0);
+      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
+      gl_FragColor = vec4(texColor, 1.0);
     }
   `;
   
