@@ -1712,66 +1712,53 @@ function fn5(ctx: FnContext, n: number): Image {
       return length(p - center) - radius;
     }
     
-    // Vertically elongated ellipsoid for drip shapes
-    float sdEllipsoid(vec3 p, vec3 center, float rx, float ry, float rz) {
-      vec3 q = (p - center) / vec3(rx, ry, rz);
-      return (length(q) - 1.0) * min(min(rx, ry), rz);
+    // Simple sphere SDF
+    float sdSphere(vec3 p, vec3 center, float r) {
+      return length(p - center) - r;
     }
     
-    // Scene SDF - elongated ellipsoids blended into dripping shapes
-    float sceneSDF(vec3 p, int numDrips, float strength) {
+    // Scene SDF - randomly distributed clusters of 3-5 metaballs each
+    float sceneSDF(vec3 p, int numClusters, float strength) {
       float d = 1000.0;
       
       for (int i = 0; i < MAX_DRIPS; i++) {
-        if (i >= numDrips) break;
+        if (i >= numClusters) break;
         
         float fi = float(i);
         
-        // Spread across full width
-        float baseX = (hash(fi * 127.1) * 2.0 - 1.0) * 1.5;
+        // Random cluster center position across full screen
+        float clusterX = (hash(fi * 127.1) * 2.0 - 1.0) * 1.5;
+        float clusterY = (hash(fi * 311.7) * 2.0 - 1.0) * 1.2;
         
-        // Start from TOP of screen (y = -1 is top in this coord system)
-        float startY = -1.3 + hash(fi * 311.7) * 0.3;
+        // Cluster size
+        float clusterSize = 0.15 + hash(fi * 74.3) * 0.15;
         
-        // Drip length going DOWN (toward positive y)
-        float dripLen = 3.0 + hash(fi * 74.3) * 1.0;
+        // 3 to 5 balls per cluster
+        int numBalls = 3 + int(hash(fi * 456.7) * 3.0);
         
-        // Random drift for organic paths
-        float driftDir = (hash(fi * 234.5) - 0.5) * 0.6;
-        
-        // Many ellipsoids per drip
-        for (int j = 0; j < 16; j++) {
+        for (int j = 0; j < 5; j++) {
+          if (j >= numBalls) break;
+          
           float fj = float(j);
-          float t = fj / 15.0;
+          float seed = fi * 100.0 + fj;
           
-          // Y position - drip going DOWN (increasing y)
-          float y = startY + t * dripLen * strength;
+          // Random offset from cluster center
+          float offX = (hash(seed * 123.4) - 0.5) * clusterSize;
+          float offY = (hash(seed * 234.5) - 0.5) * clusterSize * 1.5; // More vertical spread
           
-          // Organic meandering path
-          float meander = sin(t * 5.0 + fi * 2.0) * 0.12;
-          meander += sin(t * 11.0 + fi * 7.0) * 0.05;
-          float drift = t * t * driftDir * 0.2;
-          float x = baseX + meander + drift;
+          float x = clusterX + offX;
+          float y = clusterY + offY;
           
-          // Size: bigger at top, smaller at bottom
-          float baseSize = 0.1 + hash(fi * 183.9) * 0.06;
-          float taper = 1.0 - t * 0.6;
-          float size = baseSize * taper * strength * 0.5;
+          // Varying ball sizes within cluster
+          float r = (0.06 + hash(seed * 345.6) * 0.08) * strength * 0.6;
           
-          if (size < 0.02) continue;
-          
-          // Ellipsoid radii: taller than wide (vertical drip shape)
-          float rx = size * 0.7;  // narrow horizontally
-          float ry = size * 1.5;  // tall vertically
-          float rz = size * 0.7;  // narrow in depth
-          
-          float z = 0.05 + size * 0.25;
+          float z = 0.05 + r * 0.3;
           
           vec3 center = vec3(x, y, z);
-          float ellip = sdEllipsoid(p, center, rx, ry, rz);
+          float sphere = sdSphere(p, center, r);
           
-          // Smooth blend for organic merging
-          d = smin(d, ellip, 0.1);
+          // Smooth blend to merge balls in cluster
+          d = smin(d, sphere, 0.12);
         }
       }
       
