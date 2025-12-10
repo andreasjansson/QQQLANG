@@ -2319,148 +2319,138 @@ function fnDollar(ctx: FnContext, n: number): Image {
     uniform vec2 uResolution;
     uniform float uSeed;
     uniform float uCrackIntensity;
-    uniform float uNumCracks;
+    uniform float uGridSize;
     varying vec2 vUV;
     
     #define PI 3.14159265359
-    #define MAX_CRACKS 60
     
     float hash(float n) {
       return fract(sin(n * 127.1 + uSeed * 311.7) * 43758.5453);
     }
     
-    // Distance from point to line segment
-    float distToSegment(vec2 p, vec2 a, vec2 b) {
-      vec2 pa = p - a;
-      vec2 ba = b - a;
-      float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-      return length(pa - ba * h);
+    float hash2(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7)) + uSeed * 43.7) * 43758.5453);
     }
     
-    // Generate crack network - returns distance to nearest crack
-    float crackNetwork(vec2 uv) {
-      float minDist = 1.0;
-      
-      int numCracks = int(uNumCracks);
-      
-      for (int i = 0; i < MAX_CRACKS; i++) {
-        if (i >= numCracks) break;
-        
-        float fi = float(i);
-        
-        // Random start point
-        vec2 start = vec2(
-          hash(fi * 73.1 + 1.0),
-          hash(fi * 91.7 + 2.0)
-        );
-        
-        // Random angle (full 360)
-        float angle = hash(fi * 113.3 + 3.0) * PI * 2.0;
-        
-        // Random length
-        float len = 0.1 + hash(fi * 137.9 + 4.0) * 0.4;
-        
-        // End point - straight line
-        vec2 end = start + vec2(cos(angle), sin(angle)) * len;
-        
-        // Distance to this crack segment
-        float d = distToSegment(uv, start, end);
-        minDist = min(minDist, d);
-        
-        // Add a branching crack from midpoint or endpoint
-        if (hash(fi * 157.3 + 5.0) > 0.4) {
-          float branchT = 0.3 + hash(fi * 173.7 + 6.0) * 0.5;
-          vec2 branchStart = mix(start, end, branchT);
-          
-          // Branch angle - fork off at sharp angle
-          float branchAngle = angle + (hash(fi * 193.1 + 7.0) - 0.5) * PI * 0.7;
-          float branchLen = len * (0.3 + hash(fi * 211.9 + 8.0) * 0.4);
-          vec2 branchEnd = branchStart + vec2(cos(branchAngle), sin(branchAngle)) * branchLen;
-          
-          float bd = distToSegment(uv, branchStart, branchEnd);
-          minDist = min(minDist, bd);
-          
-          // Sub-branch
-          if (hash(fi * 229.3 + 9.0) > 0.6) {
-            float subT = 0.4 + hash(fi * 241.7 + 10.0) * 0.4;
-            vec2 subStart = mix(branchStart, branchEnd, subT);
-            float subAngle = branchAngle + (hash(fi * 257.1 + 11.0) - 0.5) * PI * 0.5;
-            float subLen = branchLen * 0.5;
-            vec2 subEnd = subStart + vec2(cos(subAngle), sin(subAngle)) * subLen;
-            
-            float sd = distToSegment(uv, subStart, subEnd);
-            minDist = min(minDist, sd);
-          }
-        }
-      }
-      
-      return minDist;
+    // Get grid point with random offset
+    vec2 getGridPoint(vec2 cell) {
+      vec2 base = (cell + 0.5) / uGridSize;
+      vec2 offset = vec2(
+        hash2(cell + 0.1) - 0.5,
+        hash2(cell + 0.2) - 0.5
+      ) * 0.7 / uGridSize;
+      return base + offset;
     }
     
-    // Get a shard ID based on position
-    float getShardId(vec2 uv) {
-      // Use grid-based ID with some randomization
-      vec2 cell = floor(uv * 8.0 + uSeed);
-      return hash(dot(cell, vec2(127.1, 311.7)));
+    // Find which cell we're in and distance to edges
+    // Returns: xy = cell ID, z = distance to nearest edge
+    vec3 getCellInfo(vec2 uv) {
+      vec2 cellF = uv * uGridSize;
+      vec2 cell = floor(cellF);
+      vec2 localPos = fract(cellF);
+      
+      // Get the 4 corners of this cell (with offsets)
+      vec2 p00 = getGridPoint(cell) * uGridSize - cell;
+      vec2 p10 = getGridPoint(cell + vec2(1.0, 0.0)) * uGridSize - cell;
+      vec2 p01 = getGridPoint(cell + vec2(0.0, 1.0)) * uGridSize - cell;
+      vec2 p11 = getGridPoint(cell + vec2(1.0, 1.0)) * uGridSize - cell;
+      
+      // Distance to each edge (as lines between corners)
+      float d1 = abs((p10.y - p00.y) * localPos.x - (p10.x - p00.x) * localPos.y + p10.x * p00.y - p10.y * p00.x) 
+                 / length(p10 - p00); // bottom edge
+      float d2 = abs((p11.y - p10.y) * localPos.x - (p11.x - p10.x) * localPos.y + p11.x * p10.y - p11.y * p10.x) 
+                 / length(p11 - p10); // right edge
+      float d3 = abs((p01.y - p11.y) * localPos.x - (p01.x - p11.x) * localPos.y + p01.x * p11.y - p01.y * p11.x) 
+                 / length(p01 - p11); // top edge
+      float d4 = abs((p00.y - p01.y) * localPos.x - (p00.x - p01.x) * localPos.y + p00.x * p01.y - p00.y * p01.x) 
+                 / length(p00 - p01); // left edge
+      
+      float minDist = min(min(d1, d2), min(d3, d4)) / uGridSize;
+      
+      return vec3(cell, minDist);
     }
     
     void main() {
       vec2 uv = vUV;
       
-      // Get distance to nearest crack
-      float crackDist = crackNetwork(uv);
+      // Get cell info
+      vec3 cellInfo = getCellInfo(uv);
+      vec2 cellId = cellInfo.xy;
+      float edgeDist = cellInfo.z;
       
-      // Crack line - very thin
-      float crackLine = smoothstep(0.0015, 0.004, crackDist);
-      float isCrack = 1.0 - crackLine;
+      // Unique hash for this shard
+      float shardHash = hash2(cellId);
+      float shardHash2 = hash2(cellId + 100.0);
+      float shardHash3 = hash2(cellId + 200.0);
       
-      // Shard properties
-      float shardId = getShardId(uv);
-      float shardHash2 = hash(shardId * 311.7 + uSeed);
+      // 3D rotation angles for this shard
+      float tiltX = (shardHash - 0.5) * 0.15 * uCrackIntensity;  // tilt around X axis
+      float tiltY = (shardHash2 - 0.5) * 0.15 * uCrackIntensity; // tilt around Y axis
+      float tiltZ = (shardHash3 - 0.5) * 0.05 * uCrackIntensity; // rotation in plane
       
-      // Displacement based on shard - use crack distance to determine displacement direction
-      vec2 displaceDir = vec2(
-        hash(shardId * 127.1) - 0.5,
-        hash(shardId * 283.3) - 0.5
-      );
-      displaceDir = normalize(displaceDir + 0.001);
+      // Calculate shard center
+      vec2 shardCenter = getGridPoint(cellId);
       
-      float displaceAmount = uCrackIntensity * 0.006 * shardId;
-      vec2 displacement = displaceDir * displaceAmount;
+      // Local position within shard
+      vec2 local = uv - shardCenter;
       
-      // Slight per-shard rotation
-      float rotation = (shardId - 0.5) * 0.01 * uCrackIntensity;
-      vec2 center = vec2(0.5);
-      vec2 centered = uv - center;
-      float cs = cos(rotation);
-      float sn = sin(rotation);
-      vec2 rotated = vec2(centered.x * cs - centered.y * sn, centered.x * sn + centered.y * cs);
+      // Apply Z rotation (in-plane)
+      float cz = cos(tiltZ);
+      float sz = sin(tiltZ);
+      local = vec2(local.x * cz - local.y * sz, local.x * sz + local.y * cz);
       
-      vec2 finalUV = clamp(center + rotated + displacement, 0.001, 0.999);
-      vec3 color = texture2D(uTexture, finalUV).rgb;
+      // Simulate 3D tilt via perspective-like UV distortion
+      // Tilting around X axis affects Y coordinate based on distance from center
+      // Tilting around Y axis affects X coordinate
+      float perspectiveScale = 1.0 + local.y * tiltX + local.x * tiltY;
+      vec2 tiltedLocal = local / max(perspectiveScale, 0.5);
       
-      // Glass shard reflection - subtle specular based on shard angle
-      float specular = pow(shardHash2, 4.0) * 0.08 * uCrackIntensity;
-      color += vec3(specular);
+      // Small translation (shard popping out)
+      vec2 translation = vec2(
+        (shardHash - 0.5) * 0.01,
+        (shardHash2 - 0.5) * 0.01
+      ) * uCrackIntensity;
       
-      // Slight color tint per shard
-      color *= vec3(
-        1.0 + (shardId - 0.5) * 0.02,
-        1.0 + (shardHash2 - 0.5) * 0.015,
-        1.0 + (hash(shardId * 431.1) - 0.5) * 0.025
-      );
+      // Final UV for this shard
+      vec2 shardUV = shardCenter + tiltedLocal + translation;
+      shardUV = clamp(shardUV, 0.001, 0.999);
       
-      // Crack rendering - bright white lines
-      if (isCrack > 0.2) {
-        vec3 crackColor = vec3(0.95, 0.97, 1.0);
-        color = mix(color, crackColor, isCrack * 0.85);
-      }
+      // Sample texture
+      vec3 color = texture2D(uTexture, shardUV).rgb;
       
-      // Subtle chromatic aberration near cracks
-      if (crackDist < 0.02) {
-        float aberr = (0.02 - crackDist) * 0.15 * uCrackIntensity;
-        color.r = texture2D(uTexture, clamp(finalUV + vec2(aberr, 0.0), 0.001, 0.999)).r;
-        color.b = texture2D(uTexture, clamp(finalUV - vec2(aberr, 0.0), 0.001, 0.999)).b;
+      // 3D lighting - compute normal based on tilt
+      vec3 normal = normalize(vec3(-tiltY * 2.0, -tiltX * 2.0, 1.0));
+      vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0)); // light from top-right-front
+      vec3 viewDir = vec3(0.0, 0.0, 1.0);
+      
+      // Diffuse lighting
+      float diffuse = max(dot(normal, lightDir), 0.0);
+      
+      // Specular reflection (glass is shiny)
+      vec3 reflectDir = reflect(-lightDir, normal);
+      float specular = pow(max(dot(reflectDir, viewDir), 0.0), 32.0);
+      
+      // Fresnel - edges reflect more
+      float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
+      
+      // Apply lighting
+      color *= 0.7 + 0.3 * diffuse;
+      color += vec3(1.0) * specular * 0.4 * uCrackIntensity;
+      color += vec3(0.9, 0.95, 1.0) * fresnel * 0.15 * uCrackIntensity;
+      
+      // Edge darkening (thickness of glass at edges)
+      float edgeDarken = smoothstep(0.0, 0.02, edgeDist);
+      color *= 0.85 + 0.15 * edgeDarken;
+      
+      // Crack lines - thin white
+      float crackLine = 1.0 - smoothstep(0.001, 0.003, edgeDist);
+      color = mix(color, vec3(1.0), crackLine * 0.9);
+      
+      // Subtle chromatic aberration at shard edges
+      if (edgeDist < 0.015) {
+        float aberr = (0.015 - edgeDist) * 0.3 * uCrackIntensity;
+        color.r = texture2D(uTexture, clamp(shardUV + vec2(aberr, 0.0), 0.001, 0.999)).r;
+        color.b = texture2D(uTexture, clamp(shardUV - vec2(aberr, 0.0), 0.001, 0.999)).b;
       }
       
       gl_FragColor = vec4(color, 1.0);
