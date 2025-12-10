@@ -9170,5 +9170,47 @@ Swap L texture and background - tube uses old_image, background uses prev
 ID: toolu_01NEBJhy8FffUJJiZ4a8tckj
 
 <tool.toolu_01NEBJhy8FffUJJiZ4a8tckj>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Swap L texture and background - tube uses old_image, background uses prev
 </tool.toolu_01NEBJhy8FffUJJiZ4a8tckj>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011ZrGWTxfvcSHLwtZpgMDmC
+
+## path
+
+<tool.toolu_011ZrGWTxfvcSHLwtZpgMDmC>
+character-defs.ts
+</tool.toolu_011ZrGWTxfvcSHLwtZpgMDmC>
+
+## git-commit-message
+
+<tool.toolu_011ZrGWTxfvcSHLwtZpgMDmC>
+Use old_image for L tube texture
+</tool.toolu_011ZrGWTxfvcSHLwtZpgMDmC>
+
+## diff
+
+<tool.toolu_011ZrGWTxfvcSHLwtZpgMDmC>
+   gl.activeTexture(gl.TEXTURE1);
+   const tubeTexture = gl.createTexture();
+   gl.bindTexture(gl.TEXTURE_2D, tubeTexture);
+-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 1);
+\ No newline at end of file
+
+</tool.toolu_011ZrGWTxfvcSHLwtZpgMDmC>
+
+# TOOL RESULT
+
+ID: toolu_011ZrGWTxfvcSHLwtZpgMDmC
+
+<tool.toolu_011ZrGWTxfvcSHLwtZpgMDmC>
+
+</tool.toolu_011ZrGWTxfvcSHLwtZpgMDmC>
