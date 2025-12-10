@@ -1707,23 +1707,26 @@ function fn5(ctx: FnContext, n: number): Image {
       return mix(b, a, h) - k * h * (1.0 - h);
     }
     
-    // SDF for a true pear/teardrop shape - round at top, pointy at bottom
+    // SDF for a true pear/teardrop shape - fat at top, pointy at bottom
     float sdPear(vec3 p, vec3 center, float radius) {
       vec3 q = p - center;
       
-      // Vertical stretch
-      float yNorm = q.y / radius;
+      // Normalize y position within the droplet (-1 to 1 range roughly)
+      float yNorm = q.y / (radius * 2.0);
       
-      // Pear profile: use quadratic to make top bulbous, bottom pointy
-      float profile = 1.0 - yNorm * 0.3 - yNorm * yNorm * 0.2;
-      profile = max(profile, 0.3);
+      // Pear profile: wide at top (positive y), narrow at bottom (negative y)
+      // yNorm > 0 = top = wide, yNorm < 0 = bottom = narrow
+      float width = 1.0 + yNorm * 0.5; // 1.5 at top, 0.5 at bottom
+      width = max(width, 0.2);
       
-      // Apply profile to horizontal axes
-      vec2 qh = q.xz / profile;
+      // Scale horizontal axes by width profile
+      float qx = q.x / width;
+      float qz = q.z / width;
       
-      // Stretched sphere
-      float dy = q.y / (radius * 1.8);
-      return length(vec3(qh.x, dy, qh.y)) * profile - radius;
+      // Elongate vertically (taller than wide)
+      float qy = q.y / (radius * 2.5);
+      
+      return length(vec3(qx, qy, qz)) - radius;
     }
     
     // Scene SDF - metaballs as smooth-blended pear shapes dripping down
