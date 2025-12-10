@@ -2197,10 +2197,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#98D8C8',
     number: 29,
     fn: fn2,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "posterize-gradient",
-    documentation: "Posterizes prev to n levels per channel, then adds gradient map from average color to its complement"
+    arity: 0,
+    argTypes: [],
+    functionName: "rgb-split",
+    documentation: "Splits image into thirds showing only red, green, and blue channels respectively"
   },
   
   '3': {
