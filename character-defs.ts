@@ -1111,19 +1111,40 @@ function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const blockSize = Math.max(2, Math.min(spiralEffect + 2, 50));
+  const blockSize = Math.max(4, Math.min(spiralEffect + 4, 32));
   const spiralTightness = Math.max(5, spiralEffect * 5);
   
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   
+  const pixelatedOld = createSolidImage(ctx.width, ctx.height, '#000000');
   for (let by = 0; by < ctx.height; by += blockSize) {
     for (let bx = 0; bx < ctx.width; bx += blockSize) {
-      const centerX = bx + blockSize / 2;
-      const centerY = by + blockSize / 2;
-      
-      const dx = centerX - cx;
-      const dy = centerY - cy;
+      let sumR = 0, sumG = 0, sumB = 0, count = 0;
+      for (let y = by; y < by + blockSize && y < ctx.height; y++) {
+        for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
+          const [r, g, b] = getPixel(old, x, y);
+          sumR += r;
+          sumG += g;
+          sumB += b;
+          count++;
+        }
+      }
+      const avgR = Math.round(sumR / count);
+      const avgG = Math.round(sumG / count);
+      const avgB = Math.round(sumB / count);
+      for (let y = by; y < by + blockSize && y < ctx.height; y++) {
+        for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
+          setPixel(pixelatedOld, x, y, avgR, avgG, avgB);
+        }
+      }
+    }
+  }
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
       const radius = Math.sqrt(dx * dx + dy * dy);
       const angle = Math.atan2(dy, dx);
       
@@ -1132,31 +1153,11 @@ function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
       const useOld = bandIndex % 2 === 0;
       
       if (useOld) {
-        let sumR = 0, sumG = 0, sumB = 0, count = 0;
-        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-            const [r, g, b] = getPixel(old, x, y);
-            sumR += r;
-            sumG += g;
-            sumB += b;
-            count++;
-          }
-        }
-        const avgR = Math.round(sumR / count);
-        const avgG = Math.round(sumG / count);
-        const avgB = Math.round(sumB / count);
-        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-            setPixel(out, x, y, avgR, avgG, avgB);
-          }
-        }
+        const [r, g, b] = getPixel(pixelatedOld, x, y);
+        setPixel(out, x, y, r, g, b);
       } else {
-        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-            const [r, g, b] = getPixel(prev, x, y);
-            setPixel(out, x, y, r, g, b);
-          }
-        }
+        const [r, g, b] = getPixel(prev, x, y);
+        setPixel(out, x, y, r, g, b);
       }
     }
   }
