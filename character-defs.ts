@@ -794,9 +794,9 @@ function fnN(ctx: FnContext, j: number): Image {
 
 function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const strength = Math.max(0.1, Math.min(n / 10, 3));
+  const strength = Math.max(0.2, Math.min(n / 5, 5));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   const maxR = Math.sqrt(cx * cx + cy * cy);
@@ -807,19 +807,21 @@ function fnO(ctx: FnContext, n: number): Image {
       const dy = y - cy;
       const r = Math.sqrt(dx * dx + dy * dy);
       
-      if (r < 0.001) continue;
+      if (r < 0.001) {
+        const [pr, pg, pb] = getPixel(prev, Math.floor(cx), Math.floor(cy));
+        setPixel(out, x, y, pr, pg, pb);
+        continue;
+      }
       
       const normR = r / maxR;
-      const sampleNormR = Math.pow(normR, strength);
-      const factor = sampleNormR / normR;
+      const falloff = (1 - normR) * (1 - normR);
+      const factor = 1 + (strength - 1) * falloff;
       
       const sx = cx + dx * factor;
       const sy = cy + dy * factor;
       
-      if (sx >= 0 && sx < prev.width && sy >= 0 && sy < prev.height) {
-        const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-        setPixel(out, x, y, pr, pg, pb);
-      }
+      const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      setPixel(out, x, y, pr, pg, pb);
     }
   }
   
