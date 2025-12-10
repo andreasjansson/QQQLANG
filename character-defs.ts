@@ -1286,7 +1286,7 @@ function fnT(ctx: FnContext, n: number): Image {
   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + (ctx.width - 1 - x)) * 4;
+      const srcIdx = (y * ctx.width + x) * 4;
       const dstIdx = (y * ctx.width + x) * 4;
       flipped[dstIdx] = pixels[srcIdx];
       flipped[dstIdx + 1] = pixels[srcIdx + 1];
