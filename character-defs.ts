@@ -461,7 +461,7 @@ function fnF(ctx: FnContext, n: number): Image {
   
   const zoomPower = Math.max(1, n);
   const scale = Math.pow(0.7, zoomPower);
-  const maxIterations = 100 + zoomPower * 20;
+  const maxIterations = 10 + zoomPower * 5;
   
   const cReal = -0.7;
   const cImag = 0.27015;
@@ -501,7 +501,11 @@ function fnF(ctx: FnContext, n: number): Image {
         const sampleY = py;
         
         const [pr, pg, pb] = getPixel(prev, sampleX, sampleY);
-        setPixel(out, px, py, pr, pg, pb);
+        const brightness = 0.85 + 0.3 * t;
+        setPixel(out, px, py, 
+          Math.min(255, Math.round(pr * brightness)),
+          Math.min(255, Math.round(pg * brightness)),
+          Math.min(255, Math.round(pb * brightness)));
       }
     }
   }
