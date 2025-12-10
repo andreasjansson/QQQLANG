@@ -639,18 +639,44 @@ function fnL(ctx: FnContext, c: string): Image {
   const [cr, cg, cb] = hexToRgb(c);
   
   const occupied = new Set<string>();
-  const candidates = new Set<string>();
+  const candidates: Array<{x: number, y: number, weight: number}> = [];
   
   const startX = Math.floor(ctx.width / 2);
-  const startY = 0;
-  occupied.add(`${startX},${startY}`);
+  const startY = Math.floor(ctx.height * 0.1);
   
-  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
-  for (const [dx, dy] of dirs) {
-    const nx = startX + dx;
-    const ny = startY + dy;
-    if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
-      candidates.add(`${nx},${ny}`);
+  for (let r = 0; r < 3; r++) {
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        const x = startX + dx;
+        const y = startY + dy;
+        if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+          occupied.add(`${x},${y}`);
+          setPixel(out, x, y, cr, cg, cb);
+        }
+      }
+    }
+  }
+  
+  const dirs = [
+    {dx: -1, dy: 0, weight: 1},
+    {dx: 1, dy: 0, weight: 1},
+    {dx: 0, dy: -1, weight: 0.3},
+    {dx: 0, dy: 1, weight: 3},
+    {dx: -1, dy: 1, weight: 2},
+    {dx: 1, dy: 1, weight: 2},
+    {dx: -1, dy: -1, weight: 0.5},
+    {dx: 1, dy: -1, weight: 0.5},
+  ];
+  
+  for (const point of occupied) {
+    const [x, y] = point.split(',').map(Number);
+    for (const dir of dirs) {
+      const nx = x + dir.dx;
+      const ny = y + dir.dy;
+      const key = `${nx},${ny}`;
+      if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height && !occupied.has(key)) {
+        candidates.push({x: nx, y: ny, weight: dir.weight});
+      }
     }
   }
   
@@ -664,26 +690,49 @@ function fnL(ctx: FnContext, c: string): Image {
   const rand = seededRandom(12345);
   
   let segmentCount = 0;
-  const maxSegments = 500;
+  const maxSegments = 2000;
   
-  while (candidates.size > 0 && segmentCount < maxSegments) {
-    const candidateArray = Array.from(candidates);
-    const chosen = candidateArray[Math.floor(rand() * candidateArray.length)];
-    const [x, y] = chosen.split(',').map(Number);
+  while (candidates.length > 0 && segmentCount < maxSegments) {
+    const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0);
+    let r = rand() * totalWeight;
+    let chosenIdx = 0;
     
-    occupied.add(chosen);
-    candidates.delete(chosen);
+    for (let i = 0; i < candidates.length; i++) {
+      r -= candidates[i].weight;
+      if (r <= 0) {
+        chosenIdx = i;
+        break;
+      }
+    }
     
-    setPixel(out, x, y, cr, cg, cb);
+    const chosen = candidates[chosenIdx];
+    candidates.splice(chosenIdx, 1);
+    
+    const key = `${chosen.x},${chosen.y}`;
+    if (occupied.has(key)) continue;
+    
+    occupied.add(key);
+    
+    for (let r = 0; r < 2; r++) {
+      for (let dx = -r; dx <= r; dx++) {
+        for (let dy = -r; dy <= r; dy++) {
+          const x = chosen.x + dx;
+          const y = chosen.y + dy;
+          if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+            setPixel(out, x, y, cr, cg, cb);
+          }
+        }
+      }
+    }
+    
     segmentCount++;
     
-    for (const [dx, dy] of dirs) {
-      const nx = x + dx;
-      const ny = y + dy;
-      const key = `${nx},${ny}`;
-      if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height && 
-          !occupied.has(key) && !candidates.has(key)) {
-        candidates.add(key);
+    for (const dir of dirs) {
+      const nx = chosen.x + dir.dx;
+      const ny = chosen.y + dir.dy;
+      const nkey = `${nx},${ny}`;
+      if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height && !occupied.has(nkey)) {
+        candidates.push({x: nx, y: ny, weight: dir.weight});
       }
     }
   }
