@@ -1036,11 +1036,11 @@ function fnR(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnS(ctx: FnContext, n: number): Image {
+function fnS(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const skewAmount = (n / 20) * ctx.width * 0.5;
+  const skewAmount = Math.tan(20 * Math.PI / 180) * ctx.height / 2;
   
   for (let y = 0; y < ctx.height; y++) {
     const rowSkew = skewAmount * (1 - 2 * y / ctx.height);
