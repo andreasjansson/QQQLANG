@@ -2211,7 +2211,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 0,
     argTypes: [],
     functionName: "center-bar",
-    documentation: "Vertical bar at center (20% width) shows prev sharpened and contrast-boosted, rest is desaturated"
+    documentation: "Middle third of image shows prev sharpened and contrast-boosted, rest is desaturated"
   },
   
   '2': {
