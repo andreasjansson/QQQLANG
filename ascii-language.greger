@@ -13734,5 +13734,46 @@ Fix T horizontal flip by correcting texture coordinates
 ID: toolu_01WRnYx5Z5wBDZoB9PnU68pT
 
 <tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix T horizontal flip by correcting texture coordinates
 </tool.toolu_01WRnYx5Z5wBDZoB9PnU68pT>
+
+# ASSISTANT
+
+Now I also need to fix the box texture coordinates in createBox:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Mym5aruPDnFEZ6A55ByuMD
+
+## path
+
+<tool.toolu_01Mym5aruPDnFEZ6A55ByuMD>
+character-defs.ts
+</tool.toolu_01Mym5aruPDnFEZ6A55ByuMD>
+
+## git-commit-message
+
+<tool.toolu_01Mym5aruPDnFEZ6A55ByuMD>
+Fix T box texture coordinates for horizontal flip
+</tool.toolu_01Mym5aruPDnFEZ6A55ByuMD>
+
+## diff
+
+<tool.toolu_01Mym5aruPDnFEZ6A55ByuMD>
+-    // Texture coords based on box position in image
+-    const u0 = cx - hw, u1 = cx + hw;
++    // Texture coords based on box position in image (flip u for correct orientation)
++    const u0 = 1 - (cx + hw), u1 = 1 - (cx - hw);
+     const v0 = cy - hh, v1 = cy + hh;
+\ No newline at end of file
+
+</tool.toolu_01Mym5aruPDnFEZ6A55ByuMD>
+
+# TOOL RESULT
+
+ID: toolu_01Mym5aruPDnFEZ6A55ByuMD
+
+<tool.toolu_01Mym5aruPDnFEZ6A55ByuMD>
+
+</tool.toolu_01Mym5aruPDnFEZ6A55ByuMD>
