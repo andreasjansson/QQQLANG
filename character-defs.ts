@@ -799,13 +799,13 @@ function fnO(ctx: FnContext, n: number): Image {
   const strength = Math.max(0.1, Math.min(n / 10, 3));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
+  const maxR = Math.min(cx, cy);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const r = Math.sqrt(dx * dx + dy * dy) / maxR;
+      const dx = (x - cx) / maxR;
+      const dy = (y - cy) / maxR;
+      const r = Math.sqrt(dx * dx + dy * dy);
       
       if (r < 0.001) {
         const [pr, pg, pb] = getPixel(prev, x, y);
@@ -813,13 +813,14 @@ function fnO(ctx: FnContext, n: number): Image {
         continue;
       }
       
-      const nr = Math.pow(r, strength) / r;
-      const sx = cx + (dx / maxR) * nr * maxR;
-      const sy = cy + (dy / maxR) * nr * maxR;
+      const nr = Math.pow(r, strength) / r || 0;
+      const sx = (cx + dx * nr * maxR) / ctx.width * prev.width;
+      const sy = (cy + dy * nr * maxR) / ctx.height * prev.height;
       
       const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
       
-      const brightnessMod = r < 0.8 ? 1 + (1 - r / 0.8) * 0.3 : 1 - (r - 0.8) / 0.2 * 0.5;
+      const normalizedR = r / 1.5;
+      const brightnessMod = normalizedR < 0.5 ? 1 + (1 - normalizedR / 0.5) * 0.3 : 1 - Math.min(1, (normalizedR - 0.5) / 0.5) * 0.5;
       const clampedMod = Math.max(0.3, Math.min(1.3, brightnessMod));
       
       setPixel(out, x, y, 
