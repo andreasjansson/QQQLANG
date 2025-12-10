@@ -958,39 +958,33 @@ function fnP(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnEntangle(ctx: FnContext, j: number): Image {
+function fnExcise(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const rule = 30;
-  const cells = new Uint8Array(ctx.width);
-  cells[Math.floor(ctx.width / 2)] = 1;
-  
-  const applyRule = (left: number, center: number, right: number): number => {
-    const idx = (left << 2) | (center << 1) | right;
-    return (rule >> idx) & 1;
-  };
+  const luminances: number[] = [];
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      luminances.push(r * 0.299 + g * 0.587 + b * 0.114);
+    }
+  }
+  luminances.sort((a, b) => a - b);
+  const threshold = luminances[Math.floor(luminances.length * 0.6)];
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      if (cells[x] === 1) {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const lum = pr * 0.299 + pg * 0.587 + pb * 0.114;
+      
+      if (lum > threshold) {
+        const [or, og, ob] = getPixel(old, x, y);
+        setPixel(out, x, y, or, og, ob);
       } else {
-        const [r, g, b] = getPixel(old, x, y);
-        setPixel(out, x, y, r, g, b);
+        setPixel(out, x, y, pr, pg, pb);
       }
     }
-    
-    const newCells = new Uint8Array(ctx.width);
-    for (let x = 0; x < ctx.width; x++) {
-      const left = cells[(x - 1 + ctx.width) % ctx.width];
-      const center = cells[x];
-      const right = cells[(x + 1) % ctx.width];
-      newCells[x] = applyRule(left, center, right);
-    }
-    cells.set(newCells);
   }
   
   return out;
