@@ -796,31 +796,36 @@ function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const strength = Math.max(0.1, Math.min(n / 10, 3));
+  const strength = Math.max(0.1, Math.min(n / 10, 2));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
-  const maxR = Math.min(cx, cy);
+  const maxR = Math.sqrt(cx * cx + cy * cy);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = (x - cx) / maxR;
-      const dy = (y - cy) / maxR;
-      const r = Math.sqrt(dx * dx + dy * dy);
-      const nr = Math.pow(r, strength) / Math.max(0.001, r);
-      const sx = (cx + dx * nr * maxR) / ctx.width * prev.width;
-      const sy = (cy + dy * nr * maxR) / ctx.height * prev.height;
+      const dx = x - cx;
+      const dy = y - cy;
+      const r = Math.sqrt(dx * dx + dy * dy) / maxR;
+      
+      if (r < 0.001) {
+        const [pr, pg, pb] = getPixel(prev, x, y);
+        setPixel(out, x, y, pr, pg, pb);
+        continue;
+      }
+      
+      const nr = Math.pow(r, strength);
+      const sx = cx + (dx / maxR) * nr * maxR;
+      const sy = cy + (dy / maxR) * nr * maxR;
       
       const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
       
-      const distFactor = Math.max(0, 1 - r);
-      const brightnessMod = 1 + distFactor * 0.5;
-      const darknessMod = r > 1 ? Math.max(0.3, 1 - (r - 1) * 0.5) : 1;
-      const finalMod = brightnessMod * darknessMod;
+      const brightnessMod = r < 0.8 ? 1 + (1 - r / 0.8) * 0.3 : 1 - (r - 0.8) / 0.2 * 0.5;
+      const clampedMod = Math.max(0.3, Math.min(1.3, brightnessMod));
       
       setPixel(out, x, y, 
-        Math.min(255, pr * finalMod),
-        Math.min(255, pg * finalMod),
-        Math.min(255, pb * finalMod)
+        Math.round(Math.min(255, Math.max(0, pr * clampedMod))),
+        Math.round(Math.min(255, Math.max(0, pg * clampedMod))),
+        Math.round(Math.min(255, Math.max(0, pb * clampedMod)))
       );
     }
   }
