@@ -1712,7 +1712,7 @@ function fn5(ctx: FnContext, n: number): Image {
       return length(p - center) - radius;
     }
     
-    // Scene SDF - metaballs as smooth-blended spheres
+    // Scene SDF - metaballs as smooth-blended spheres dripping down
     float sceneSDF(vec3 p, int numDrips, float strength) {
       float d = 1000.0;
       
@@ -1720,31 +1720,44 @@ function fn5(ctx: FnContext, n: number): Image {
         if (i >= numDrips) break;
         
         float fi = float(i);
-        float dripX = hash(fi * 127.1) * 2.0 - 1.0;
-        float startY = 1.0 - hash(fi * 311.7) * 0.3;
-        float dripLen = 0.8 + hash(fi * 74.3) * 0.6;
         
-        // Create drip with multiple spheres
-        for (int j = 0; j < 5; j++) {
+        // Spread across full width (-1.5 to 1.5 for aspect ratio coverage)
+        float dripX = (hash(fi * 127.1) * 2.0 - 1.0) * 1.5;
+        
+        // Start from top, some variation
+        float startY = 1.2 - hash(fi * 311.7) * 0.4;
+        
+        // Long drips that can reach bottom
+        float dripLen = 2.0 + hash(fi * 74.3) * 1.5;
+        
+        // Create drip with many spheres for long dripping trail
+        for (int j = 0; j < 12; j++) {
           float fj = float(j);
-          float t = fj / 4.0;
+          float t = fj / 11.0;
           
+          // Y position - dripping downward
           float y = startY - t * dripLen * strength;
-          float wobble = sin(t * 6.0 + fi * 3.0) * 0.05;
-          float x = dripX * 0.8 + wobble;
           
-          // Sphere radius - teardrop shape
-          float baseR = 0.12 + hash(fi * 183.9 + fj * 47.0) * 0.08;
-          float r = baseR * (1.0 - t * 0.4) * strength * 0.5;
+          // Wobble increases as drip flows down
+          float wobble = sin(t * 8.0 + fi * 3.0) * 0.04 * (1.0 + t);
+          float x = dripX + wobble;
           
-          // Sphere sits slightly in front of wall
-          float z = 0.15 + r * 0.5;
+          // Teardrop shape: large at top, small at bottom
+          float baseR = 0.15 + hash(fi * 183.9) * 0.1;
+          float taper = 1.0 - t * 0.7; // Gets smaller toward bottom
+          float r = baseR * taper * strength * 0.4;
+          
+          // Skip very small spheres
+          if (r < 0.02) continue;
+          
+          // Sphere sits in front of wall
+          float z = 0.12 + r * 0.3;
           
           vec3 center = vec3(x, y, z);
           float sphere = sdSphere(p, center, r);
           
-          // Smooth blend spheres together
-          d = smin(d, sphere, 0.15);
+          // Smooth blend - larger k for more organic blending
+          d = smin(d, sphere, 0.12);
         }
       }
       
