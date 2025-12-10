@@ -2231,7 +2231,7 @@ function fnHash(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const gridSize = Math.max(4, Math.min((n % 12) + 4, 24));
+  const gridSize = Math.max(2, n + 2);
   const cellW = Math.floor(ctx.width / gridSize);
   const cellH = Math.floor(ctx.height / gridSize);
   
