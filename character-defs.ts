@@ -2229,7 +2229,7 @@ function fnDoubleQuote(ctx: FnContext, n: number): Image {
 
 function fnHash(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const gridSize = Math.max(2, n + 2);
   
@@ -2241,12 +2241,11 @@ function fnHash(ctx: FnContext, n: number): Image {
     return [x0, y0, x1, y1];
   };
   
-  const cells: { gx: number; gy: number; hue: number; pixels: [number, number, number, number, number][] }[] = [];
+  const cells: { gx: number; gy: number; hue: number }[] = [];
   
   for (let gy = 0; gy < gridSize; gy++) {
     for (let gx = 0; gx < gridSize; gx++) {
       let sumR = 0, sumG = 0, sumB = 0, count = 0;
-      const pixels: [number, number, number, number, number][] = [];
       const [x0, y0, x1, y1] = getCellBounds(gx, gy);
       
       for (let y = y0; y < y1; y++) {
@@ -2256,7 +2255,6 @@ function fnHash(ctx: FnContext, n: number): Image {
           sumG += g;
           sumB += b;
           count++;
-          pixels.push([x - x0, y - y0, r, g, b]);
         }
       }
       
@@ -2265,24 +2263,31 @@ function fnHash(ctx: FnContext, n: number): Image {
       const avgB = count > 0 ? sumB / count : 0;
       const [hue] = rgbToHsl(avgR, avgG, avgB);
       
-      cells.push({ gx, gy, hue, pixels });
+      cells.push({ gx, gy, hue });
     }
   }
   
-  cells.sort((a, b) => a.hue - b.hue);
+  const sortedIndices = cells.map((_, i) => i).sort((a, b) => cells[a].hue - cells[b].hue);
   
-  for (let i = 0; i < cells.length; i++) {
+  for (let i = 0; i < sortedIndices.length; i++) {
+    const srcIdx = sortedIndices[i];
+    const srcCell = cells[srcIdx];
+    const [sx0, sy0, sx1, sy1] = getCellBounds(srcCell.gx, srcCell.gy);
+    const srcW = sx1 - sx0;
+    const srcH = sy1 - sy0;
+    
     const targetGX = i % gridSize;
     const targetGY = Math.floor(i / gridSize);
-    const [tx0, ty0] = getCellBounds(targetGX, targetGY);
-    const cell = cells[i];
+    const [tx0, ty0, tx1, ty1] = getCellBounds(targetGX, targetGY);
+    const targetW = tx1 - tx0;
+    const targetH = ty1 - ty0;
     
-    for (const [localX, localY, r, g, b] of cell.pixels) {
-      const newX = tx0 + localX;
-      const newY = ty0 + localY;
-      
-      if (newX >= 0 && newX < ctx.width && newY >= 0 && newY < ctx.height) {
-        setPixel(out, newX, newY, r, g, b);
+    for (let ty = ty0; ty < ty1; ty++) {
+      for (let tx = tx0; tx < tx1; tx++) {
+        const srcX = sx0 + Math.floor((tx - tx0) * srcW / targetW);
+        const srcY = sy0 + Math.floor((ty - ty0) * srcH / targetH);
+        const [r, g, b] = getPixel(prev, srcX, srcY);
+        setPixel(out, tx, ty, r, g, b);
       }
     }
   }
