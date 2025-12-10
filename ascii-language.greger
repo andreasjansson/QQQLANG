@@ -13331,5 +13331,482 @@ Implement characters R-Z: corrugated, skew, cubes, undulate, vignette, swirl, sh
 ID: toolu_01V38oKyprRiySkU92Pnn7Sa
 
 <tool.toolu_01V38oKyprRiySkU92Pnn7Sa>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Implement characters R-Z: corrugated, skew, cubes, undulate, vignette, swirl, shapes, radial-hue, zoom-blur
 </tool.toolu_01V38oKyprRiySkU92Pnn7Sa>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01J7iWy1MnJR3YB8o6XMRLJG
+
+## path
+
+<tool.toolu_01J7iWy1MnJR3YB8o6XMRLJG>
+character-defs.ts
+</tool.toolu_01J7iWy1MnJR3YB8o6XMRLJG>
+
+## git-commit-message
+
+<tool.toolu_01J7iWy1MnJR3YB8o6XMRLJG>
+Add R-Z function implementations
+</tool.toolu_01J7iWy1MnJR3YB8o6XMRLJG>
+
+## diff
+
+<tool.toolu_01J7iWy1MnJR3YB8o6XMRLJG>
++function fnR(ctx: FnContext): Image {
++  const prev = getPrevImage(ctx);
++  const gl = initWebGL(ctx.width, ctx.height);
++  
++  const vertexShader = `
++    attribute vec2 position;
++    varying vec2 vUV;
++    void main() {
++      vUV = position * 0.5 + 0.5;
++      gl_Position = vec4(position, 0.0, 1.0);
++    }
++  `;
++  
++  const fragmentShader = `
++    precision mediump float;
++    uniform sampler2D texture;
++    uniform vec2 resolution;
++    varying vec2 vUV;
++    
++    void main() {
++      vec2 uv = vUV;
++      float wave = sin(uv.x * 20.0) * 0.1;
++      float shade = 0.7 + 0.3 * cos(uv.x * 20.0);
++      
++      vec2 distortedUV = vec2(uv.x, uv.y + wave * (0.5 - abs(uv.y - 0.5)));
++      vec3 color = texture2D(texture, distortedUV).rgb * shade;
++      
++      gl_FragColor = vec4(color, 1.0);
++    }
++  `;
++  
++  const program = createShaderProgram(gl, vertexShader, fragmentShader);
++  gl.useProgram(program);
++  
++  const texture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, texture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
++  const buffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
++  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
++  
++  const positionLoc = gl.getAttribLocation(program, 'position');
++  gl.enableVertexAttribArray(positionLoc);
++  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
++  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
++  
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  
++  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
++  
++  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
++      const dstIdx = (y * ctx.width + x) * 4;
++      flipped[dstIdx] = pixels[srcIdx];
++      flipped[dstIdx + 1] = pixels[srcIdx + 1];
++      flipped[dstIdx + 2] = pixels[srcIdx + 2];
++      flipped[dstIdx + 3] = pixels[srcIdx + 3];
++    }
++  }
++  
++  gl.deleteTexture(texture);
++  gl.deleteBuffer(buffer);
++  gl.deleteProgram(program);
++  
++  return { width: ctx.width, height: ctx.height, data: flipped };
++}
++
++function fnS(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const skewAmount = (n / 20) * ctx.width * 0.5;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    const rowSkew = skewAmount * (1 - 2 * y / ctx.height);
++    for (let x = 0; x < ctx.width; x++) {
++      const sx = ((x + rowSkew) % ctx.width + ctx.width) % ctx.width;
++      const [r, g, b] = getPixel(prev, Math.floor(sx), y);
++      setPixel(out, x, y, r, g, b);
++    }
++  }
++  
++  return out;
++}
++
++function fnT(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const gl = initWebGL(ctx.width, ctx.height);
++  
++  const numCubes = Math.max(1, Math.min(n, 20));
++  
++  const vertexShader = `
++    attribute vec2 position;
++    varying vec2 vUV;
++    void main() {
++      vUV = position * 0.5 + 0.5;
++      gl_Position = vec4(position, 0.0, 1.0);
++    }
++  `;
++  
++  const fragmentShader = `
++    precision mediump float;
++    uniform sampler2D texture;
++    uniform vec2 resolution;
++    uniform float numCubes;
++    varying vec2 vUV;
++    
++    float hash(vec2 p) {
++      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
++    }
++    
++    void main() {
++      vec2 uv = vUV;
++      vec3 baseColor = texture2D(texture, uv).rgb;
++      vec3 color = baseColor;
++      
++      for (float i = 0.0; i < 20.0; i++) {
++        if (i >= numCubes) break;
++        
++        vec2 cubeCenter = vec2(
++          hash(vec2(i * 47.0, 13.0)),
++          hash(vec2(i * 89.0, 31.0))
++        );
++        float cubeSize = 0.05 + hash(vec2(i, i * 2.0)) * 0.1;
++        
++        vec2 toCenter = uv - cubeCenter;
++        float depth = hash(vec2(i * 17.0, i * 23.0)) * 0.5;
++        
++        vec2 offset3D = vec2(depth * 0.02, -depth * 0.03);
++        
++        if (abs(toCenter.x) < cubeSize && abs(toCenter.y) < cubeSize) {
++          float light = 0.6 + 0.4 * (1.0 - toCenter.x / cubeSize * 0.5 - toCenter.y / cubeSize * 0.3);
++          vec3 cubeColor = texture2D(texture, cubeCenter).rgb;
++          color = cubeColor * light;
++        }
++        
++        vec2 shadowOffset = toCenter + vec2(0.02, 0.03);
++        if (abs(shadowOffset.x) < cubeSize && abs(shadowOffset.y) < cubeSize &&
++            (abs(toCenter.x) >= cubeSize || abs(toCenter.y) >= cubeSize)) {
++          color *= 0.7;
++        }
++      }
++      
++      gl_FragColor = vec4(color, 1.0);
++    }
++  `;
++  
++  const program = createShaderProgram(gl, vertexShader, fragmentShader);
++  gl.useProgram(program);
++  
++  const texture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, texture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
++  const buffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
++  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
++  
++  const positionLoc = gl.getAttribLocation(program, 'position');
++  gl.enableVertexAttribArray(positionLoc);
++  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
++  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
++  gl.uniform1f(gl.getUniformLocation(program, 'numCubes'), numCubes);
++  
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  
++  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
++  
++  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
++      const dstIdx = (y * ctx.width + x) * 4;
++      flipped[dstIdx] = pixels[srcIdx];
++      flipped[dstIdx + 1] = pixels[srcIdx + 1];
++      flipped[dstIdx + 2] = pixels[srcIdx + 2];
++      flipped[dstIdx + 3] = pixels[srcIdx + 3];
++    }
++  }
++  
++  gl.deleteTexture(texture);
++  gl.deleteBuffer(buffer);
++  gl.deleteProgram(program);
++  
++  return { width: ctx.width, height: ctx.height, data: flipped };
++}
++
++function fnU(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const amplitude = n * 5;
++  const frequency = Math.max(1, n);
++  
++  for (let y = 0; y < ctx.height; y++) {
++    let rowLuminance = 0;
++    for (let x = 0; x < ctx.width; x++) {
++      const [r, g, b] = getPixel(prev, x, y);
++      rowLuminance += r * 0.299 + g * 0.587 + b * 0.114;
++    }
++    rowLuminance /= ctx.width;
++    const phase = (rowLuminance / 255) * Math.PI * 2;
++    
++    for (let x = 0; x < ctx.width; x++) {
++      const wave = Math.sin((y / ctx.height) * Math.PI * 2 * frequency + phase) * amplitude;
++      const sx = ((x + wave) % ctx.width + ctx.width) % ctx.width;
++      const [r, g, b] = getPixel(prev, Math.floor(sx), y);
++      setPixel(out, x, y, r, g, b);
++    }
++  }
++  
++  return out;
++}
++
++function fnV(ctx: FnContext, c: string): Image {
++  const prev = getPrevImage(ctx);
++  const out = cloneImage(prev);
++  const [tr, tg, tb] = hexToRgb(c);
++  
++  const cx = ctx.width / 2;
++  const cy = ctx.height / 2;
++  const maxR = Math.sqrt(cx * cx + cy * cy) * 0.7;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const dx = x - cx;
++      const dy = y - cy;
++      const dist = Math.sqrt(dx * dx + dy * dy);
++      
++      const vignette = Math.max(0, 1 - Math.pow(dist / maxR, 2));
++      const darken = vignette;
++      const tint = 1 - vignette;
++      
++      const idx = (y * ctx.width + x) * 4;
++      out.data[idx] = Math.round(out.data[idx] * darken + tr * tint * 0.5);
++      out.data[idx + 1] = Math.round(out.data[idx + 1] * darken + tg * tint * 0.5);
++      out.data[idx + 2] = Math.round(out.data[idx + 2] * darken + tb * tint * 0.5);
++    }
++  }
++  
++  return out;
++}
++
++function fnW(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const maxRotation = (n * 45) * (Math.PI / 180);
++  const cx = ctx.width / 2;
++  const cy = ctx.height / 2;
++  const maxR = Math.sqrt(cx * cx + cy * cy);
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const dx = x - cx;
++      const dy = y - cy;
++      const dist = Math.sqrt(dx * dx + dy * dy);
++      const normDist = dist / maxR;
++      
++      const falloff = (1 - normDist) * (1 - normDist);
++      const rotation = maxRotation * falloff;
++      
++      const cos = Math.cos(rotation);
++      const sin = Math.sin(rotation);
++      const sx = cx + dx * cos - dy * sin;
++      const sy = cy + dx * sin + dy * cos;
++      
++      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
++      setPixel(out, x, y, r, g, b);
++    }
++  }
++  
++  return out;
++}
++
++function fnX(ctx: FnContext, k: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = cloneImage(prev);
++  
++  let avgR = 0, avgG = 0, avgB = 0;
++  for (let i = 0; i < prev.data.length; i += 4) {
++    avgR += prev.data[i];
++    avgG += prev.data[i + 1];
++    avgB += prev.data[i + 2];
++  }
++  const count = prev.data.length / 4;
++  avgR = 255 - Math.round(avgR / count);
++  avgG = 255 - Math.round(avgG / count);
++  avgB = 255 - Math.round(avgB / count);
++  
++  const shapeIdx = Math.abs(k) % 64;
++  const cx = ctx.width / 2;
++  const cy = ctx.height / 2;
++  const size = Math.min(ctx.width, ctx.height) * 0.25;
++  
++  const drawShape = (x: number, y: number): boolean => {
++    const nx = (x - cx) / size;
++    const ny = (y - cy) / size;
++    const dist = Math.sqrt(nx * nx + ny * ny);
++    const angle = Math.atan2(ny, nx);
++    
++    switch (shapeIdx) {
++      case 0: // star
++        const starAngle = angle + Math.PI / 2;
++        const starR = 0.5 + 0.5 * Math.cos(5 * starAngle);
++        return dist < starR;
++      case 1: return dist < 1; // circle
++      case 2: return Math.abs(nx) < 1 && Math.abs(ny) < 1; // square
++      case 3: return ny > -1 && ny < 1 - Math.abs(nx); // triangle
++      case 4: return Math.abs(nx) + Math.abs(ny) < 1; // diamond
++      case 5: // heart
++        const hx = Math.abs(nx) * 1.2;
++        const hy = -ny * 0.8 + 0.3;
++        return (hx * hx + hy * hy - 0.5) * (hx * hx + hy * hy - 0.5) * (hx * hx + hy * hy - 0.5) < hx * hx * hy * hy * hy;
++      case 6: // 4-point star
++        const star4R = 0.3 + 0.7 * Math.abs(Math.cos(2 * angle));
++        return dist < star4R;
++      case 7: // hexagon
++        const hAngle = Math.abs((angle + Math.PI / 6) % (Math.PI / 3) - Math.PI / 6);
++        return dist * Math.cos(hAngle) < 0.9;
++      case 8: return (Math.abs(nx) < 0.2 || Math.abs(ny) < 0.2) && Math.abs(nx) < 1 && Math.abs(ny) < 1; // cross
++      case 9: return dist < 1 && (nx > 0 || dist < 0.5); // half circle
++      case 10: return dist < 1 && dist > 0.7 && nx < 0.3; // crescent
++      case 11: // lightning
++        return Math.abs(nx - Math.sin(ny * 3) * 0.3) < 0.15 && Math.abs(ny) < 1;
++      case 12: // infinity
++        const ix = nx * 1.5;
++        const iy = ny * 2;
++        return (ix * ix + iy * iy) * (ix * ix + iy * iy) < ix * ix - iy * iy + 0.5;
++      default:
++        const sides = 3 + (shapeIdx % 10);
++        const polyAngle = Math.abs((angle + Math.PI / sides) % (Math.PI * 2 / sides) - Math.PI / sides);
++        return dist * Math.cos(polyAngle) < 0.8;
++    }
++  };
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      if (drawShape(x, y)) {
++        setPixel(out, x, y, avgR, avgG, avgB);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnY(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const sections = Math.max(2, Math.min(n, 36));
++  const cx = ctx.width / 2;
++  const cy = ctx.height / 2;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const dx = x - cx;
++      const dy = y - cy;
++      let angle = Math.atan2(dy, dx);
++      if (angle < 0) angle += Math.PI * 2;
++      
++      const sectionIdx = Math.floor(angle / (Math.PI * 2) * sections);
++      const hueShift = (sectionIdx / sections) * 360;
++      
++      const [r, g, b] = getPixel(prev, x, y);
++      const [h, s, l] = rgbToHsl(r, g, b);
++      const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
++      
++      setPixel(out, x, y, nr, ng, nb);
++    }
++  }
++  
++  return out;
++}
++
++function fnZ(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const blurAmount = n * 4;
++  const cx = ctx.width / 2;
++  const cy = ctx.height / 2;
++  const maxR = Math.sqrt(cx * cx + cy * cy);
++  const sharpRadius = 0.2;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const dx = x - cx;
++      const dy = y - cy;
++      const dist = Math.sqrt(dx * dx + dy * dy);
++      const normDist = dist / maxR;
++      
++      if (normDist < sharpRadius) {
++        const [r, g, b] = getPixel(prev, x, y);
++        setPixel(out, x, y, r, g, b);
++      } else {
++        const blurStrength = Math.min(1, (normDist - sharpRadius) / (1 - sharpRadius));
++        const samples = Math.max(1, Math.floor(blurStrength * blurAmount / 2));
++        
++        let sumR = 0, sumG = 0, sumB = 0;
++        for (let i = 0; i <= samples; i++) {
++          const t = i / samples;
++          const sx = cx + dx * (1 - t * blurStrength * 0.5);
++          const sy = cy + dy * (1 - t * blurStrength * 0.5);
++          const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
++          sumR += r;
++          sumG += g;
++          sumB += b;
++        }
++        
++        setPixel(out, x, y, 
++          Math.round(sumR / (samples + 1)),
++          Math.round(sumG / (samples + 1)),
++          Math.round(sumB / (samples + 1))
++        );
++      }
++    }
++  }
++  
++  return out;
++}
++
+ function fnQ(ctx: FnContext): Image {
+\ No newline at end of file
+
+</tool.toolu_01J7iWy1MnJR3YB8o6XMRLJG>
+
+# TOOL RESULT
+
+ID: toolu_01J7iWy1MnJR3YB8o6XMRLJG
+
+<tool.toolu_01J7iWy1MnJR3YB8o6XMRLJG>
+
+</tool.toolu_01J7iWy1MnJR3YB8o6XMRLJG>
