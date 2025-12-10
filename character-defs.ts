@@ -3852,10 +3852,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#20B2AA',
     number: 12,
     fn: fnL,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 2,
+    argTypes: ['int', 'int'],
     functionName: "lissajous",
-    documentation: "3D Lissajous tube textured with prev, old_image as background, strong lighting"
+    documentation: "3D Lissajous tube textured with prev, old_image as background; j=old image, rot=rotation"
   },
   
   'M': {
