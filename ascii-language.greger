@@ -9603,5 +9603,58 @@ function fnH(ctx: FnContext, n: number): Image {
 ID: toolu_01Td9feakQggXjND6nPjVgyH
 
 <tool.toolu_01Td9feakQggXjND6nPjVgyH>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Replace halftone with Hilbert curve dithering
 </tool.toolu_01Td9feakQggXjND6nPjVgyH>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015oKH3eqvwLBNYJ2xVgxE24
+
+## path
+
+<tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+character-defs.ts
+</tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+
+## git-commit-message
+
+<tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+Update H documentation for Hilbert dithering
+</tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+
+## original-content
+
+<tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+  'H': {
+    color: '#DC143C',
+    number: 8,
+    fn: fnH,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "halftone",
+    documentation: "Halftone print effect: colored dots on white, dot size based on darkness, spacing = 4 + n*2"
+  },
+</tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+
+## new-content
+
+<tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+  'H': {
+    color: '#DC143C',
+    number: 8,
+    fn: fnH,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hilbert-dither",
+    documentation: "Hilbert curve dithering: error diffusion along space-filling curve, n+2 color levels per channel"
+  },
+</tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+
+# TOOL RESULT
+
+ID: toolu_015oKH3eqvwLBNYJ2xVgxE24
+
+<tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>
+
+</tool.toolu_015oKH3eqvwLBNYJ2xVgxE24>

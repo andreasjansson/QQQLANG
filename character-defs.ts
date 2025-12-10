@@ -3926,8 +3926,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnH,
     arity: 1,
     argTypes: ['int'],
-    functionName: "halftone",
-    documentation: "Halftone print effect: colored dots on white, dot size based on darkness, spacing = 4 + n*2"
+    functionName: "hilbert-dither",
+    documentation: "Hilbert curve dithering: error diffusion along space-filling curve, n+2 color levels per channel"
   },
   
   'I': {
