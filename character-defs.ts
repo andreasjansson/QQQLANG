@@ -2183,12 +2183,23 @@ function fnCaret(ctx: FnContext): Image {
 function fnExclaim(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
-  const opacity = 0.3;
-  const factor = n + 17;
+  const opacity = 0.6;
+  const scale = Math.max(4, (n + 2) * 3);
+  const factor1 = n + 17;
+  const factor2 = n * 7 + 23;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const brightness = ((x * factor) ^ (y * 31) ^ (x * y)) % 256;
+      const bx = Math.floor(x / scale);
+      const by = Math.floor(y / scale);
+      
+      const hash1 = ((bx * factor1) ^ (by * 31) ^ (bx * by * 13)) % 256;
+      const hash2 = ((bx * 47 + by * factor2) ^ (bx ^ by)) % 256;
+      const hash3 = ((bx + by * 73) * (bx ^ (by * 19))) % 256;
+      
+      const pattern = (hash1 + hash2 + hash3) / 3;
+      const brightness = pattern > 128 ? 255 : 0;
+      
       const idx = (y * ctx.width + x) * 4;
       out.data[idx] = Math.round(out.data[idx] * (1 - opacity) + brightness * opacity);
       out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - opacity) + brightness * opacity);
