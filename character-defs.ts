@@ -796,7 +796,7 @@ function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const strength = Math.max(0.01, Math.min(0.02 + (n - 1) * 0.05, 8));
+  const strength = Math.max(0.0001, Math.min(0.0002 + (n - 1) * 0.05, 8));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   
