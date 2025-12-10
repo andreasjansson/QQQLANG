@@ -13127,5 +13127,69 @@ Fix T projection to cover full screen and increase drawer depth
 ID: toolu_01UxEj7fK4F2foHJqB53fisw
 
 <tool.toolu_01UxEj7fK4F2foHJqB53fisw>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix T projection to cover full screen and increase drawer depth
 </tool.toolu_01UxEj7fK4F2foHJqB53fisw>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Pi7NRvZBC5ddPPH5sXtb6E
+
+## path
+
+<tool.toolu_01Pi7NRvZBC5ddPPH5sXtb6E>
+character-defs.ts
+</tool.toolu_01Pi7NRvZBC5ddPPH5sXtb6E>
+
+## git-commit-message
+
+<tool.toolu_01Pi7NRvZBC5ddPPH5sXtb6E>
+Use orthographic projection for T to properly fill screen
+</tool.toolu_01Pi7NRvZBC5ddPPH5sXtb6E>
+
+## diff
+
+<tool.toolu_01Pi7NRvZBC5ddPPH5sXtb6E>
+-  // Perspective projection
+-  const aspect = ctx.width / ctx.height;
+-  const fov = Math.PI / 4;
+-  const near = 0.1, far = 10.0;
+-  const f = 1.0 / Math.tan(fov / 2);
+-  const perspective = new Float32Array([
+-    f/aspect, 0, 0, 0,
+-    0, f, 0, 0,
+-    0, 0, (far+near)/(near-far), -1,
+-    0, 0, (2*far*near)/(near-far), 0
++  // Orthographic projection that maps 0-1 to full screen with depth
++  const near = -5.0, far = 5.0;
++  const orthoProj = new Float32Array([
++    2, 0, 0, 0,
++    0, 2, 0, 0,
++    0, 0, -2/(far-near), 0,
++    -1, -1, -(far+near)/(far-near), 1
+   ]);
+   
+-  // View matrix - camera at z=1.5 looking at center of 0-1 space
++  // View matrix - identity, looking straight at z=0 plane
+   const view = new Float32Array([
+     1, 0, 0, 0,
+     0, 1, 0, 0,
+     0, 0, 1, 0,
+-    -0.5, -0.5, -1.5, 1
++    0, 0, 0, 1
+   ]);
+   
+-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
+\ No newline at end of file
++  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, orthoProj);
+\ No newline at end of file
+
+</tool.toolu_01Pi7NRvZBC5ddPPH5sXtb6E>
+
+# TOOL RESULT
+
+ID: toolu_01Pi7NRvZBC5ddPPH5sXtb6E
+
+<tool.toolu_01Pi7NRvZBC5ddPPH5sXtb6E>
+
+</tool.toolu_01Pi7NRvZBC5ddPPH5sXtb6E>
