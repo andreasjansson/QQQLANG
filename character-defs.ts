@@ -1193,7 +1193,7 @@ function fnX(ctx: FnContext, k: number, c: string): Image {
   const shapeIdx = Math.abs(k) % 64;
   const symbol = shapes[shapeIdx];
   
-  const size = Math.min(ctx.width, ctx.height) * 0.5;
+  const size = Math.min(ctx.width, ctx.height) * 0.9;
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = ctx.width;
   tempCanvas.height = ctx.height;
