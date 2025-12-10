@@ -459,37 +459,49 @@ function fnF(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const zoom = 0.5 + n * 0.3;
-  const maxIterations = 80;
+  const zoomPower = Math.max(1, n);
+  const scale = Math.pow(0.7, zoomPower);
+  const maxIterations = 100 + zoomPower * 20;
   
   const cReal = -0.7;
   const cImag = 0.27015;
   
+  const centerReal = 0.15;
+  const centerImag = 0.6;
+  
+  const aspect = ctx.height / ctx.width;
+  
   for (let py = 0; py < ctx.height; py++) {
     for (let px = 0; px < ctx.width; px++) {
-      let zReal = ((px / ctx.width) - 0.5) * (3 / zoom);
-      let zImag = ((py / ctx.height) - 0.5) * (3 / zoom) * (ctx.height / ctx.width);
+      let zReal = centerReal + ((px / ctx.width) - 0.5) * 3 * scale;
+      let zImag = centerImag + ((py / ctx.height) - 0.5) * 3 * scale * aspect;
       
       let iteration = 0;
-      while (iteration < maxIterations && zReal * zReal + zImag * zImag < 4) {
-        const zRealTemp = zReal * zReal - zImag * zImag + cReal;
+      let zReal2 = zReal * zReal;
+      let zImag2 = zImag * zImag;
+      
+      while (iteration < maxIterations && zReal2 + zImag2 < 256) {
         zImag = 2 * zReal * zImag + cImag;
-        zReal = zRealTemp;
+        zReal = zReal2 - zImag2 + cReal;
+        zReal2 = zReal * zReal;
+        zImag2 = zImag * zImag;
         iteration++;
       }
       
-      const [pr, pg, pb] = getPixel(prev, px, py);
-      
       if (iteration === maxIterations) {
+        const [pr, pg, pb] = getPixel(prev, px, py);
         setPixel(out, px, py, pr, pg, pb);
       } else {
-        const t = iteration / maxIterations;
-        const smooth = t + (1 - t) * 0.3;
-        setPixel(out, px, py,
-          Math.floor(pr * smooth),
-          Math.floor(pg * smooth),
-          Math.floor(pb * smooth)
-        );
+        const log_zn = Math.log(zReal2 + zImag2) / 2;
+        const nu = Math.log(log_zn / Math.log(2)) / Math.log(2);
+        const smoothed = iteration + 1 - nu;
+        
+        const t = (smoothed % 20) / 20;
+        const sampleX = Math.floor(t * ctx.width);
+        const sampleY = py;
+        
+        const [pr, pg, pb] = getPixel(prev, sampleX, sampleY);
+        setPixel(out, px, py, pr, pg, pb);
       }
     }
   }
