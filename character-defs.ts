@@ -638,8 +638,8 @@ function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: 
   const out = cloneImage(prev);
   const [cr, cg, cb] = hexToRgb(c);
   
-  const maxDepth = Math.max(3, Math.min(recursionDepth, 12));
-  const angleVar = Math.max(0.1, Math.min(angleVariation / 10, 3));
+  const maxDepth = Math.max(2, Math.min(recursionDepth, 15));
+  const angleVar = Math.max(0.1, Math.min(angleVariation / 2, 2.5));
   
   const seededRandom = (seed: number) => {
     let state = seed;
@@ -674,9 +674,9 @@ function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: 
   };
   
   const growBranch = (x: number, y: number, angle: number, length: number, thickness: number, depth: number) => {
-    if (depth > maxDepth || length < 10) return;
+    if (depth > maxDepth || length < 8) return;
     
-    const angleVariation = (rand() - 0.5) * angleVar * 0.2;
+    const angleVariation = (rand() - 0.5) * angleVar * 0.5;
     const actualAngle = angle + angleVariation;
     
     const endX = x + Math.cos(actualAngle) * length;
@@ -686,15 +686,19 @@ function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: 
     
     drawLine(x, y, endX, endY, thickness);
     
-    const numBranches = depth === 0 ? 3 : (rand() < 0.4 ? 2 : 1);
+    const branchProbability = Math.min(0.9, 0.3 + maxDepth * 0.05);
+    const baseBranches = depth === 0 ? Math.min(4, 1 + Math.floor(maxDepth / 4)) : 1;
+    const extraBranches = rand() < branchProbability ? 1 : 0;
+    const numBranches = baseBranches + extraBranches;
     
     for (let i = 0; i < numBranches; i++) {
-      const branchPoint = 0.5 + rand() * 0.4;
+      const branchPoint = 0.4 + rand() * 0.5;
       const branchX = x + Math.cos(actualAngle) * length * branchPoint;
       const branchY = y + Math.sin(actualAngle) * length * branchPoint;
       
-      const branchAngle = actualAngle + (rand() - 0.5) * angleVar;
-      const branchLength = length * (0.5 + rand() * 0.3);
+      const spreadAngle = (i - (numBranches - 1) / 2) * angleVar * 0.8;
+      const branchAngle = actualAngle + spreadAngle + (rand() - 0.5) * angleVar * 0.5;
+      const branchLength = length * (0.4 + rand() * 0.35);
       const branchThickness = Math.max(1, thickness - 1);
       
       growBranch(branchX, branchY, branchAngle, branchLength, branchThickness, depth + 1);
