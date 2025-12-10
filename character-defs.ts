@@ -3845,8 +3845,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnT,
     arity: 1,
     argTypes: ['int'],
-    functionName: "cubes",
-    documentation: "3D cubes emerge from image in deterministic chaotic patterns, light from top-right"
+    functionName: "city",
+    documentation: "Bird's eye view of a city: n*5 buildings with rooftops textured from prev, casting shadows to bottom-right"
   },
   
   'U': {
