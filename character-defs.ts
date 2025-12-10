@@ -3667,8 +3667,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnHash,
     arity: 1,
     argTypes: ['int'],
-    functionName: "som-rearrange",
-    documentation: "Rearranges image cells using self-organizing map, grouping similar colors together, grid size 4-16 based on n"
+    functionName: "hue-sort-tiles",
+    documentation: "Divides image into tiles and sorts them left-to-right, top-to-bottom by average hue, grid size 4-24 based on n"
   },
   
   '$': {
