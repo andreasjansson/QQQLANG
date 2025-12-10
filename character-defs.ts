@@ -1566,45 +1566,24 @@ function fn1(ctx: FnContext): Image {
   return out;
 }
 
-function fn2(ctx: FnContext, n: number): Image {
+function fn2(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const levels = Math.max(2, Math.min(n, 32));
-  const step = 256 / levels;
-  
-  let sumR = 0, sumG = 0, sumB = 0;
-  const pixelCount = ctx.width * ctx.height;
-  
-  for (let i = 0; i < out.data.length; i += 4) {
-    sumR += out.data[i];
-    sumG += out.data[i + 1];
-    sumB += out.data[i + 2];
-    
-    out.data[i] = Math.floor(out.data[i] / step) * step;
-    out.data[i + 1] = Math.floor(out.data[i + 1] / step) * step;
-    out.data[i + 2] = Math.floor(out.data[i + 2] / step) * step;
-  }
-  
-  const avgR = sumR / pixelCount;
-  const avgG = sumG / pixelCount;
-  const avgB = sumB / pixelCount;
-  const compR = 255 - avgR;
-  const compG = 255 - avgG;
-  const compB = 255 - avgB;
+  const third1 = Math.floor(ctx.width / 3);
+  const third2 = Math.floor(ctx.width * 2 / 3);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const t = x / ctx.width;
-      const idx = (y * ctx.width + x) * 4;
+      const [r, g, b] = getPixel(prev, x, y);
       
-      const gradR = avgR * (1 - t) + compR * t;
-      const gradG = avgG * (1 - t) + compG * t;
-      const gradB = avgB * (1 - t) + compB * t;
-      
-      out.data[idx] = Math.min(255, Math.round(out.data[idx] * 0.7 + gradR * 0.3));
-      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * 0.7 + gradG * 0.3));
-      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * 0.7 + gradB * 0.3));
+      if (x < third1) {
+        setPixel(out, x, y, r, 0, 0);
+      } else if (x < third2) {
+        setPixel(out, x, y, 0, g, 0);
+      } else {
+        setPixel(out, x, y, 0, 0, b);
+      }
     }
   }
   
