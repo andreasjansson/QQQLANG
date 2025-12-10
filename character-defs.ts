@@ -890,7 +890,7 @@ function fnR(ctx: FnContext): Image {
     attribute vec2 position;
     varying vec2 vUV;
     void main() {
-      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      vUV = position * 0.5 + 0.5;
       gl_Position = vec4(position, 0.0, 1.0);
     }
   `;
@@ -902,7 +902,7 @@ function fnR(ctx: FnContext): Image {
     varying vec2 vUV;
     
     void main() {
-      vec2 uv = vUV;
+      vec2 uv = gl_FragCoord.xy / resolution;
       float wave = sin(uv.x * 20.0) * 0.1;
       float shade = 0.7 + 0.3 * cos(uv.x * 20.0);
       

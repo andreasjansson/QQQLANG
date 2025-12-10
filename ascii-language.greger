@@ -13970,5 +13970,591 @@ Fix R corrugated effect horizontal flip by correcting UV coordinates
 ID: toolu_01KvoshdwmaMvw2qszgpMEzq
 
 <tool.toolu_01KvoshdwmaMvw2qszgpMEzq>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix R corrugated effect horizontal flip by correcting UV coordinates
 </tool.toolu_01KvoshdwmaMvw2qszgpMEzq>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DApXnYmAaRnx3yaunFsDbd
+
+## path
+
+<tool.toolu_01DApXnYmAaRnx3yaunFsDbd>
+character-defs.ts
+</tool.toolu_01DApXnYmAaRnx3yaunFsDbd>
+
+## git-commit-message
+
+<tool.toolu_01DApXnYmAaRnx3yaunFsDbd>
+Remove redundant y-flip in R since UV now handles it
+</tool.toolu_01DApXnYmAaRnx3yaunFsDbd>
+
+## diff
+
+<tool.toolu_01DApXnYmAaRnx3yaunFsDbd>
+   gl.viewport(0, 0, ctx.width, ctx.height);
+   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+   
+   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+   
+-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+-  for (let y = 0; y < ctx.height; y++) {
+-    for (let x = 0; x < ctx.width; x++) {
+-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+-      const dstIdx = (y * ctx.width + x) * 4;
+-      flipped[dstIdx] = pixels[srcIdx];
+-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+-    }
+-  }
+-  
+   gl.deleteTexture(texture);
+   gl.deleteBuffer(buffer);
+   gl.deleteProgram(program);
+   
+-  return { width: ctx.width, height: ctx.height, data: flipped };
++  return { width: ctx.width, height: ctx.height, data: pixels };
+ }
+\ No newline at end of file
+
+</tool.toolu_01DApXnYmAaRnx3yaunFsDbd>
+
+# TOOL RESULT
+
+ID: toolu_01DApXnYmAaRnx3yaunFsDbd
+
+<tool.toolu_01DApXnYmAaRnx3yaunFsDbd>
+Found 3 occurrences of original content in file: /Users/ajansson/projects/ascii-language/character-defs.ts. Use replace-all=t to replace all instances, or make the original content more specific -- Try again!
+</tool.toolu_01DApXnYmAaRnx3yaunFsDbd>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01HMfJzByJ8cLuXQpNGw4aKc
+
+## path
+
+<tool.toolu_01HMfJzByJ8cLuXQpNGw4aKc>
+character-defs.ts
+</tool.toolu_01HMfJzByJ8cLuXQpNGw4aKc>
+
+## start-line
+
+<tool.toolu_01HMfJzByJ8cLuXQpNGw4aKc>
+1
+</tool.toolu_01HMfJzByJ8cLuXQpNGw4aKc>
+
+## end-line
+
+<tool.toolu_01HMfJzByJ8cLuXQpNGw4aKc>
+120
+</tool.toolu_01HMfJzByJ8cLuXQpNGw4aKc>
+
+# TOOL RESULT
+
+ID: toolu_01HMfJzByJ8cLuXQpNGw4aKc
+
+<tool.toolu_01HMfJzByJ8cLuXQpNGw4aKc>
+export interface Image {
+  width: number;
+  height: number;
+  data: Uint8ClampedArray;
+}
+
+export interface FnContext {
+  width: number;
+  height: number;
+  images: Image[];
+  currentIndex: number;
+}
+
+export interface CharDef {
+  color: string;
+  number: number;
+  fn: (ctx: FnContext, ...args: any[]) => Image;
+  arity: number;
+  argTypes: ('int' | 'color')[];
+  functionName: string;
+  documentation: string;
+}
+
+let glCanvas: HTMLCanvasElement | null = null;
+let gl: WebGLRenderingContext | null = null;
+let glTexture: WebGLTexture | null = null;
+let glFramebuffer: WebGLFramebuffer | null = null;
+
+function initWebGL(width: number, height: number): WebGLRenderingContext {
+  if (!glCanvas || glCanvas.width !== width || glCanvas.height !== height) {
+    glCanvas = document.createElement('canvas');
+    glCanvas.width = width;
+    glCanvas.height = height;
+    gl = glCanvas.getContext('webgl', { 
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: true 
+    });
+    if (!gl) throw new Error('WebGL not supported');
+    
+    glTexture = gl.createTexture();
+    glFramebuffer = gl.createFramebuffer();
+  }
+  return gl!;
+}
+
+function createShaderProgram(gl: WebGLRenderingContext, vertSource: string, fragSource: string): WebGLProgram {
+  const vertShader = gl.createShader(gl.VERTEX_SHADER)!;
+  gl.shaderSource(vertShader, vertSource);
+  gl.compileShader(vertShader);
+  
+  const fragShader = gl.createShader(gl.FRAGMENT_SHADER)!;
+  gl.shaderSource(fragShader, fragSource);
+  gl.compileShader(fragShader);
+  
+  const program = gl.createProgram()!;
+  gl.attachShader(program, vertShader);
+  gl.attachShader(program, fragShader);
+  gl.linkProgram(program);
+  
+  return program;
+}
+
+export function createSolidImage(width: number, height: number, color: string): Image {
+  const [r, g, b] = hexToRgb(color);
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let i = 0; i < width * height; i++) {
+    data[i * 4] = r;
+    data[i * 4 + 1] = g;
+    data[i * 4 + 2] = b;
+    data[i * 4 + 3] = 255;
+  }
+  return { width, height, data };
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  return [
+    parseInt(h.substring(0, 2), 16),
+    parseInt(h.substring(2, 4), 16),
+    parseInt(h.substring(4, 6), 16),
+  ];
+}
+
+function cloneImage(img: Image): Image {
+  return {
+    width: img.width,
+    height: img.height,
+    data: new Uint8ClampedArray(img.data),
+  };
+}
+
+function getPrevImage(ctx: FnContext): Image {
+  if (ctx.images.length === 0) {
+    return createSolidImage(ctx.width, ctx.height, '#000000');
+  }
+  return ctx.images[ctx.images.length - 1];
+}
+
+function getOldImage(ctx: FnContext, j: number): Image {
+  if (ctx.images.length <= 1) return getPrevImage(ctx);
+  const idx = Math.abs(j) % (ctx.images.length - 1);
+  return ctx.images[idx];
+}
+
+function getPixel(img: Image, x: number, y: number): [number, number, number, number] {
+  const cx = Math.max(0, Math.min(img.width - 1, Math.floor(x)));
+  const cy = Math.max(0, Math.min(img.height - 1, Math.floor(y)));
+  const i = (cy * img.width + cx) * 4;
+  return [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]];
+}
+
+function setPixel(img: Image, x: number, y: number, r: number, g: number, b: number, a: number = 255): void {
+  if (x < 0 || x >= img.width || y < 0 || y >= img.height) return;
+  const i = (y * img.width + x) * 4;
+  img.data[i] = r;
+  img.data[i + 1] = g;
+  img.data[i + 2] = b;
+  img.data[i + 3] = a;
+}
+
+</tool.toolu_01HMfJzByJ8cLuXQpNGw4aKc>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_018w3DVYmvPQXRfQviot24Pv
+
+## path
+
+<tool.toolu_018w3DVYmvPQXRfQviot24Pv>
+character-defs.ts
+</tool.toolu_018w3DVYmvPQXRfQviot24Pv>
+
+## start-line
+
+<tool.toolu_018w3DVYmvPQXRfQviot24Pv>
+120
+</tool.toolu_018w3DVYmvPQXRfQviot24Pv>
+
+## end-line
+
+<tool.toolu_018w3DVYmvPQXRfQviot24Pv>
+220
+</tool.toolu_018w3DVYmvPQXRfQviot24Pv>
+
+# TOOL RESULT
+
+ID: toolu_018w3DVYmvPQXRfQviot24Pv
+
+<tool.toolu_018w3DVYmvPQXRfQviot24Pv>
+
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  
+  return [h * 360, s, l];
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  h = h / 360;
+  let r, g, b;
+  
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+function fnA(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const gl = initWebGL(ctx.width, ctx.height);
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = position * 0.5 + 0.5;
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision mediump float;
+    uniform sampler2D texture;
+    uniform vec2 resolution;
+    varying vec2 vUV;
+    
+    vec3 renderSphere(vec2 uv, vec2 center, float radius, sampler2D tex) {
+      vec2 p = (uv - center) / radius;
+      float d = length(p);
+      
+      if (d > 1.0) return vec3(-1.0);
+      
+      float z = sqrt(1.0 - d * d);
+      vec3 normal = normalize(vec3(p.x, -p.y, z));
+      vec3 lightDir = normalize(vec3(-0.3, 0.3, 1.0));
+      
+      float diffuse = max(dot(normal, lightDir), 0.0);
+      float ambient = 0.3;
+      float lighting = ambient + diffuse * 0.7;
+      
+      vec2 texCoord = vec2(
+        atan(normal.x, normal.z) / (2.0 * 3.14159) + 0.5,
+        acos(normal.y) / 3.14159
+      );
+      
+      vec3 color = texture2D(tex, texCoord).rgb;
+      return color * lighting;
+    }
+    
+    void main() {
+      vec2 uv = gl_FragCoord.xy / resolution;
+      vec3 bg = texture2D(texture, uv).rgb;
+      
+      vec2 topRight = vec2(0.75, 0.75);
+      vec2 bottomLeft = vec2(0.25, 0.25);
+      float radius = 0.15;
+      
+      vec3 sphere1 = renderSphere(uv, topRight, radius, texture);
+      vec3 sphere2 = renderSphere(uv, bottomLeft, radius, texture);
+      
+      vec3 color = bg;
+      if (sphere1.x >= 0.0) color = sphere1;
+</tool.toolu_018w3DVYmvPQXRfQviot24Pv>
+
+# ASSISTANT
+
+Let me look for the specific fnR section and update it properly:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01UBfKEEXVhmFqAHMMrQhFxh
+
+## pattern
+
+<tool.toolu_01UBfKEEXVhmFqAHMMrQhFxh>
+function fnR
+</tool.toolu_01UBfKEEXVhmFqAHMMrQhFxh>
+
+# TOOL RESULT
+
+ID: toolu_01UBfKEEXVhmFqAHMMrQhFxh
+
+<tool.toolu_01UBfKEEXVhmFqAHMMrQhFxh>
+/Users/ajansson/projects/ascii-language/ascii-language.greger:13357:+function fnR(ctx: FnContext): Image {
+/Users/ajansson/projects/ascii-language/ascii-language.greger:13933: function fnR(ctx: FnContext): Image {
+/Users/ajansson/projects/ascii-language/character-defs.ts:885:function fnR(ctx: FnContext): Image {
+
+</tool.toolu_01UBfKEEXVhmFqAHMMrQhFxh>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_0177H4YynxV124NjiucNycbJ
+
+## path
+
+<tool.toolu_0177H4YynxV124NjiucNycbJ>
+character-defs.ts
+</tool.toolu_0177H4YynxV124NjiucNycbJ>
+
+## start-line
+
+<tool.toolu_0177H4YynxV124NjiucNycbJ>
+885
+</tool.toolu_0177H4YynxV124NjiucNycbJ>
+
+## end-line
+
+<tool.toolu_0177H4YynxV124NjiucNycbJ>
+960
+</tool.toolu_0177H4YynxV124NjiucNycbJ>
+
+# TOOL RESULT
+
+ID: toolu_0177H4YynxV124NjiucNycbJ
+
+<tool.toolu_0177H4YynxV124NjiucNycbJ>
+function fnR(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const gl = initWebGL(ctx.width, ctx.height);
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision mediump float;
+    uniform sampler2D texture;
+    uniform vec2 resolution;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 uv = vUV;
+      float wave = sin(uv.x * 20.0) * 0.1;
+      float shade = 0.7 + 0.3 * cos(uv.x * 20.0);
+      
+      vec2 distortedUV = vec2(uv.x, uv.y + wave * (0.5 - abs(uv.y - 0.5)));
+      vec3 color = texture2D(texture, distortedUV).rgb * shade;
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+    }
+  }
+  
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+</tool.toolu_0177H4YynxV124NjiucNycbJ>
+
+# ASSISTANT
+
+I see - my change to the UV is there but the flip is still happening. The issue is that I'm handling y-flip in the UV but still doing a flip at the end. Let me simplify - just use the same approach as fnA:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DJDVXhS4SUDv228cQWoYJe
+
+## path
+
+<tool.toolu_01DJDVXhS4SUDv228cQWoYJe>
+character-defs.ts
+</tool.toolu_01DJDVXhS4SUDv228cQWoYJe>
+
+## git-commit-message
+
+<tool.toolu_01DJDVXhS4SUDv228cQWoYJe>
+Fix R to use same coordinate system as fnA to avoid flipping
+</tool.toolu_01DJDVXhS4SUDv228cQWoYJe>
+
+## diff
+
+<tool.toolu_01DJDVXhS4SUDv228cQWoYJe>
+ function fnR(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
+   const vertexShader = `
+     attribute vec2 position;
+     varying vec2 vUV;
+     void main() {
+-      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
++      vUV = position * 0.5 + 0.5;
+       gl_Position = vec4(position, 0.0, 1.0);
+     }
+   `;
+   
+   const fragmentShader = `
+     precision mediump float;
+     uniform sampler2D texture;
+     uniform vec2 resolution;
+     varying vec2 vUV;
+     
+     void main() {
+-      vec2 uv = vUV;
++      vec2 uv = gl_FragCoord.xy / resolution;
+       float wave = sin(uv.x * 20.0) * 0.1;
+       float shade = 0.7 + 0.3 * cos(uv.x * 20.0);
+       
+       vec2 distortedUV = vec2(uv.x, uv.y + wave * (0.5 - abs(uv.y - 0.5)));
+       vec3 color = texture2D(texture, distortedUV).rgb * shade;
+       
+       gl_FragColor = vec4(color, 1.0);
+     }
+   `;
+   
+   const program = createShaderProgram(gl, vertexShader, fragmentShader);
+   gl.useProgram(program);
+   
+   const texture = gl.createTexture();
+   gl.bindTexture(gl.TEXTURE_2D, texture);
+   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   
+   const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+   const buffer = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+   
+   const positionLoc = gl.getAttribLocation(program, 'position');
+   gl.enableVertexAttribArray(positionLoc);
+   gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+   
+   gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
+   gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
+   
+   gl.viewport(0, 0, ctx.width, ctx.height);
+   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+   
+   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+   
+   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+       const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+       const dstIdx = (y * ctx.width + x) * 4;
+       flipped[dstIdx] = pixels[srcIdx];
+       flipped[dstIdx + 1] = pixels[srcIdx + 1];
+       flipped[dstIdx + 2] = pixels[srcIdx + 2];
+       flipped[dstIdx + 3] = pixels[srcIdx + 3];
+     }
+   }
+   
+   gl.deleteTexture(texture);
+   gl.deleteBuffer(buffer);
+   gl.deleteProgram(program);
+   
+   return { width: ctx.width, height: ctx.height, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_01DJDVXhS4SUDv228cQWoYJe>
+
+# TOOL RESULT
+
+ID: toolu_01DJDVXhS4SUDv228cQWoYJe
+
+<tool.toolu_01DJDVXhS4SUDv228cQWoYJe>
+
+</tool.toolu_01DJDVXhS4SUDv228cQWoYJe>
