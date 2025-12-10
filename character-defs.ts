@@ -2245,7 +2245,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "melt",
-    documentation: "Melting/dripping paint effect using WebGL, darker areas drip more, strength controlled by n"
+    documentation: "Paint drip effect with vertical streaking and wobble, strength controlled by n"
   },
   
   '6': {
