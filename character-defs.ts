@@ -1733,17 +1733,17 @@ function fn5(ctx: FnContext, n: number): Image {
         // 4 balls per cluster (fixed to avoid dynamic loop issues)
         for (int j = 0; j < 4; j++) {
           float fj = float(j);
-          float seed = fi * 100.0 + fj;
+          float localSeed = fi * 100.0 + fj + uSeed;
           
           // Random offset from cluster center
-          float offX = (hash(seed * 123.4) - 0.5) * clusterSize;
-          float offY = (hash(seed * 234.5) - 0.5) * clusterSize * 1.5; // More vertical spread
+          float offX = (hash(localSeed * 123.4) - 0.5) * clusterSize;
+          float offY = (hash(localSeed * 234.5) - 0.5) * clusterSize * 1.5; // More vertical spread
           
           float x = clusterX + offX;
           float y = clusterY + offY;
           
           // Varying ball sizes within cluster
-          float r = (0.06 + hash(seed * 345.6) * 0.08) * strength * 0.6;
+          float r = (0.06 + hash(localSeed * 345.6) * 0.08) * strength * 0.6;
           
           float z = 0.05 + r * 0.3;
           
