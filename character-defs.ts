@@ -1523,10 +1523,8 @@ function fn1(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const barWidthPercent = 0.2;
-  const barHalfWidth = Math.floor((ctx.width * barWidthPercent) / 2);
-  const barStart = Math.floor(ctx.width / 2) - barHalfWidth;
-  const barEnd = Math.floor(ctx.width / 2) + barHalfWidth;
+  const barStart = Math.floor(ctx.width / 3);
+  const barEnd = Math.floor(ctx.width * 2 / 3);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
