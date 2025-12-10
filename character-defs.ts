@@ -3578,7 +3578,7 @@ export const characterDefs: Record<string, CharDef> = {
   'E': {
     color: '#00CED1',
     number: 5,
-    fn: fnR,
+    fn: fnCorrugated,
     arity: 0,
     argTypes: [],
     functionName: "corrugated",
