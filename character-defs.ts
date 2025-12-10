@@ -638,7 +638,7 @@ function fnL(ctx: FnContext, n: number): Image {
   const out = cloneImage(prev);
   
   const complexity = Math.max(1, n);
-  const thickness = Math.max(3, Math.floor(Math.min(ctx.width, ctx.height) / 50));
+  const thickness = Math.max(2, Math.floor(Math.min(ctx.width, ctx.height) / 60));
   const numCurves = Math.min(complexity, 5);
   
   const cx = ctx.width / 2;
@@ -648,19 +648,26 @@ function fnL(ctx: FnContext, n: number): Image {
   
   const [bgR, bgG, bgB] = getPixel(prev, Math.floor(cx), Math.floor(cy));
   
+  const circleOffsets: [number, number][] = [];
+  for (let ty = -thickness; ty <= thickness; ty++) {
+    for (let tx = -thickness; tx <= thickness; tx++) {
+      if (tx * tx + ty * ty <= thickness * thickness) {
+        circleOffsets.push([tx, ty]);
+      }
+    }
+  }
+  
   for (let c = 0; c < numCurves; c++) {
     const a = complexity + c;
     const b = complexity + c + 1 + (c % 3);
     const delta = (c * Math.PI) / (numCurves + 1);
     
-    const steps = 2000;
-    let prevX = cx + Math.sin(delta) * scaleX;
-    let prevY = cy;
+    const steps = 1500;
     
-    for (let i = 1; i <= steps; i++) {
+    for (let i = 0; i <= steps; i++) {
       const t = (i / steps) * Math.PI * 2;
-      const currX = cx + Math.sin(a * t + delta) * scaleX;
-      const currY = cy + Math.sin(b * t) * scaleY;
+      const px = Math.floor(cx + Math.sin(a * t + delta) * scaleX);
+      const py = Math.floor(cy + Math.sin(b * t) * scaleY);
       
       const t01 = t / (Math.PI * 2);
       const gradientPos = (t01 + c * 0.2) % 1;
@@ -669,30 +676,13 @@ function fnL(ctx: FnContext, n: number): Image {
       const cg = bgG ^ ((xorVal + 85) % 256);
       const cb = bgB ^ ((xorVal + 170) % 256);
       
-      const dx = currX - prevX;
-      const dy = currY - prevY;
-      const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-      const lineSteps = Math.ceil(dist);
-      
-      for (let j = 0; j <= lineSteps; j++) {
-        const lx = Math.floor(prevX + (dx * j) / lineSteps);
-        const ly = Math.floor(prevY + (dy * j) / lineSteps);
-        
-        for (let ty = -thickness; ty <= thickness; ty++) {
-          for (let tx = -thickness; tx <= thickness; tx++) {
-            if (tx * tx + ty * ty <= thickness * thickness) {
-              const px = lx + tx;
-              const py = ly + ty;
-              if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
-                setPixel(out, px, py, cr, cg, cb);
-              }
-            }
-          }
+      for (const [ox, oy] of circleOffsets) {
+        const x = px + ox;
+        const y = py + oy;
+        if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+          setPixel(out, x, y, cr, cg, cb);
         }
       }
-      
-      prevX = currX;
-      prevY = currY;
     }
   }
   
