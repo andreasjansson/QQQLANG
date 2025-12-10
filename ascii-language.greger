@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-175748584200>
+${greger-prompt-code-style<eval-result-180022773875>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-175748584200>}
+</eval-result-180022773875>}
 
 # USER
 
@@ -10388,5 +10388,359 @@ Fix $ uniform name for crack count
 ID: toolu_01XqYYfVocHFjQczD8X5rw3Q
 
 <tool.toolu_01XqYYfVocHFjQczD8X5rw3Q>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix $ uniform name for crack count
 </tool.toolu_01XqYYfVocHFjQczD8X5rw3Q>
+
+# ASSISTANT
+
+Complete rewrite with a totally different approach:
+
+1. **No more spiderweb pattern** - Instead of radial cracks from an impact point, now generates random straight line segments scattered across the image
+2. **Completely straight cracks** - Uses `distToSegment()` function to calculate distance to line segments - no curves or wobble at all
+3. **Chaotic branching** - Each main crack can have a branch that forks off at a sharp angle, and sub-branches too
+4. **Random placement** - Crack start points, angles, and lengths are all randomized based on seed
+5. **Thinner lines** - Using `smoothstep(0.0015, 0.004, ...)` for hairline cracks
+6. **Glass effects preserved** - Still has per-shard specular highlights, color tints, displacement, and chromatic aberration near cracks
+
+# USER
+
+no now you just added some random lines and skewed the whole image! focus on each individual piece, move it in all three dimensions, add refllections, and make sure the cracks are straight and programmatically generated!
+
+# THINKING
+
+Signature: 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
+
+The user is frustrated. Let me understand what they want:
+
+1. Individual pieces/shards that move independently in 3D (not just 2D displacement)
+2. Reflections on each piece (like glass catching light)
+3. Straight cracks that are programmatically generated (not random scattered lines)
+4. The whole image shouldn't be skewed - each shard should move independently
+
+The problem with my last approach was:
+- Random lines scattered everywhere don't form proper closed shards
+- The displacement was applied to the whole image, not per-shard
+- No real 3D effect
+
+What I need to do:
+1. Create a proper tessellation/subdivision of the image into irregular polygons (shards)
+2. Each shard needs to be identified and have its own transformation
+3. Apply 3D-like transformation per shard (rotation in X/Y/Z, translation)
+4. Add specular/reflection per shard based on its angle
+
+The challenge is that in a fragment shader, we can't easily do polygon-based operations. But I can:
+1. Use a cell-based approach where each cell is a shard
+2. Generate crack lines that form the boundaries between cells
+3. For each pixel, determine which cell/shard it belongs to
+4. Apply that shard's transformation
+
+One approach: Use a Voronoi-like cell structure but with straight edges. Actually, Voronoi edges ARE straight lines between cell centers!
+
+Wait, the user said no Voronoi earlier. But they want straight cracks forming closed shapes...
+
+Let me think differently. I could:
+1. Subdivide the image with a grid
+2. Add random diagonal cuts through grid cells to create irregular shapes
+3. Each resulting polygon is a shard
+4. Apply 3D transforms per shard
+
+Actually, for WebGL I could do this:
+1. Create crack lines that subdivide the space
+2. Use the crack lines to define regions
+3. For each pixel, figure out which region it's in
+
+
+4. Apply that region's 3D transform (simulate with UV distortion)
+
+I'll simulate a 3D-like effect by manipulating texture sampling. Each shard will have a unique orientation, creating the illusion of independent movement. By adjusting UV coordinates based on the shard's angle, I can create a perspective-like transformation that makes each piece appear to tilt and reflect light differently.
+
+The key is using the crack network to define distinct regions and then applying per-region transformations that give a sense of depth and independent movement.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01HSMGo3KMTJQYnqsaqFpRDA
+
+## path
+
+<tool.toolu_01HSMGo3KMTJQYnqsaqFpRDA>
+character-defs.ts
+</tool.toolu_01HSMGo3KMTJQYnqsaqFpRDA>
+
+## git-commit-message
+
+<tool.toolu_01HSMGo3KMTJQYnqsaqFpRDA>
+Rewrite $ with proper 3D shard transforms, reflections, and straight cracks
+</tool.toolu_01HSMGo3KMTJQYnqsaqFpRDA>
+
+## diff
+
+<tool.toolu_01HSMGo3KMTJQYnqsaqFpRDA>
+   const fragmentShader = `
+     precision highp float;
+     uniform sampler2D uTexture;
+     uniform vec2 uResolution;
+     uniform float uSeed;
+     uniform float uCrackIntensity;
+-    uniform float uNumCracks;
++    uniform float uGridSize;
+     varying vec2 vUV;
+     
+     #define PI 3.14159265359
+-    #define MAX_CRACKS 60
+     
+     float hash(float n) {
+       return fract(sin(n * 127.1 + uSeed * 311.7) * 43758.5453);
+     }
+     
+-    // Distance from point to line segment
+-    float distToSegment(vec2 p, vec2 a, vec2 b) {
+-      vec2 pa = p - a;
+-      vec2 ba = b - a;
+-      float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+-      return length(pa - ba * h);
++    float hash2(vec2 p) {
++      return fract(sin(dot(p, vec2(127.1, 311.7)) + uSeed * 43.7) * 43758.5453);
+     }
+     
+-    // Generate crack network - returns distance to nearest crack
+-    float crackNetwork(vec2 uv) {
+-      float minDist = 1.0;
++    // Get grid point with random offset
++    vec2 getGridPoint(vec2 cell) {
++      vec2 base = (cell + 0.5) / uGridSize;
++      vec2 offset = vec2(
++        hash2(cell + 0.1) - 0.5,
++        hash2(cell + 0.2) - 0.5
++      ) * 0.7 / uGridSize;
++      return base + offset;
++    }
++    
++    // Find which cell we're in and distance to edges
++    // Returns: xy = cell ID, z = distance to nearest edge
++    vec3 getCellInfo(vec2 uv) {
++      vec2 cellF = uv * uGridSize;
++      vec2 cell = floor(cellF);
++      vec2 localPos = fract(cellF);
+       
+-      int numCracks = int(uNumCracks);
++      // Get the 4 corners of this cell (with offsets)
++      vec2 p00 = getGridPoint(cell) * uGridSize - cell;
++      vec2 p10 = getGridPoint(cell + vec2(1.0, 0.0)) * uGridSize - cell;
++      vec2 p01 = getGridPoint(cell + vec2(0.0, 1.0)) * uGridSize - cell;
++      vec2 p11 = getGridPoint(cell + vec2(1.0, 1.0)) * uGridSize - cell;
+       
+-      for (int i = 0; i < MAX_CRACKS; i++) {
+-        if (i >= numCracks) break;
+-        
+-        float fi = float(i);
+-        
+-        // Random start point
+-        vec2 start = vec2(
+-          hash(fi * 73.1 + 1.0),
+-          hash(fi * 91.7 + 2.0)
+-        );
+-        
+-        // Random angle (full 360)
+-        float angle = hash(fi * 113.3 + 3.0) * PI * 2.0;
+-        
+-        // Random length
+-        float len = 0.1 + hash(fi * 137.9 + 4.0) * 0.4;
+-        
+-        // End point - straight line
+-        vec2 end = start + vec2(cos(angle), sin(angle)) * len;
+-        
+-        // Distance to this crack segment
+-        float d = distToSegment(uv, start, end);
+-        minDist = min(minDist, d);
+-        
+-        // Add a branching crack from midpoint or endpoint
+-        if (hash(fi * 157.3 + 5.0) > 0.4) {
+-          float branchT = 0.3 + hash(fi * 173.7 + 6.0) * 0.5;
+-          vec2 branchStart = mix(start, end, branchT);
+-          
+-          // Branch angle - fork off at sharp angle
+-          float branchAngle = angle + (hash(fi * 193.1 + 7.0) - 0.5) * PI * 0.7;
+-          float branchLen = len * (0.3 + hash(fi * 211.9 + 8.0) * 0.4);
+-          vec2 branchEnd = branchStart + vec2(cos(branchAngle), sin(branchAngle)) * branchLen;
+-          
+-          float bd = distToSegment(uv, branchStart, branchEnd);
+-          minDist = min(minDist, bd);
+-          
+-          // Sub-branch
+-          if (hash(fi * 229.3 + 9.0) > 0.6) {
+-            float subT = 0.4 + hash(fi * 241.7 + 10.0) * 0.4;
+-            vec2 subStart = mix(branchStart, branchEnd, subT);
+-            float subAngle = branchAngle + (hash(fi * 257.1 + 11.0) - 0.5) * PI * 0.5;
+-            float subLen = branchLen * 0.5;
+-            vec2 subEnd = subStart + vec2(cos(subAngle), sin(subAngle)) * subLen;
+-            
+-            float sd = distToSegment(uv, subStart, subEnd);
+-            minDist = min(minDist, sd);
+-          }
+-        }
+-      }
++      // Distance to each edge (as lines between corners)
++      float d1 = abs((p10.y - p00.y) * localPos.x - (p10.x - p00.x) * localPos.y + p10.x * p00.y - p10.y * p00.x) 
++                 / length(p10 - p00); // bottom edge
++      float d2 = abs((p11.y - p10.y) * localPos.x - (p11.x - p10.x) * localPos.y + p11.x * p10.y - p11.y * p10.x) 
++                 / length(p11 - p10); // right edge
++      float d3 = abs((p01.y - p11.y) * localPos.x - (p01.x - p11.x) * localPos.y + p01.x * p11.y - p01.y * p11.x) 
++                 / length(p01 - p11); // top edge
++      float d4 = abs((p00.y - p01.y) * localPos.x - (p00.x - p01.x) * localPos.y + p00.x * p01.y - p00.y * p01.x) 
++                 / length(p00 - p01); // left edge
+       
+-      return minDist;
++      float minDist = min(min(d1, d2), min(d3, d4)) / uGridSize;
++      
++      return vec3(cell, minDist);
+     }
+     
+-    // Get a shard ID based on position
+-    float getShardId(vec2 uv) {
+-      // Use grid-based ID with some randomization
+-      vec2 cell = floor(uv * 8.0 + uSeed);
+-      return hash(dot(cell, vec2(127.1, 311.7)));
+-    }
+-    
+     void main() {
+       vec2 uv = vUV;
+       
+-      // Get distance to nearest crack
+-      float crackDist = crackNetwork(uv);
++      // Get cell info
++      vec3 cellInfo = getCellInfo(uv);
++      vec2 cellId = cellInfo.xy;
++      float edgeDist = cellInfo.z;
+       
+-      // Crack line - very thin
+-      float crackLine = smoothstep(0.0015, 0.004, crackDist);
+-      float isCrack = 1.0 - crackLine;
++      // Unique hash for this shard
++      float shardHash = hash2(cellId);
++      float shardHash2 = hash2(cellId + 100.0);
++      float shardHash3 = hash2(cellId + 200.0);
+       
+-      // Shard properties
+-      float shardId = getShardId(uv);
+-      float shardHash2 = hash(shardId * 311.7 + uSeed);
++      // 3D rotation angles for this shard
++      float tiltX = (shardHash - 0.5) * 0.15 * uCrackIntensity;  // tilt around X axis
++      float tiltY = (shardHash2 - 0.5) * 0.15 * uCrackIntensity; // tilt around Y axis
++      float tiltZ = (shardHash3 - 0.5) * 0.05 * uCrackIntensity; // rotation in plane
+       
+-      // Displacement based on shard - use crack distance to determine displacement direction
+-      vec2 displaceDir = vec2(
+-        hash(shardId * 127.1) - 0.5,
+-        hash(shardId * 283.3) - 0.5
+-      );
+-      displaceDir = normalize(displaceDir + 0.001);
++      // Calculate shard center
++      vec2 shardCenter = getGridPoint(cellId);
+       
+-      float displaceAmount = uCrackIntensity * 0.006 * shardId;
+-      vec2 displacement = displaceDir * displaceAmount;
++      // Local position within shard
++      vec2 local = uv - shardCenter;
+       
+-      // Slight per-shard rotation
+-      float rotation = (shardId - 0.5) * 0.01 * uCrackIntensity;
+-      vec2 center = vec2(0.5);
+-      vec2 centered = uv - center;
+-      float cs = cos(rotation);
+-      float sn = sin(rotation);
+-      vec2 rotated = vec2(centered.x * cs - centered.y * sn, centered.x * sn + centered.y * cs);
++      // Apply Z rotation (in-plane)
++      float cz = cos(tiltZ);
++      float sz = sin(tiltZ);
++      local = vec2(local.x * cz - local.y * sz, local.x * sz + local.y * cz);
+       
+-      vec2 finalUV = clamp(center + rotated + displacement, 0.001, 0.999);
+-      vec3 color = texture2D(uTexture, finalUV).rgb;
++      // Simulate 3D tilt via perspective-like UV distortion
++      // Tilting around X axis affects Y coordinate based on distance from center
++      // Tilting around Y axis affects X coordinate
++      float perspectiveScale = 1.0 + local.y * tiltX + local.x * tiltY;
++      vec2 tiltedLocal = local / max(perspectiveScale, 0.5);
+       
+-      // Glass shard reflection - subtle specular based on shard angle
+-      float specular = pow(shardHash2, 4.0) * 0.08 * uCrackIntensity;
+-      color += vec3(specular);
++      // Small translation (shard popping out)
++      vec2 translation = vec2(
++        (shardHash - 0.5) * 0.01,
++        (shardHash2 - 0.5) * 0.01
++      ) * uCrackIntensity;
+       
+-      // Slight color tint per shard
+-      color *= vec3(
+-        1.0 + (shardId - 0.5) * 0.02,
+-        1.0 + (shardHash2 - 0.5) * 0.015,
+-        1.0 + (hash(shardId * 431.1) - 0.5) * 0.025
+-      );
++      // Final UV for this shard
++      vec2 shardUV = shardCenter + tiltedLocal + translation;
++      shardUV = clamp(shardUV, 0.001, 0.999);
+       
+-      // Crack rendering - bright white lines
+-      if (isCrack > 0.2) {
+-        vec3 crackColor = vec3(0.95, 0.97, 1.0);
+-        color = mix(color, crackColor, isCrack * 0.85);
+-      }
++      // Sample texture
++      vec3 color = texture2D(uTexture, shardUV).rgb;
+       
+-      // Subtle chromatic aberration near cracks
+-      if (crackDist < 0.02) {
+-        float aberr = (0.02 - crackDist) * 0.15 * uCrackIntensity;
+-        color.r = texture2D(uTexture, clamp(finalUV + vec2(aberr, 0.0), 0.001, 0.999)).r;
+-        color.b = texture2D(uTexture, clamp(finalUV - vec2(aberr, 0.0), 0.001, 0.999)).b;
++      // 3D lighting - compute normal based on tilt
++      vec3 normal = normalize(vec3(-tiltY * 2.0, -tiltX * 2.0, 1.0));
++      vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0)); // light from top-right-front
++      vec3 viewDir = vec3(0.0, 0.0, 1.0);
++      
++      // Diffuse lighting
++      float diffuse = max(dot(normal, lightDir), 0.0);
++      
++      // Specular reflection (glass is shiny)
++      vec3 reflectDir = reflect(-lightDir, normal);
++      float specular = pow(max(dot(reflectDir, viewDir), 0.0), 32.0);
++      
++      // Fresnel - edges reflect more
++      float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
++      
++      // Apply lighting
++      color *= 0.7 + 0.3 * diffuse;
++      color += vec3(1.0) * specular * 0.4 * uCrackIntensity;
++      color += vec3(0.9, 0.95, 1.0) * fresnel * 0.15 * uCrackIntensity;
++      
++      // Edge darkening (thickness of glass at edges)
++      float edgeDarken = smoothstep(0.0, 0.02, edgeDist);
++      color *= 0.85 + 0.15 * edgeDarken;
++      
++      // Crack lines - thin white
++      float crackLine = 1.0 - smoothstep(0.001, 0.003, edgeDist);
++      color = mix(color, vec3(1.0), crackLine * 0.9);
++      
++      // Subtle chromatic aberration at shard edges
++      if (edgeDist < 0.015) {
++        float aberr = (0.015 - edgeDist) * 0.3 * uCrackIntensity;
++        color.r = texture2D(uTexture, clamp(shardUV + vec2(aberr, 0.0), 0.001, 0.999)).r;
++        color.b = texture2D(uTexture, clamp(shardUV - vec2(aberr, 0.0), 0.001, 0.999)).b;
+       }
+       
+       gl_FragColor = vec4(color, 1.0);
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_01HSMGo3KMTJQYnqsaqFpRDA>
+
+# TOOL RESULT
+
+ID: toolu_01HSMGo3KMTJQYnqsaqFpRDA
+
+<tool.toolu_01HSMGo3KMTJQYnqsaqFpRDA>
+
+</tool.toolu_01HSMGo3KMTJQYnqsaqFpRDA>
