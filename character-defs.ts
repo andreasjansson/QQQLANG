@@ -2302,8 +2302,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fn5,
     arity: 1,
     argTypes: ['int'],
-    functionName: "triangular-tile",
-    documentation: "Triangular tiling with cell size n*10, tiles filled from prev at center, edges drawn in inverted colors"
+    functionName: "melt",
+    documentation: "Melting/dripping paint effect using WebGL, darker areas drip more, strength controlled by n"
   },
   
   '6': {
