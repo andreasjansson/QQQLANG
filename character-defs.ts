@@ -1630,20 +1630,6 @@ function fnT(ctx: FnContext, n: number): Image {
   }
   
   gl.useProgram(program);
-  
-  const cubeUniformData = new Float32Array(32 * 4);
-  for (let i = 0; i < Math.min(numCubes, 32); i++) {
-    cubeUniformData[i * 4] = cubesData[i].cx;
-    cubeUniformData[i * 4 + 1] = cubesData[i].cy;
-    cubeUniformData[i * 4 + 2] = cubesData[i].hw;
-    cubeUniformData[i * 4 + 3] = cubesData[i].hh;
-  }
-  
-  for (let i = 0; i < 32; i++) {
-    gl.uniform4fv(gl.getUniformLocation(program, `uCubes[${i}]`), cubeUniformData.subarray(i * 4, i * 4 + 4));
-  }
-  gl.uniform1i(gl.getUniformLocation(program, 'uNumCubes'), Math.min(numCubes, 32));
-  
   gl.disable(gl.DEPTH_TEST);
   
   const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
