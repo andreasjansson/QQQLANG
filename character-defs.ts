@@ -1106,35 +1106,44 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnM(ctx: FnContext, freq: number, j: number): Image {
+function fnM(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const spacing = Math.max(3, 8 - freq);
+  const spacing = Math.max(2, 6 - n % 5);
   const angle1 = 0;
-  const angle2 = Math.PI * (0.05 + freq * 0.02);
+  const angle2 = Math.PI * 0.07;
+  const angle3 = Math.PI * 0.13;
   
   const cos1 = Math.cos(angle1), sin1 = Math.sin(angle1);
   const cos2 = Math.cos(angle2), sin2 = Math.sin(angle2);
+  const cos3 = Math.cos(angle3), sin3 = Math.sin(angle3);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const u1 = x * cos1 + y * sin1;
       const u2 = x * cos2 + y * sin2;
+      const u3 = x * cos3 + y * sin3;
       
-      const line1 = Math.floor(u1 / spacing) % 2 === 0;
-      const line2 = Math.floor(u2 / spacing) % 2 === 0;
+      const line1 = Math.floor(u1 / spacing) % 2;
+      const line2 = Math.floor(u2 / spacing) % 2;
+      const line3 = Math.floor(u3 / (spacing * 1.5)) % 2;
       
-      const moire = line1 !== line2;
+      const pattern = line1 + line2 * 2 + line3 * 4;
       
-      if (moire) {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
-      } else {
-        const [r, g, b] = getPixel(old, x, y);
-        setPixel(out, x, y, r, g, b);
-      }
+      const [r, g, b] = getPixel(prev, x, y);
+      const [h, s, l] = rgbToHsl(r, g, b);
+      
+      const hueShift = (pattern * 45) % 360;
+      const lightShift = (pattern % 3 - 1) * 0.15;
+      const satShift = (pattern % 2) * 0.2 - 0.1;
+      
+      const newH = (h + hueShift) % 360;
+      const newS = Math.max(0, Math.min(1, s + satShift));
+      const newL = Math.max(0.05, Math.min(0.95, l + lightShift));
+      
+      const [nr, ng, nb] = hslToRgb(newH, newS, newL);
+      setPixel(out, x, y, nr, ng, nb);
     }
   }
   
