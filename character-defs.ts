@@ -774,17 +774,85 @@ function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
   return out;
 }
 
-function fnN(ctx: FnContext, j: number): Image {
+function fnN(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const edgeMask = new Float32Array(ctx.width * ctx.height);
+  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+  
+  for (let y = 1; y < ctx.height - 1; y++) {
+    for (let x = 1; x < ctx.width - 1; x++) {
+      let gx = 0, gy = 0;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const [r, g, b] = getPixel(prev, x + kx, y + ky);
+          const lum = r * 0.299 + g * 0.587 + b * 0.114;
+          const ki = (ky + 1) * 3 + (kx + 1);
+          gx += lum * sobelX[ki];
+          gy += lum * sobelY[ki];
+        }
+      }
+      edgeMask[y * ctx.width + x] = Math.min(1, Math.sqrt(gx * gx + gy * gy) / 150);
+    }
+  }
+  
+  const scale = Math.min(ctx.width, ctx.height);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  
+  const numLights = 12;
+  const lights: { x: number; y: number; r: number; g: number; b: number }[] = [];
+  
+  for (let i = 0; i < numLights; i++) {
+    const angle = (i * Math.PI * 2) / numLights;
+    const radius = 0.4 + 0.2 * Math.cos(i * 1.5);
+    const px = cx + Math.cos(angle) * radius * scale * 0.5;
+    const py = cy + Math.sin(angle) * radius * scale * 0.5;
+    
+    const colorAngle = (i / numLights) * Math.PI * 2;
+    const r = Math.cos(colorAngle) * 0.5 + 0.5;
+    const g = Math.cos(colorAngle + Math.PI * 2 / 3) * 0.5 + 0.5;
+    const b = Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5;
+    
+    lights.push({ x: px, y: py, r, g, b });
+  }
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [r1, g1, b1] = getPixel(prev, x, y);
-      const [r2, g2, b2] = getPixel(old, x, y);
+      let tr = 0, tg = 0, tb = 0;
       
-      setPixel(out, x, y, r1 ^ r2, g1 ^ g2, b1 ^ b2);
+      for (const light of lights) {
+        const dx = x - light.x;
+        const dy = y - light.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) / scale;
+        const glow = 0.02 / Math.max(0.01, dist);
+        tr += glow * light.r;
+        tg += glow * light.g;
+        tb += glow * light.b;
+      }
+      
+      const edge = edgeMask[y * ctx.width + x];
+      if (edge > 0.1) {
+        const [pr, pg, pb] = getPixel(prev, x, y);
+        const [h, s, l] = rgbToHsl(pr, pg, pb);
+        const [er, eg, eb] = hslToRgb(h, Math.max(0.8, s), 0.6);
+        const edgeGlow = edge * 2;
+        tr += edgeGlow * (er / 255);
+        tg += edgeGlow * (eg / 255);
+        tb += edgeGlow * (eb / 255);
+      }
+      
+      tr = Math.pow(tr, 0.4);
+      tg = Math.pow(tg, 0.4);
+      tb = Math.pow(tb, 0.4);
+      
+      setPixel(out, x, y,
+        Math.min(255, Math.floor(tr * 255)),
+        Math.min(255, Math.floor(tg * 255)),
+        Math.min(255, Math.floor(tb * 255))
+      );
     }
   }
   
