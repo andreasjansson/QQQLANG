@@ -813,7 +813,7 @@ function fnO(ctx: FnContext, n: number): Image {
         continue;
       }
       
-      const nr = Math.pow(r, strength);
+      const nr = Math.pow(r, strength) / r;
       const sx = cx + (dx / maxR) * nr * maxR;
       const sy = cy + (dy / maxR) * nr * maxR;
       
