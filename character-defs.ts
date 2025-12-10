@@ -1574,10 +1574,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#F5DEB3',
     number: 24,
     fn: fnX,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 2,
+    argTypes: ['int', 'color'],
     functionName: "shape-overlay",
-    documentation: "Draws shape from 64-shape lookup table at center, filled with complement of average color"
+    documentation: "Draws unicode shape k%64 at center in color c (★●■▲◆♥✦⬡✚◐☽⚡∞☀✿⬢...)"
   },
   
   'Y': {
