@@ -3927,7 +3927,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "hilbert-dither",
-    documentation: "Hilbert curve dithering: error diffusion along space-filling curve, n+2 color levels per channel"
+    documentation: "Hilbert curve dithering: error diffusion along space-filling curve, 4 color levels per channel"
   },
   
   'I': {
