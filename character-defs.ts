@@ -1698,12 +1698,19 @@ function fn5(ctx: FnContext, n: number): Image {
       return fract(sin(n) * 43758.5453123);
     }
     
-    // Compute metaball field value
-    float metaball(vec2 p, vec2 center, float radius) {
-      float d = length(p - center);
-      if (d > radius * 3.0) return 0.0;
-      float r2 = radius * radius;
-      float d2 = d * d;
+    // Compute elongated metaball field value (elliptical, stretched vertically)
+    float metaball(vec2 p, vec2 center, float radiusX, float radiusY) {
+      vec2 delta = p - center;
+      
+      // Elliptical distance
+      float dx = delta.x / radiusX;
+      float dy = delta.y / radiusY;
+      float d2 = dx * dx + dy * dy;
+      
+      if (d2 > 9.0) return 0.0;
+      
+      // Use elliptical field strength
+      float r2 = 1.0;
       return r2 / (d2 + 0.0001);
     }
     
@@ -1725,11 +1732,11 @@ function fn5(ctx: FnContext, n: number): Image {
         float baseX = hash(fi * 127.1);
         
         // Create a drip trail - multiple balls along a vertical line
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 12; j++) {
           float fj = float(j);
           
           // Y position - spread along the drip trail
-          float progress = fj / 9.0;
+          float progress = fj / 11.0;
           float startY = hash(fi * 311.7) * 0.25;
           float dripLength = 0.35 + hash(fi * 74.3) * 0.45;
           float y = startY + progress * dripLength * uStrength;
@@ -1739,14 +1746,18 @@ function fn5(ctx: FnContext, n: number): Image {
           wobble += sin(progress * 25.12 + fi * 5.0) * 0.008;
           float x = baseX + wobble;
           
-          // Ball radius - teardrop shape
+          // Elliptical radii - much taller than wide for melty look
           float baseRadius = 0.035 + hash(fi * 183.9) * 0.025;
-          float radius = baseRadius * (1.0 - progress * 0.7);
-          radius *= uStrength * 0.6;
+          float radiusX = baseRadius * (1.0 - progress * 0.6);
+          radiusX *= uStrength * 0.5;
+          
+          // Vertical radius is much larger, especially in middle of drip
+          float verticalStretch = 2.0 + progress * 3.0; // Gets more stretched as it drips
+          float radiusY = radiusX * verticalStretch;
           
           vec2 ballPos = vec2(x * aspect.x, y);
           
-          float field = metaball(p, ballPos, radius);
+          float field = metaball(p, ballPos, radiusX, radiusY);
           totalField += field;
           
           // Accumulate displacement direction
