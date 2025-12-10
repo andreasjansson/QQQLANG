@@ -2301,8 +2301,8 @@ function fnDollar(ctx: FnContext, n: number): Image {
   const gl = initWebGL(ctx.width, ctx.height);
   
   const seed = ctx.images.length * 137.5 + n * 23.0;
-  const crackIntensity = 0.3 + n * 0.15;
-  const numRadialCracks = Math.max(6, 8 + (n % 8));
+  const crackIntensity = 0.5 + n * 0.2;
+  const gridSize = Math.max(3, 4 + n);
   
   const vertexShader = `
     attribute vec2 position;
