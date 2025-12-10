@@ -674,7 +674,7 @@ function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: 
   };
   
   const growBranch = (x: number, y: number, angle: number, length: number, thickness: number, depth: number) => {
-    if (depth > maxDepth || length < 0.5) return;
+    if (depth > maxDepth) return;
     
     const angleVariation = (rand() - 0.5) * angleVar * 0.5;
     const actualAngle = angle + angleVariation;
