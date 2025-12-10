@@ -9732,84 +9732,51 @@ character-defs.ts
 Fix L Lissajous gap, increase lighting intensity
 </tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
 
-## original-content
+## diff
 
 <tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
-  const fragmentShader = `
-    precision highp float;
-    
-    uniform sampler2D uTexture;
-    uniform vec3 uLightPos;
-    uniform vec3 uLightPos2;
-    
-    varying vec3 vNormal;
-    varying vec3 vPosition;
-    varying vec2 vTexCoord;
-    
-    void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 viewDir = normalize(-vPosition);
-      
-      vec3 lightDir1 = normalize(uLightPos - vPosition);
-      vec3 halfDir1 = normalize(lightDir1 + viewDir);
-      float diff1 = max(dot(normal, lightDir1), 0.0);
-      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 32.0);
-      
-      vec3 lightDir2 = normalize(uLightPos2 - vPosition);
-      vec3 halfDir2 = normalize(lightDir2 + viewDir);
-      float diff2 = max(dot(normal, lightDir2), 0.0);
-      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 32.0);
-      
-      float ambient = 0.4;
-      float diffuse = (diff1 + diff2 * 0.6) * 0.5;
-      float specular = (spec1 + spec2 * 0.5) * 0.5;
-      
-      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
-      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
-      
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
-</tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+   const fragmentShader = `
+     precision highp float;
+     
+     uniform sampler2D uTexture;
+     uniform vec3 uLightPos;
+     uniform vec3 uLightPos2;
+     
+     varying vec3 vNormal;
+     varying vec3 vPosition;
+     varying vec2 vTexCoord;
+     
+     void main() {
+       vec3 normal = normalize(vNormal);
+       vec3 viewDir = normalize(-vPosition);
+       
+       vec3 lightDir1 = normalize(uLightPos - vPosition);
+       vec3 halfDir1 = normalize(lightDir1 + viewDir);
+       float diff1 = max(dot(normal, lightDir1), 0.0);
+-      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 32.0);
++      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 24.0);
+       
+       vec3 lightDir2 = normalize(uLightPos2 - vPosition);
+       vec3 halfDir2 = normalize(lightDir2 + viewDir);
+       float diff2 = max(dot(normal, lightDir2), 0.0);
+-      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 32.0);
++      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 24.0);
+       
+-      float ambient = 0.4;
+-      float diffuse = (diff1 + diff2 * 0.6) * 0.5;
+-      float specular = (spec1 + spec2 * 0.5) * 0.5;
++      float ambient = 0.5;
++      float diffuse = diff1 * 0.8 + diff2 * 0.5;
++      float specular = (spec1 + spec2) * 0.7;
+       
+       vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
+       vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
+       
+       gl_FragColor = vec4(color, 1.0);
+     }
+   `;
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
-  const fragmentShader = `
-    precision highp float;
-    
-    uniform sampler2D uTexture;
-    uniform vec3 uLightPos;
-    uniform vec3 uLightPos2;
-    
-    varying vec3 vNormal;
-    varying vec3 vPosition;
-    varying vec2 vTexCoord;
-    
-    void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 viewDir = normalize(-vPosition);
-      
-      vec3 lightDir1 = normalize(uLightPos - vPosition);
-      vec3 halfDir1 = normalize(lightDir1 + viewDir);
-      float diff1 = max(dot(normal, lightDir1), 0.0);
-      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 24.0);
-      
-      vec3 lightDir2 = normalize(uLightPos2 - vPosition);
-      vec3 halfDir2 = normalize(lightDir2 + viewDir);
-      float diff2 = max(dot(normal, lightDir2), 0.0);
-      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 24.0);
-      
-      float ambient = 0.5;
-      float diffuse = diff1 * 0.8 + diff2 * 0.5;
-      float specular = (spec1 + spec2) * 0.7;
-      
-      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
-      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
-      
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
 </tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
 
 # TOOL RESULT
@@ -9817,5 +9784,220 @@ Fix L Lissajous gap, increase lighting intensity
 ID: toolu_0113buLVvKTb7cEUFeMmPAmr
 
 <tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix L Lissajous gap, increase lighting intensity
 </tool.toolu_0113buLVvKTb7cEUFeMmPAmr>
+
+# ASSISTANT
+
+Now fix the tube generation to use parallel transport framing which won't have discontinuities:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01NuNR9WEJgkevNRcCoCGjjw
+
+## path
+
+<tool.toolu_01NuNR9WEJgkevNRcCoCGjjw>
+character-defs.ts
+</tool.toolu_01NuNR9WEJgkevNRcCoCGjjw>
+
+## git-commit-message
+
+<tool.toolu_01NuNR9WEJgkevNRcCoCGjjw>
+Fix L Lissajous tube to close properly using parallel transport framing
+</tool.toolu_01NuNR9WEJgkevNRcCoCGjjw>
+
+## diff
+
+<tool.toolu_01NuNR9WEJgkevNRcCoCGjjw>
+   const positions: number[] = [];
+   const normals: number[] = [];
+   const texCoords: number[] = [];
+   
+   const a = 3, b = 2, c = 1;
+   const tubeRadius = 0.08;
+   const segments = 400;
+   const radialSegments = 12;
+   
+-  const getPoint = (t: number): [number, number, number] => {
+-    return [
+-      Math.sin(a * t) * 0.7,
+-      Math.sin(b * t) * 0.7,
+-      Math.sin(c * t) * 0.5
+-    ];
++  const cross = (a: number[], b: number[]): number[] => [
++    a[1]*b[2] - a[2]*b[1],
++    a[2]*b[0] - a[0]*b[2],
++    a[0]*b[1] - a[1]*b[0]
++  ];
++  const normalize = (v: number[]): number[] => {
++    const len = Math.sqrt(v[0]**2 + v[1]**2 + v[2]**2);
++    if (len < 0.0001) return [1, 0, 0];
++    return [v[0]/len, v[1]/len, v[2]/len];
+   };
++  const dot = (a: number[], b: number[]): number => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+   
+-  const getTangent = (t: number): [number, number, number] => {
+-    const eps = 0.001;
++  const getPoint = (t: number): number[] => [
++    Math.sin(a * t) * 0.7,
++    Math.sin(b * t) * 0.7,
++    Math.sin(c * t) * 0.5
++  ];
++  
++  const getTangent = (t: number): number[] => {
++    const eps = 0.0001;
+     const p1 = getPoint(t - eps);
+     const p2 = getPoint(t + eps);
+-    const len = Math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 + (p2[2]-p1[2])**2);
+-    return [(p2[0]-p1[0])/len, (p2[1]-p1[1])/len, (p2[2]-p1[2])/len];
++    return normalize([p2[0]-p1[0], p2[1]-p1[1], p2[2]-p1[2]]);
+   };
+   
+-  for (let i = 0; i < segments; i++) {
+-    const t0 = (i / segments) * Math.PI * 2;
+-    const t1 = ((i + 1) / segments) * Math.PI * 2;
++  const frames: {point: number[], normal: number[], binormal: number[]}[] = [];
++  
++  let prevNormal = [1, 0, 0];
++  const firstTan = getTangent(0);
++  if (Math.abs(dot(prevNormal, firstTan)) > 0.9) {
++    prevNormal = [0, 1, 0];
++  }
++  prevNormal = normalize(cross(cross(firstTan, prevNormal), firstTan));
++  
++  for (let i = 0; i <= segments; i++) {
++    const t = (i / segments) * Math.PI * 2;
++    const point = getPoint(t);
++    const tangent = getTangent(t);
+     
+-    const p0 = getPoint(t0);
+-    const p1 = getPoint(t1);
+-    const tan0 = getTangent(t0);
+-    const tan1 = getTangent(t1);
++    let normal = normalize(cross(cross(tangent, prevNormal), tangent));
++    const binormal = normalize(cross(tangent, normal));
+     
+-    const up = [0, 1, 0];
+-    const cross = (a: number[], b: number[]): number[] => [
+-      a[1]*b[2] - a[2]*b[1],
+-      a[2]*b[0] - a[0]*b[2],
+-      a[0]*b[1] - a[1]*b[0]
++    frames.push({ point, normal, binormal });
++    prevNormal = normal;
++  }
++  
++  const firstFrame = frames[0];
++  const lastFrame = frames[segments];
++  const twistAngle = Math.atan2(
++    dot(lastFrame.normal, firstFrame.binormal),
++    dot(lastFrame.normal, firstFrame.normal)
++  );
++  
++  for (let i = 0; i <= segments; i++) {
++    const correction = -twistAngle * (i / segments);
++    const cos_c = Math.cos(correction), sin_c = Math.sin(correction);
++    const f = frames[i];
++    const newNormal = [
++      f.normal[0] * cos_c + f.binormal[0] * sin_c,
++      f.normal[1] * cos_c + f.binormal[1] * sin_c,
++      f.normal[2] * cos_c + f.binormal[2] * sin_c
+     ];
+-    const normalize = (v: number[]): number[] => {
+-      const len = Math.sqrt(v[0]**2 + v[1]**2 + v[2]**2);
+-      return [v[0]/len, v[1]/len, v[2]/len];
+-    };
++    const newBinormal = [
++      -f.normal[0] * sin_c + f.binormal[0] * cos_c,
++      -f.normal[1] * sin_c + f.binormal[1] * cos_c,
++      -f.normal[2] * sin_c + f.binormal[2] * cos_c
++    ];
++    f.normal = newNormal;
++    f.binormal = newBinormal;
++  }
++  
++  for (let i = 0; i < segments; i++) {
++    const f0 = frames[i];
++    const f1 = frames[i + 1];
+     
+-    let binormal0 = normalize(cross(tan0, up));
+-    if (Math.abs(tan0[1]) > 0.99) binormal0 = normalize(cross(tan0, [1, 0, 0]));
+-    const normal0 = normalize(cross(binormal0, tan0));
+-    
+-    let binormal1 = normalize(cross(tan1, up));
+-    if (Math.abs(tan1[1]) > 0.99) binormal1 = normalize(cross(tan1, [1, 0, 0]));
+-    const normal1 = normalize(cross(binormal1, tan1));
+-    
+     for (let r = 0; r < radialSegments; r++) {
+       const angle0 = (r / radialSegments) * Math.PI * 2;
+       const angle1 = ((r + 1) / radialSegments) * Math.PI * 2;
+       
+       const cos0 = Math.cos(angle0), sin0 = Math.sin(angle0);
+       const cos1 = Math.cos(angle1), sin1 = Math.sin(angle1);
+       
+       const v00 = [
+-        p0[0] + (normal0[0] * cos0 + binormal0[0] * sin0) * tubeRadius,
+-        p0[1] + (normal0[1] * cos0 + binormal0[1] * sin0) * tubeRadius,
+-        p0[2] + (normal0[2] * cos0 + binormal0[2] * sin0) * tubeRadius
++        f0.point[0] + (f0.normal[0] * cos0 + f0.binormal[0] * sin0) * tubeRadius,
++        f0.point[1] + (f0.normal[1] * cos0 + f0.binormal[1] * sin0) * tubeRadius,
++        f0.point[2] + (f0.normal[2] * cos0 + f0.binormal[2] * sin0) * tubeRadius
+       ];
+       const v01 = [
+-        p0[0] + (normal0[0] * cos1 + binormal0[0] * sin1) * tubeRadius,
+-        p0[1] + (normal0[1] * cos1 + binormal0[1] * sin1) * tubeRadius,
+-        p0[2] + (normal0[2] * cos1 + binormal0[2] * sin1) * tubeRadius
++        f0.point[0] + (f0.normal[0] * cos1 + f0.binormal[0] * sin1) * tubeRadius,
++        f0.point[1] + (f0.normal[1] * cos1 + f0.binormal[1] * sin1) * tubeRadius,
++        f0.point[2] + (f0.normal[2] * cos1 + f0.binormal[2] * sin1) * tubeRadius
+       ];
+       const v10 = [
+-        p1[0] + (normal1[0] * cos0 + binormal1[0] * sin0) * tubeRadius,
+-        p1[1] + (normal1[1] * cos0 + binormal1[1] * sin0) * tubeRadius,
+-        p1[2] + (normal1[2] * cos0 + binormal1[2] * sin0) * tubeRadius
++        f1.point[0] + (f1.normal[0] * cos0 + f1.binormal[0] * sin0) * tubeRadius,
++        f1.point[1] + (f1.normal[1] * cos0 + f1.binormal[1] * sin0) * tubeRadius,
++        f1.point[2] + (f1.normal[2] * cos0 + f1.binormal[2] * sin0) * tubeRadius
+       ];
+       const v11 = [
+-        p1[0] + (normal1[0] * cos1 + binormal1[0] * sin1) * tubeRadius,
+-        p1[1] + (normal1[1] * cos1 + binormal1[1] * sin1) * tubeRadius,
+-        p1[2] + (normal1[2] * cos1 + binormal1[2] * sin1) * tubeRadius
++        f1.point[0] + (f1.normal[0] * cos1 + f1.binormal[0] * sin1) * tubeRadius,
++        f1.point[1] + (f1.normal[1] * cos1 + f1.binormal[1] * sin1) * tubeRadius,
++        f1.point[2] + (f1.normal[2] * cos1 + f1.binormal[2] * sin1) * tubeRadius
+       ];
+       
+-      const n00 = [normal0[0] * cos0 + binormal0[0] * sin0, normal0[1] * cos0 + binormal0[1] * sin0, normal0[2] * cos0 + binormal0[2] * sin0];
+-      const n01 = [normal0[0] * cos1 + binormal0[0] * sin1, normal0[1] * cos1 + binormal0[1] * sin1, normal0[2] * cos1 + binormal0[2] * sin1];
+-      const n10 = [normal1[0] * cos0 + binormal1[0] * sin0, normal1[1] * cos0 + binormal1[1] * sin0, normal1[2] * cos0 + binormal1[2] * sin0];
+-      const n11 = [normal1[0] * cos1 + binormal1[0] * sin1, normal1[1] * cos1 + binormal1[1] * sin1, normal1[2] * cos1 + binormal1[2] * sin1];
++      const n00 = [f0.normal[0] * cos0 + f0.binormal[0] * sin0, f0.normal[1] * cos0 + f0.binormal[1] * sin0, f0.normal[2] * cos0 + f0.binormal[2] * sin0];
++      const n01 = [f0.normal[0] * cos1 + f0.binormal[0] * sin1, f0.normal[1] * cos1 + f0.binormal[1] * sin1, f0.normal[2] * cos1 + f0.binormal[2] * sin1];
++      const n10 = [f1.normal[0] * cos0 + f1.binormal[0] * sin0, f1.normal[1] * cos0 + f1.binormal[1] * sin0, f1.normal[2] * cos0 + f1.binormal[2] * sin0];
++      const n11 = [f1.normal[0] * cos1 + f1.binormal[0] * sin1, f1.normal[1] * cos1 + f1.binormal[1] * sin1, f1.normal[2] * cos1 + f1.binormal[2] * sin1];
+       
+-      const u0 = i / segments * 4;
+-      const u1 = (i + 1) / segments * 4;
++      const u0 = i / segments * 3;
++      const u1 = (i + 1) / segments * 3;
+       const v0 = r / radialSegments;
+       const v1 = (r + 1) / radialSegments;
+       
+       positions.push(...v00, ...v10, ...v11, ...v00, ...v11, ...v01);
+       normals.push(...n00, ...n10, ...n11, ...n00, ...n11, ...n01);
+       texCoords.push(u0, v0, u1, v0, u1, v1, u0, v0, u1, v1, u0, v1);
+     }
+   }
+\ No newline at end of file
+
+</tool.toolu_01NuNR9WEJgkevNRcCoCGjjw>
+
+# TOOL RESULT
+
+ID: toolu_01NuNR9WEJgkevNRcCoCGjjw
+
+<tool.toolu_01NuNR9WEJgkevNRcCoCGjjw>
+
+</tool.toolu_01NuNR9WEJgkevNRcCoCGjjw>
