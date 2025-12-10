@@ -8641,5 +8641,47 @@ Fix L texture - use CLAMP_TO_EDGE for NPOT texture compatibility
 ID: toolu_01UXx1eCXxKtXDDKnrV7EUke
 
 <tool.toolu_01UXx1eCXxKtXDDKnrV7EUke>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix L texture - use CLAMP_TO_EDGE for NPOT texture compatibility
 </tool.toolu_01UXx1eCXxKtXDDKnrV7EUke>
+
+# ASSISTANT
+
+Also need to adjust the tex coords to stay within 0-1 range since we can't REPEAT. Let me use `fract()` in the shader to tile manually:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_013p7mridKDEbaiBWk7mBHPr
+
+## path
+
+<tool.toolu_013p7mridKDEbaiBWk7mBHPr>
+character-defs.ts
+</tool.toolu_013p7mridKDEbaiBWk7mBHPr>
+
+## git-commit-message
+
+<tool.toolu_013p7mridKDEbaiBWk7mBHPr>
+Use fract() in L shader to manually tile texture
+</tool.toolu_013p7mridKDEbaiBWk7mBHPr>
+
+## diff
+
+<tool.toolu_013p7mridKDEbaiBWk7mBHPr>
+     void main() {
+-      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
++      vec2 tiledCoord = fract(vTexCoord);
++      vec3 texColor = texture2D(uTexture, tiledCoord).rgb;
+       gl_FragColor = vec4(texColor, 1.0);
+     }
+\ No newline at end of file
+
+</tool.toolu_013p7mridKDEbaiBWk7mBHPr>
+
+# TOOL RESULT
+
+ID: toolu_013p7mridKDEbaiBWk7mBHPr
+
+<tool.toolu_013p7mridKDEbaiBWk7mBHPr>
+
+</tool.toolu_013p7mridKDEbaiBWk7mBHPr>

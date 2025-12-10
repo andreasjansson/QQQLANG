@@ -699,7 +699,8 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
     varying vec2 vTexCoord;
     
     void main() {
-      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
+      vec2 tiledCoord = fract(vTexCoord);
+      vec3 texColor = texture2D(uTexture, tiledCoord).rgb;
       gl_FragColor = vec4(texColor, 1.0);
     }
   `;
