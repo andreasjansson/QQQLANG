@@ -2195,4 +2195,104 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "zoom-blur",
     documentation: "Radial motion blur from center, blur amount n*4px, center 20% stays sharp"
   },
+  
+  '0': {
+    color: '#E6E6FA',
+    number: 27,
+    fn: fn0,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "radial-light",
+    documentation: "Radial gradient from center (white) to edges (black) multiplied with prev at n*10% opacity, then added back"
+  },
+  
+  '1': {
+    color: '#FFA07A',
+    number: 28,
+    fn: fn1,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "center-bar",
+    documentation: "Vertical bar at center (width = n% of image) shows prev sharpened and contrast-boosted, rest is desaturated"
+  },
+  
+  '2': {
+    color: '#98D8C8',
+    number: 29,
+    fn: fn2,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "posterize-gradient",
+    documentation: "Posterizes prev to n levels per channel, then adds gradient map from average color to its complement"
+  },
+  
+  '3': {
+    color: '#F7DC6F',
+    number: 30,
+    fn: fn3,
+    arity: 0,
+    argTypes: [],
+    functionName: "triple-rotate",
+    documentation: "Divides into 3 vertical strips; left rotated 90° CW, middle unchanged, right rotated 90° CCW"
+  },
+  
+  '4': {
+    color: '#BB8FCE',
+    number: 31,
+    fn: fn4,
+    arity: 0,
+    argTypes: [],
+    functionName: "quad-rotate",
+    documentation: "Divides into 2x2 quadrants, each rotated (0°, 90°, 180°, 270°), seams blended with 5px feather"
+  },
+  
+  '5': {
+    color: '#85C1E9',
+    number: 32,
+    fn: fn5,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "triangular-tile",
+    documentation: "Triangular tiling with cell size n*10, tiles filled from prev at center, edges drawn in inverted colors"
+  },
+  
+  '6': {
+    color: '#F1948A',
+    number: 33,
+    fn: fn6,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hexagonal-pixelate",
+    documentation: "Hexagonal pixelation with cell radius n*5, filled with region's average color, edges 1px darker"
+  },
+  
+  '7': {
+    color: '#82E0AA',
+    number: 34,
+    fn: fn7,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hue-rectangles",
+    documentation: "n rectangles placed diagonally, each filled with prev hue-rotated by i*(360/n)°"
+  },
+  
+  '8': {
+    color: '#F8C471',
+    number: 35,
+    fn: fn8,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "lemniscate",
+    documentation: "Infinity-loop/lemniscate distortion centered on image with strength n/5, pixels flow along curve"
+  },
+  
+  '9': {
+    color: '#D7BDE2',
+    number: 36,
+    fn: fn9,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "self-blend",
+    documentation: "Applies blend mode n%9 of prev with itself: multiply, screen, overlay, darken, lighten, color-dodge, color-burn, hard-light, soft-light"
+  },
 };
