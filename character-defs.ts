@@ -1698,18 +1698,12 @@ function fn5(ctx: FnContext, n: number): Image {
       return fract(sin(n) * 43758.5453123);
     }
     
-    // Classic metaball formula: influence = r^2 / distance^2
-    float metaball(vec2 p, vec2 center, float radius) {
-      float d = length(p - center);
-      if (d > radius * 2.5) return 0.0;
-      return (radius * radius) / (d * d + 0.0001);
-    }
-    
     void main() {
       vec2 uv = vUV;
       
-      // Calculate metaball field
-      float sum = 0.0;
+      // Accumulate displacement from all drip influences
+      float totalDisplaceY = 0.0;
+      float totalDisplaceX = 0.0;
       
       // Generate drips deterministically
       for (int i = 0; i < MAX_DRIPS; i++) {
@@ -1717,58 +1711,59 @@ function fn5(ctx: FnContext, n: number): Image {
         
         float fi = float(i);
         
-        // Base x position
-        float xPos = hash(fi * 127.1);
+        // Base x position for this drip
+        float dripX = hash(fi * 127.1);
+        float dripStartY = hash(fi * 311.7) * 0.15;
+        float dripLength = 0.5 + hash(fi * 74.3) * 0.4;
+        float dripWidth = 0.03 + hash(fi * 183.9) * 0.04;
         
-        // Create a drip trail - multiple balls forming teardrop shape
-        int numBalls = 8;
-        for (int j = 0; j < 8; j++) {
-          float fj = float(j);
-          float progress = fj / 7.0;
-          
-          // Y position spreads downward
-          float startY = hash(fi * 311.7) * 0.2;
-          float dripLength = 0.4 + hash(fi * 74.3) * 0.4;
-          float y = startY + progress * dripLength * uStrength;
-          
-          // Slight horizontal wobble
-          float wobble = sin(progress * 10.0 + fi * 3.0) * 0.01;
-          float x = xPos + wobble;
-          
-          // Ball size - larger at top, smaller at bottom (teardrop)
-          float baseRadius = 0.025 + hash(fi * 183.9) * 0.02;
-          float radius = baseRadius * (1.0 - progress * 0.6) * uStrength * 0.8;
-          
-          vec2 ballPos = vec2(x, y);
-          
-          // Add metaball influence
-          sum += metaball(uv, ballPos, radius);
-        }
+        // Distance from drip center line (horizontal)
+        float dx = uv.x - dripX;
+        
+        // Smooth falloff from drip center
+        float xInfluence = exp(-dx * dx / (dripWidth * dripWidth * uStrength));
+        
+        // Only affect areas below the drip start
+        float yProgress = (uv.y - dripStartY) / (dripLength * uStrength);
+        yProgress = clamp(yProgress, 0.0, 1.0);
+        
+        // Drip gets stronger as it flows down, with smooth falloff
+        float yInfluence = yProgress * smoothstep(0.0, 0.1, yProgress) * smoothstep(1.2, 0.8, yProgress);
+        
+        // Combined influence
+        float influence = xInfluence * yInfluence;
+        
+        // Add wobble
+        float wobble = sin(uv.y * 30.0 + fi * 5.0) * 0.003 * influence;
+        
+        totalDisplaceY += influence * 0.08 * uStrength;
+        totalDisplaceX += wobble;
       }
       
-      // Threshold determines blob surface
-      float threshold = 1.0;
+      // Clamp total displacement
+      totalDisplaceY = min(totalDisplaceY, 0.25);
       
-      // Create smooth blob mask
-      float blobMask = smoothstep(threshold - 0.3, threshold + 0.2, sum);
-      
-      // Where blobs are, displace texture downward
-      float displace = blobMask * 0.06 * uStrength;
+      // Sample texture with displacement (sample from above to pull down)
       vec2 sampleUV = uv;
-      sampleUV.y -= displace;
+      sampleUV.y -= totalDisplaceY;
+      sampleUV.x += totalDisplaceX;
+      
+      // Clamp to valid range
+      sampleUV = clamp(sampleUV, 0.0, 1.0);
       
       // Multi-sample for smooth result
       vec4 color = vec4(0.0);
       float totalWeight = 0.0;
       
-      // 5x5 sampling kernel for quality
+      // Adaptive blur - more blur in displaced areas
+      float blurAmount = 1.0 + totalDisplaceY * 3.0;
+      
       for (int dy = -2; dy <= 2; dy++) {
         for (int dx = -2; dx <= 2; dx++) {
-          vec2 offset = vec2(float(dx), float(dy)) / uResolution * 1.5;
+          vec2 offset = vec2(float(dx), float(dy)) / uResolution * blurAmount;
           vec2 tapUV = sampleUV + offset;
           
-          // Gaussian weight
-          float weight = exp(-(float(dx*dx + dy*dy)) * 0.3);
+          float weight = exp(-(float(dx*dx + dy*dy)) * 0.4);
           
           color += texture2D(uTexture, clamp(tapUV, 0.0, 1.0)) * weight;
           totalWeight += weight;
@@ -1777,13 +1772,8 @@ function fn5(ctx: FnContext, n: number): Image {
       
       color /= totalWeight;
       
-      // Slight shading in drip areas
-      color.rgb *= 1.0 - blobMask * 0.15;
-      
-      // Subtle edge highlight
-      float edge = smoothstep(threshold - 0.2, threshold, sum) - 
-                   smoothstep(threshold, threshold + 0.5, sum);
-      color.rgb += edge * 0.1;
+      // Subtle darkening in drip areas
+      color.rgb *= 1.0 - totalDisplaceY * 0.3;
       
       gl_FragColor = color;
     }

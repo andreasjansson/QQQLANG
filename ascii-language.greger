@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-151058973732>
+${greger-prompt-code-style<eval-result-151243120754>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-151058973732>}
+</eval-result-151243120754>}
 
 # USER
 
@@ -8503,5 +8503,334 @@ Implement proper metaball drip effect based on web examples
 ID: toolu_01ShBpRWobSKW7tXTe7QFgLh
 
 <tool.toolu_01ShBpRWobSKW7tXTe7QFgLh>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Implement proper metaball drip effect based on web examples
 </tool.toolu_01ShBpRWobSKW7tXTe7QFgLh>
+
+# ASSISTANT
+
+Done! I've reimplemented the metaball shader using the proper formula from the web examples:
+
+**Key changes based on the research:**
+- 
+
+# ASSISTANT
+
+Using the classic metaball formula: `influence = radius^2 / distance^2`
+
+## https://matiaslavik.wordpress.com/computer-graphics/metaball-rendering/
+
+Title: Metaballs / blobby objects – Matias' Programming Blog
+Cited text: A metaball can be defined by the following formula: where R is the metaball’s radius, (x,y,z) is the point being evaluated and (a,b,c) is the metaball...
+Encrypted index: EpEBCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDHUQD/MoWWaHcY3uLBoMqQnpYA715vAPK93hIjAelZoY3HKox3v5vwaV4Gu1WfDPeYt+7deZK5MDNvnRDW5bfj4kmhT1le0Irfi3u0wqFUownKBxO3Xw8Ei6nPMtUFt/j3JQrRgE
+
+# ASSISTANT
+
+ - this is the standard approach
+- Simplified to circular metaballs (not elliptical) that naturally blend together
+- 
+
+# ASSISTANT
+
+Sum up all metaball influences and threshold to determine the surface
+
+## https://matiaslavik.wordpress.com/computer-graphics/metaball-rendering/
+
+Title: Metaballs / blobby objects – Matias' Programming Blog
+Cited text: Iterate through each metaball, and add the metaball’s influence to the total influence. 
+Encrypted index: EpABCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDMiWHOpmI6Ycls1ptxoMGD6dDA8kwiyTQSCmIjDx/5M+csDAoLidG9sZ6o0/Y2b/EniwMtmzHGGyJKj/i5Ly+dCG0DEl2GzoJwSfTw8qFDu6kk90wEOokqJVEVjMIOy/m45AGAQ=
+
+# ASSISTANT
+
+
+- 8 balls per drip in a teardrop formation (larger at top, smaller at bottom)
+- Proper displacement that samples the texture smoothly
+- 5x5 Gaussian sampling kernel to prevent pixelation
+- Reduced displacement amount for more subtle effect
+
+The metaballs should now blend smoothly together and create organic dripping shapes without the holes or pixelation issues.
+
+# USER
+
+No that's much worse than the original approach you had. It just looks like cutouts. Search for more examples online
+
+# THINKING
+
+Signature: EqIECkYIChgCKkBjvXjvqkSVilFCp0yH1GMjz2U24E+E2H+LpQNSNUbF8dbSDJcbT9SzKROXa8hxqcmK31ufe9gV3/VjuC+RoKXoEgw4onu/wJWIbXlIKMEaDJfwhkXGiKF7jlRb8SIwWPAqZSK9KnwtwADq+HrLxo1Og5xEnfnF4aXVdZaN5vrl9eB0tNYooEsk/3KWHGkCKokDPQ1hvek5G6E3nqgvxXk5Zg7WuqAXlnbZUNARIjetyLNtkl5ujsFmWdc7OHNhdtmYCiVlz/O+O0RJ9RRrfxH1ZcCvpzbUET2TwpiBDuokbni5t7ufsPaX7JWVNnOxafVhPnkJbK8DxxSb/ArcY59llzhLCrnKJ5UrxXtxdwjfM80bsKdH6Q902V13zKU2aYftkquZN3+R57yBdUEglZs31kADZ25vbAeqdrokIsRCadAnhU4teAOvRBKlHR2haOK7fE5jfR60PB2aAJJbZKC52FYPOgAYNJ/8Oe1zyNxt3X+MMWzRf2A857fx+t6Sy60uYUffLFrvwsTE8N7jvntYlpdC2L9GAr6EuWx9eNIL34YHul6pzDYIgUB0GikM2NRz7H1lHKPBYfOzv6YJNONjv49T2nKKmKb3ygcrvBCbP8B70Y5Gry90XaSv5q2rfEQYrJLCsUYbodvB3th5cQaRz9mM1OduVdqowyv9xxw5IqZPVQakIjieXLItZAHm57LAavk8sbpAYXeRGAE=
+
+The user is saying my implementation looks like cutouts and is worse than my original approach. They want me to search for more examples online to find a better way to implement the melting/dripping effect with metaballs.
+
+Let me search for more specific examples, perhaps looking at how to use metaballs for image distortion/displacement effects rather than just drawing shapes.
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_01AxdFNrzbBBexPCcSFRNquf
+
+## query
+
+<tool.srvtoolu_01AxdFNrzbBBexPCcSFRNquf>
+shader image distortion metaball displacement texture UV
+</tool.srvtoolu_01AxdFNrzbBBexPCcSFRNquf>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_01AxdFNrzbBBexPCcSFRNquf
+
+<tool.srvtoolu_01AxdFNrzbBBexPCcSFRNquf>
+[
+  {
+    "type": "web_search_result",
+    "title": "Quick Tip: Simple UV Distortion in Unity Shader Graph – portamedia.studio",
+    "url": "https://portamedia.studio/quick-tip-simple-uv-distortion-in-unity-shader-graph/",
+    "encrypted_content": "EuYMCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDB8GxKSsSNtar/0P1xoMKXUPojvBSb7TW7QCIjABpjkDZYtrIVL/w33D1JCZm+zPh6/qHF+jeQ4yMuLgtEPItOHxi3uYgq7Iodjw0DMq6QujX+CadqRP84IMjbVpAIA4GdWRQ92XWFCX5YIlnJpcATWDDy8XF8EaN6Cro2hcirpXt37GKqZ6Xa1BuT8QsvcBNNBOKv7K0dDoNe7Hpwh+WKL0J1/DJ/kQpFnUTcImgVLzWr+5537QoKKAe/W5R49R1cPZL/94yhpZW2Fdb85cDvzDc9EbPh9lfLql4hHe0YktQSDR3DCVV91Bdsf4xJGuTzXsxTWrhab8o1kQG3GrUeQJ7y1cCQb2AXPSIVpWuVW7T2wAdAkgH4dabgkmMdQ+xaADMn16He9+lIiFWgNl6NY6UwRr1b1Lh1zRFMcZg6OADVQkd0Hlmf68imnqm3EO9Lcrl9jNixtqSFUl93ldj3pPZA5cmrtOLbW5GciN9wiXSN5sICinIrmdjO7wsSV7IM5xvNfj0Muvf1zSrhTaspHv8XxMm/gXqmqQftJGLedo2NGHnWKAYD4980Zx/V2kWjwj3Nfj4AJuDOTKKolUckDbxwLaMUUHZkrqRHxvgM46aU4lx3XR0UwS8riU1jypXT16LgKFAUHb673TU48hTczTPL96AqU5O+//MUQW8Z2gQDwHnCQxszBhtOQqPCuN344jJcGk3wvY4yP7sG+X3bPKgmhQ+IimXMFRiOPaill8d6tlt9ImKwhMC3dXsKpef6neDmcbFRGkhB3BxDFyPy+y98rQH260/1H7x8lCLvcLj8CEyauWAHeOjI+2HPsBMufMw3eF4kBaPAVOs7jSbb0B6gqkPgRmTmTAs0cDw74g+u/CbDquhlWsSXUis3UL4X7PjAMaQjxouLhBm1BcUhh92DzX0txAkKu2Hl0g5xQASM54fLRemdcoD+V7bNxZfwB2nSUDIsIR08S0ADPWP04jLl5mYUzW4gn/hAAzwqNT4JtBiyGEvhlGvJfNqeqF92iCSorslVI+4nbTIXHBFgliiEVAasUyydrJ6LZtRirAtJARCFuAm+TwbSbjPBsBGTNRfTZKtAn/X3StwCCd0Ex8jbed0eYWqX0kFz5rL07NllJGky5v7yBmZtXCi92aP48vx73l0xaBQHrkddn9Kboggx0mlvX1qDmle6czB1TJHmFrNKJP/VoCAHFHWF1ohUicMZpIbJIyROxutBWnlHb6OnubCkn8H2l5iCv1x9drYLjTuGSmOcIMp9vYyxjJkZ42dGpHC98UUhtbnKx//zqySUXr1y2GMioxcwxcBdZ6QX8PSTPj2wBaURbeD/QwTT1NbWp974wv2lDog1TwviV55e4JidFeT92wsug/VUFoazWaWbhX6u5RI2bEh8zmWQznbeNKlU+nZYJrdDwN51vkBo/oSlZbQeBXEtTrONmePojtXBhclvl1PpFmwimB3euI3IVKLOcWggZf9GrIZ2KPgQbfD45uDmCBoj1pWm8JawGtfFHOLn9pFVgoPbmszT8yuD4mpUTlGHfa5weU6fXaYfTHu8uQ/3RrgHF3ct6KO23OyEDI59yvt5g106sAWFGNlpJxBhLFg9DADVGzVJceBQEyVkemyo93wm1Fa3GPeBs9c0IRA/I0ulLrJ83wVcm/kW9ZF9nNwt/BiMyNWrU33xEV6HgPpnoBNBDPbkPq2BRZnFaeSthugVV5pGMrllk+EjJ28KlKAraM3ZC5W3z2cSAk2IS/tfw8eeKGxVCEIz1oQfcfquh2ZhQyNlGXgZT5NNLFlrBC3r3h32LUp93YG4a+FnjsitfsQq1ROUVESUrOEMHHmXGfON2ujHiNgqQexeKcyKvt0Ma95N9xX5v7t5jsse7y6f7tzq0dG3j3uL8/Y731xVyyLZcjlY4xHON9C6bf9IN7Z0TosIvBMXq3dt4CpSm3MksLg/UXTpjYBrpNx5C8jRPuzVjm5nxSqUaJ0bPma18yovDBqRSE26/bu+h65JaP3i0ABl0HMBqF48qCTHSK+olvgI3rXYjjC1Odhm3Ge8KDbYf9+LxA7wV24cnUgEkgqtXwrU6w6A5JAbRyxC9FQO8ybWEhSZ1nqN3ld/JLE4mMGAM=",
+    "page_age": "May 18, 2021"
+  },
+  {
+    "type": "web_search_result",
+    "title": "Texture Distortion",
+    "url": "https://catlikecoding.com/unity/tutorials/flow/texture-distortion/",
+    "encrypted_content": "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",
+    "page_age": "May 30, 2018"
+  },
+  {
+    "type": "web_search_result",
+    "title": "My take on shaders: Grab pass distortion – Harry Alisavakis",
+    "url": "https://halisavakis.com/my-take-on-shaders-grab-pass-distortion/",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Struggling with Shadergraph UV distortion shader - Unity Engine - Unity Discussions",
+    "url": "https://discussions.unity.com/t/struggling-with-shadergraph-uv-distortion-shader/733235",
+    "encrypted_content": "EqMGCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDPJjPPDD5pH6+qzfFRoM+fmIzV7fFZCnTNmvIjByz+X68au6ZyUdAcyxcNq4wU9LFjMt6yWiW1vcCJ9xsyqKccPp3e65vbrRCvt1ui4qpgVDwkhFPu7hSnC8fcv6KJi2NppF/ZTZ1DlC7wJi/Hu6oYvrPrk9YKHRy9vU1rVuloXeQZdstUXOP06Zyw9dE6RwNaj4ZJcZe5kgzmHeaubBz/BhvWf6PtCfXk5nqA5eFvwnlncjPvoJJokXgPSZJ3TxSUNb9qhFpVHJTRCbq/A8Cfnyv3rGd/AxFsEXRkEi10TuwvdZVsODbuseDDNCilfwZzkZCl5/heeWIakVx8opotQg7coDmLWMl4y7BcgFP4EpabIO+t8nVUZhr0Lb5G3bHV5NYqe2YGeMeUSoxOZim+ZEB/wrFRJx+Tmj/cMFj4BOhre4Ej5RWb6kerr0jiWsWdsseEZc+TExgQXQP4rC/pK10gS8hCV75zbJsste72efB+zPpUmM7fiEOkvtH/KAfrG8M6tISkP7yMVvjhjiM3gYSkHm92WJAHuY3XLOXJV6OI7k+xgS/UMpNJyws0dMytj/9Yk8g6/7G3tVjwP2gHsOYa+/9KmcHPahSSDmcsJoWofIleLkY0sDvcy+Ko4HKiKjADbUfTgqUiJlcjKmiw9vpE+/5c1suCxGbAEebT8tPu54Zsw0mXAmQyt5Zm9NFGHzfa/D30qhjiW/L2JgV/r2Lp9/vCRanqYVhji2YIJeGwgWeGFbAeaxsiGLLfgu68ucupebNvhMWEw3z/GCMoNJhzpkuesMURBnEjkNkFqaPRI24kCODssxDHDj8uZdfgW3uV87a4GZBtZMLuggjkDrq1arjsj9aCO90j5kqelS5aeTkv1hztv5wC5hxP8FWrGUJYDdUf4bt7FMXGXyERcN14uemc1/30sW2agT/sFosxcPDDUECBa3wdYPHrhpp/33Q/uFlkVPu44xyLfW2D5KNV4gW/+gHca/QEAkeLzTL4mziw4YAw==",
+    "page_age": "February 22, 2019"
+  },
+  {
+    "type": "web_search_result",
+    "title": "How to make distortion in Unity + Shader forge? - Real Time VFX",
+    "url": "https://realtimevfx.com/t/how-to-make-distortion-in-unity-shader-forge/4518",
+    "encrypted_content": "EuYCCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDBt/91W3zUJ9EonoDRoMnXzVqdTgSAourp5TIjABrDan/z32VqvIfmXeXf5zIajsmj4LmXUiqLeCmEhTdqc0jRW9qjTLcqW/xFzBImIq6QHW9YgAb83NVK1gAt1IoXBRZOrF1yg9X7xygFdPIg6pq7f6I/KH8cyQG9kwLHWwq74fif5f+p3qVgfdclf1a3DqnU/Ek3nWln5uqzKbfy/Opmvj7AzCIsK2Op/S/wlNWyQdQ1HI9fteWCmBHNXkFzWse0umiDLAa1OxqrEN+sDXzOXqOpDQNu2Hx6REntaph7yTHd/psGmv2tZ9dg72H2PR5j1GMUMLCkq2yO3Broza8vIyFmYcPpRhBgRLXmz6OQfSrYMMXpkrBO5sp6kSN0MyerdaOcn2OkFyYUwxRYKSbWEW16YBZUDrFxgD",
+    "page_age": "April 16, 2018"
+  },
+  {
+    "type": "web_search_result",
+    "title": "UV Distortion",
+    "url": "https://www.shadertoy.com/view/4llSDH",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Distortion Shader using NME - Questions - Babylon.js",
+    "url": "https://forum.babylonjs.com/t/distortion-shader-using-nme/36235",
+    "encrypted_content": "EsUGCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDJ22w8uqwRgco4qqdBoMNYNDQNXCfoeG6BkGIjDkRFOhbmDIasIWUQWC3AsaI7AMdv/PVZJkjGQR+4zUIv0kbIF9/LF25/VYyTP4oGAqyAWk3yPUrNRRJ8Cbeu8wOY4F0k37kADhJ7WitG3rUBaY0z/OyfowrZTpCZXPfNTowmSZrOfr2wIEicoSuSh8u4VFPAxDBiZrYCLuN0/DWPtoFD28Be6eAkT6TX2RJSSQzre/heTUr7FyVf/SZK0GuHL4nsClzcn8sqXePuJNI93SdnWvDqUNLcvkV2pmxUMzN1iH/s/vYbO8nftHzhJps/5dSfpXcXUcYM84t/oDl+Ob74VFj53NzPW7c2X2dF4sq0wO2GJnsMaNIz62cSeTN4BAT6l5XUca2EjhBp+EKAsEcPTbITB6WKj/stpjmuC7NYpVKFwTpLL+lX0mIXsOYouTZ/F0uSC9aMcCzABwA4Xg2pJMuYc3+RL5bs97LvZFNCc4s+5S7vJZddRzQu8aw+iwb1e+0f5UKnv+yxgl/uRGdcWaXT8NSNguTkh7WgrXmzwqg92mhHHtD+HvYXHBUifWt0+zHjBX4OnD1ZvQSav8DZDFJcc6GoR6Ak1W5LVDh75kUNR0BQRjaahTdVlpdWJiSGBP6FhZyoIu4NYaWav5sHh05aEPfX9A13irUy8/aur71zo8vcYMFj1o3VSUhhjScFHayxrKKag8BPbqcYC/9ebtZjn93xmgZx4x+0dC/J+SEfQJJMb/BRgjmD2r68YCeriZ0+kPsTlgPbfvyMOm8aGtoT/xMA5uOpgbqxMfw7hYVRF8Pe0pMyDWAT2bIPhdLQ51UVi8dPhVKRcZjJIlANdQTAgjLs6WT8Y4eHtD/evYn67RoS/G87+aGsQ3FyFCWKzeOo6ssCDYAUjY+a4YM2LnKoY+jxhHk6o9ii7fMxSScWn2Jhho/BjNfVs9kwjacu/MA657OizfVS/P/arRE/K5KsgtblDmrDKkQNqhwP1QUH6GjCih31FQvM5KtAAwWrx9z+q/tlnHgT8fPdNNP/Ps/xzGCamiGAM=",
+    "page_age": "December 3, 2022"
+  },
+  {
+    "type": "web_search_result",
+    "title": "Distorter Utility",
+    "url": "https://help.maxon.net/c4d/2025/en-us/Subsystems/Default/Content/html/Utility+Distorter.html?TocPath=Shaders%7CUtility+Shaders%7C_____6",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Manipulating Texture Coordinates - VFXDoc",
+    "url": "https://vfxdoc.readthedocs.io/en/latest/shaders/texcoord/",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Uv displacement shader - Unity Engine - Unity Discussions",
+    "url": "https://discussions.unity.com/t/uv-displacement-shader/731130",
+    "encrypted_content": "Eu8GCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDLVep5I8aUWg4nTr5xoM/y2Y37czsnbN0nDUIjA1x4vpD5MYRQTKJq4p853mYqyz4a3V2Izh7PeTbI6PtyehoecMxbs/pCsfqw3RNFQq8gUyRqG8EpMlC7cUe19FacrB+vCE1w8vdinOQjsxm1Apw7uiZJKb681XiAd/PjBT3/XTrhzeNxoqKB3DwAY7wK7fhc0xHv+STHZZ9SY1hhnP0vdx6rq6Os+/UDXIkmk4AYzTiGFNCexFZp5WrVYcwy+4YMxpvo+CQXwVGwC//8FUruypqJGW/6qeY74d7nQZDXSDxpYidA/TYC52VKpBK2IPSMPxLsdIqzxFGf+dMs1VqVTsSCV02rkyk52B31x94iPHEjeTBJZDudcYNMVqnC/rFZprUmFwMZf4er1Tv04MkiEh3n4txkhHv+DPlyYVDOYL4r4mhGgAvzGUnZX8lTJAvt56+dzc4UW+8xImZlUVPFtbL+XPvRvoJlhCkAMCRh64PWE/3HPE6W58TTGOlMW+iZJWs3inwEDwtWjcRnJIJ8AVQ3xfhaqC5y6XCrlk3T2kUDhXI0Hwhnisu+DmpaRviwtAvhqVM31QxuHvja4tG6MknWsa/9pBqGA9QA6urb4AdwKjFlLP6AeN3XiT5vlbNvI1W+/Uw3FytR0TDHvmM3NVL0N8JLmQUXHE1AfJOzCG6yhy6q9SgQeV3nhxu+fLClOHs349PVP93WqkF6gWyznWBrJJSlnNYSoAzhXoVWtn8zCo6nHKivSGQd4tyTNaJcPwKYNdQnkFDyudLX0czWRkeU7tlhdA15FdrkaWpTya7ttzcLLPlyvanm49juCDYVTwKWq8QfwhHpXMFIRJhkm042E1H3MVqCOLfd6SLYNtjQoVy7Pidk3PuXAjAWqUBB5O6CC0h1i2BMqDKZyzSvHS+o4ohoWvqy0+SSiwIOba/kFReW0O5v8CDbtktF9wF0EtCgQt8PEQ5ZrAhVkdnrTpckbUTCnqBXmaUBMWCV/tlFnKm4YRVf4FYUsDSy6to8qibULQLZ6xj94alPrrTf7Fuq4NxERiOOdoUgRE2Ob44uUFWD/uLrCmrXirL7C/iR2GEpMT6CXgGC/OnghokL2RGAM=",
+    "page_age": "February 4, 2019"
+  }
+]
+</tool.srvtoolu_01AxdFNrzbBBexPCcSFRNquf>
+
+# ASSISTANT
+
+Let me try a different approach. Instead of using the metaball field to create a hard mask, I should use it to create a smooth displacement field. Let me rewrite this to use the metaball influence directly as a UV displacement amount:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01KGer61dus5huajDz2YYE4H
+
+## path
+
+<tool.toolu_01KGer61dus5huajDz2YYE4H>
+character-defs.ts
+</tool.toolu_01KGer61dus5huajDz2YYE4H>
+
+## git-commit-message
+
+<tool.toolu_01KGer61dus5huajDz2YYE4H>
+Rewrite melt effect using metaball field as smooth UV displacement
+</tool.toolu_01KGer61dus5huajDz2YYE4H>
+
+## diff
+
+<tool.toolu_01KGer61dus5huajDz2YYE4H>
+   const fragmentShader = `
+     precision highp float;
+     uniform sampler2D uTexture;
+     uniform vec2 uResolution;
+     uniform float uStrength;
+     uniform int uNumDrips;
+     varying vec2 vUV;
+     
+     #define MAX_DRIPS 40
+     
+     float hash(float n) {
+       return fract(sin(n) * 43758.5453123);
+     }
+     
+-    // Classic metaball formula: influence = r^2 / distance^2
+-    float metaball(vec2 p, vec2 center, float radius) {
+-      float d = length(p - center);
+-      if (d > radius * 2.5) return 0.0;
+-      return (radius * radius) / (d * d + 0.0001);
+-    }
+-    
+     void main() {
+       vec2 uv = vUV;
+       
+-      // Calculate metaball field
+-      float sum = 0.0;
++      // Accumulate displacement from all drip influences
++      float totalDisplaceY = 0.0;
++      float totalDisplaceX = 0.0;
+       
+       // Generate drips deterministically
+       for (int i = 0; i < MAX_DRIPS; i++) {
+         if (i >= uNumDrips) break;
+         
+         float fi = float(i);
+         
+-        // Base x position
+-        float xPos = hash(fi * 127.1);
++        // Base x position for this drip
++        float dripX = hash(fi * 127.1);
++        float dripStartY = hash(fi * 311.7) * 0.15;
++        float dripLength = 0.5 + hash(fi * 74.3) * 0.4;
++        float dripWidth = 0.03 + hash(fi * 183.9) * 0.04;
+         
+-        // Create a drip trail - multiple balls forming teardrop shape
+-        int numBalls = 8;
+-        for (int j = 0; j < 8; j++) {
+-          float fj = float(j);
+-          float progress = fj / 7.0;
+-          
+-          // Y position spreads downward
+-          float startY = hash(fi * 311.7) * 0.2;
+-          float dripLength = 0.4 + hash(fi * 74.3) * 0.4;
+-          float y = startY + progress * dripLength * uStrength;
+-          
+-          // Slight horizontal wobble
+-          float wobble = sin(progress * 10.0 + fi * 3.0) * 0.01;
+-          float x = xPos + wobble;
+-          
+-          // Ball size - larger at top, smaller at bottom (teardrop)
+-          float baseRadius = 0.025 + hash(fi * 183.9) * 0.02;
+-          float radius = baseRadius * (1.0 - progress * 0.6) * uStrength * 0.8;
+-          
+-          vec2 ballPos = vec2(x, y);
+-          
+-          // Add metaball influence
+-          sum += metaball(uv, ballPos, radius);
+-        }
++        // Distance from drip center line (horizontal)
++        float dx = uv.x - dripX;
++        
++        // Smooth falloff from drip center
++        float xInfluence = exp(-dx * dx / (dripWidth * dripWidth * uStrength));
++        
++        // Only affect areas below the drip start
++        float yProgress = (uv.y - dripStartY) / (dripLength * uStrength);
++        yProgress = clamp(yProgress, 0.0, 1.0);
++        
++        // Drip gets stronger as it flows down, with smooth falloff
++        float yInfluence = yProgress * smoothstep(0.0, 0.1, yProgress) * smoothstep(1.2, 0.8, yProgress);
++        
++        // Combined influence
++        float influence = xInfluence * yInfluence;
++        
++        // Add wobble
++        float wobble = sin(uv.y * 30.0 + fi * 5.0) * 0.003 * influence;
++        
++        totalDisplaceY += influence * 0.08 * uStrength;
++        totalDisplaceX += wobble;
+       }
+       
+-      // Threshold determines blob surface
+-      float threshold = 1.0;
++      // Clamp total displacement
++      totalDisplaceY = min(totalDisplaceY, 0.25);
+       
+-      // Create smooth blob mask
+-      float blobMask = smoothstep(threshold - 0.3, threshold + 0.2, sum);
+-      
+-      // Where blobs are, displace texture downward
+-      float displace = blobMask * 0.06 * uStrength;
++      // Sample texture with displacement (sample from above to pull down)
+       vec2 sampleUV = uv;
+-      sampleUV.y -= displace;
++      sampleUV.y -= totalDisplaceY;
++      sampleUV.x += totalDisplaceX;
+       
++      // Clamp to valid range
++      sampleUV = clamp(sampleUV, 0.0, 1.0);
++      
+       // Multi-sample for smooth result
+       vec4 color = vec4(0.0);
+       float totalWeight = 0.0;
+       
+-      // 5x5 sampling kernel for quality
++      // Adaptive blur - more blur in displaced areas
++      float blurAmount = 1.0 + totalDisplaceY * 3.0;
++      
+       for (int dy = -2; dy <= 2; dy++) {
+         for (int dx = -2; dx <= 2; dx++) {
+-          vec2 offset = vec2(float(dx), float(dy)) / uResolution * 1.5;
++          vec2 offset = vec2(float(dx), float(dy)) / uResolution * blurAmount;
+           vec2 tapUV = sampleUV + offset;
+           
+-          // Gaussian weight
+-          float weight = exp(-(float(dx*dx + dy*dy)) * 0.3);
++          float weight = exp(-(float(dx*dx + dy*dy)) * 0.4);
+           
+           color += texture2D(uTexture, clamp(tapUV, 0.0, 1.0)) * weight;
+           totalWeight += weight;
+         }
+       }
+       
+       color /= totalWeight;
+       
+-      // Slight shading in drip areas
+-      color.rgb *= 1.0 - blobMask * 0.15;
++      // Subtle darkening in drip areas
++      color.rgb *= 1.0 - totalDisplaceY * 0.3;
+       
+-      // Subtle edge highlight
+-      float edge = smoothstep(threshold - 0.2, threshold, sum) - 
+-                   smoothstep(threshold, threshold + 0.5, sum);
+-      color.rgb += edge * 0.1;
+-      
+       gl_FragColor = color;
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_01KGer61dus5huajDz2YYE4H>
+
+# TOOL RESULT
+
+ID: toolu_01KGer61dus5huajDz2YYE4H
+
+<tool.toolu_01KGer61dus5huajDz2YYE4H>
+
+</tool.toolu_01KGer61dus5huajDz2YYE4H>
