@@ -3805,8 +3805,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnDollar,
     arity: 1,
     argTypes: ['int'],
-    functionName: "golden-spiral",
-    documentation: "Draws golden spiral with n turns from center, spiral color is brightness-inverted sample of prev"
+    functionName: "glass-shatter",
+    documentation: "Shatters image into glass-like shards using Voronoi cells, n controls shard count and displacement"
   },
   
   '%': {
