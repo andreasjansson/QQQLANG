@@ -3386,10 +3386,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#FF1493',
     number: 4,
     fn: fn5,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 0,
+    argTypes: [],
     functionName: "drip",
-    documentation: "Metaball-based dripping effect with blobby liquid drips, n controls number and strength"
+    documentation: "Metaball-based dripping effect with blobby liquid drips"
   },
   
   'E': {
