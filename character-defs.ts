@@ -635,51 +635,38 @@ function fnK(ctx: FnContext, n: number): Image {
 
 function fnL(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const stripHeight = Math.max(4, n * 2 + 4);
-  const waveAmplitude = stripHeight * 0.8;
-  const waveFrequency = 0.015;
-  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
-  
-  const strips: { y: number; hueShift: number; phase: number }[] = [];
-  for (let i = 0; i < numStrips; i++) {
-    strips.push({
-      y: i * stripHeight - stripHeight * 3,
-      hueShift: (i * 25) % 360,
-      phase: i * 0.8
-    });
-  }
+  const waveAmplitude = stripHeight * 1.2;
+  const waveFrequency = 0.02;
   
   for (let pass = 0; pass < 2; pass++) {
-    for (let i = 0; i < strips.length; i++) {
-      if (i % 2 !== pass) continue;
-      
-      const strip = strips[i];
-      
+    for (let y = 0; y < ctx.height; y++) {
       for (let x = 0; x < ctx.width; x++) {
-        const wave = Math.sin(x * waveFrequency + strip.phase) * waveAmplitude;
-        const baseY = strip.y + wave;
+        const stripIndex = Math.floor(y / stripHeight);
+        if (stripIndex % 2 !== pass) continue;
         
-        for (let dy = 0; dy < stripHeight; dy++) {
-          const srcY = Math.floor(strip.y + dy);
-          const dstY = Math.floor(baseY + dy);
-          
-          if (srcY < 0 || srcY >= ctx.height || dstY < 0 || dstY >= ctx.height) continue;
-          
-          const [r, g, b] = getPixel(prev, x, srcY);
-          const [h, s, l] = rgbToHsl(r, g, b);
-          const [nr, ng, nb] = hslToRgb((h + strip.hueShift) % 360, s, l);
-          
-          const edgeDist = Math.min(dy, stripHeight - 1 - dy);
-          const shadow = edgeDist < 2 ? 0.7 : 1.0;
-          
-          setPixel(out, x, dstY, 
-            Math.round(nr * shadow), 
-            Math.round(ng * shadow), 
-            Math.round(nb * shadow)
-          );
-        }
+        const phase = stripIndex * 0.8;
+        const hueShift = (stripIndex * 25) % 360;
+        const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
+        
+        const dstY = Math.floor(y + wave);
+        if (dstY < 0 || dstY >= ctx.height) continue;
+        
+        const [r, g, b] = getPixel(prev, x, y);
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
+        
+        const localY = y % stripHeight;
+        const edgeDist = Math.min(localY, stripHeight - 1 - localY);
+        const shadow = edgeDist < 2 ? 0.7 : 1.0;
+        
+        setPixel(out, x, dstY,
+          Math.round(nr * shadow),
+          Math.round(ng * shadow),
+          Math.round(nb * shadow)
+        );
       }
     }
   }

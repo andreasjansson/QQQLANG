@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-160119111902>
+${greger-prompt-code-style<eval-result-160206661566>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-160119111902>}
+</eval-result-160206661566>}
 
 # USER
 
@@ -7802,30 +7802,24 @@ character-defs.ts
 Fix line weave to avoid black background gaps - start with prev image
 </tool.toolu_018U3dV43uaCbyHawGgpufvr>
 
-## original-content
+## diff
 
 <tool.toolu_018U3dV43uaCbyHawGgpufvr>
-function fnL(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const stripHeight = Math.max(4, n * 2 + 4);
-  const waveAmplitude = stripHeight * 1.5;
-  const waveFrequency = 0.02;
-  const numStrips = Math.ceil(ctx.height / stripHeight) + 4;
-</tool.toolu_018U3dV43uaCbyHawGgpufvr>
+ function fnL(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  const out = cloneImage(prev);
+   
+   const stripHeight = Math.max(4, n * 2 + 4);
+-  const waveAmplitude = stripHeight * 1.5;
+-  const waveFrequency = 0.02;
+-  const numStrips = Math.ceil(ctx.height / stripHeight) + 4;
+\ No newline at end of file
++  const waveAmplitude = stripHeight * 0.8;
++  const waveFrequency = 0.015;
++  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_018U3dV43uaCbyHawGgpufvr>
-function fnL(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  const stripHeight = Math.max(4, n * 2 + 4);
-  const waveAmplitude = stripHeight * 0.8;
-  const waveFrequency = 0.015;
-  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
 </tool.toolu_018U3dV43uaCbyHawGgpufvr>
 
 # TOOL RESULT
@@ -7853,22 +7847,83 @@ character-defs.ts
 Extend strip range to cover edges
 </tool.toolu_0174D62KcATR86FcaPYKvLDr>
 
-## original-content
+## diff
 
 <tool.toolu_0174D62KcATR86FcaPYKvLDr>
-  const strips: { y: number; hueShift: number; phase: number }[] = [];
-  for (let i = 0; i < numStrips; i++) {
-    strips.push({
-      y: i * stripHeight - stripHeight * 2,
-      hueShift: (i * 25) % 360,
-      phase: i * 0.8
-    });
-  }
+   const strips: { y: number; hueShift: number; phase: number }[] = [];
+   for (let i = 0; i < numStrips; i++) {
+     strips.push({
+-      y: i * stripHeight - stripHeight * 2,
++      y: i * stripHeight - stripHeight * 3,
+       hueShift: (i * 25) % 360,
+       phase: i * 0.8
+     });
+   }
+\ No newline at end of file
+
 </tool.toolu_0174D62KcATR86FcaPYKvLDr>
 
-## new-content
+# TOOL RESULT
+
+ID: toolu_0174D62KcATR86FcaPYKvLDr
 
 <tool.toolu_0174D62KcATR86FcaPYKvLDr>
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Extend strip range to cover edges
+</tool.toolu_0174D62KcATR86FcaPYKvLDr>
+
+# ASSISTANT
+
+Done. Fixed by:
+1. Starting with a clone of prev instead of black, so any gaps show the original image
+2. Reduced wave amplitude to `stripHeight * 0.8` (was 1.5) so strips don't separate as much
+3. Added more strips and extended the range to cover edges better
+
+# USER
+
+No I meant don't show anybackground, the weaving should not have holes!
+
+# THINKING
+
+Signature: ErwGCkYIChgCKkBwSwhQOdqra8bTFrdomVQ42xEuFCZVgfVfwndOuht4nTuSkDwpanxDi0nzG5DYDJ9/r1aFwj4n67eSO6F1HClxEgwRCDbkRRKivVvpm9caDF0OIqoxNkOunfDtuiIwm1DjVwiBfG1YzVwD1Cx2FXtYllML/XksB1TADXb6+O9dhd4Slm2IXlARnSdBfHevKqMF46rmKhejL6vjvq0YyURxxz33mTsj6RggUrkR1QQZxm9asYZYC9YgnsgKdxRadmoAj/NiA1bO2y21cbnpQd7174pXe2TJGoWj0QsHOaWB1kLrEnE6pHmhUgHAXKBQx47mEqa4ulBlpcPSkyqXakGAgTD5IGWzOU8LllytPFzuxJGLZ/gQ2MzMkFQx8vS8rGRELSbsR5t/2MYF2zKTL1Kdh6a5oVctN5i9Rr65Zw/XyzOCSq/M9i7v9oX9SMu8AOwDrCzDWYigg1uvI+HBHPwWbtM2ouTUT3CvQb2bw8mgjOY2pbExiSu0SQxQySpgmfPWjQ9epg/VxIvB2LPzFsa6mdvw7Ub0QXyXzVV+9eaVGC2isdL19QcNYmsKJAumm1/EPJeZ9KMnQGT+zofRKMDITK1XWpwsO84QZTWMEJ2P8rwB6qVI1QMEsd9y5GRf0GxKqf1VUlN124JVo7Dp5w5Igm6h8127LPj7sVdCVJNXeLFrU6OskFhLJ2E6O13g8HIN2w5gzO1FmN2xcA2nSv0/Tzxdv3473y/WJaxBiAGw6fKOm/2iin4uF7zHXOZAiDTfseZIgtipPjrNFOaTYBTq2mLOirmQ9Z7QY/fK/uSzJLi+cBFKhkmDyQQ/WD9Kg0wmi+M7xp/o8+ujlHQddW35Lp5yE05RaouYR2EPk32uhAwIXVtedOQxZKDNXxL4sEKgSJh0/g0Dw4C6k03poyRfjTb2RrAuD8oMz1yLbMWTAUL5UAzcDlZ9IgbGXkQC5+2tD+E89eiFuYJKeQwhQ1gKtXTpQ0Zd3F5aQxegvpFxos2e5EggcgeVHwCyRoXRePJJsuDtgoQLqndrOYC5WGf8L39vF9jbBun63mzU8cKFeUzV2KtPB+OGoDZFGaHmH96xLjkMGAE=
+
+The user wants the weave to have no gaps at all - the strips should completely cover the image with no holes showing through. The issue is that when strips wave up/down, gaps appear between them.
+
+To fix this, I need to ensure that for every pixel in the output, it gets colored by some strip. One approach is to work backwards - for each output pixel, figure out which strip it belongs to and sample from the appropriate source location.
+
+Let me rewrite this with a different approach:
+- For each output pixel (x, y), determine which strip it should come from
+- The strips wave, so I need to invert the wave to find the source
+- This way every pixel is covered
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017oZ1h6Quy2jyZPKJm9Lauy
+
+## path
+
+<tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+character-defs.ts
+</tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+
+## git-commit-message
+
+<tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+Rewrite line weave to ensure complete coverage with no gaps
+</tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+
+## original-content
+
+<tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+function fnL(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const stripHeight = Math.max(4, n * 2 + 4);
+  const waveAmplitude = stripHeight * 0.8;
+  const waveFrequency = 0.015;
+  const numStrips = Math.ceil(ctx.height / stripHeight) + 6;
+  
   const strips: { y: number; hueShift: number; phase: number }[] = [];
   for (let i = 0; i < numStrips; i++) {
     strips.push({
@@ -7877,12 +7932,93 @@ Extend strip range to cover edges
       phase: i * 0.8
     });
   }
-</tool.toolu_0174D62KcATR86FcaPYKvLDr>
+  
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < strips.length; i++) {
+      if (i % 2 !== pass) continue;
+      
+      const strip = strips[i];
+      
+      for (let x = 0; x < ctx.width; x++) {
+        const wave = Math.sin(x * waveFrequency + strip.phase) * waveAmplitude;
+        const baseY = strip.y + wave;
+        
+        for (let dy = 0; dy < stripHeight; dy++) {
+          const srcY = Math.floor(strip.y + dy);
+          const dstY = Math.floor(baseY + dy);
+          
+          if (srcY < 0 || srcY >= ctx.height || dstY < 0 || dstY >= ctx.height) continue;
+          
+          const [r, g, b] = getPixel(prev, x, srcY);
+          const [h, s, l] = rgbToHsl(r, g, b);
+          const [nr, ng, nb] = hslToRgb((h + strip.hueShift) % 360, s, l);
+          
+          const edgeDist = Math.min(dy, stripHeight - 1 - dy);
+          const shadow = edgeDist < 2 ? 0.7 : 1.0;
+          
+          setPixel(out, x, dstY, 
+            Math.round(nr * shadow), 
+            Math.round(ng * shadow), 
+            Math.round(nb * shadow)
+          );
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+</tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+
+## new-content
+
+<tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
+function fnL(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const stripHeight = Math.max(4, n * 2 + 4);
+  const waveAmplitude = stripHeight * 1.2;
+  const waveFrequency = 0.02;
+  
+  for (let pass = 0; pass < 2; pass++) {
+    for (let y = 0; y < ctx.height; y++) {
+      for (let x = 0; x < ctx.width; x++) {
+        const stripIndex = Math.floor(y / stripHeight);
+        if (stripIndex % 2 !== pass) continue;
+        
+        const phase = stripIndex * 0.8;
+        const hueShift = (stripIndex * 25) % 360;
+        const wave = Math.sin(x * waveFrequency + phase) * waveAmplitude;
+        
+        const dstY = Math.floor(y + wave);
+        if (dstY < 0 || dstY >= ctx.height) continue;
+        
+        const [r, g, b] = getPixel(prev, x, y);
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
+        
+        const localY = y % stripHeight;
+        const edgeDist = Math.min(localY, stripHeight - 1 - localY);
+        const shadow = edgeDist < 2 ? 0.7 : 1.0;
+        
+        setPixel(out, x, dstY,
+          Math.round(nr * shadow),
+          Math.round(ng * shadow),
+          Math.round(nb * shadow)
+        );
+      }
+    }
+  }
+  
+  return out;
+}
+</tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
 
 # TOOL RESULT
 
-ID: toolu_0174D62KcATR86FcaPYKvLDr
+ID: toolu_017oZ1h6Quy2jyZPKJm9Lauy
 
-<tool.toolu_0174D62KcATR86FcaPYKvLDr>
+<tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
 
-</tool.toolu_0174D62KcATR86FcaPYKvLDr>
+</tool.toolu_017oZ1h6Quy2jyZPKJm9Lauy>
