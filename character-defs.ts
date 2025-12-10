@@ -2204,8 +2204,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fn2,
     arity: 0,
     argTypes: [],
-    functionName: "rgb-split",
-    documentation: "Splits image into thirds showing only red, green, and blue channels respectively"
+    functionName: "time-echo",
+    documentation: "Left third shows oldest image, middle shows mid-history image, right shows prev - temporal triptych"
   },
   
   '3': {
