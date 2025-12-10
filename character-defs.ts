@@ -778,38 +778,52 @@ function fnN(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const glowRadius = Math.floor(Math.min(ctx.width, ctx.height) / 15);
-  const glowBuffer = new Float32Array(ctx.width * ctx.height * 3);
+  const glowRadius = Math.floor(Math.min(ctx.width, ctx.height) / 20);
+  const src = new Float32Array(ctx.width * ctx.height * 3);
+  const temp = new Float32Array(ctx.width * ctx.height * 3);
+  const blurred = new Float32Array(ctx.width * ctx.height * 3);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const [r, g, b] = getPixel(prev, x, y);
       const lum = (r + g + b) / (255 * 3);
-      if (lum > 0.1) {
-        const idx = (y * ctx.width + x) * 3;
-        glowBuffer[idx] = (r / 255) * lum;
-        glowBuffer[idx + 1] = (g / 255) * lum;
-        glowBuffer[idx + 2] = (b / 255) * lum;
-      }
+      const idx = (y * ctx.width + x) * 3;
+      src[idx] = (r / 255) * lum;
+      src[idx + 1] = (g / 255) * lum;
+      src[idx + 2] = (b / 255) * lum;
     }
   }
   
-  const blurred = new Float32Array(ctx.width * ctx.height * 3);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      let tr = 0, tg = 0, tb = 0, tw = 0;
+      for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
+        const sx = Math.max(0, Math.min(ctx.width - 1, x + dx));
+        const weight = 1 - Math.abs(dx) / glowRadius;
+        const idx = (y * ctx.width + sx) * 3;
+        tr += src[idx] * weight;
+        tg += src[idx + 1] * weight;
+        tb += src[idx + 2] * weight;
+        tw += weight;
+      }
+      const idx = (y * ctx.width + x) * 3;
+      temp[idx] = tr / tw;
+      temp[idx + 1] = tg / tw;
+      temp[idx + 2] = tb / tw;
+    }
+  }
+  
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       let tr = 0, tg = 0, tb = 0, tw = 0;
       for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
-        for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
-          const sx = Math.max(0, Math.min(ctx.width - 1, x + dx));
-          const sy = Math.max(0, Math.min(ctx.height - 1, y + dy));
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const weight = Math.max(0, 1 - dist / glowRadius);
-          const idx = (sy * ctx.width + sx) * 3;
-          tr += glowBuffer[idx] * weight;
-          tg += glowBuffer[idx + 1] * weight;
-          tb += glowBuffer[idx + 2] * weight;
-          tw += weight;
-        }
+        const sy = Math.max(0, Math.min(ctx.height - 1, y + dy));
+        const weight = 1 - Math.abs(dy) / glowRadius;
+        const idx = (sy * ctx.width + x) * 3;
+        tr += temp[idx] * weight;
+        tg += temp[idx + 1] * weight;
+        tb += temp[idx + 2] * weight;
+        tw += weight;
       }
       const idx = (y * ctx.width + x) * 3;
       blurred[idx] = tr / tw;
