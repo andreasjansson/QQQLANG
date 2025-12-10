@@ -1519,11 +1519,11 @@ function fn0(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fn1(ctx: FnContext, n: number): Image {
+function fn1(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const barWidthPercent = Math.max(1, Math.min(n, 100)) / 100;
+  const barWidthPercent = 0.2;
   const barHalfWidth = Math.floor((ctx.width * barWidthPercent) / 2);
   const barStart = Math.floor(ctx.width / 2) - barHalfWidth;
   const barEnd = Math.floor(ctx.width / 2) + barHalfWidth;
