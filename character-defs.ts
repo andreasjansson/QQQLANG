@@ -2231,11 +2231,11 @@ function fnHash(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const gridSize = Math.max(4, Math.min((n % 8) + 4, 16));
+  const gridSize = Math.max(4, Math.min((n % 12) + 4, 24));
   const cellW = Math.floor(ctx.width / gridSize);
   const cellH = Math.floor(ctx.height / gridSize);
   
-  const cells: { avgR: number; avgG: number; avgB: number; pixels: [number, number, number, number, number][] }[] = [];
+  const cells: { gx: number; gy: number; hue: number; pixels: [number, number, number, number, number][] }[] = [];
   
   for (let gy = 0; gy < gridSize; gy++) {
     for (let gx = 0; gx < gridSize; gx++) {
@@ -2253,91 +2253,25 @@ function fnHash(ctx: FnContext, n: number): Image {
         }
       }
       
-      cells.push({
-        avgR: count > 0 ? sumR / count : 0,
-        avgG: count > 0 ? sumG / count : 0,
-        avgB: count > 0 ? sumB / count : 0,
-        pixels
-      });
+      const avgR = count > 0 ? sumR / count : 0;
+      const avgG = count > 0 ? sumG / count : 0;
+      const avgB = count > 0 ? sumB / count : 0;
+      const [hue] = rgbToHsl(avgR, avgG, avgB);
+      
+      cells.push({ gx, gy, hue, pixels });
     }
   }
   
-  const som: number[][] = [];
-  for (let i = 0; i < gridSize * gridSize; i++) {
-    som.push([cells[i].avgR, cells[i].avgG, cells[i].avgB]);
-  }
+  cells.sort((a, b) => a.hue - b.hue);
   
-  const iterations = 5;
-  const initialRadius = gridSize / 2;
-  const initialLR = 0.5;
-  
-  for (let iter = 0; iter < iterations; iter++) {
-    const radius = initialRadius * Math.exp(-iter / iterations);
-    const lr = initialLR * Math.exp(-iter / iterations);
+  for (let i = 0; i < cells.length; i++) {
+    const targetGX = i % gridSize;
+    const targetGY = Math.floor(i / gridSize);
+    const cell = cells[i];
     
-    for (let ci = 0; ci < cells.length; ci++) {
-      const input = [cells[ci].avgR, cells[ci].avgG, cells[ci].avgB];
-      
-      let bmuIdx = 0;
-      let bmuDist = Infinity;
-      for (let i = 0; i < som.length; i++) {
-        const dist = (som[i][0] - input[0]) ** 2 + (som[i][1] - input[1]) ** 2 + (som[i][2] - input[2]) ** 2;
-        if (dist < bmuDist) {
-          bmuDist = dist;
-          bmuIdx = i;
-        }
-      }
-      
-      const bmuX = bmuIdx % gridSize;
-      const bmuY = Math.floor(bmuIdx / gridSize);
-      
-      for (let i = 0; i < som.length; i++) {
-        const nx = i % gridSize;
-        const ny = Math.floor(i / gridSize);
-        const gridDist = Math.sqrt((nx - bmuX) ** 2 + (ny - bmuY) ** 2);
-        
-        if (gridDist < radius) {
-          const influence = Math.exp(-(gridDist ** 2) / (2 * radius ** 2));
-          som[i][0] += lr * influence * (input[0] - som[i][0]);
-          som[i][1] += lr * influence * (input[1] - som[i][1]);
-          som[i][2] += lr * influence * (input[2] - som[i][2]);
-        }
-      }
-    }
-  }
-  
-  const cellMapping: number[] = [];
-  const used = new Set<number>();
-  
-  for (let ci = 0; ci < cells.length; ci++) {
-    const input = [cells[ci].avgR, cells[ci].avgG, cells[ci].avgB];
-    
-    let bmuIdx = 0;
-    let bmuDist = Infinity;
-    for (let i = 0; i < som.length; i++) {
-      if (used.has(i)) continue;
-      const dist = (som[i][0] - input[0]) ** 2 + (som[i][1] - input[1]) ** 2 + (som[i][2] - input[2]) ** 2;
-      if (dist < bmuDist) {
-        bmuDist = dist;
-        bmuIdx = i;
-      }
-    }
-    
-    cellMapping[ci] = bmuIdx;
-    used.add(bmuIdx);
-  }
-  
-  for (let ci = 0; ci < cells.length; ci++) {
-    const targetIdx = cellMapping[ci];
-    const targetGX = targetIdx % gridSize;
-    const targetGY = Math.floor(targetIdx / gridSize);
-    
-    for (const [ox, oy, r, g, b] of cells[ci].pixels) {
-      const sourceGX = ci % gridSize;
-      const sourceGY = Math.floor(ci / gridSize);
-      
-      const localX = ox - sourceGX * cellW;
-      const localY = oy - sourceGY * cellH;
+    for (const [ox, oy, r, g, b] of cell.pixels) {
+      const localX = ox - cell.gx * cellW;
+      const localY = oy - cell.gy * cellH;
       
       const newX = targetGX * cellW + localX;
       const newY = targetGY * cellH + localY;
