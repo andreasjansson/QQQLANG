@@ -958,52 +958,43 @@ function fnP(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnEntangle(ctx: FnContext, n: number, j: number): Image {
+function fnEntangle(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const ribbonWidth = Math.max(8, Math.min(n * 4 + 12, 60));
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const hRibbon = Math.floor(y / ribbonWidth);
-      const vRibbon = Math.floor(x / ribbonWidth);
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
       
-      const hPhase = (y % ribbonWidth) / ribbonWidth;
-      const vPhase = (x % ribbonWidth) / ribbonWidth;
-      
-      const hWave = Math.sin(hPhase * Math.PI);
-      const vWave = Math.sin(vPhase * Math.PI);
-      
-      const hOver = (hRibbon + vRibbon) % 2 === 0;
-      
-      const hHeight = 0.5 + hWave * 0.4;
-      const vHeight = 0.5 + vWave * 0.4 * (hOver ? -1 : 1);
+      const ex = ctx.width - 1 - x;
+      const ey = ctx.height - 1 - y;
       
       const [pr, pg, pb] = getPixel(prev, x, y);
-      const [or, og, ob] = getPixel(old, x, y);
+      const [or, og, ob] = getPixel(old, ex, ey);
       
-      let nr: number, ng: number, nb: number;
-      let shade = 1.0;
+      const pLum = (pr + pg + pb) / 765;
+      const oLum = (or + og + ob) / 765;
+      const correlation = 1 - Math.abs(pLum - oLum);
       
-      if (hHeight > vHeight) {
-        nr = pr;
-        ng = pg;
-        nb = pb;
-        shade = 0.7 + hWave * 0.3;
-      } else {
-        nr = or;
-        ng = og;
-        nb = ob;
-        shade = 0.7 + vWave * 0.3;
-      }
+      const wave1 = Math.sin(dist * 0.05 + angle * 2);
+      const wave2 = Math.sin(dist * 0.03 - angle * 3);
+      const interference = (wave1 + wave2) * 0.5;
       
-      setPixel(out, x, y,
-        Math.round(nr * shade),
-        Math.round(ng * shade),
-        Math.round(nb * shade)
-      );
+      const blend = 0.5 + interference * 0.4 + (correlation - 0.5) * 0.2;
+      const clampedBlend = Math.max(0, Math.min(1, blend));
+      
+      const nr = Math.round(pr * clampedBlend + or * (1 - clampedBlend));
+      const ng = Math.round(pg * clampedBlend + og * (1 - clampedBlend));
+      const nb = Math.round(pb * clampedBlend + ob * (1 - clampedBlend));
+      
+      setPixel(out, x, y, nr, ng, nb);
     }
   }
   
