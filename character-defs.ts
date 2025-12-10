@@ -1099,8 +1099,8 @@ function fnT(ctx: FnContext, n: number): Image {
       vec3 normal = normalize(vNormal);
       vec3 lightDir = normalize(uLightDir);
       
-      float ambient = 0.3;
-      float diffuse = max(dot(normal, lightDir), 0.0) * 0.7;
+      float ambient = 0.85;
+      float diffuse = max(dot(normal, lightDir), 0.0) * 0.15;
       float lighting = ambient + diffuse;
       
       vec3 color = texture2D(uTexture, vTexCoord).rgb * lighting;
