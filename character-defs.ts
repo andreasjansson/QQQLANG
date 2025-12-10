@@ -389,23 +389,46 @@ function fnE(ctx: FnContext, c: string, n: number): Image {
   const numWaves = Math.max(1, Math.min(n, 20));
   
   for (let i = 0; i < numWaves; i++) {
-    const period = (i + 1) * 30;
-    const thickness = Math.max(1, Math.floor(3 + Math.sin(i * 0.5) * 2));
-    const phase = i * 0.7;
+    const period = ctx.width / (1 + i * 0.3);
+    const amplitude = ctx.height * 0.15 * Math.sin(i * 0.8);
+    const thickness = Math.max(2, Math.floor(4 + Math.sin(i * 0.5) * 3));
+    const phase = Math.PI * Math.cos(i * 0.6);
+    
+    let prevY = -1;
     
     for (let x = 0; x < ctx.width; x++) {
-      const waveY = Math.floor(ctx.height / 2 + Math.sin((x / period) * Math.PI * 2 + phase) * (ctx.height * 0.3));
+      const waveY = Math.floor(ctx.height / 2 + Math.sin((x / period) * Math.PI * 2 + phase) * amplitude);
       
-      for (let dy = -Math.floor(thickness / 2); dy <= Math.floor(thickness / 2); dy++) {
-        const y = waveY + dy;
-        if (y >= 0 && y < ctx.height) {
-          const idx = (y * ctx.width + x) * 4;
-          const alpha = 0.3;
-          out.data[idx] = Math.round(out.data[idx] * (1 - alpha) + cr * alpha);
-          out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - alpha) + cg * alpha);
-          out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - alpha) + cb * alpha);
+      if (prevY !== -1) {
+        const y1 = Math.min(prevY, waveY);
+        const y2 = Math.max(prevY, waveY);
+        
+        for (let y = y1; y <= y2; y++) {
+          for (let dy = -Math.floor(thickness / 2); dy <= Math.floor(thickness / 2); dy++) {
+            const drawY = y + dy;
+            if (drawY >= 0 && drawY < ctx.height && x >= 0 && x < ctx.width) {
+              const idx = (drawY * ctx.width + x) * 4;
+              const alpha = 0.4;
+              out.data[idx] = Math.round(out.data[idx] * (1 - alpha) + cr * alpha);
+              out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - alpha) + cg * alpha);
+              out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - alpha) + cb * alpha);
+            }
+          }
+        }
+      } else {
+        for (let dy = -Math.floor(thickness / 2); dy <= Math.floor(thickness / 2); dy++) {
+          const drawY = waveY + dy;
+          if (drawY >= 0 && drawY < ctx.height) {
+            const idx = (drawY * ctx.width + x) * 4;
+            const alpha = 0.4;
+            out.data[idx] = Math.round(out.data[idx] * (1 - alpha) + cr * alpha);
+            out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - alpha) + cg * alpha);
+            out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - alpha) + cb * alpha);
+          }
         }
       }
+      
+      prevY = waveY;
     }
   }
   
