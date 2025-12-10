@@ -3973,8 +3973,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnM,
     arity: 2,
     argTypes: ['int', 'int'],
-    functionName: "spiral-interleave",
-    documentation: "Interleaves prev and old_image in jagged pixelated spiral, spiral effect (5-100), old image index"
+    functionName: "moire",
+    documentation: "Moiré interference pattern blending prev and old_image, freq controls pattern density, j selects old image"
   },
   
   'N': {
