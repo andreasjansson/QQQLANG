@@ -1205,8 +1205,13 @@ function fnX(ctx: FnContext, k: number, c: string): Image {
   tempCtx.fillStyle = 'white';
   tempCtx.font = `${size}px serif`;
   tempCtx.textAlign = 'center';
-  tempCtx.textBaseline = 'middle';
-  tempCtx.fillText(symbol, ctx.width / 2, ctx.height / 2);
+  tempCtx.textBaseline = 'alphabetic';
+  
+  const metrics = tempCtx.measureText(symbol);
+  const actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+  const yOffset = metrics.actualBoundingBoxAscent - actualHeight / 2;
+  
+  tempCtx.fillText(symbol, ctx.width / 2, ctx.height / 2 + yOffset);
   
   const maskData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
   
