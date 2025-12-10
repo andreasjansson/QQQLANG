@@ -3887,7 +3887,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "halftone",
-    documentation: "Halftone print effect: prev as dots at 0°, old_image as dots at 45°, overlaid on white"
+    documentation: "Halftone print effect: colored dots on white, dot size based on darkness, spacing = 4 + n*2"
   },
   
   'I': {
