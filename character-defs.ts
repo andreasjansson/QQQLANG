@@ -549,36 +549,76 @@ function fnG(ctx: FnContext, n: number): Image {
 
 function fnH(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#FFFFFF');
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const dotSpacing = Math.max(4, 4 + n * 2);
-  const maxRadius = dotSpacing * 0.55;
+  const numColors = Math.max(2, Math.min(n + 2, 16));
   
-  for (let gy = 0; gy < ctx.height; gy += dotSpacing) {
-    for (let gx = 0; gx < ctx.width; gx += dotSpacing) {
-      const cx = gx + dotSpacing / 2;
-      const cy = gy + dotSpacing / 2;
-      
-      const sx = Math.min(ctx.width - 1, Math.floor(cx));
-      const sy = Math.min(ctx.height - 1, Math.floor(cy));
-      const [r, g, b] = getPixel(prev, sx, sy);
-      
-      const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-      const radius = (1 - lum) * maxRadius;
-      
-      if (radius > 0.5) {
-        const r2 = radius * radius;
-        for (let dy = -Math.ceil(radius); dy <= Math.ceil(radius); dy++) {
-          for (let dx = -Math.ceil(radius); dx <= Math.ceil(radius); dx++) {
-            if (dx * dx + dy * dy <= r2) {
-              const px = Math.floor(cx + dx);
-              const py = Math.floor(cy + dy);
-              if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
-                setPixel(out, px, py, r, g, b);
-              }
-            }
-          }
+  const order = Math.ceil(Math.log2(Math.max(ctx.width, ctx.height)));
+  const size = 1 << order;
+  
+  function hilbertD2xy(n: number, d: number): [number, number] {
+    let x = 0, y = 0;
+    let s = 1;
+    let rx: number, ry: number, t = d;
+    while (s < n) {
+      rx = (t >> 1) & 1;
+      ry = (t ^ rx) & 1;
+      if (ry === 0) {
+        if (rx === 1) {
+          x = s - 1 - x;
+          y = s - 1 - y;
         }
+        const temp = x;
+        x = y;
+        y = temp;
+      }
+      x += s * rx;
+      y += s * ry;
+      t = Math.floor(t / 4);
+      s *= 2;
+    }
+    return [x, y];
+  }
+  
+  const errR = new Float32Array(ctx.width * ctx.height);
+  const errG = new Float32Array(ctx.width * ctx.height);
+  const errB = new Float32Array(ctx.width * ctx.height);
+  
+  const totalPoints = size * size;
+  
+  for (let d = 0; d < totalPoints; d++) {
+    const [hx, hy] = hilbertD2xy(size, d);
+    
+    if (hx >= ctx.width || hy >= ctx.height) continue;
+    
+    const idx = hy * ctx.width + hx;
+    const [r, g, b] = getPixel(prev, hx, hy);
+    
+    const oldR = r + errR[idx];
+    const oldG = g + errG[idx];
+    const oldB = b + errB[idx];
+    
+    const newR = Math.round(oldR / 255 * (numColors - 1)) * (255 / (numColors - 1));
+    const newG = Math.round(oldG / 255 * (numColors - 1)) * (255 / (numColors - 1));
+    const newB = Math.round(oldB / 255 * (numColors - 1)) * (255 / (numColors - 1));
+    
+    setPixel(out, hx, hy,
+      Math.max(0, Math.min(255, Math.round(newR))),
+      Math.max(0, Math.min(255, Math.round(newG))),
+      Math.max(0, Math.min(255, Math.round(newB)))
+    );
+    
+    const errRVal = oldR - newR;
+    const errGVal = oldG - newG;
+    const errBVal = oldB - newB;
+    
+    if (d + 1 < totalPoints) {
+      const [nx, ny] = hilbertD2xy(size, d + 1);
+      if (nx < ctx.width && ny < ctx.height) {
+        const nidx = ny * ctx.width + nx;
+        errR[nidx] += errRVal;
+        errG[nidx] += errGVal;
+        errB[nidx] += errBVal;
       }
     }
   }
