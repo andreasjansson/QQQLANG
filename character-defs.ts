@@ -1541,7 +1541,7 @@ function fnQ(ctx: FnContext): Image {
       const sy = (y / hh) * prev.height;
       const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
       
-      if (x + y > hw) {
+      if (x / hw + y / hh > 1) {
         setPixel(temp, x, y, 255 - r, 255 - g, 255 - b);
       } else {
         setPixel(temp, x, y, r, g, b);
