@@ -1160,24 +1160,27 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.depthFunc(gl.LESS);
   gl.clear(gl.DEPTH_BUFFER_BIT);
   
-  // Orthographic projection that maps 0-1 to full screen with depth
-  const near = -5.0, far = 5.0;
-  const orthoProj = new Float32Array([
-    2, 0, 0, 0,
-    0, 2, 0, 0,
-    0, 0, -2/(far-near), 0,
-    -1, -1, -(far+near)/(far-near), 1
+  // Perspective projection
+  const aspect = ctx.width / ctx.height;
+  const fov = Math.PI / 4;
+  const near = 0.1, far = 10.0;
+  const f = 1.0 / Math.tan(fov / 2);
+  const perspective = new Float32Array([
+    f/aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far+near)/(near-far), -1,
+    0, 0, (2*far*near)/(near-far), 0
   ]);
   
-  // View matrix - identity, looking straight at z=0 plane
+  // View matrix - camera at z=1.5 looking at center of 0-1 space
   const view = new Float32Array([
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
-    0, 0, 0, 1
+    -0.5, -0.5, -1.5, 1
   ]);
   
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, orthoProj);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
   
   const posBuf = gl.createBuffer();
