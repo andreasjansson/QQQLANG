@@ -702,14 +702,11 @@ function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: 
   };
   
   const topY = Math.floor(ctx.height * 0.05);
+  const centerX = Math.floor(ctx.width / 2);
+  const mainLength = ctx.height * 0.7;
+  const mainAngle = Math.PI / 2;
   
-  for (let i = 0; i < 5; i++) {
-    const startX = ctx.width * (0.2 + i * 0.15);
-    const mainLength = ctx.height * 0.6;
-    const mainAngle = Math.PI / 2 + (rand() - 0.5) * angleVar * 0.3;
-    
-    growBranch(startX, topY, mainAngle, mainLength, 6, 0);
-  }
+  growBranch(centerX, topY, mainAngle, mainLength, 8, 0);
   
   return out;
 }
