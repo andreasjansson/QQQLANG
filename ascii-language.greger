@@ -8626,5 +8626,131 @@ Add debug pane HTML element and populate with operation details
 ID: toolu_015c62wpVrFFavSQsrJTL6fB
 
 <tool.toolu_015c62wpVrFFavSQsrJTL6fB>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Add debug pane HTML element and populate with operation details
 </tool.toolu_015c62wpVrFFavSQsrJTL6fB>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_012nt2LPh4GgwCFg8nMwkCQd
+
+## path
+
+<tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
+index.html
+</tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
+
+## git-commit-message
+
+<tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
+Add logic to show/hide debug pane and populate with parsed operations
+</tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
+
+## diff
+
+<tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
+   <script type="module">
+-    import { runProgram } from './runtime.ts';
++    import { runProgram, getParsedOperations } from './runtime.ts';
+ 
+     const canvas = document.getElementById('canvas');
+     const ctx = canvas.getContext('2d');
+     const input = document.getElementById('program-input');
++    const debugPane = document.getElementById('debug-pane');
+ 
++    const isDebugMode = window.location.search.includes('debug');
++    if (isDebugMode) {
++      debugPane.classList.add('visible');
++    }
++
+     function getProgramFromURL() {
+       const path = window.location.pathname;
+       return path === '/' ? '' : path.substring(1);
+     }
+ 
+     function updateURL(program) {
+       const newPath = program ? `/${program}` : '/';
+       if (window.location.pathname !== newPath) {
+         window.history.pushState({ program }, '', newPath);
+       }
+     }
+ 
++    function updateDebugPane(program) {
++      if (!isDebugMode) return;
++      
++      const ops = getParsedOperations(program);
++      
++      let html = '<div style="margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">';
++      html += `<div>Program: "${program}"</div>`;
++      html += `<div>Operations: ${ops.length}</div>`;
++      html += '</div>';
++      
++      for (let i = ops.length - 1; i >= 0; i--) {
++        const op = ops[i];
++        html += '<div class="op">';
++        html += `<div class="op-id">[${i}] "${op.identifier}"</div>`;
++        html += `<div class="op-type">Type: ${op.type}</div>`;
++        
++        if (op.type === 'solid') {
++          html += `<div class="op-details">Color: ${op.color}</div>`;
++        } else {
++          html += `<div class="op-details">Function: ${op.fnDef.functionName}</div>`;
++          html += `<div class="op-details">Arity: ${op.fnDef.arity}</div>`;
++          if (op.args.length > 0) {
++            html += `<div class="op-details">Args: ${JSON.stringify(op.args)}</div>`;
++          }
++        }
++        html += '</div>';
++      }
++      
++      debugPane.innerHTML = html;
++    }
++
+     function resize() {
+       canvas.width = window.innerWidth;
+       canvas.height = window.innerHeight;
+       render();
+     }
+ 
+     function render() {
+       const program = input.value || '';
+       const images = runProgram(program, canvas.width, canvas.height);
+       const finalImage = images[images.length - 1];
+       
+       const imageData = new ImageData(finalImage.data, finalImage.width, finalImage.height);
+       ctx.putImageData(imageData, 0, 0);
++      
++      updateDebugPane(program);
+     }
+ 
+     function loadProgramFromURL() {
+       const program = getProgramFromURL();
+       input.value = program;
+       render();
+     }
+ 
+     window.addEventListener('resize', resize);
+     
+     input.addEventListener('input', () => {
+       updateURL(input.value);
+       render();
+     });
+ 
+     window.addEventListener('popstate', (event) => {
+       loadProgramFromURL();
+     });
+     
+     loadProgramFromURL();
+     resize();
+   </script>
+\ No newline at end of file
+
+</tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
+
+# TOOL RESULT
+
+ID: toolu_012nt2LPh4GgwCFg8nMwkCQd
+
+<tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>
+
+</tool.toolu_012nt2LPh4GgwCFg8nMwkCQd>

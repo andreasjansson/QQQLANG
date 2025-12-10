@@ -103,11 +103,17 @@
   <div id="debug-pane"></div>
 
   <script type="module">
-    import { runProgram } from './runtime.ts';
+    import { runProgram, getParsedOperations } from './runtime.ts';
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const input = document.getElementById('program-input');
+    const debugPane = document.getElementById('debug-pane');
+
+    const isDebugMode = window.location.search.includes('debug');
+    if (isDebugMode) {
+      debugPane.classList.add('visible');
+    }
 
     function getProgramFromURL() {
       const path = window.location.pathname;
@@ -119,6 +125,37 @@
       if (window.location.pathname !== newPath) {
         window.history.pushState({ program }, '', newPath);
       }
+    }
+
+    function updateDebugPane(program) {
+      if (!isDebugMode) return;
+      
+      const ops = getParsedOperations(program);
+      
+      let html = '<div style="margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">';
+      html += `<div>Program: "${program}"</div>`;
+      html += `<div>Operations: ${ops.length}</div>`;
+      html += '</div>';
+      
+      for (let i = ops.length - 1; i >= 0; i--) {
+        const op = ops[i];
+        html += '<div class="op">';
+        html += `<div class="op-id">[${i}] "${op.identifier}"</div>`;
+        html += `<div class="op-type">Type: ${op.type}</div>`;
+        
+        if (op.type === 'solid') {
+          html += `<div class="op-details">Color: ${op.color}</div>`;
+        } else {
+          html += `<div class="op-details">Function: ${op.fnDef.functionName}</div>`;
+          html += `<div class="op-details">Arity: ${op.fnDef.arity}</div>`;
+          if (op.args.length > 0) {
+            html += `<div class="op-details">Args: ${JSON.stringify(op.args)}</div>`;
+          }
+        }
+        html += '</div>';
+      }
+      
+      debugPane.innerHTML = html;
     }
 
     function resize() {
@@ -134,6 +171,8 @@
       
       const imageData = new ImageData(finalImage.data, finalImage.width, finalImage.height);
       ctx.putImageData(imageData, 0, 0);
+      
+      updateDebugPane(program);
     }
 
     function loadProgramFromURL() {
