@@ -4164,10 +4164,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#DC143C',
     number: 8,
     fn: fnH,
-    arity: 0,
-    argTypes: [],
-    functionName: "hilbert-dither",
-    documentation: "Hilbert curve dithering: error diffusion along space-filling curve, 8-color palette sampled from image"
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hopf",
+    documentation: "Hopf fibration: 3D projection of 4D structure as interlocking circles textured with prev, n controls rotation"
   },
   
   'I': {
