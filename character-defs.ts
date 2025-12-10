@@ -1745,10 +1745,11 @@ function fn4(ctx: FnContext): Image {
   return out;
 }
 
-function fn5(ctx: FnContext, n: number): Image {
+function fn5(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
+  const n = 7;
   const numDrips = Math.max(1, n * 3);
   const dripStrength = Math.max(0.5, Math.min(n * 0.2 + 0.8, 2.0));
   const seed = ctx.images.length * 137.5;
