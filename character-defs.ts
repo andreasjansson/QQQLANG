@@ -705,10 +705,10 @@ function fnL(ctx: FnContext, n: number): Image {
         const nx = x / ctx.width;
         const ny = y / ctx.height;
         const gradientPos = (nx + ny) * 0.5;
-        const xorVal = Math.floor((gradientPos % 1) * 255);
-        const cr = bgR ^ xorVal;
-        const cg = bgG ^ ((xorVal + 85) % 256);
-        const cb = bgB ^ ((xorVal + 170) % 256);
+        const andVal = Math.floor((gradientPos % 1) * 255);
+        const cr = bgR & andVal;
+        const cg = bgG & ((andVal + 85) % 256);
+        const cb = bgB & ((andVal + 170) % 256);
         setPixel(out, x, y, cr, cg, cb);
       }
     }
