@@ -910,24 +910,31 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   
   gl.useProgram(tubeProgram);
   
+  const posLoc = gl.getAttribLocation(tubeProgram, 'aPosition');
+  const normLoc = gl.getAttribLocation(tubeProgram, 'aNormal');
+  const texLoc = gl.getAttribLocation(tubeProgram, 'aTexCoord');
+  
   const posBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-  const posLoc = gl.getAttribLocation(tubeProgram, 'aPosition');
-  gl.enableVertexAttribArray(posLoc);
-  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
   
   const normBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-  const normLoc = gl.getAttribLocation(tubeProgram, 'aNormal');
-  gl.enableVertexAttribArray(normLoc);
-  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
   
   const texBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-  const texLoc = gl.getAttribLocation(tubeProgram, 'aTexCoord');
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
   gl.enableVertexAttribArray(texLoc);
   gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
   
