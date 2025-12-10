@@ -1052,4 +1052,44 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "spiral-interleave",
     documentation: "Interleaves prev and old_image in jagged pixelated spiral, spiral effect (5-100), old image index"
   },
+  
+  'N': {
+    color: '#8A2BE2',
+    number: 14,
+    fn: fnN,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "xor-blend",
+    documentation: "XORs prev with old_image at index j, creating glitchy digital artifacts"
+  },
+  
+  'O': {
+    color: '#FF6347',
+    number: 15,
+    fn: fnO,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "fisheye-morph",
+    documentation: "Fisheye distortion that brightens center and darkens edges with strength n"
+  },
+  
+  'P': {
+    color: '#4682B4',
+    number: 16,
+    fn: fnP,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "diagonal-pixelate",
+    documentation: "Pixelates with cell size n+1, diagonal split: top-left = average, bottom-right = most saturated"
+  },
+  
+  'Q': {
+    color: '#32CD32',
+    number: 17,
+    fn: fnQ,
+    arity: 0,
+    argTypes: [],
+    functionName: "inverted-tile",
+    documentation: "Splits prev diagonally, inverts bottom-right half, then tiles in four quadrants"
+  },
 };
