@@ -5790,5 +5790,601 @@ Add missing character definitions to characterDefs object
 ID: toolu_01UD7CKsf9MnhZGUXjRzfGqk
 
 <tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add missing character definitions to characterDefs object
 </tool.toolu_01UD7CKsf9MnhZGUXjRzfGqk>
+
+# ASSISTANT
+
+Now I need to implement all the function bodies for these new characters. Let me add them before the `export const characterDefs` line:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01CRrP5sqhT8zAZropeTvE1F
+
+## path
+
+<tool.toolu_01CRrP5sqhT8zAZropeTvE1F>
+character-defs.ts
+</tool.toolu_01CRrP5sqhT8zAZropeTvE1F>
+
+## git-commit-message
+
+<tool.toolu_01CRrP5sqhT8zAZropeTvE1F>
+Implement missing function bodies for new characters
+</tool.toolu_01CRrP5sqhT8zAZropeTvE1F>
+
+## diff
+
+<tool.toolu_01CRrP5sqhT8zAZropeTvE1F>
+ function fnSlash(ctx: FnContext, c: string): Image {
+   const prev = getPrevImage(ctx);
+   const out = cloneImage(prev);
+   const [cr, cg, cb] = hexToRgb(c);
+   
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+       const [r, g, b] = getPixel(prev, x, y);
+       const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+       const spacing = Math.max(2, Math.floor(2 + luminance * 15));
+       
+       const diag = (x + y) % spacing;
+       if (diag === 0) {
+         setPixel(out, x, y, cr, cg, cb);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnColon(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const numCircles = Math.max(1, Math.min(n, 10));
++  const circleRadius = Math.min(ctx.width / (numCircles * 3), ctx.height / 4);
++  const blurRadius = 5;
++  
++  const blurred = createSolidImage(ctx.width, ctx.height, '#000000');
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      let sr = 0, sg = 0, sb = 0, count = 0;
++      for (let ky = -blurRadius; ky <= blurRadius; ky++) {
++        for (let kx = -blurRadius; kx <= blurRadius; kx++) {
++          const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
++          sr += pr;
++          sg += pg;
++          sb += pb;
++          count++;
++        }
++      }
++      setPixel(blurred, x, y, Math.round(sr / count), Math.round(sg / count), Math.round(sb / count));
++    }
++  }
++  
++  const circleCenters: [number, number][] = [];
++  for (let i = 0; i < numCircles; i++) {
++    const cx = Math.floor((i + 0.5) * ctx.width / numCircles);
++    const cy = Math.floor(ctx.height / 2);
++    circleCenters.push([cx, cy]);
++  }
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      let inCircle = false;
++      for (const [cx, cy] of circleCenters) {
++        const dx = x - cx;
++        const dy = y - cy;
++        if (dx * dx + dy * dy < circleRadius * circleRadius) {
++          const srcX = cx + dx * 0.5;
++          const srcY = cy + dy * 0.5;
++          const [r, g, b] = getPixel(prev, Math.floor(srcX), Math.floor(srcY));
++          setPixel(out, x, y, r, g, b);
++          inCircle = true;
++          break;
++        }
++      }
++      if (!inCircle) {
++        const [r, g, b] = getPixel(blurred, x, y);
++        setPixel(out, x, y, r, g, b);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnSemicolon(ctx: FnContext): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const cx = ctx.width / 2;
++  const cy = ctx.height / 2;
++  const radius = Math.min(cx, cy) * 0.9;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const dx = x - cx;
++      const dy = y - cy;
++      const dist = Math.sqrt(dx * dx + dy * dy);
++      
++      if (y < cy && dist < radius) {
++        const [r, g, b] = getPixel(prev, x, y);
++        setPixel(out, x, y, r, g, b);
++      } else if (y >= cy) {
++        const mirrorY = 2 * cy - y;
++        const mirrorDx = x - cx;
++        const mirrorDy = mirrorY - cy;
++        const mirrorDist = Math.sqrt(mirrorDx * mirrorDx + mirrorDy * mirrorDy);
++        
++        if (mirrorDist < radius) {
++          const wave = Math.sin(x * 0.1) * 10;
++          const srcY = Math.floor(mirrorY + wave);
++          const [r, g, b] = getPixel(prev, x, Math.max(0, Math.min(ctx.height - 1, srcY)));
++          setPixel(out, x, y, r, g, b);
++        }
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnEquals(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const stripeHeight = Math.max(2, n);
++  
++  for (let y = 0; y < ctx.height; y++) {
++    const stripeIdx = Math.floor(y / stripeHeight);
++    const isOdd = stripeIdx % 2 === 1;
++    const shift = isOdd ? stripeIdx * 5 : 0;
++    
++    for (let x = 0; x < ctx.width; x++) {
++      const srcX = ((x + shift) % ctx.width + ctx.width) % ctx.width;
++      const [r, g, b] = getPixel(prev, srcX, y);
++      setPixel(out, x, y, r, g, b);
++    }
++  }
++  
++  return out;
++}
++
++function fnQuestion(ctx: FnContext): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const corners = [
++    getPixel(prev, 0, 0),
++    getPixel(prev, ctx.width - 1, 0),
++    getPixel(prev, 0, ctx.height - 1),
++    getPixel(prev, ctx.width - 1, ctx.height - 1)
++  ];
++  
++  let sum = 0;
++  for (const [r, g, b] of corners) {
++    sum += r + g + b;
++  }
++  const effect = sum % 4;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const [r, g, b] = getPixel(prev, x, y);
++      
++      if (effect === 0) {
++        const sr = r < 128 ? r : 255 - r;
++        const sg = g < 128 ? g : 255 - g;
++        const sb = b < 128 ? b : 255 - b;
++        setPixel(out, x, y, sr * 2, sg * 2, sb * 2);
++      } else if (effect === 1) {
++        let gx = 0, gy = 0;
++        for (let ky = -1; ky <= 1; ky++) {
++          for (let kx = -1; kx <= 1; kx++) {
++            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
++            const gray = pr * 0.299 + pg * 0.587 + pb * 0.114;
++            const weight = (kx === 0 && ky === 0) ? 8 : -1;
++            gx += gray * weight;
++          }
++        }
++        const embossVal = Math.max(0, Math.min(255, 128 + gx / 4));
++        setPixel(out, x, y, embossVal, embossVal, embossVal);
++      } else if (effect === 2) {
++        const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
++        const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
++        let gx = 0, gy = 0;
++        for (let ky = -1; ky <= 1; ky++) {
++          for (let kx = -1; kx <= 1; kx++) {
++            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
++            const gray = pr * 0.299 + pg * 0.587 + pb * 0.114;
++            const kidx = (ky + 1) * 3 + (kx + 1);
++            gx += gray * sobelX[kidx];
++            gy += gray * sobelY[kidx];
++          }
++        }
++        const mag = Math.min(255, Math.sqrt(gx * gx + gy * gy));
++        setPixel(out, x, y, mag, mag, mag);
++      } else {
++        const levels = 4;
++        const pr = Math.floor(r / 256 * levels) * (255 / (levels - 1));
++        const pg = Math.floor(g / 256 * levels) * (255 / (levels - 1));
++        const pb = Math.floor(b / 256 * levels) * (255 / (levels - 1));
++        setPixel(out, x, y, pr, pg, pb);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnOpenBracket(ctx: FnContext, j: number): Image {
++  const prev = getPrevImage(ctx);
++  const old = getOldImage(ctx, j);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const boundary = ctx.width / 3;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    const tear = boundary + Math.sin(y * 0.3) * 20 + Math.sin(y * 0.7) * 10;
++    
++    for (let x = 0; x < ctx.width; x++) {
++      if (x < tear) {
++        const [r, g, b] = getPixel(old, x, y);
++        setPixel(out, x, y, r, g, b);
++      } else {
++        const [r, g, b] = getPixel(prev, x, y);
++        setPixel(out, x, y, r, g, b);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnBackslash(ctx: FnContext, c: string): Image {
++  const prev = getPrevImage(ctx);
++  const out = cloneImage(prev);
++  const [cr, cg, cb] = hexToRgb(c);
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const [r, g, b] = getPixel(prev, x, y);
++      const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
++      const spacing = Math.max(2, Math.floor(2 + luminance * 15));
++      
++      const diag = ((ctx.width - 1 - x) + y) % spacing;
++      if (diag === 0) {
++        setPixel(out, x, y, cr, cg, cb);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnCloseBracket(ctx: FnContext, j: number): Image {
++  const prev = getPrevImage(ctx);
++  const old = getOldImage(ctx, j);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const boundary = ctx.width * 2 / 3;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    const tear = boundary + Math.sin(y * 0.3) * 20 + Math.sin(y * 0.7) * 10;
++    
++    for (let x = 0; x < ctx.width; x++) {
++      if (x > tear) {
++        const [r, g, b] = getPixel(old, x, y);
++        setPixel(out, x, y, r, g, b);
++      } else {
++        const [r, g, b] = getPixel(prev, x, y);
++        setPixel(out, x, y, r, g, b);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnUnderscore(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = cloneImage(prev);
++  
++  const reflectHeight = Math.floor(ctx.height * n * 0.05);
++  const startY = ctx.height - reflectHeight;
++  
++  for (let y = startY; y < ctx.height; y++) {
++    const mirrorY = 2 * startY - y - 1;
++    const wave = Math.sin(y * 0.1) * 5;
++    
++    for (let x = 0; x < ctx.width; x++) {
++      if (mirrorY >= 0 && mirrorY < ctx.height) {
++        const srcX = Math.floor(((x + wave) % ctx.width + ctx.width) % ctx.width);
++        const [r, g, b] = getPixel(prev, srcX, mirrorY);
++        const idx = (y * ctx.width + x) * 4;
++        out.data[idx] = Math.round(out.data[idx] * 0.5 + r * 0.5);
++        out.data[idx + 1] = Math.round(out.data[idx + 1] * 0.5 + g * 0.5);
++        out.data[idx + 2] = Math.round(out.data[idx + 2] * 0.5 + b * 0.5);
+       }
+     }
+   }
+   
+   return out;
+ }
+ 
++function fnBacktick(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const glitchN = Math.max(1, n);
++  
++  for (let y = 0; y < ctx.height; y++) {
++    const shouldGlitch = (y * 17) % 23 < glitchN;
++    const shiftAmount = shouldGlitch ? ((y * 31) % (glitchN * 20)) : 0;
++    
++    for (let x = 0; x < ctx.width; x++) {
++      if (shouldGlitch) {
++        const srcXR = ((x - shiftAmount - glitchN) % ctx.width + ctx.width) % ctx.width;
++        const srcXG = ((x - shiftAmount) % ctx.width + ctx.width) % ctx.width;
++        const srcXB = ((x - shiftAmount + glitchN) % ctx.width + ctx.width) % ctx.width;
++        
++        const [rr] = getPixel(prev, srcXR, y);
++        const [, gg] = getPixel(prev, srcXG, y);
++        const [, , bb] = getPixel(prev, srcXB, y);
++        
++        setPixel(out, x, y, rr, gg, bb);
++      } else {
++        const [r, g, b] = getPixel(prev, x, y);
++        setPixel(out, x, y, r, g, b);
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnOpenBrace(ctx: FnContext): Image {
++  const prev = getPrevImage(ctx);
++  const gl = initWebGL(ctx.width, ctx.height);
++  
++  const vertexShader = `
++    attribute vec2 position;
++    varying vec2 vUV;
++    void main() {
++      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
++      gl_Position = vec4(position, 0.0, 1.0);
++    }
++  `;
++  
++  const fragmentShader = `
++    precision mediump float;
++    uniform sampler2D texture;
++    uniform vec2 resolution;
++    varying vec2 vUV;
++    
++    void main() {
++      vec2 uv = vUV;
++      
++      if (uv.x < 0.5) {
++        float localX = uv.x * 2.0;
++        float angle = (localX - 0.5) * 3.14159 * 0.4;
++        float z = cos(angle);
++        float newX = 0.5 + sin(angle) * 0.4;
++        
++        float shade = 0.6 + 0.4 * z;
++        vec2 sampleUV = vec2(newX * 0.5, uv.y);
++        vec3 color = texture2D(texture, sampleUV).rgb * shade;
++        gl_FragColor = vec4(color, 1.0);
++      } else {
++        vec3 color = texture2D(texture, uv).rgb;
++        gl_FragColor = vec4(color, 1.0);
++      }
++    }
++  `;
++  
++  const program = createShaderProgram(gl, vertexShader, fragmentShader);
++  gl.useProgram(program);
++  
++  const texture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, texture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
++  const buffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
++  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
++  
++  const positionLoc = gl.getAttribLocation(program, 'position');
++  gl.enableVertexAttribArray(positionLoc);
++  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
++  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
++  
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  
++  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
++  
++  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
++      const dstIdx = (y * ctx.width + x) * 4;
++      flipped[dstIdx] = pixels[srcIdx];
++      flipped[dstIdx + 1] = pixels[srcIdx + 1];
++      flipped[dstIdx + 2] = pixels[srcIdx + 2];
++      flipped[dstIdx + 3] = pixels[srcIdx + 3];
++    }
++  }
++  
++  gl.deleteTexture(texture);
++  gl.deleteBuffer(buffer);
++  gl.deleteProgram(program);
++  
++  return { width: ctx.width, height: ctx.height, data: flipped };
++}
++
++function fnPipe(ctx: FnContext, j: number): Image {
++  const prev = getPrevImage(ctx);
++  const old = getOldImage(ctx, j);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const midX = Math.floor(ctx.width / 2);
++  const blendWidth = 5;
++  
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      if (x < midX - blendWidth) {
++        const [r, g, b] = getPixel(prev, x, y);
++        setPixel(out, x, y, r, g, b);
++      } else if (x > midX + blendWidth) {
++        const [r, g, b] = getPixel(old, x, y);
++        setPixel(out, x, y, r, g, b);
++      } else {
++        const t = (x - (midX - blendWidth)) / (blendWidth * 2);
++        const [pr, pg, pb] = getPixel(prev, x, y);
++        const [or, og, ob] = getPixel(old, x, y);
++        setPixel(out, x, y,
++          Math.round(pr * (1 - t) + or * t),
++          Math.round(pg * (1 - t) + og * t),
++          Math.round(pb * (1 - t) + ob * t)
++        );
++      }
++    }
++  }
++  
++  return out;
++}
++
++function fnCloseBrace(ctx: FnContext): Image {
++  const prev = getPrevImage(ctx);
++  const gl = initWebGL(ctx.width, ctx.height);
++  
++  const vertexShader = `
++    attribute vec2 position;
++    varying vec2 vUV;
++    void main() {
++      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
++      gl_Position = vec4(position, 0.0, 1.0);
++    }
++  `;
++  
++  const fragmentShader = `
++    precision mediump float;
++    uniform sampler2D texture;
++    uniform vec2 resolution;
++    varying vec2 vUV;
++    
++    void main() {
++      vec2 uv = vUV;
++      
++      if (uv.x > 0.5) {
++        float localX = (uv.x - 0.5) * 2.0;
++        float angle = (localX - 0.5) * 3.14159 * 0.4;
++        float z = cos(angle);
++        float newX = 0.5 + sin(angle) * 0.4;
++        
++        float shade = 0.6 + 0.4 * z;
++        vec2 sampleUV = vec2(0.5 + newX * 0.5, uv.y);
++        vec3 color = texture2D(texture, sampleUV).rgb * shade;
++        gl_FragColor = vec4(color, 1.0);
++      } else {
++        vec3 color = texture2D(texture, uv).rgb;
++        gl_FragColor = vec4(color, 1.0);
++      }
++    }
++  `;
++  
++  const program = createShaderProgram(gl, vertexShader, fragmentShader);
++  gl.useProgram(program);
++  
++  const texture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, texture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
++  const buffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
++  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
++  
++  const positionLoc = gl.getAttribLocation(program, 'position');
++  gl.enableVertexAttribArray(positionLoc);
++  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
++  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
++  
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  
++  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
++  
++  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
++      const dstIdx = (y * ctx.width + x) * 4;
++      flipped[dstIdx] = pixels[srcIdx];
++      flipped[dstIdx + 1] = pixels[srcIdx + 1];
++      flipped[dstIdx + 2] = pixels[srcIdx + 2];
++      flipped[dstIdx + 3] = pixels[srcIdx + 3];
++    }
++  }
++  
++  gl.deleteTexture(texture);
++  gl.deleteBuffer(buffer);
++  gl.deleteProgram(program);
++  
++  return { width: ctx.width, height: ctx.height, data: flipped };
++}
++
++function fnTilde(ctx: FnContext, n: number): Image {
++  const prev = getPrevImage(ctx);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  
++  const waveN = Math.max(1, n);
++  
++  for (let y = 0; y < ctx.height; y++) {
++    const amplitude = Math.sin(y * 0.05) * waveN * 8;
++    
++    for (let x = 0; x < ctx.width; x++) {
++      const srcX = Math.floor(((x + amplitude) % ctx.width + ctx.width) % ctx.width);
++      
++      const srcXR = Math.floor(((x + amplitude + waveN) % ctx.width + ctx.width) % ctx.width);
++      const srcXB = Math.floor(((x + amplitude - waveN) % ctx.width + ctx.width) % ctx.width);
++      
++      const [rr] = getPixel(prev, srcXR, y);
++      const [, gg] = getPixel(prev, srcX, y);
++      const [, , bb] = getPixel(prev, srcXB, y);
++      
++      setPixel(out, x, y, rr, gg, bb);
++    }
++  }
++  
++  return out;
++}
++
+ export const characterDefs
+\ No newline at end of file
+
+</tool.toolu_01CRrP5sqhT8zAZropeTvE1F>
+
+# TOOL RESULT
+
+ID: toolu_01CRrP5sqhT8zAZropeTvE1F
+
+<tool.toolu_01CRrP5sqhT8zAZropeTvE1F>
+
+</tool.toolu_01CRrP5sqhT8zAZropeTvE1F>
