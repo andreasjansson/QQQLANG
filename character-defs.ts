@@ -842,8 +842,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnG,
     arity: 1,
     argTypes: ['int'],
-    functionName: "gradient-map",
-    documentation: "Converts to grayscale then applies gradient map using n colors from histogram"
+    functionName: "grayscale-colorize",
+    documentation: "Converts to grayscale then applies n-color rainbow palette based on brightness"
   },
   
   'H': {
