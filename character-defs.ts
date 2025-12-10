@@ -394,8 +394,9 @@ function fnD(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnE(ctx: FnContext): Image {
+function fnE(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const cx = ctx.width / 2;
@@ -403,17 +404,6 @@ function fnE(ctx: FnContext): Image {
   const scale = Math.min(ctx.width, ctx.height);
   const sunRadius = scale * 0.25;
   const moonRadius = scale * 0.24;
-  const moonOffsetX = scale * 0.02;
-  const moonOffsetY = -scale * 0.01;
-  
-  const [pr, pg, pb] = getPixel(prev, Math.floor(cx), Math.floor(cy));
-  const baseR = pr / 255;
-  const baseG = pg / 255;
-  const baseB = pb / 255;
-  const brightness = (baseR + baseG + baseB) / 3;
-  const glowR = Math.max(0.3, baseR + 0.2);
-  const glowG = Math.max(0.2, baseG);
-  const glowB = Math.max(0.1, baseB * 0.5);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
@@ -421,17 +411,15 @@ function fnE(ctx: FnContext): Image {
       const dy = y - cy;
       const distFromCenter = Math.sqrt(dx * dx + dy * dy);
       
-      const moonDx = x - (cx + moonOffsetX);
-      const moonDy = y - (cy + moonOffsetY);
-      const distFromMoon = Math.sqrt(moonDx * moonDx + moonDy * moonDy);
+      const [pr, pg, pb] = getPixel(prev, x, y);
       
-      let tr = 0, tg = 0, tb = 0;
-      
-      if (distFromMoon < moonRadius) {
-        tr = tg = tb = 0;
+      if (distFromCenter < moonRadius) {
+        const [or, og, ob] = getPixel(old, x, y);
+        setPixel(out, x, y, or, og, ob);
       } else {
         const coronaDist = distFromCenter - sunRadius;
         
+        let intensity = 0;
         if (coronaDist > 0) {
           const coronaFalloff = Math.exp(-coronaDist / (scale * 0.15));
           const innerCorona = Math.exp(-coronaDist / (scale * 0.05));
@@ -440,33 +428,28 @@ function fnE(ctx: FnContext): Image {
           const rays = 0.5 + 0.5 * Math.sin(angle * 12) * Math.sin(angle * 5);
           const rayIntensity = rays * Math.exp(-coronaDist / (scale * 0.3));
           
-          const intensity = innerCorona + coronaFalloff * 0.7 + rayIntensity * 0.5;
-          tr = glowR * intensity + innerCorona * (1 - glowR) * 0.5;
-          tg = glowG * intensity + innerCorona * (1 - glowG) * 0.3;
-          tb = glowB * intensity + innerCorona * (1 - glowB) * 0.2;
+          intensity = innerCorona + coronaFalloff * 0.7 + rayIntensity * 0.5;
         } else {
-          tr = 0.9 + glowR * 0.1;
-          tg = 0.9 + glowG * 0.1;
-          tb = 0.9 + glowB * 0.1;
+          intensity = 1.0;
         }
         
-        if (distFromMoon < moonRadius + 3 && distFromMoon >= moonRadius) {
-          const edgeGlow = 1 - (distFromMoon - moonRadius) / 3;
-          tr += edgeGlow * glowR * 1.5;
-          tg += edgeGlow * glowG * 1.2;
-          tb += edgeGlow * glowB * 0.8;
+        if (distFromCenter < moonRadius + 3 && distFromCenter >= moonRadius) {
+          const edgeGlow = 1 - (distFromCenter - moonRadius) / 3;
+          intensity += edgeGlow * 1.5;
         }
+        
+        intensity = Math.min(1, intensity);
+        
+        const tr = (pr / 255) * intensity;
+        const tg = (pg / 255) * intensity;
+        const tb = (pb / 255) * intensity;
+        
+        setPixel(out, x, y,
+          Math.floor(tr * 255),
+          Math.floor(tg * 255),
+          Math.floor(tb * 255)
+        );
       }
-      
-      tr = Math.min(1, tr);
-      tg = Math.min(1, tg);
-      tb = Math.min(1, tb);
-      
-      setPixel(out, x, y,
-        Math.min(255, Math.floor(tr * 255)),
-        Math.min(255, Math.floor(tg * 255)),
-        Math.min(255, Math.floor(tb * 255))
-      );
     }
   }
   
