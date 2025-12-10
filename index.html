@@ -111,6 +111,15 @@
     #debug-pane .op:hover {
       background: rgba(0, 255, 0, 0.1);
     }
+    
+    @keyframes bell-flash {
+      0% { background-color: rgba(255, 0, 0, 0.3); }
+      100% { background-color: transparent; }
+    }
+    
+    #input-container.bell {
+      animation: bell-flash 0.15s ease-out;
+    }
   </style>
 </head>
 <body>
