@@ -2296,13 +2296,13 @@ function fnHash(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnDollar(ctx: FnContext, n: number): Image {
+function fnDollar(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   const w = ctx.width;
   const h = ctx.height;
   
-  const threshold = 20 + n * 8;
+  const threshold = 3;
   
   const labels = new Int32Array(w * h);
   labels.fill(-1);
@@ -2361,11 +2361,11 @@ function fnDollar(ctx: FnContext, n: number): Image {
     }
   }
   
-  for (const [label, pixels] of segments) {
+  for (const [, pixels] of segments) {
     pixels.sort((a, b) => a.hue - b.hue);
     
     const positions = pixels.map(p => ({ x: p.x, y: p.y }));
-    positions.sort((a, b) => a.y !== b.y ? a.y - b.y : a.x - b.x);
+    positions.sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
     
     for (let i = 0; i < pixels.length; i++) {
       const color = pixels[i];
