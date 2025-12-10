@@ -407,7 +407,13 @@ function fnE(ctx: FnContext): Image {
   const moonOffsetY = -scale * 0.01;
   
   const [pr, pg, pb] = getPixel(prev, Math.floor(cx), Math.floor(cy));
-  const [baseH, baseS, baseL] = rgbToHsl(pr, pg, pb);
+  const baseR = pr / 255;
+  const baseG = pg / 255;
+  const baseB = pb / 255;
+  const brightness = (baseR + baseG + baseB) / 3;
+  const glowR = Math.max(0.3, baseR + 0.2);
+  const glowG = Math.max(0.2, baseG);
+  const glowB = Math.max(0.1, baseB * 0.5);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
@@ -434,30 +440,27 @@ function fnE(ctx: FnContext): Image {
           const rays = 0.5 + 0.5 * Math.sin(angle * 12) * Math.sin(angle * 5);
           const rayIntensity = rays * Math.exp(-coronaDist / (scale * 0.3));
           
-          const coronaR = 1.0 * innerCorona + 1.0 * coronaFalloff + 0.8 * rayIntensity;
-          const coronaG = 0.6 * innerCorona + 0.4 * coronaFalloff + 0.3 * rayIntensity;
-          const coronaB = 0.3 * innerCorona + 0.2 * coronaFalloff + 0.1 * rayIntensity;
-          
-          tr = coronaR;
-          tg = coronaG;
-          tb = coronaB;
+          const intensity = innerCorona + coronaFalloff * 0.7 + rayIntensity * 0.5;
+          tr = glowR * intensity + innerCorona * (1 - glowR) * 0.5;
+          tg = glowG * intensity + innerCorona * (1 - glowG) * 0.3;
+          tb = glowB * intensity + innerCorona * (1 - glowB) * 0.2;
         } else {
-          tr = tg = tb = 1.0;
+          tr = 0.9 + glowR * 0.1;
+          tg = 0.9 + glowG * 0.1;
+          tb = 0.9 + glowB * 0.1;
         }
         
         if (distFromMoon < moonRadius + 3 && distFromMoon >= moonRadius) {
           const edgeGlow = 1 - (distFromMoon - moonRadius) / 3;
-          tr += edgeGlow * 1.5;
-          tg += edgeGlow * 0.8;
-          tb += edgeGlow * 0.4;
+          tr += edgeGlow * glowR * 1.5;
+          tg += edgeGlow * glowG * 1.2;
+          tb += edgeGlow * glowB * 0.8;
         }
       }
       
-      const [prevR, prevG, prevB] = getPixel(prev, x, y);
-      const tint = 0.15;
-      tr = tr * (1 - tint) + (prevR / 255) * tint * tr;
-      tg = tg * (1 - tint) + (prevG / 255) * tint * tg;
-      tb = tb * (1 - tint) + (prevB / 255) * tint * tb;
+      tr = Math.min(1, tr);
+      tg = Math.min(1, tg);
+      tb = Math.min(1, tb);
       
       setPixel(out, x, y,
         Math.min(255, Math.floor(tr * 255)),
