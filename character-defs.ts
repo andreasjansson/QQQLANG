@@ -740,26 +740,33 @@ function fnM(ctx: FnContext, spiralEffect: number, j: number): Image {
       const bandIndex = Math.floor(spiralValue / spiralTightness);
       const useOld = bandIndex % 2 === 0;
       
-      const src = useOld ? old : prev;
-      
-      let sumR = 0, sumG = 0, sumB = 0, count = 0;
-      for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-        for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-          const [r, g, b] = getPixel(src, x, y);
-          sumR += r;
-          sumG += g;
-          sumB += b;
-          count++;
+      if (useOld) {
+        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
+          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
+            const [r, g, b] = getPixel(old, x, y);
+            setPixel(out, x, y, r, g, b);
+          }
         }
-      }
-      
-      const avgR = Math.round(sumR / count);
-      const avgG = Math.round(sumG / count);
-      const avgB = Math.round(sumB / count);
-      
-      for (let y = by; y < by + blockSize && y < ctx.height; y++) {
-        for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
-          setPixel(out, x, y, avgR, avgG, avgB);
+      } else {
+        let sumR = 0, sumG = 0, sumB = 0, count = 0;
+        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
+          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
+            const [r, g, b] = getPixel(prev, x, y);
+            sumR += r;
+            sumG += g;
+            sumB += b;
+            count++;
+          }
+        }
+        
+        const avgR = Math.round(sumR / count);
+        const avgG = Math.round(sumG / count);
+        const avgB = Math.round(sumB / count);
+        
+        for (let y = by; y < by + blockSize && y < ctx.height; y++) {
+          for (let x = bx; x < bx + blockSize && x < ctx.width; x++) {
+            setPixel(out, x, y, avgR, avgG, avgB);
+          }
         }
       }
     }
