@@ -1098,11 +1098,11 @@ function fnT(ctx: FnContext, n: number): Image {
   const allTexCoords: number[] = [];
   
   for (let i = 0; i < numDrawers; i++) {
-    const cx = 0.15 + hash(i * 127.1) * 0.7;
-    const cy = 0.15 + hash(i * 311.7) * 0.7;
-    const hw = 0.05 + hash(i * 74.3) * 0.1;
-    const hh = 0.04 + hash(i * 183.9) * 0.08;
-    const depth = 0.3 + hash(i * 271.3) * 0.7;
+    const cx = hash(i * 127.1);
+    const cy = hash(i * 311.7);
+    const hw = 0.03 + hash(i * 74.3) * 0.08;
+    const hh = 0.025 + hash(i * 183.9) * 0.06;
+    const depth = 0.1 + hash(i * 271.3) * 0.4;
     
     const box = createBox(cx, cy, hw, hh, depth);
     allVertices.push(...box.vertices);
