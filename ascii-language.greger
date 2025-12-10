@@ -8097,5 +8097,94 @@ Fix holes and horizontal flip - simplify displacement to only drip downward
 ID: toolu_017ktgK7JgQ1sNibhE8NSDux
 
 <tool.toolu_017ktgK7JgQ1sNibhE8NSDux>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix holes and horizontal flip - simplify displacement to only drip downward
 </tool.toolu_017ktgK7JgQ1sNibhE8NSDux>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Df1ixtsCqCz2Sktru14wRW
+
+## path
+
+<tool.toolu_01Df1ixtsCqCz2Sktru14wRW>
+character-defs.ts
+</tool.toolu_01Df1ixtsCqCz2Sktru14wRW>
+
+## git-commit-message
+
+<tool.toolu_01Df1ixtsCqCz2Sktru14wRW>
+Fix horizontal flip by correcting Y coordinate in vertex shader
+</tool.toolu_01Df1ixtsCqCz2Sktru14wRW>
+
+## diff
+
+<tool.toolu_01Df1ixtsCqCz2Sktru14wRW>
+   const vertexShader = `
+     attribute vec2 position;
+     varying vec2 vUV;
+     void main() {
+-      vUV = position * 0.5 + 0.5;
++      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+       gl_Position = vec4(position, 0.0, 1.0);
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_01Df1ixtsCqCz2Sktru14wRW>
+
+# TOOL RESULT
+
+ID: toolu_01Df1ixtsCqCz2Sktru14wRW
+
+<tool.toolu_01Df1ixtsCqCz2Sktru14wRW>
+Found 2 occurrences of original content in file: /Users/ajansson/projects/ascii-language/character-defs.ts. Use replace-all=t to replace all instances, or make the original content more specific -- Try again!
+</tool.toolu_01Df1ixtsCqCz2Sktru14wRW>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016hQG6e6kr1GbJnkt1ftbSo
+
+## path
+
+<tool.toolu_016hQG6e6kr1GbJnkt1ftbSo>
+character-defs.ts
+</tool.toolu_016hQG6e6kr1GbJnkt1ftbSo>
+
+## git-commit-message
+
+<tool.toolu_016hQG6e6kr1GbJnkt1ftbSo>
+Fix horizontal flip in fn5 vertex shader
+</tool.toolu_016hQG6e6kr1GbJnkt1ftbSo>
+
+## diff
+
+<tool.toolu_016hQG6e6kr1GbJnkt1ftbSo>
+ function fn5(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
+   const numDrips = Math.max(5, Math.min(n * 3 + 8, 40));
+   const dripStrength = Math.max(0.3, Math.min(n * 0.15 + 0.5, 2.0));
+   
+   const vertexShader = `
+     attribute vec2 position;
+     varying vec2 vUV;
+     void main() {
+-      vUV = position * 0.5 + 0.5;
++      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+       gl_Position = vec4(position, 0.0, 1.0);
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_016hQG6e6kr1GbJnkt1ftbSo>
+
+# TOOL RESULT
+
+ID: toolu_016hQG6e6kr1GbJnkt1ftbSo
+
+<tool.toolu_016hQG6e6kr1GbJnkt1ftbSo>
+
+</tool.toolu_016hQG6e6kr1GbJnkt1ftbSo>
