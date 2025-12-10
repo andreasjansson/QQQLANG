@@ -13850,5 +13850,42 @@ Revert T texture coordinates to original
 ID: toolu_01M5FDqbU7Ro1d9Yotg7xEog
 
 <tool.toolu_01M5FDqbU7Ro1d9Yotg7xEog>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Revert T texture coordinates to original
 </tool.toolu_01M5FDqbU7Ro1d9Yotg7xEog>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016iNtu7vAbWMdtq7wwpxsMD
+
+## path
+
+<tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
+character-defs.ts
+</tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
+
+## git-commit-message
+
+<tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
+Revert T box texture coordinates to original
+</tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
+
+## diff
+
+<tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
+-    // Texture coords based on box position in image (flip u for correct orientation)
+-    const u0 = 1 - (cx + hw), u1 = 1 - (cx - hw);
++    // Texture coords based on box position in image
++    const u0 = cx - hw, u1 = cx + hw;
+     const v0 = cy - hh, v1 = cy + hh;
+\ No newline at end of file
+
+</tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
+
+# TOOL RESULT
+
+ID: toolu_016iNtu7vAbWMdtq7wwpxsMD
+
+<tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
+
+</tool.toolu_016iNtu7vAbWMdtq7wwpxsMD>
