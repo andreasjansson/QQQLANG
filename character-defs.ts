@@ -638,7 +638,7 @@ function fnL(ctx: FnContext, n: number): Image {
   const out = cloneImage(prev);
   
   const complexity = Math.max(1, n);
-  const thickness = Math.max(8, Math.min(ctx.width, ctx.height) / 25);
+  const thickness = Math.max(6, Math.min(ctx.width, ctx.height) / 30);
   const numCurves = Math.min(complexity, 5);
   
   const cx = ctx.width / 2;
@@ -648,71 +648,42 @@ function fnL(ctx: FnContext, n: number): Image {
   
   const [bgR, bgG, bgB] = getPixel(prev, Math.floor(cx), Math.floor(cy));
   
-  const curves: { a: number; b: number; delta: number }[] = [];
-  for (let i = 0; i < numCurves; i++) {
-    curves.push({
-      a: complexity + i,
-      b: complexity + i + 1 + (i % 3),
-      delta: (i * Math.PI) / (numCurves + 1)
-    });
-  }
-  
-  const curvePoints: { x: number; y: number; t: number; curveIdx: number }[][] = [];
-  
-  for (let c = 0; c < curves.length; c++) {
-    const curve = curves[c];
-    const points: { x: number; y: number; t: number; curveIdx: number }[] = [];
-    const steps = 2000 + complexity * 500;
+  for (let c = 0; c < numCurves; c++) {
+    const a = complexity + c;
+    const b = complexity + c + 1 + (c % 3);
+    const delta = (c * Math.PI) / (numCurves + 1);
+    
+    const steps = 3000 + complexity * 200;
     
     for (let i = 0; i <= steps; i++) {
       const t = (i / steps) * Math.PI * 2;
-      const x = cx + Math.sin(curve.a * t + curve.delta) * scaleX;
-      const y = cy + Math.sin(curve.b * t) * scaleY;
-      points.push({ x, y, t, curveIdx: c });
-    }
-    curvePoints.push(points);
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      let minDist = Infinity;
-      let closestT = 0;
-      let closestCurve = 0;
+      const px = cx + Math.sin(a * t + delta) * scaleX;
+      const py = cy + Math.sin(b * t) * scaleY;
       
-      for (let c = 0; c < curvePoints.length; c++) {
-        const points = curvePoints[c];
-        for (let i = 0; i < points.length; i += 4) {
-          const p = points[i];
-          const dx = x - p.x;
-          const dy = y - p.y;
-          const dist = dx * dx + dy * dy;
-          if (dist < minDist) {
-            minDist = dist;
-            closestT = p.t;
-            closestCurve = c;
+      const t01 = t / (Math.PI * 2);
+      const gradientPos = (t01 + c * 0.2) % 1;
+      const xorVal = Math.floor(gradientPos * 255);
+      const cr = bgR ^ xorVal;
+      const cg = bgG ^ ((xorVal + 85) % 256);
+      const cb = bgB ^ ((xorVal + 170) % 256);
+      
+      for (let dy = -thickness; dy <= thickness; dy++) {
+        for (let dx = -thickness; dx <= thickness; dx++) {
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist <= thickness) {
+            const x = Math.floor(px + dx);
+            const y = Math.floor(py + dy);
+            if (x >= 0 && x < ctx.width && y >= 0 && y < ctx.height) {
+              const alpha = dist > thickness * 0.5 ? 1 - (dist - thickness * 0.5) / (thickness * 0.5) : 1;
+              const [pr, pg, pb] = getPixel(out, x, y);
+              setPixel(out, x, y,
+                Math.round(pr * (1 - alpha) + cr * alpha),
+                Math.round(pg * (1 - alpha) + cg * alpha),
+                Math.round(pb * (1 - alpha) + cb * alpha)
+              );
+            }
           }
         }
-      }
-      
-      const dist = Math.sqrt(minDist);
-      
-      if (dist < thickness) {
-        const t01 = closestT / (Math.PI * 2);
-        const gradientPos = (t01 + closestCurve * 0.2) % 1;
-        
-        const xorVal = Math.floor(gradientPos * 255);
-        const cr = bgR ^ xorVal;
-        const cg = bgG ^ ((xorVal + 85) % 256);
-        const cb = bgB ^ ((xorVal + 170) % 256);
-        
-        const edgeFade = dist > thickness * 0.6 ? 1 - (dist - thickness * 0.6) / (thickness * 0.4) : 1;
-        const [pr, pg, pb] = getPixel(out, x, y);
-        
-        setPixel(out, x, y,
-          Math.round(pr * (1 - edgeFade) + cr * edgeFade),
-          Math.round(pg * (1 - edgeFade) + cg * edgeFade),
-          Math.round(pb * (1 - edgeFade) + cb * edgeFade)
-        );
       }
     }
   }
