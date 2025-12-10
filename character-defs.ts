@@ -588,6 +588,124 @@ function fnJ(ctx: FnContext, j: number): Image {
   return out;
 }
 
+function fnK(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const segments = Math.max(2, Math.min(n, 16));
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const angleStep = (Math.PI * 2) / segments;
+  const zoom = 1.1;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = (x - cx) * zoom;
+      const dy = (y - cy) * zoom;
+      let angle = Math.atan2(dy, dx);
+      if (angle < 0) angle += Math.PI * 2;
+      
+      const segmentAngle = angle % angleStep;
+      const mirroredAngle = segmentAngle > angleStep / 2 ? angleStep - segmentAngle : segmentAngle;
+      
+      const r = Math.sqrt(dx * dx + dy * dy);
+      const sx = cx + r * Math.cos(mirroredAngle);
+      const sy = cy + r * Math.sin(mirroredAngle);
+      
+      const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      setPixel(out, x, y, pr, pg, pb);
+    }
+  }
+  
+  return out;
+}
+
+function fnL(ctx: FnContext, c: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const [cr, cg, cb] = hexToRgb(c);
+  
+  const occupied = new Set<string>();
+  const candidates = new Set<string>();
+  
+  const startX = Math.floor(ctx.width / 2);
+  const startY = 0;
+  occupied.add(`${startX},${startY}`);
+  
+  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
+  for (const [dx, dy] of dirs) {
+    const nx = startX + dx;
+    const ny = startY + dy;
+    if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
+      candidates.add(`${nx},${ny}`);
+    }
+  }
+  
+  const seededRandom = (seed: number) => {
+    let state = seed;
+    return () => {
+      state = (state * 1103515245 + 12345) & 0x7fffffff;
+      return state / 0x7fffffff;
+    };
+  };
+  const rand = seededRandom(12345);
+  
+  let segmentCount = 0;
+  const maxSegments = 500;
+  
+  while (candidates.size > 0 && segmentCount < maxSegments) {
+    const candidateArray = Array.from(candidates);
+    const chosen = candidateArray[Math.floor(rand() * candidateArray.length)];
+    const [x, y] = chosen.split(',').map(Number);
+    
+    occupied.add(chosen);
+    candidates.delete(chosen);
+    
+    setPixel(out, x, y, cr, cg, cb);
+    segmentCount++;
+    
+    for (const [dx, dy] of dirs) {
+      const nx = x + dx;
+      const ny = y + dy;
+      const key = `${nx},${ny}`;
+      if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height && 
+          !occupied.has(key) && !candidates.has(key)) {
+        candidates.add(key);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnM(ctx: FnContext, j: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxRadius = Math.sqrt(cx * cx + cy * cy);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const radius = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+      
+      const spiralValue = radius + angle * 20;
+      const useOld = Math.floor(spiralValue / 30) % 2 === 0;
+      
+      const src = useOld ? old : prev;
+      const [r, g, b] = getPixel(src, x, y);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
@@ -687,5 +805,35 @@ export const characterDefs: Record<string, CharDef> = {
     argTypes: ['int'],
     functionName: "variable-checkerboard",
     documentation: "Checkerboard blend where square size increases from top-left (2px) to bottom-right (52px)"
+  },
+  
+  'K': {
+    color: '#4B0082',
+    number: 11,
+    fn: fnK,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "kaleidoscope",
+    documentation: "Creates n-way kaleidoscope effect centered on image with 1.1x zoom"
+  },
+  
+  'L': {
+    color: '#20B2AA',
+    number: 12,
+    fn: fnL,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "lichtenberg",
+    documentation: "Draws Lichtenberg figures from top using DLA simulation (max 500 segments) in color c"
+  },
+  
+  'M': {
+    color: '#FF69B4',
+    number: 13,
+    fn: fnM,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "spiral-interleave",
+    documentation: "Interleaves prev and old_image in a spiral pattern from center outward"
   },
 };
