@@ -254,6 +254,38 @@
 
     window.addEventListener('resize', resize);
     
+    input.addEventListener('beforeinput', (e) => {
+      if (e.inputType === 'insertText' && e.data) {
+        const transformed = e.data.toUpperCase();
+        let hasInvalid = false;
+        
+        for (const char of transformed) {
+          if (!isValidChar(char)) {
+            hasInvalid = true;
+            break;
+          }
+        }
+        
+        if (hasInvalid) {
+          e.preventDefault();
+          visualBell();
+          return;
+        }
+        
+        if (transformed !== e.data) {
+          e.preventDefault();
+          const start = input.selectionStart;
+          const end = input.selectionEnd;
+          const before = input.value.substring(0, start);
+          const after = input.value.substring(end);
+          input.value = before + transformed + after;
+          input.selectionStart = input.selectionEnd = start + transformed.length;
+          updateURL(input.value);
+          render();
+        }
+      }
+    });
+    
     input.addEventListener('input', () => {
       updateURL(input.value);
       render();
