@@ -2325,82 +2325,122 @@ function fnDollar(ctx: FnContext, n: number): Image {
     #define PI 3.14159265359
     
     float hash(float n) {
-      return fract(sin(n + uSeed) * 43758.5453);
+      return fract(sin(n * 127.1 + uSeed * 311.7) * 43758.5453);
     }
     
     float hash2(vec2 p) {
-      return fract(sin(dot(p + uSeed, vec2(127.1, 311.7))) * 43758.5453);
+      return fract(sin(dot(p, vec2(127.1, 311.7)) + uSeed) * 43758.5453);
     }
     
     // Attempt to create impact point from seed
     vec2 getImpactPoint() {
       return vec2(
-        0.3 + hash(uSeed * 1.1) * 0.4,
-        0.3 + hash(uSeed * 2.3) * 0.4
+        0.25 + hash(uSeed * 1.1 + 0.5) * 0.5,
+        0.25 + hash(uSeed * 2.3 + 0.7) * 0.5
       );
     }
     
-    // Radial crack pattern - returns distance to nearest crack
+    // Irregular radial crack pattern
     float radialCracks(vec2 uv, vec2 impact, float numCracks) {
       vec2 delta = uv - impact;
-      float angle = atan(delta.y, delta.x);
       float dist = length(delta);
+      if (dist < 0.001) return 1.0;
       
-      // Create radial divisions
-      float crackAngle = PI * 2.0 / numCracks;
-      float angleOffset = hash(uSeed * 3.7) * crackAngle;
-      float nearestCrack = mod(angle + PI + angleOffset, crackAngle);
-      nearestCrack = min(nearestCrack, crackAngle - nearestCrack);
+      float angle = atan(delta.y, delta.x);
       
-      // Add wobble to cracks based on distance
-      float wobble = sin(dist * 25.0 + hash(floor(angle / crackAngle) + uSeed) * 50.0) * 0.015;
-      nearestCrack += wobble;
+      // Non-uniform crack spacing
+      float crackAccum = 0.0;
+      float baseAngle = hash(uSeed * 3.7) * PI * 2.0;
       
-      // Cracks get thinner toward edges
-      float thickness = 0.025 * (1.0 - dist * 0.5);
-      
-      return smoothstep(0.0, thickness, nearestCrack);
-    }
-    
-    // Concentric crack rings
-    float concentricCracks(vec2 uv, vec2 impact) {
-      float dist = length(uv - impact);
-      
-      // Multiple rings at varying distances
-      float rings = 0.0;
-      for (int i = 1; i < 6; i++) {
-        float ringDist = float(i) * 0.12 + hash(float(i) + uSeed) * 0.05;
-        float ringWidth = 0.008 + hash(float(i) * 7.0 + uSeed) * 0.006;
-        float ring = 1.0 - smoothstep(0.0, ringWidth, abs(dist - ringDist));
-        // Make rings incomplete (broken)
-        float angle = atan(uv.y - impact.y, uv.x - impact.x);
-        float mask = step(0.3, hash2(vec2(float(i), floor(angle * 3.0 / PI))));
-        rings = max(rings, ring * mask);
+      float minDist = 1.0;
+      for (int i = 0; i < 16; i++) {
+        if (float(i) >= numCracks) break;
+        
+        // Each crack at irregular angle
+        float crackAngle = baseAngle + float(i) * PI * 2.0 / numCracks;
+        crackAngle += (hash(float(i) * 13.7 + uSeed) - 0.5) * 0.4;
+        
+        // Crack direction wobbles along its length  
+        float wobbleFreq = 15.0 + hash(float(i) * 7.3 + uSeed) * 20.0;
+        float wobbleAmp = 0.08 + hash(float(i) * 11.1 + uSeed) * 0.12;
+        float wobble = sin(dist * wobbleFreq + float(i) * 5.0) * wobbleAmp * dist;
+        
+        float angleDiff = angle - crackAngle + wobble;
+        angleDiff = mod(angleDiff + PI, PI * 2.0) - PI;
+        
+        // Crack thickness varies
+        float thickness = 0.015 + hash(float(i) * 19.3 + uSeed) * 0.02;
+        thickness *= (1.0 + dist * 0.5);
+        
+        float crackDist = abs(angleDiff) * dist;
+        minDist = min(minDist, crackDist / thickness);
       }
       
-      return 1.0 - rings;
+      return smoothstep(0.0, 1.0, minDist);
     }
     
-    // Secondary branching cracks
-    float branchCracks(vec2 uv, vec2 impact) {
-      float cracks = 1.0;
-      float dist = length(uv - impact);
-      float angle = atan(uv.y - impact.y, uv.x - impact.x);
+    // Irregular concentric crack rings
+    float concentricCracks(vec2 uv, vec2 impact) {
+      vec2 delta = uv - impact;
+      float dist = length(delta);
+      float angle = atan(delta.y, delta.x);
       
-      // Create branches at certain angles and distances
-      for (int i = 0; i < 12; i++) {
-        float branchAngle = hash(float(i) * 13.0 + uSeed) * PI * 2.0;
-        float branchStart = 0.1 + hash(float(i) * 17.0 + uSeed) * 0.3;
-        float branchLen = 0.1 + hash(float(i) * 23.0 + uSeed) * 0.15;
+      float cracks = 1.0;
+      float ringPos = 0.08;
+      
+      for (int i = 0; i < 5; i++) {
+        // Irregular ring spacing
+        ringPos += 0.08 + hash(float(i) * 23.0 + uSeed) * 0.12;
         
-        // Check if we're near this branch
-        float angleDiff = abs(mod(angle - branchAngle + PI, PI * 2.0) - PI);
-        float distFromBranch = abs(dist - branchStart - branchLen * 0.5);
+        // Ring isn't perfectly circular - wobbles
+        float ringWobble = sin(angle * 3.0 + float(i)) * 0.02 + 
+                          sin(angle * 7.0 + float(i) * 2.3) * 0.015;
+        float ringDist = ringPos + ringWobble;
         
-        if (dist > branchStart && dist < branchStart + branchLen && angleDiff < 0.15) {
-          float branchDist = angleDiff * dist;
-          float wobble = sin(dist * 40.0 + float(i)) * 0.008;
-          cracks = min(cracks, smoothstep(0.0, 0.012, branchDist + wobble));
+        float ringWidth = 0.006 + hash(float(i) * 7.0 + uSeed) * 0.008;
+        float ring = 1.0 - smoothstep(ringWidth, ringWidth * 2.0, abs(dist - ringDist));
+        
+        // Rings are broken into segments
+        float segmentAngle = angle + hash(float(i) + uSeed) * PI;
+        float segment = hash2(vec2(float(i), floor(segmentAngle * 2.5 / PI)));
+        ring *= step(0.35, segment);
+        
+        cracks = min(cracks, 1.0 - ring * 0.9);
+      }
+      
+      return cracks;
+    }
+    
+    // Forking branch cracks
+    float branchCracks(vec2 uv, vec2 impact) {
+      vec2 delta = uv - impact;
+      float dist = length(delta);
+      float angle = atan(delta.y, delta.x);
+      
+      float cracks = 1.0;
+      
+      for (int i = 0; i < 18; i++) {
+        float branchAngle = hash(float(i) * 13.0 + uSeed * 1.3) * PI * 2.0;
+        float branchStart = 0.06 + hash(float(i) * 17.0 + uSeed) * 0.35;
+        float branchLen = 0.05 + hash(float(i) * 23.0 + uSeed) * 0.12;
+        
+        // Branch curves as it extends
+        float curve = (hash(float(i) * 31.0 + uSeed) - 0.5) * 0.8;
+        float localDist = dist - branchStart;
+        float curvedAngle = branchAngle + curve * localDist;
+        
+        float angleDiff = mod(angle - curvedAngle + PI, PI * 2.0) - PI;
+        
+        if (dist > branchStart && dist < branchStart + branchLen) {
+          float progress = localDist / branchLen;
+          float width = 0.012 * (1.0 - progress * 0.5);
+          float branchDist = abs(angleDiff) * dist;
+          
+          // Wobble
+          float wobble = sin(dist * 50.0 + float(i) * 7.0) * 0.005;
+          branchDist += wobble;
+          
+          cracks = min(cracks, smoothstep(0.0, width, branchDist));
         }
       }
       
@@ -2409,16 +2449,13 @@ function fnDollar(ctx: FnContext, n: number): Image {
     
     void main() {
       vec2 uv = vUV;
-      float aspect = uResolution.x / uResolution.y;
-      vec2 aspectUV = vec2(uv.x * aspect, uv.y) / max(aspect, 1.0);
       
       vec2 impact = getImpactPoint();
-      vec2 aspectImpact = vec2(impact.x * aspect, impact.y) / max(aspect, 1.0);
       
       // Calculate crack patterns
-      float radial = radialCracks(aspectUV, aspectImpact, uNumRadialCracks);
-      float concentric = concentricCracks(aspectUV, aspectImpact);
-      float branches = branchCracks(aspectUV, aspectImpact);
+      float radial = radialCracks(uv, impact, uNumRadialCracks);
+      float concentric = concentricCracks(uv, impact);
+      float branches = branchCracks(uv, impact);
       
       // Combine cracks
       float crackMask = min(radial, min(concentric, branches));
@@ -2428,57 +2465,55 @@ function fnDollar(ctx: FnContext, n: number): Image {
       vec2 delta = uv - impact;
       float angle = atan(delta.y, delta.x);
       float dist = length(delta);
-      float shardId = floor((angle + PI) / (PI * 2.0 / uNumRadialCracks));
       
-      // Each shard gets slight displacement away from impact
-      float shardHash = hash(shardId + uSeed * 5.0);
-      float displacement = uCrackIntensity * 0.03 * (0.5 + shardHash);
-      vec2 shardOffset = normalize(delta + 0.001) * displacement * dist;
+      // Shard ID based on which radial crack we're between
+      float shardId = floor((angle + PI + hash(uSeed * 3.7) * 0.5) * uNumRadialCracks / (PI * 2.0));
+      float shardHash = hash(shardId * 7.0 + uSeed * 5.0);
       
-      // Add slight rotation per shard
-      float rotation = (shardHash - 0.5) * 0.05 * uCrackIntensity;
+      // Displacement - subtle, away from impact
+      float displacement = uCrackIntensity * 0.015 * (0.3 + shardHash * 0.7);
+      vec2 dir = dist > 0.001 ? delta / dist : vec2(0.0);
+      vec2 shardOffset = dir * displacement * sqrt(dist);
+      
+      // Slight rotation per shard
+      float rotation = (shardHash - 0.5) * 0.03 * uCrackIntensity;
       float cs = cos(rotation);
       float sn = sin(rotation);
-      vec2 rotatedDelta = vec2(delta.x * cs - delta.y * sn, delta.x * sn + delta.y * cs);
-      vec2 displacedUV = impact + rotatedDelta + shardOffset;
+      vec2 centered = uv - impact;
+      vec2 rotated = vec2(centered.x * cs - centered.y * sn, centered.x * sn + centered.y * cs);
+      vec2 displacedUV = impact + rotated + shardOffset;
       
-      // Refraction near cracks - offset UV based on crack proximity
-      float crackProximity = 1.0 - crackMask;
-      vec2 refractionOffset = vec2(
-        sin(angle * 3.0 + dist * 20.0) * crackProximity * 0.02,
-        cos(angle * 3.0 + dist * 20.0) * crackProximity * 0.02
-      ) * uCrackIntensity;
-      
-      vec2 finalUV = clamp(displacedUV + refractionOffset, 0.0, 1.0);
+      // Clamp and sample
+      vec2 finalUV = clamp(displacedUV, 0.001, 0.999);
       vec3 color = texture2D(uTexture, finalUV).rgb;
       
-      // Chromatic aberration near cracks
-      if (crackProximity > 0.3) {
-        float aberration = crackProximity * 0.008 * uCrackIntensity;
-        color.r = texture2D(uTexture, clamp(finalUV + vec2(aberration, 0.0), 0.0, 1.0)).r;
-        color.b = texture2D(uTexture, clamp(finalUV - vec2(aberration, 0.0), 0.0, 1.0)).b;
+      // Refraction / chromatic aberration near cracks
+      float crackProximity = isCrack;
+      if (crackProximity > 0.2) {
+        float aberration = crackProximity * 0.006 * uCrackIntensity;
+        vec2 aberrDir = vec2(cos(angle * 2.0), sin(angle * 2.0));
+        color.r = texture2D(uTexture, clamp(finalUV + aberrDir * aberration, 0.001, 0.999)).r;
+        color.b = texture2D(uTexture, clamp(finalUV - aberrDir * aberration, 0.001, 0.999)).b;
       }
       
-      // Crack rendering - bright white with slight rainbow refraction
-      if (isCrack > 0.5) {
-        // Main crack highlight
-        vec3 crackColor = vec3(0.95, 0.97, 1.0);
+      // Crack rendering
+      if (isCrack > 0.4) {
+        vec3 crackColor = vec3(0.92, 0.94, 0.98);
         
-        // Add subtle rainbow refraction on crack edges
-        float rainbow = sin(angle * 8.0 + dist * 30.0) * 0.5 + 0.5;
-        crackColor += vec3(rainbow * 0.1, (1.0 - rainbow) * 0.05, rainbow * 0.15);
+        // Slight color variation along crack
+        float variation = hash2(uv * 50.0) * 0.1;
+        crackColor += variation;
         
-        // Blend crack with underlying image
-        float crackAlpha = isCrack * 0.85;
+        float crackAlpha = smoothstep(0.4, 0.8, isCrack) * 0.8;
         color = mix(color, crackColor, crackAlpha);
       }
       
-      // Slight darkening of shards based on "depth"
-      float shardDepth = hash(shardId * 3.0 + uSeed) * 0.15;
-      color *= (1.0 - shardDepth * uCrackIntensity);
+      // Shard depth variation
+      float shardDepth = hash(shardId * 3.0 + uSeed * 2.0) * 0.1;
+      color *= (1.0 - shardDepth * uCrackIntensity * 0.5);
       
-      // Specular highlight near impact point
-      float impactGlow = exp(-dist * 8.0) * 0.3 * uCrackIntensity;
+      // Small highlight near impact
+      float impactGlow = exp(-dist * 12.0) * 0.15 * uCrackIntensity;
       color += vec3(impactGlow);
       
       gl_FragColor = vec4(color, 1.0);
