@@ -794,37 +794,34 @@ function fnN(ctx: FnContext, j: number): Image {
 
 function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const out = cloneImage(prev);
   
   const strength = Math.max(0.1, Math.min(n / 10, 3));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
-  const maxR = Math.min(cx, cy);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = (x - cx) / maxR;
-      const dy = (y - cy) / maxR;
+      const dx = x - cx;
+      const dy = y - cy;
       const r = Math.sqrt(dx * dx + dy * dy);
+      const maxR = Math.sqrt(cx * cx + cy * cy);
+      const normR = r / maxR;
       
-      if (r < 0.001) {
-        const [pr, pg, pb] = getPixel(prev, x, y);
-        setPixel(out, x, y, pr, pg, pb);
+      if (normR < 0.001) {
         continue;
       }
       
-      const nr = Math.pow(r, strength) / r || 0;
-      const distortedX = cx + dx * nr * maxR;
-      const distortedY = cy + dy * nr * maxR;
+      const distortionFactor = Math.pow(normR, strength - 1);
+      const boundedFactor = Math.min(distortionFactor, 1 / normR);
       
-      const clampedX = Math.max(0, Math.min(ctx.width - 1, distortedX));
-      const clampedY = Math.max(0, Math.min(ctx.height - 1, distortedY));
+      const sx = cx + dx * boundedFactor;
+      const sy = cy + dy * boundedFactor;
       
-      const sx = (clampedX / ctx.width) * prev.width;
-      const sy = (clampedY / ctx.height) * prev.height;
+      const clampedSx = Math.max(0, Math.min(prev.width - 1, sx));
+      const clampedSy = Math.max(0, Math.min(prev.height - 1, sy));
       
-      const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      
+      const [pr, pg, pb] = getPixel(prev, Math.floor(clampedSx), Math.floor(clampedSy));
       setPixel(out, x, y, pr, pg, pb);
     }
   }
