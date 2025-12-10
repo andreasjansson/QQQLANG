@@ -952,7 +952,7 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
     0, 0, (2 * far * near) / (near - far), 0
   ]);
   
-  const angleY = 0.5 + rotation;
+  const angleY = -10 * Math.PI / 180 + rotation;
   const angleX = 0.3;
   const cy = Math.cos(angleY), sy = Math.sin(angleY);
   const cx = Math.cos(angleX), sx = Math.sin(angleX);
