@@ -359,8 +359,14 @@ function fnD(ctx: FnContext, n: number): Image {
       const y1 = Math.floor(((row + 1) / divisions) * ctx.height);
       
       const triIndex = (row * divisions + col) * 2;
-      const hue1 = (triIndex / totalTriangles) * 360;
-      const hue2 = ((triIndex + 1) / totalTriangles) * 360;
+      const hue1 = ((triIndex * 137.5) % 360);
+      const hue2 = (((triIndex + 1) * 137.5) % 360);
+      
+      const sat1 = 0.6 + (triIndex % 3) * 0.15;
+      const sat2 = 0.6 + ((triIndex + 1) % 3) * 0.15;
+      
+      const light1 = 0.4 + (triIndex % 5) * 0.1;
+      const light2 = 0.4 + ((triIndex + 1) % 5) * 0.1;
       
       for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
@@ -370,8 +376,15 @@ function fnD(ctx: FnContext, n: number): Image {
           const [r, g, b] = getPixel(prev, x, y);
           const [h, s, l] = rgbToHsl(r, g, b);
           
-          const hue = localX + localY < 1 ? hue1 : hue2;
-          const [nr, ng, nb] = hslToRgb(hue, s, l);
+          const isUpperTriangle = localX + localY < 1;
+          const hue = isUpperTriangle ? hue1 : hue2;
+          const sat = isUpperTriangle ? sat1 : sat2;
+          const light = isUpperTriangle ? light1 : light2;
+          
+          const avgLuminance = l;
+          const finalLight = light * 0.7 + avgLuminance * 0.3;
+          
+          const [nr, ng, nb] = hslToRgb(hue, sat, finalLight);
           setPixel(out, x, y, nr, ng, nb);
         }
       }
