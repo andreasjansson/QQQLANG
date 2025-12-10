@@ -3552,7 +3552,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "julia-fractal",
-    documentation: "Draws Julia set fractal using prev's center pixel as c parameter, screen blended"
+    documentation: "Julia set fractal masks prev - inside set shows prev, outside darkened; n controls zoom level"
   },
   
   'G': {
