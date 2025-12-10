@@ -1670,77 +1670,179 @@ function fn4(ctx: FnContext): Image {
 
 function fn5(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const strength = Math.max(1, Math.min(n + 1, 10));
+  const numDrips = Math.max(5, Math.min(n * 3 + 8, 40));
+  const dripStrength = Math.max(0.3, Math.min(n * 0.15 + 0.5, 2.0));
   
-  const hash = (x: number): number => {
-    const h = Math.sin(x * 127.1) * 43758.5453;
-    return h - Math.floor(h);
-  };
-  
-  const smoothNoise = (x: number): number => {
-    const i = Math.floor(x);
-    const f = x - i;
-    const t = f * f * f * (f * (f * 6 - 15) + 10);
-    return hash(i) * (1 - t) + hash(i + 1) * t;
-  };
-  
-  const fbm = (x: number): number => {
-    let value = 0;
-    let amp = 0.5;
-    for (let i = 0; i < 4; i++) {
-      value += amp * smoothNoise(x);
-      x *= 2;
-      amp *= 0.5;
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = position * 0.5 + 0.5;
+      gl_Position = vec4(position, 0.0, 1.0);
     }
-    return value;
-  };
+  `;
   
-  for (let x = 0; x < ctx.width; x++) {
-    const nx = x / ctx.width;
-    const dripProfile = fbm(nx * 12 + 0.5) * 0.6 + fbm(nx * 24 + 10) * 0.3 + fbm(nx * 48 + 20) * 0.1;
-    const maxDrip = Math.floor(dripProfile * ctx.height * strength * 0.15);
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uStrength;
+    uniform int uNumDrips;
+    varying vec2 vUV;
     
-    const wobbleAmp = 2 + fbm(nx * 30) * 3;
+    #define MAX_DRIPS 40
     
-    for (let y = 0; y < ctx.height; y++) {
-      const ny = y / ctx.height;
-      const dripFactor = Math.pow(ny, 1.5);
-      const currentDrip = Math.floor(maxDrip * dripFactor);
+    float hash(float n) {
+      return fract(sin(n) * 43758.5453123);
+    }
+    
+    float hash2(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+    
+    // Compute metaball field value
+    float metaball(vec2 p, vec2 center, float radius) {
+      float d = length(p - center);
+      if (d > radius * 3.0) return 0.0;
+      float r2 = radius * radius;
+      float d2 = d * d;
+      return r2 / (d2 + 0.001);
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+      vec2 p = uv * aspect;
       
-      const wobble = Math.sin(ny * 20 + nx * 50) * wobbleAmp * dripFactor;
+      float totalField = 0.0;
+      vec2 displacement = vec2(0.0);
+      float weightSum = 0.0;
       
-      let srcY = y - currentDrip;
-      let srcX = x + Math.floor(wobble);
-      
-      srcY = Math.max(0, Math.min(ctx.height - 1, srcY));
-      srcX = Math.max(0, Math.min(ctx.width - 1, srcX));
-      
-      const [r, g, b] = getPixel(prev, srcX, srcY);
-      
-      const smearSamples = Math.min(5, Math.floor(currentDrip * 0.1) + 1);
-      let sr = r, sg = g, sb = b;
-      
-      if (smearSamples > 1 && currentDrip > 5) {
-        let sumR = r, sumG = g, sumB = b;
-        for (let s = 1; s < smearSamples; s++) {
-          const sampleY = Math.max(0, srcY - s * 2);
-          const [pr, pg, pb] = getPixel(prev, srcX, sampleY);
-          sumR += pr;
-          sumG += pg;
-          sumB += pb;
+      // Generate drips deterministically
+      for (int i = 0; i < MAX_DRIPS; i++) {
+        if (i >= uNumDrips) break;
+        
+        float fi = float(i);
+        
+        // Base x position with some variation
+        float baseX = hash(fi * 127.1);
+        
+        // Create a drip trail - multiple balls along a vertical line
+        for (int j = 0; j < 8; j++) {
+          float fj = float(j);
+          
+          // Y position - spread along the drip trail
+          float progress = fj / 7.0;
+          float startY = hash(fi * 311.7) * 0.3; // Where drip starts
+          float dripLength = 0.3 + hash(fi * 74.3) * 0.5; // How long the drip is
+          float y = startY + progress * dripLength * uStrength;
+          
+          // Wobble x slightly along the drip
+          float wobble = sin(progress * 6.28 + fi * 2.0) * 0.02;
+          float x = baseX + wobble;
+          
+          // Ball radius - larger at top, smaller at bottom (teardrop shape)
+          float radius = (0.04 + hash(fi * 183.9) * 0.03) * (1.0 - progress * 0.6);
+          radius *= uStrength * 0.5;
+          
+          vec2 ballPos = vec2(x * aspect.x, y);
+          
+          float field = metaball(p, ballPos, radius);
+          totalField += field;
+          
+          // Weight displacement by field strength
+          if (field > 0.01) {
+            vec2 dir = normalize(p - ballPos + 0.001);
+            displacement += dir * field * progress;
+            weightSum += field;
+          }
         }
-        sr = Math.round(sumR / smearSamples);
-        sg = Math.round(sumG / smearSamples);
-        sb = Math.round(sumB / smearSamples);
       }
       
-      setPixel(out, x, y, sr, sg, sb);
+      // Threshold for metaball surface
+      float threshold = 1.0;
+      float blob = smoothstep(threshold - 0.3, threshold + 0.3, totalField);
+      
+      // Calculate displacement for drip effect
+      vec2 dripDisplace = vec2(0.0);
+      if (weightSum > 0.0) {
+        dripDisplace = displacement / weightSum * 0.1 * uStrength;
+      }
+      
+      // Apply vertical displacement in drip areas
+      vec2 sampleUV = uv;
+      sampleUV.y -= blob * 0.15 * uStrength;
+      sampleUV.x += dripDisplace.x * blob;
+      
+      // Add slight smear by sampling multiple points
+      vec4 color = vec4(0.0);
+      float smearAmount = blob * 0.02 * uStrength;
+      color += texture2D(uTexture, clamp(sampleUV, 0.0, 1.0)) * 0.5;
+      color += texture2D(uTexture, clamp(sampleUV + vec2(0.0, smearAmount), 0.0, 1.0)) * 0.25;
+      color += texture2D(uTexture, clamp(sampleUV + vec2(0.0, smearAmount * 2.0), 0.0, 1.0)) * 0.15;
+      color += texture2D(uTexture, clamp(sampleUV - vec2(0.0, smearAmount * 0.5), 0.0, 1.0)) * 0.1;
+      
+      // Slight darkening in thick drip areas for depth
+      color.rgb *= 1.0 - blob * 0.15;
+      
+      // Add subtle highlight on drip edges
+      float edge = smoothstep(threshold - 0.1, threshold, totalField) - smoothstep(threshold, threshold + 0.4, totalField);
+      color.rgb += edge * 0.1;
+      
+      gl_FragColor = color;
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uStrength'), dripStrength);
+  gl.uniform1i(gl.getUniformLocation(program, 'uNumDrips'), numDrips);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fn6(ctx: FnContext, n: number): Image {
