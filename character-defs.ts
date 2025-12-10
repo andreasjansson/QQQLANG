@@ -403,7 +403,7 @@ function fnE(ctx: FnContext, c: string, n: number): Image {
   
   for (let i = 0; i < numWaves; i++) {
     const period = ctx.width / (1 + i * 0.3);
-    const amplitude = ctx.height * 0.15 * Math.sin(i * 0.8);
+    const amplitude = ctx.height * 0.45 * Math.sin(i * 0.8);
     const thickness = Math.max(2, Math.floor(4 + Math.sin(i * 0.5) * 3));
     const phase = Math.PI * Math.cos(i * 0.6);
     
