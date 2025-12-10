@@ -1708,11 +1708,6 @@ function fn5(ctx: FnContext, n: number): Image {
     }
     
     // Simple sphere SDF
-    float sdSphere(vec3 p, vec3 center, float radius) {
-      return length(p - center) - radius;
-    }
-    
-    // Simple sphere SDF
     float sdSphere(vec3 p, vec3 center, float r) {
       return length(p - center) - r;
     }
