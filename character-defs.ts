@@ -796,7 +796,7 @@ function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const strength = Math.max(0.2, Math.min(0.3 + n / 12, 4));
+  const strength = Math.max(0.05, Math.min(0.1 + n / 18, 4));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   
@@ -815,7 +815,7 @@ function fnO(ctx: FnContext, n: number): Image {
         continue;
       }
       
-      const falloff = (1 - normR) * (1 - normR);
+      const falloff = 1 - normR;
       const factor = 1 + (strength - 1) * falloff;
       
       const sx = cx + dx * factor;
