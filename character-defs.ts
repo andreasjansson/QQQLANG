@@ -1111,34 +1111,30 @@ function fnM(ctx: FnContext, freq: number, j: number): Image {
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const f1 = 0.02 + freq * 0.005;
-  const f2 = f1 * 1.1;
-  const f3 = f1 * 0.93;
+  const spacing = Math.max(3, 8 - freq);
+  const angle1 = 0;
+  const angle2 = Math.PI * (0.05 + freq * 0.02);
   
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
+  const cos1 = Math.cos(angle1), sin1 = Math.sin(angle1);
+  const cos2 = Math.cos(angle2), sin2 = Math.sin(angle2);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const u1 = x * cos1 + y * sin1;
+      const u2 = x * cos2 + y * sin2;
       
-      const wave1 = Math.sin(dist * f1);
-      const wave2 = Math.sin(dist * f2 + x * 0.01);
-      const wave3 = Math.sin(dx * f3) * Math.sin(dy * f3);
+      const line1 = Math.floor(u1 / spacing) % 2 === 0;
+      const line2 = Math.floor(u2 / spacing) % 2 === 0;
       
-      const moire = (wave1 + wave2 + wave3) / 3;
-      const t = moire * 0.5 + 0.5;
+      const moire = line1 !== line2;
       
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const [or, og, ob] = getPixel(old, x, y);
-      
-      const nr = Math.round(pr * t + or * (1 - t));
-      const ng = Math.round(pg * t + ob * (1 - t));
-      const nb = Math.round(pb * t + ob * (1 - t));
-      
-      setPixel(out, x, y, nr, ng, nb);
+      if (moire) {
+        const [r, g, b] = getPixel(prev, x, y);
+        setPixel(out, x, y, r, g, b);
+      } else {
+        const [r, g, b] = getPixel(old, x, y);
+        setPixel(out, x, y, r, g, b);
+      }
     }
   }
   
