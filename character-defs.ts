@@ -605,7 +605,7 @@ function fnK(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const segments = Math.max(2, Math.min(n, 16));
+  const segments = Math.max(1, Math.min(n + 2, 18));
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   const angleStep = (Math.PI * 2) / segments;
