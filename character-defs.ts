@@ -778,62 +778,8 @@ function fnN(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const glowRadius = Math.floor(Math.min(ctx.width, ctx.height) / 20);
-  const src = new Float32Array(ctx.width * ctx.height * 3);
-  const temp = new Float32Array(ctx.width * ctx.height * 3);
-  const blurred = new Float32Array(ctx.width * ctx.height * 3);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      const lum = (r + g + b) / (255 * 3);
-      const idx = (y * ctx.width + x) * 3;
-      src[idx] = (r / 255) * lum;
-      src[idx + 1] = (g / 255) * lum;
-      src[idx + 2] = (b / 255) * lum;
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      let tr = 0, tg = 0, tb = 0, tw = 0;
-      for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
-        const sx = Math.max(0, Math.min(ctx.width - 1, x + dx));
-        const weight = 1 - Math.abs(dx) / glowRadius;
-        const idx = (y * ctx.width + sx) * 3;
-        tr += src[idx] * weight;
-        tg += src[idx + 1] * weight;
-        tb += src[idx + 2] * weight;
-        tw += weight;
-      }
-      const idx = (y * ctx.width + x) * 3;
-      temp[idx] = tr / tw;
-      temp[idx + 1] = tg / tw;
-      temp[idx + 2] = tb / tw;
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      let tr = 0, tg = 0, tb = 0, tw = 0;
-      for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
-        const sy = Math.max(0, Math.min(ctx.height - 1, y + dy));
-        const weight = 1 - Math.abs(dy) / glowRadius;
-        const idx = (sy * ctx.width + x) * 3;
-        tr += temp[idx] * weight;
-        tg += temp[idx + 1] * weight;
-        tb += temp[idx + 2] * weight;
-        tw += weight;
-      }
-      const idx = (y * ctx.width + x) * 3;
-      blurred[idx] = tr / tw;
-      blurred[idx + 1] = tg / tw;
-      blurred[idx + 2] = tb / tw;
-    }
-  }
-  
   const scale = Math.min(ctx.width, ctx.height);
-  const numLights = 12;
+  const numLights = 15;
   
   const seed = ctx.images.length * 137.5;
   const hash = (n: number) => {
@@ -841,52 +787,38 @@ function fnN(ctx: FnContext): Image {
     return x - Math.floor(x);
   };
   
-  const lights: { x: number; y: number; r: number; g: number; b: number }[] = [];
+  const lights: { x: number; y: number; r: number; g: number; b: number; size: number }[] = [];
   for (let i = 0; i < numLights; i++) {
     const px = hash(i * 127.1) * ctx.width;
     const py = hash(i * 311.7) * ctx.height;
     const colorAngle = hash(i * 74.3) * Math.PI * 2;
+    const size = 0.03 + hash(i * 191.3) * 0.04;
     lights.push({
       x: px, y: py,
       r: Math.cos(colorAngle) * 0.5 + 0.5,
       g: Math.cos(colorAngle + Math.PI * 2 / 3) * 0.5 + 0.5,
-      b: Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5
+      b: Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5,
+      size
     });
   }
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const idx = (y * ctx.width + x) * 3;
-      const gr = Math.min(1, blurred[idx] * 2);
-      const gg = Math.min(1, blurred[idx + 1] * 2);
-      const gb = Math.min(1, blurred[idx + 2] * 2);
-      
       const [pr, pg, pb] = getPixel(prev, x, y);
-      const sr = pr / 255;
-      const sg = pg / 255;
-      const sb = pb / 255;
+      let tr = (pr / 255) * 0.4;
+      let tg = (pg / 255) * 0.4;
+      let tb = (pb / 255) * 0.4;
       
-      let lr = 0, lg = 0, lb = 0;
       for (const light of lights) {
-        const dx = x - light.x;
-        const dy = y - light.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) / scale;
-        const glow = 0.012 / Math.max(0.01, dist);
-        lr += glow * light.r;
-        lg += glow * light.g;
-        lb += glow * light.b;
+        const dx = (x - light.x) / scale;
+        const dy = (y - light.y) / scale;
+        const distSq = dx * dx + dy * dy;
+        const glow = (light.size * light.size) / Math.max(0.0001, distSq);
+        const cappedGlow = Math.min(1, glow);
+        tr += cappedGlow * light.r;
+        tg += cappedGlow * light.g;
+        tb += cappedGlow * light.b;
       }
-      lr = Math.min(0.5, lr);
-      lg = Math.min(0.5, lg);
-      lb = Math.min(0.5, lb);
-      
-      let tr = sr + gr + lr;
-      let tg = sg + gg + lg;
-      let tb = sb + gb + lb;
-      
-      tr = Math.pow(Math.min(1, tr), 0.8);
-      tg = Math.pow(Math.min(1, tg), 0.8);
-      tb = Math.pow(Math.min(1, tb), 0.8);
       
       setPixel(out, x, y,
         Math.min(255, Math.floor(tr * 255)),
