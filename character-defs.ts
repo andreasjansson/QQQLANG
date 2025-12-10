@@ -2149,10 +2149,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#00CED1',
     number: 5,
     fn: fnE,
-    arity: 0,
-    argTypes: [],
+    arity: 1,
+    argTypes: ['int'],
     functionName: "eclipse",
-    documentation: "Solar eclipse with glowing corona, rays, and moon silhouette, tinted by prev image"
+    documentation: "Solar eclipse - corona color from prev, old_image shown in moon center"
   },
   
   'F': {
