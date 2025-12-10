@@ -983,7 +983,7 @@ function fnT(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
-  const numDrawers = Math.max(1, Math.min(n + 1, 12));
+  const numDrawers = Math.max(1, n + 1);
   
   // Vertex shader with MVP transformation
   const vertexShader = `
