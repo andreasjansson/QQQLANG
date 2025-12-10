@@ -902,7 +902,7 @@ function fnR(ctx: FnContext): Image {
     varying vec2 vUV;
     
     void main() {
-      vec2 uv = gl_FragCoord.xy / resolution;
+      vec2 uv = vUV;
       float wave = sin(uv.x * 20.0) * 0.1;
       float shade = 0.7 + 0.3 * cos(uv.x * 20.0);
       
