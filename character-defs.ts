@@ -2302,7 +2302,7 @@ function fnDollar(ctx: FnContext): Image {
   const w = ctx.width;
   const h = ctx.height;
   
-  const threshold = 3;
+  const threshold = 5;
   
   const labels = new Int32Array(w * h);
   labels.fill(-1);
