@@ -547,11 +547,12 @@ function fnG(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnH(ctx: FnContext, n: number): Image {
+function fnH(ctx: FnContext, j: number, rot: number): Image {
   const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
   const gl = initWebGL(ctx.width, ctx.height);
   
-  const rotation = n * 0.25;
+  const rotation = rot * 0.3;
   
   const vertexShader = `
     attribute vec3 aPosition;
