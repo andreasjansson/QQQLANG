@@ -1492,6 +1492,449 @@ function fnQ(ctx: FnContext): Image {
   return out;
 }
 
+function fn0(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  const opacity = Math.max(0.1, Math.min((n * 10) / 100, 1));
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const gradient = 1 - (dist / maxR);
+      const gradientValue = gradient * 255;
+      
+      const idx = (y * ctx.width + x) * 4;
+      out.data[idx] = Math.min(255, Math.round(out.data[idx] * (1 - opacity) + (out.data[idx] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
+      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * (1 - opacity) + (out.data[idx + 1] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
+      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * (1 - opacity) + (out.data[idx + 2] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
+    }
+  }
+  
+  return out;
+}
+
+function fn1(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const barWidthPercent = Math.max(1, Math.min(n, 100)) / 100;
+  const barHalfWidth = Math.floor((ctx.width * barWidthPercent) / 2);
+  const barStart = Math.floor(ctx.width / 2) - barHalfWidth;
+  const barEnd = Math.floor(ctx.width / 2) + barHalfWidth;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      
+      if (x >= barStart && x < barEnd) {
+        let sr = 0, sg = 0, sb = 0;
+        const kernel = [
+          [0, -1, 0],
+          [-1, 5, -1],
+          [0, -1, 0]
+        ];
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
+            const weight = kernel[ky + 1][kx + 1];
+            sr += pr * weight;
+            sg += pg * weight;
+            sb += pb * weight;
+          }
+        }
+        sr = Math.max(0, Math.min(255, sr));
+        sg = Math.max(0, Math.min(255, sg));
+        sb = Math.max(0, Math.min(255, sb));
+        
+        const contrast = 1.3;
+        sr = Math.max(0, Math.min(255, ((sr / 255 - 0.5) * contrast + 0.5) * 255));
+        sg = Math.max(0, Math.min(255, ((sg / 255 - 0.5) * contrast + 0.5) * 255));
+        sb = Math.max(0, Math.min(255, ((sb / 255 - 0.5) * contrast + 0.5) * 255));
+        
+        setPixel(out, x, y, Math.round(sr), Math.round(sg), Math.round(sb));
+      } else {
+        const gray = Math.round(r * 0.299 + g * 0.587 + b * 0.114);
+        setPixel(out, x, y, gray, gray, gray);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fn2(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const levels = Math.max(2, Math.min(n, 32));
+  const step = 256 / levels;
+  
+  let sumR = 0, sumG = 0, sumB = 0;
+  const pixelCount = ctx.width * ctx.height;
+  
+  for (let i = 0; i < out.data.length; i += 4) {
+    sumR += out.data[i];
+    sumG += out.data[i + 1];
+    sumB += out.data[i + 2];
+    
+    out.data[i] = Math.floor(out.data[i] / step) * step;
+    out.data[i + 1] = Math.floor(out.data[i + 1] / step) * step;
+    out.data[i + 2] = Math.floor(out.data[i + 2] / step) * step;
+  }
+  
+  const avgR = sumR / pixelCount;
+  const avgG = sumG / pixelCount;
+  const avgB = sumB / pixelCount;
+  const compR = 255 - avgR;
+  const compG = 255 - avgG;
+  const compB = 255 - avgB;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const t = x / ctx.width;
+      const idx = (y * ctx.width + x) * 4;
+      
+      const gradR = avgR * (1 - t) + compR * t;
+      const gradG = avgG * (1 - t) + compG * t;
+      const gradB = avgB * (1 - t) + compB * t;
+      
+      out.data[idx] = Math.min(255, Math.round(out.data[idx] * 0.7 + gradR * 0.3));
+      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * 0.7 + gradG * 0.3));
+      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * 0.7 + gradB * 0.3));
+    }
+  }
+  
+  return out;
+}
+
+function fn3(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const stripWidth = Math.floor(ctx.width / 3);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < stripWidth; x++) {
+      const srcX = Math.floor((y / ctx.height) * stripWidth);
+      const srcY = Math.floor(((stripWidth - 1 - x) / stripWidth) * ctx.height);
+      const [r, g, b] = getPixel(prev, srcX, srcY);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = stripWidth; x < stripWidth * 2; x++) {
+      const srcX = Math.floor(((x - stripWidth) / stripWidth) * stripWidth + stripWidth);
+      const srcY = y;
+      const [r, g, b] = getPixel(prev, srcX, srcY);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = stripWidth * 2; x < ctx.width; x++) {
+      const localX = x - stripWidth * 2;
+      const srcX = Math.floor(((ctx.height - 1 - y) / ctx.height) * (ctx.width - stripWidth * 2) + stripWidth * 2);
+      const srcY = Math.floor((localX / (ctx.width - stripWidth * 2)) * ctx.height);
+      const [r, g, b] = getPixel(prev, srcX, srcY);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fn4(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const hw = Math.floor(ctx.width / 2);
+  const hh = Math.floor(ctx.height / 2);
+  const feather = 5;
+  
+  const rotatePoint = (x: number, y: number, cx: number, cy: number, angle: number): [number, number] => {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const dx = x - cx;
+    const dy = y - cy;
+    return [cx + dx * cos - dy * sin, cy + dx * sin + dy * cos];
+  };
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const qx = x < hw ? 0 : 1;
+      const qy = y < hh ? 0 : 1;
+      const quadrant = qy * 2 + qx;
+      const angles = [0, Math.PI / 2, Math.PI, Math.PI * 3 / 2];
+      const angle = angles[quadrant];
+      
+      const localCx = qx === 0 ? hw / 2 : hw + hw / 2;
+      const localCy = qy === 0 ? hh / 2 : hh + hh / 2;
+      
+      const [srcX, srcY] = rotatePoint(x, y, localCx, localCy, -angle);
+      const [r, g, b] = getPixel(prev, Math.floor(srcX), Math.floor(srcY));
+      
+      const distToHorizSeam = Math.abs(y - hh);
+      const distToVertSeam = Math.abs(x - hw);
+      const minDist = Math.min(distToHorizSeam, distToVertSeam);
+      
+      if (minDist < feather) {
+        const blend = minDist / feather;
+        const [or, og, ob] = getPixel(prev, x, y);
+        setPixel(out, x, y,
+          Math.round(r * blend + or * (1 - blend)),
+          Math.round(g * blend + og * (1 - blend)),
+          Math.round(b * blend + ob * (1 - blend))
+        );
+      } else {
+        setPixel(out, x, y, r, g, b);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fn5(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const cellSize = Math.max(10, n * 10);
+  const h = cellSize * Math.sqrt(3) / 2;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const row = Math.floor(y / h);
+      const isOddRow = row % 2 === 1;
+      const offsetX = isOddRow ? cellSize / 2 : 0;
+      const col = Math.floor((x + offsetX) / cellSize);
+      
+      const triX = (x + offsetX) - col * cellSize;
+      const triY = y - row * h;
+      
+      const isUpper = triY < h * (1 - triX / cellSize) && triY < h * triX / cellSize;
+      const isLower = triY > h * triX / cellSize || triY > h * (1 - triX / cellSize);
+      
+      let centerX: number, centerY: number;
+      
+      if (isUpper || (!isUpper && !isLower && triY < h / 2)) {
+        centerX = col * cellSize + cellSize / 2 - offsetX;
+        centerY = row * h + h / 3;
+      } else {
+        centerX = col * cellSize + cellSize / 2 - offsetX;
+        centerY = row * h + 2 * h / 3;
+      }
+      
+      const [sr, sg, sb] = getPixel(prev, Math.floor(centerX), Math.floor(centerY));
+      
+      const edgeDist = Math.min(
+        Math.abs(triX),
+        Math.abs(triX - cellSize),
+        Math.abs(triY),
+        Math.abs(triY - h)
+      );
+      
+      if (edgeDist < 2) {
+        setPixel(out, x, y, 255 - sr, 255 - sg, 255 - sb);
+      } else {
+        setPixel(out, x, y, sr, sg, sb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fn6(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const hexRadius = Math.max(5, n * 5);
+  const hexWidth = hexRadius * 2;
+  const hexHeight = hexRadius * Math.sqrt(3);
+  
+  const pixelToHex = (px: number, py: number): [number, number] => {
+    const q = (2 / 3 * px) / hexRadius;
+    const r = (-1 / 3 * px + Math.sqrt(3) / 3 * py) / hexRadius;
+    return [q, r];
+  };
+  
+  const hexRound = (q: number, r: number): [number, number] => {
+    const s = -q - r;
+    let rq = Math.round(q);
+    let rr = Math.round(r);
+    let rs = Math.round(s);
+    
+    const qDiff = Math.abs(rq - q);
+    const rDiff = Math.abs(rr - r);
+    const sDiff = Math.abs(rs - s);
+    
+    if (qDiff > rDiff && qDiff > sDiff) {
+      rq = -rr - rs;
+    } else if (rDiff > sDiff) {
+      rr = -rq - rs;
+    }
+    
+    return [rq, rr];
+  };
+  
+  const hexToPixel = (q: number, r: number): [number, number] => {
+    const x = hexRadius * (3 / 2 * q);
+    const y = hexRadius * (Math.sqrt(3) / 2 * q + Math.sqrt(3) * r);
+    return [x, y];
+  };
+  
+  const hexAverages = new Map<string, [number, number, number, number]>();
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [q, r] = pixelToHex(x, y);
+      const [hq, hr] = hexRound(q, r);
+      const key = `${hq},${hr}`;
+      
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      
+      if (!hexAverages.has(key)) {
+        hexAverages.set(key, [0, 0, 0, 0]);
+      }
+      const avg = hexAverages.get(key)!;
+      avg[0] += pr;
+      avg[1] += pg;
+      avg[2] += pb;
+      avg[3]++;
+    }
+  }
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [q, r] = pixelToHex(x, y);
+      const [hq, hr] = hexRound(q, r);
+      const key = `${hq},${hr}`;
+      
+      const [centerX, centerY] = hexToPixel(hq, hr);
+      const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+      
+      const avg = hexAverages.get(key);
+      if (avg && avg[3] > 0) {
+        const ar = Math.round(avg[0] / avg[3]);
+        const ag = Math.round(avg[1] / avg[3]);
+        const ab = Math.round(avg[2] / avg[3]);
+        
+        if (dist > hexRadius - 1.5) {
+          setPixel(out, x, y, Math.max(0, ar - 30), Math.max(0, ag - 30), Math.max(0, ab - 30));
+        } else {
+          setPixel(out, x, y, ar, ag, ab);
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fn7(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const numRects = Math.max(1, Math.min(n, 20));
+  
+  for (let i = 1; i <= numRects; i++) {
+    const rx = Math.floor(i * ctx.width / (numRects + 2));
+    const ry = Math.floor(i * ctx.height / (numRects + 4));
+    const rw = Math.floor(ctx.width / (numRects + 2));
+    const rh = Math.floor(ctx.height / (numRects + 4));
+    
+    const hueRotation = (i * 360 / numRects);
+    
+    for (let y = ry; y < ry + rh && y < ctx.height; y++) {
+      for (let x = rx; x < rx + rw && x < ctx.width; x++) {
+        const [r, g, b] = getPixel(prev, x, y);
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const [nr, ng, nb] = hslToRgb((h + hueRotation) % 360, s, l);
+        setPixel(out, x, y, nr, ng, nb);
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fn8(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const strength = Math.max(0.1, n / 5);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const scale = Math.min(ctx.width, ctx.height) / 4;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const nx = (x - cx) / scale;
+      const ny = (y - cy) / scale;
+      
+      const r2 = nx * nx + ny * ny;
+      const denom = r2 + 1;
+      
+      const lemnX = nx * (r2 - 1) / denom;
+      const lemnY = ny * (r2 + 1) / denom;
+      
+      const sx = cx + (nx + (lemnX - nx) * strength * 0.3) * scale;
+      const sy = cy + (ny + (lemnY - ny) * strength * 0.3) * scale;
+      
+      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fn9(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const mode = Math.abs(n) % 9;
+  
+  const blend = (a: number, b: number, mode: number): number => {
+    const an = a / 255;
+    const bn = b / 255;
+    let result: number;
+    
+    switch (mode) {
+      case 0: result = an * bn; break;
+      case 1: result = 1 - (1 - an) * (1 - bn); break;
+      case 2: result = an < 0.5 ? 2 * an * bn : 1 - 2 * (1 - an) * (1 - bn); break;
+      case 3: result = Math.min(an, bn); break;
+      case 4: result = Math.max(an, bn); break;
+      case 5: result = bn === 0 ? 0 : Math.min(1, an / (1 - bn)); break;
+      case 6: result = bn === 1 ? 1 : Math.max(0, 1 - (1 - an) / bn); break;
+      case 7: result = bn < 0.5 ? 2 * an * bn : 1 - 2 * (1 - an) * (1 - bn); break;
+      case 8: result = bn < 0.5 
+        ? an - (1 - 2 * bn) * an * (1 - an) 
+        : an + (2 * bn - 1) * (Math.sqrt(an) - an); break;
+      default: result = an;
+    }
+    
+    return Math.round(Math.max(0, Math.min(1, result)) * 255);
+  };
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      setPixel(out, x, y, blend(r, r, mode), blend(g, g, mode), blend(b, b, mode));
+    }
+  }
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
