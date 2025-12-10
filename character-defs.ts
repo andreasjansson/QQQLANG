@@ -1110,33 +1110,40 @@ function fnM(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const scale = 15 + n * 3;
+  const scale = 12 + n * 2;
   
-  const cx1 = ctx.width * 0.5;
-  const cy1 = ctx.height * 0.5;
-  const cx2 = ctx.width * 0.48;
-  const cy2 = ctx.height * 0.52;
+  const cx1 = ctx.width * 0.5, cy1 = ctx.height * 0.5;
+  const cx2 = ctx.width * 0.47, cy2 = ctx.height * 0.53;
+  const cx3 = ctx.width * 0.53, cy3 = ctx.height * 0.47;
+  
+  const angle = Math.PI * 0.02;
+  const cos_a = Math.cos(angle), sin_a = Math.sin(angle);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const d1 = Math.sqrt((x - cx1) ** 2 + (y - cy1) ** 2);
       const d2 = Math.sqrt((x - cx2) ** 2 + (y - cy2) ** 2);
+      const d3 = Math.sqrt((x - cx3) ** 2 + (y - cy3) ** 2);
+      
+      const u1 = x * cos_a + y * sin_a;
+      const u2 = x * cos_a - y * sin_a;
       
       const ring1 = Math.floor(d1 / scale) % 2;
-      const ring2 = Math.floor(d2 / scale) % 2;
+      const ring2 = Math.floor(d2 / (scale * 0.97)) % 2;
+      const ring3 = Math.floor(d3 / (scale * 1.03)) % 2;
+      const line1 = Math.floor(u1 / (scale * 0.8)) % 2;
+      const line2 = Math.floor(u2 / (scale * 0.8)) % 2;
       
-      const moire = ring1 !== ring2;
+      const pattern = ring1 ^ ring2 ^ ring3 ^ line1 ^ line2;
+      const zone = (ring1 + ring2 * 2 + ring3 * 4) % 6;
       
       const [r, g, b] = getPixel(prev, x, y);
       const [h, s, l] = rgbToHsl(r, g, b);
       
-      let newH = h, newS = s, newL = l;
-      if (moire) {
-        newH = (h + 180) % 360;
-        newL = Math.min(0.95, l + 0.1);
-      } else {
-        newL = Math.max(0.05, l - 0.1);
-      }
+      const hueShifts = [0, 60, 120, 180, 240, 300];
+      const newH = (h + hueShifts[zone]) % 360;
+      const newS = Math.max(0, Math.min(1, s + (pattern ? 0.15 : -0.1)));
+      const newL = Math.max(0.05, Math.min(0.95, l + (pattern ? 0.12 : -0.08)));
       
       const [nr, ng, nb] = hslToRgb(newH, newS, newL);
       setPixel(out, x, y, nr, ng, nb);
