@@ -633,10 +633,13 @@ function fnK(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnL(ctx: FnContext, c: string): Image {
+function fnL(ctx: FnContext, c: string, recursionDepth: number, angleVariation: number): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   const [cr, cg, cb] = hexToRgb(c);
+  
+  const maxDepth = Math.max(3, Math.min(recursionDepth, 12));
+  const angleVar = Math.max(0.1, Math.min(angleVariation / 10, 3));
   
   const seededRandom = (seed: number) => {
     let state = seed;
@@ -671,10 +674,10 @@ function fnL(ctx: FnContext, c: string): Image {
   };
   
   const growBranch = (x: number, y: number, angle: number, length: number, thickness: number, depth: number) => {
-    if (depth > 7 || length < 10) return;
+    if (depth > maxDepth || length < 10) return;
     
-    const angleVar = (rand() - 0.5) * 0.3;
-    const actualAngle = angle + angleVar;
+    const angleVariation = (rand() - 0.5) * angleVar * 0.2;
+    const actualAngle = angle + angleVariation;
     
     const endX = x + Math.cos(actualAngle) * length;
     const endY = y + Math.sin(actualAngle) * length;
@@ -690,7 +693,7 @@ function fnL(ctx: FnContext, c: string): Image {
       const branchX = x + Math.cos(actualAngle) * length * branchPoint;
       const branchY = y + Math.sin(actualAngle) * length * branchPoint;
       
-      const branchAngle = actualAngle + (rand() - 0.5) * 1.2;
+      const branchAngle = actualAngle + (rand() - 0.5) * angleVar;
       const branchLength = length * (0.5 + rand() * 0.3);
       const branchThickness = Math.max(1, thickness - 1);
       
@@ -703,7 +706,7 @@ function fnL(ctx: FnContext, c: string): Image {
   for (let i = 0; i < 5; i++) {
     const startX = ctx.width * (0.2 + i * 0.15);
     const mainLength = ctx.height * 0.6;
-    const mainAngle = Math.PI / 2 + (rand() - 0.5) * 0.4;
+    const mainAngle = Math.PI / 2 + (rand() - 0.5) * angleVar * 0.3;
     
     growBranch(startX, topY, mainAngle, mainLength, 6, 0);
   }
