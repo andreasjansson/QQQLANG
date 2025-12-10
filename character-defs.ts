@@ -3711,8 +3711,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnR,
     arity: 0,
     argTypes: [],
-    functionName: "corrugated",
-    documentation: "Image transformed with sinusoidal shape in z dimension, looks vertically corrugated"
+    functionName: "room",
+    documentation: "3D room with three walls, ceiling, and floor textured with prev, lit from center"
   },
   
   'S': {
