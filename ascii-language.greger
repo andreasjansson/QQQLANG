@@ -6435,5 +6435,201 @@ Add function implementations for ! through / characters
 ID: toolu_014r4Spa6FUt95kT9nx9ZF9p
 
 <tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add function implementations for ! through / characters
 </tool.toolu_014r4Spa6FUt95kT9nx9ZF9p>
+
+# ASSISTANT
+
+Now let me add the character definitions for these new functions to the `characterDefs` object:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01GSn9mvMPgvRFWZQfDKuE2d
+
+## path
+
+<tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+character-defs.ts
+</tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+
+## git-commit-message
+
+<tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+Add character definitions for ! through / symbols
+</tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+
+## diff
+
+<tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+   '^': {
+     color: '#2ECC71',
+     number: 39,
+     fn: fnCaret,
+     arity: 0,
+     argTypes: [],
+     functionName: "shift-up",
+     documentation: "Shifts prev 1/3 of the height up with wraparound"
+   },
++  
++  '!': {
++    color: '#FF4500',
++    number: 40,
++    fn: fnExclaim,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "hash-overlay",
++    documentation: "Overlays deterministic hash pattern where brightness = ((x*(n+17)) ^ (y*31) ^ (x*y)) % 256 at 30% opacity"
++  },
++  
++  '"': {
++    color: '#9932CC',
++    number: 41,
++    fn: fnDoubleQuote,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "band-transform",
++    documentation: "Splits into n horizontal bands; odd bands hue-rotated 180°, even bands have saturation inverted"
++  },
++  
++  '#': {
++    color: '#228B22',
++    number: 42,
++    fn: fnHash,
++    arity: 1,
++    argTypes: ['color'],
++    functionName: "grid-lines",
++    documentation: "Draws grid of lines in color c with thickness = 1 + sin(x*y*0.01) * 3"
++  },
++  
++  '$': {
++    color: '#FFD700',
++    number: 43,
++    fn: fnDollar,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "golden-spiral",
++    documentation: "Draws golden spiral with n turns from center, spiral color is brightness-inverted sample of prev"
++  },
++  
++  '%': {
++    color: '#8B0000',
++    number: 44,
++    fn: fnPercent,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "floyd-steinberg",
++    documentation: "Floyd-Steinberg dithers prev to 4-corner color palette with cell size n+1"
++  },
++  
++  '&': {
++    color: '#4169E1',
++    number: 45,
++    fn: fnAmpersand,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "hue-sat-transfer",
++    documentation: "Output has prev's luminance but hue/saturation from old_image at index j"
++  },
++  
++  "'": {
++    color: '#FF1493',
++    number: 46,
++    fn: fnApostrophe,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "vertical-streaks",
++    documentation: "Vertical streaks at x positions where x % (n+2) == 0, length based on column luminance, 50% white"
++  },
++  
++  '(': {
++    color: '#00CED1',
++    number: 47,
++    fn: fnOpenParen,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "pinch",
++    documentation: "Pinch distortion toward center with strength n/10, brightens pixels near center"
++  },
++  
++  ')': {
++    color: '#FF69B4',
++    number: 48,
++    fn: fnCloseParen,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "bulge",
++    documentation: "Bulge distortion from center with strength n/10, darkens pixels near edge"
++  },
++  
++  '*': {
++    color: '#FFD700',
++    number: 49,
++    fn: fnAsterisk,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "rays",
++    documentation: "n rays emanate from center, color sampled from prev at angle*width/n, soft edges at 60% opacity"
++  },
++  
++  '+': {
++    color: '#32CD32',
++    number: 50,
++    fn: fnPlus,
++    arity: 0,
++    argTypes: [],
++    functionName: "quad-sharpen-blur",
++    documentation: "Cross divides into 4 quadrants; top-left/bottom-right sharpened, others blurred"
++  },
++  
++  ',': {
++    color: '#BA55D3',
++    number: 51,
++    fn: fnComma,
++    arity: 1,
++    argTypes: ['color'],
++    functionName: "stipple",
++    documentation: "Stipples prev with dots of color c at positions where (x*13+y*7) % (1+luminance/32) == 0"
++  },
++  
++  '-': {
++    color: '#708090',
++    number: 52,
++    fn: fnMinus,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "scanlines",
++    documentation: "Every nth row darkened 50%, every (n*2)th row samples from n pixels above"
++  },
++  
++  '.': {
++    color: '#20B2AA',
++    number: 53,
++    fn: fnDot,
++    arity: 1,
++    argTypes: ['int'],
++    functionName: "pointillism",
++    documentation: "Rebuilds prev from circles of radius (n%8)+2, color from center with +10% saturation"
++  },
++  
++  '/': {
++    color: '#CD853F',
++    number: 54,
++    fn: fnSlash,
++    arity: 1,
++    argTypes: ['color'],
++    functionName: "diagonal-lines",
++    documentation: "Diagonal lines top-left to bottom-right in color c, spacing based on luminance (bright=sparse)"
++  },
+ };
+\ No newline at end of file
+
+</tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+
+# TOOL RESULT
+
+ID: toolu_01GSn9mvMPgvRFWZQfDKuE2d
+
+<tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
+
+</tool.toolu_01GSn9mvMPgvRFWZQfDKuE2d>
