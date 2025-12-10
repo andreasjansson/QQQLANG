@@ -3806,11 +3806,11 @@ export const characterDefs: Record<string, CharDef> = {
   'B': {
     color: '#8B4513',
     number: 2,
-    fn: fnB,
+    fn: fnV,
     arity: 1,
-    argTypes: ['int'],
-    functionName: "voronoi-blend",
-    documentation: "Breaks image into 36 voronoi cells, alternating between prev and old image"
+    argTypes: ['color'],
+    functionName: "border",
+    documentation: "Circular gradient darkening edges, tinted toward color c"
   },
   
   'C': {
