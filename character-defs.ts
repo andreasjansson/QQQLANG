@@ -2390,11 +2390,11 @@ export const characterDefs: Record<string, CharDef> = {
   '5': {
     color: '#85C1E9',
     number: 32,
-    fn: fn5,
+    fn: fnD,
     arity: 1,
     argTypes: ['int'],
-    functionName: "melt",
-    documentation: "Metaball-based dripping effect with blobby liquid drips flowing down, n controls number and strength"
+    functionName: "triangular-split",
+    documentation: "Splits prev into (n+1)² triangles, each colorized with a hue based on its index"
   },
   
   '6': {
