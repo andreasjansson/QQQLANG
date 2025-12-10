@@ -911,7 +911,7 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
     0, 0, (2 * far * near) / (near - far), 0
   ]);
   
-  const angleY = 0.5;
+  const angleY = 0.5 + rotation;
   const angleX = 0.3;
   const cy = Math.cos(angleY), sy = Math.sin(angleY);
   const cx = Math.cos(angleX), sx = Math.sin(angleX);
@@ -934,7 +934,8 @@ function fnL(ctx: FnContext, j: number, rot: number): Image {
   gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uProjection'), false, projection);
   gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uModelView'), false, modelView);
   gl.uniformMatrix3fv(gl.getUniformLocation(tubeProgram, 'uNormalMatrix'), false, normalMatrix);
-  gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 2.0, 3.0, 2.0);
+  gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 3.0, 3.0, 3.0);
+  gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos2'), -2.0, 1.0, 2.0);
   gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 0);
   
   gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
