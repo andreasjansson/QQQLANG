@@ -2210,7 +2210,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 0,
     argTypes: [],
     functionName: "quad-rotate",
-    documentation: "Divides into 2x2 quadrants, each rotated (0°, 90°, 180°, 270°), seams blended with 5px feather"
+    documentation: "Divides into 2x2 quadrants, each rotated (0°, 90°, 180°, 270°)"
   },
   
   '5': {
