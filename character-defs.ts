@@ -1720,7 +1720,6 @@ function fn5(ctx: FnContext, n: number): Image {
       vec2 p = uv * aspect;
       
       float totalField = 0.0;
-      vec2 displacement = vec2(0.0);
       
       // Generate drips deterministically
       for (int i = 0; i < MAX_DRIPS; i++) {
@@ -1759,12 +1758,6 @@ function fn5(ctx: FnContext, n: number): Image {
           
           float field = metaball(p, ballPos, radiusX, radiusY);
           totalField += field;
-          
-          // Accumulate displacement direction
-          if (field > 0.01) {
-            vec2 toDrip = ballPos - p;
-            displacement += normalize(toDrip) * field * progress * 0.02;
-          }
         }
       }
       
@@ -1772,10 +1765,13 @@ function fn5(ctx: FnContext, n: number): Image {
       float threshold = 1.2;
       float blob = smoothstep(threshold - 0.5, threshold + 0.5, totalField);
       
-      // Apply gentle displacement based on drip field
+      // Only displace downward (sample from above to create drip)
       vec2 sampleUV = uv;
-      sampleUV.y -= blob * 0.04 * uStrength;
-      sampleUV.x += displacement.x * blob * 0.3;
+      float dripAmount = blob * 0.05 * uStrength;
+      
+      // Sample from ABOVE current position (positive y = down in texture coords)
+      // This pulls pixels downward creating the drip effect
+      sampleUV.y = uv.y - dripAmount;
       
       // High quality multi-tap sampling to prevent pixelation
       vec4 color = vec4(0.0);
