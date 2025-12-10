@@ -1672,7 +1672,7 @@ function fn5(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
-  const numDrips = Math.max(3, Math.min(n * 2 + 5, 20));
+  const numDrips = Math.max(8, Math.min(n * 3 + 10, 20));
   const dripStrength = Math.max(0.5, Math.min(n * 0.2 + 0.8, 2.0));
   
   const vertexShader = `
