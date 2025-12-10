@@ -5471,5 +5471,65 @@ Add tsconfig.json for TypeScript compilation
 ID: toolu_01BgWG7QcG2i9Q1Ug3XrZWDS
 
 <tool.toolu_01BgWG7QcG2i9Q1Ug3XrZWDS>
-
+Successfully wrote new file /Users/ajansson/projects/ascii-language/tsconfig.json with 369 characters. Successfully staged 2 file(s) and committed with message: Add tsconfig.json for TypeScript compilation
 </tool.toolu_01BgWG7QcG2i9Q1Ug3XrZWDS>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_014u4ryEFRJgsDfVs3wF3knU
+
+## path
+
+<tool.toolu_014u4ryEFRJgsDfVs3wF3knU>
+index.html
+</tool.toolu_014u4ryEFRJgsDfVs3wF3knU>
+
+## diff
+
+<tool.toolu_014u4ryEFRJgsDfVs3wF3knU>
+   <script type="module">
+-    import { runProgram } from './runtime.ts';
++    import { runProgram } from './dist/runtime.js';
+ 
+     const canvas = document.getElementById('canvas');
+     const ctx = canvas.getContext('2d');
+     const input = document.getElementById('program-input');
+ 
+     function resize() {
+       canvas.width = window.innerWidth;
+       canvas.height = window.innerHeight;
+       render();
+     }
+ 
+     function render() {
+       const program = input.value || '';
+       const images = runProgram(program, canvas.width, canvas.height);
+       const finalImage = images[images.length - 1];
+       
+       const imageData = new ImageData(finalImage.data, finalImage.width, finalImage.height);
+       ctx.putImageData(imageData, 0, 0);
+     }
+ 
+     window.addEventListener('resize', resize);
+     input.addEventListener('input', render);
+     
+     resize();
+   </script>
+\ No newline at end of file
+
+</tool.toolu_014u4ryEFRJgsDfVs3wF3knU>
+
+## git-commit-message
+
+<tool.toolu_014u4ryEFRJgsDfVs3wF3knU>
+Update index.html to import from compiled JS files in dist/
+</tool.toolu_014u4ryEFRJgsDfVs3wF3knU>
+
+# TOOL RESULT
+
+ID: toolu_014u4ryEFRJgsDfVs3wF3knU
+
+<tool.toolu_014u4ryEFRJgsDfVs3wF3knU>
+
+</tool.toolu_014u4ryEFRJgsDfVs3wF3knU>
