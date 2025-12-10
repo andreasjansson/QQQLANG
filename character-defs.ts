@@ -2166,10 +2166,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#20B2AA',
     number: 12,
     fn: fnL,
-    arity: 3,
-    argTypes: ['color', 'int', 'int'],
-    functionName: "lichtenberg",
-    documentation: "Draws Lichtenberg figures with recursive branching in color c, recursion depth (3-12), and angle variation (1-30)"
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "line-weave",
+    documentation: "Weaves horizontal strips from prev like fabric, strips wave over/under each other with hue shifts, n controls strip thickness"
   },
   
   'M': {
