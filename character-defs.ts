@@ -633,12 +633,12 @@ function fnK(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnL(ctx: FnContext, n: number): Image {
+function fnL(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   
-  const complexity = Math.max(1, n);
-  const thickness = Math.max(4, Math.floor(Math.min(ctx.width, ctx.height) / 40));
+  const complexity = 2;
+  const thickness = Math.max(2, Math.floor(Math.min(ctx.width, ctx.height) / 80));
   const numCurves = Math.min(complexity, 5);
   
   const cx = ctx.width / 2;
