@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-175611372023>
+${greger-prompt-code-style<eval-result-175748584200>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-175611372023>}
+</eval-result-175748584200>}
 
 # USER
 
@@ -9953,5 +9953,400 @@ Fix $ with thinner straighter cracks, proper glass reflections, remove sun
 ID: toolu_01UthApzLdfRtqHqXyXovkXV
 
 <tool.toolu_01UthApzLdfRtqHqXyXovkXV>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix $ with thinner straighter cracks, proper glass reflections, remove sun
 </tool.toolu_01UthApzLdfRtqHqXyXovkXV>
+
+# ASSISTANT
+
+Changes made:
+
+1. **Much thinner cracks** - Changed from `0.015` to `0.001-0.003` thickness using tighter `smoothstep` values
+2. **Straighter cracks** - Reduced wobble amplitude from `0.08-0.12` to just `0.008`, and reduced curve on branches from `0.8` to `0.15`
+3. **Removed the "sun"/impact glow** - Deleted the `impactGlow` code entirely
+4. **Added proper glass reflections**:
+   - Each shard now has a subtle specular highlight based on its "tilt angle"
+   - Slight color tint variation per shard (mimics glass thickness/angle variation)
+   - Fresnel-like effect near crack edges
+5. **Reduced displacement** - From `0.015` to `0.008`, and rotation from `0.03` to `0.015`
+6. **Chromatic aberration** - Now only appears right at crack edges, not everywhere
+
+# USER
+
+the cracks are still too regular like a spiderweb, and the cracks are still curved not straight
+
+# THINKING
+
+Signature: EvoJCkYIChgCKkCcF1mqH6ciFikp6Wl4OV32JURAKSQnnYHRenPq1N7WHwDNz5PhyOYN2TJvd1SqW5GVixdHrs6HPYjCcTdr9oJIEgyM7TqDus4UDIfcPhsaDHpkfIkmtjzmDg0nLCIwYTsyWhoJDcz1Xw2PsYEPrzoaSLknExifkjRiXKF4CMEUojpZDaRtmDScCKpfHZYDKuEI/g9O/VsXIx539+L2IDWkzluyJE+V22Dx4kH36ec2D8XDsLlTpJB7DEEr1tMtFvBZdTAJDijLirL4FSLGsjLZqUIX0cM/S8xXwRASPdGCbuf4h7tzkT6XvcuUJRYexTeIVapE224/8PIX+GZIH2DJnIfYpHuciAM835Rv1/0XcaLuvhijIElVUDchFWJYWx4LqFHAlHJFo1haT4WFD3UMA9nrJap9O10jtxfqcFCZmcs1PDVz7O4j62L7zL9bbMzhC7o8D5oBrMl2n+rFE7es40C9hq3eWcA204ciyqOjzG/Keyx0HwL9JUWzJl1BBv1DWHatbUUq5AvluKNWxjvF9PHlRil3v1O+6PIfVEVWzwWzy5DzAgMFYzJvX+o+xODPKppC4Ifr1rUMW+JpllPUwSPF8sRFMHxUPLjHUVshA0vaBW/v3v4vFKIdz+JY4vu0aFQkt43YY59LIduz3+PF+7UN1QKinwL+seJE1TGxBwz2kNpEsP8MgP3Kap86hrZXSD5BjJWSS/3xC8kSf2lrcW+wbWI/YG7OkRgzR6loa0QV9bOmZ6zrKbkWGLyuxfnVmJcPNtKNrcIqW87DKMOPikqLNgbQBL/+w2IhVqn9QBKuNoxr1GfVBkLpk9mDXD1LwcBVOFQCs1BkjlV4wsnnQjRMXKskbj4qLPFohM4GPr33vEs7M/OJCUgnIIuLEgDZKyvMykdr1ZlaLM3zvNfFkRusIwQSmOWd0a6TDWP8iooLJ2c8mZSxQ2LDWTxKUAXP9LNOCVzaiJj97wIzqTWg6BWr4vqqJ10cyZ8oJdhW+SXmUZdcRPPHI+YXoSkYyaj/p0LCq2emoa7cRIMxh/TGWnLX8Ey1Ojp+WQ+XdlRcuCTY6RdabgWbKo1YDlcAHUqNSq50u7rIZ+nS6JcNh4oCzalsSys+SUysAG+Io1OEwx0neegNsnps/6EjQREucOjayVRIHv3xZ01Gbrav5SC8i9VIns1Y78+0MNnqmWhjjxx5aigLtlaDTGks+aXHUJrg1iRv+Awbul31uylJLy7+HZQZoiONl/TByX2/37zt0D8NWBqHwXgGv9mudgBgq7gRPaBD/wohtOglMCDWdME8XqNM9T6CPl0yDiZmkoHkF32Xqkgqoc/CdMgNmN2Sn8KxUTHFwHi/X0cmmUcbJFTOThgWtIPqCHgAaZ8Hx7MW7Ew8qHt/Cpz6CG2w9biJdhbdnQW2VAR/7Z08bgAsvtMBkwKRFweOyTVBKlYeYBQAxeeR//+KjXVD3Z+8IDhfXDtuH1buf5S6AxD/lJ2Jh+HIF1hBiCgNFWXZ9wGxA58rI9Le+It2cOYKuc5CNh36gJjoTdnWAqwGubTifDFg7VIuo/T/+UNNL7YaDSL0C9PbwSXZ12EJ2D54g4DJz/Jk20kzvg5+ThJTCly6xXmwB/qSRuGniLk6Sc94ZKPgpcZr3U4QgsmNOn9tXjA+XVw6zCQbdqTTsQO8ntjOXwSrHrv8mwYYAQ==
+
+The user is still not happy with the crack pattern. They want:
+1. Less regular/uniform cracks - not like a spiderweb with evenly spaced radial lines
+2. Straighter cracks - no curves at all
+
+The problem is I'm still using a radial pattern from an impact point which naturally creates a spiderweb look. Real shattered glass doesn't always have this perfect radial pattern - it's more chaotic.
+
+Let me think about how real glass shatters:
+- There can be one or more impact points
+- Cracks propagate in somewhat random directions
+- Cracks branch and fork
+- Cracks are mostly straight with sharp angle changes, not curves
+- The pattern is irregular and chaotic
+
+I should:
+1. Remove the wobble/sine wave stuff entirely - cracks should be straight lines
+2. Make the crack pattern more random - not perfectly radial
+3. Use straight line segments that branch at sharp angles
+4. Maybe use a different approach altogether - like generating random line segments
+
+Let me try a different approach: generate a set of random straight line segments that form an interconnected crack network, rather than the radial spiderweb pattern.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Coir9XF8bm1fLR5Ta78AeD
+
+## path
+
+<tool.toolu_01Coir9XF8bm1fLR5Ta78AeD>
+character-defs.ts
+</tool.toolu_01Coir9XF8bm1fLR5Ta78AeD>
+
+## git-commit-message
+
+<tool.toolu_01Coir9XF8bm1fLR5Ta78AeD>
+Rewrite $ with chaotic straight crack lines instead of spiderweb pattern
+</tool.toolu_01Coir9XF8bm1fLR5Ta78AeD>
+
+## diff
+
+<tool.toolu_01Coir9XF8bm1fLR5Ta78AeD>
+   const fragmentShader = `
+     precision highp float;
+     uniform sampler2D uTexture;
+     uniform vec2 uResolution;
+     uniform float uSeed;
+     uniform float uCrackIntensity;
+-    uniform float uNumRadialCracks;
++    uniform float uNumCracks;
+     varying vec2 vUV;
+     
+     #define PI 3.14159265359
++    #define MAX_CRACKS 60
+     
+     float hash(float n) {
+       return fract(sin(n * 127.1 + uSeed * 311.7) * 43758.5453);
+     }
+     
+-    float hash2(vec2 p) {
+-      return fract(sin(dot(p, vec2(127.1, 311.7)) + uSeed) * 43758.5453);
++    // Distance from point to line segment
++    float distToSegment(vec2 p, vec2 a, vec2 b) {
++      vec2 pa = p - a;
++      vec2 ba = b - a;
++      float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
++      return length(pa - ba * h);
+     }
+     
+-    vec2 getImpactPoint() {
+-      return vec2(
+-        0.25 + hash(uSeed * 1.1 + 0.5) * 0.5,
+-        0.25 + hash(uSeed * 2.3 + 0.7) * 0.5
+-      );
+-    }
+-    
+-    // Thin straight radial cracks with minor jitter
+-    float radialCracks(vec2 uv, vec2 impact, float numCracks) {
+-      vec2 delta = uv - impact;
+-      float dist = length(delta);
+-      if (dist < 0.001) return 1.0;
+-      
+-      float angle = atan(delta.y, delta.x);
+-      float baseAngle = hash(uSeed * 3.7) * PI * 2.0;
+-      
++    // Generate crack network - returns distance to nearest crack
++    float crackNetwork(vec2 uv) {
+       float minDist = 1.0;
+-      for (int i = 0; i < 20; i++) {
+-        if (float(i) >= numCracks) break;
+-        
+-        // Crack angle with slight random offset
+-        float crackAngle = baseAngle + float(i) * PI * 2.0 / numCracks;
+-        crackAngle += (hash(float(i) * 13.7 + uSeed) - 0.5) * 0.25;
+-        
+-        // Very slight wobble - almost straight
+-        float wobble = sin(dist * 40.0 + hash(float(i) + uSeed) * 30.0) * 0.008;
+-        
+-        float angleDiff = angle - crackAngle + wobble;
+-        angleDiff = mod(angleDiff + PI, PI * 2.0) - PI;
+-        
+-        // Thin crack
+-        float crackDist = abs(angleDiff) * dist;
+-        minDist = min(minDist, crackDist);
+-      }
+       
+-      // Very thin line
+-      return smoothstep(0.001, 0.003, minDist);
+-    }
+-    
+-    // Concentric arcs
+-    float concentricCracks(vec2 uv, vec2 impact) {
+-      vec2 delta = uv - impact;
+-      float dist = length(delta);
+-      float angle = atan(delta.y, delta.x);
++      int numCracks = int(uNumCracks);
+       
+-      float cracks = 1.0;
+-      float ringPos = 0.0;
+-      
+-      for (int i = 0; i < 4; i++) {
+-        ringPos += 0.1 + hash(float(i) * 23.0 + uSeed) * 0.15;
++      for (int i = 0; i < MAX_CRACKS; i++) {
++        if (i >= numCracks) break;
+         
+-        // Very slight wobble
+-        float ringWobble = sin(angle * 5.0 + float(i) * 2.0) * 0.008;
+-        float ringDist = ringPos + ringWobble;
++        float fi = float(i);
+         
+-        float ring = abs(dist - ringDist);
++        // Random start point
++        vec2 start = vec2(
++          hash(fi * 73.1 + 1.0),
++          hash(fi * 91.7 + 2.0)
++        );
+         
+-        // Broken into segments
+-        float segmentAngle = angle + hash(float(i) + uSeed) * PI;
+-        float segment = hash2(vec2(float(i), floor(segmentAngle * 4.0 / PI)));
+-        float isVisible = step(0.4, segment);
++        // Random angle (full 360)
++        float angle = hash(fi * 113.3 + 3.0) * PI * 2.0;
+         
+-        // Thin line
+-        float crackLine = 1.0 - (1.0 - smoothstep(0.001, 0.003, ring)) * isVisible;
+-        cracks = min(cracks, crackLine);
+-      }
+-      
+-      return cracks;
+-    }
+-    
+-    // Short branching cracks
+-    float branchCracks(vec2 uv, vec2 impact) {
+-      vec2 delta = uv - impact;
+-      float dist = length(delta);
+-      float angle = atan(delta.y, delta.x);
+-      
+-      float cracks = 1.0;
+-      
+-      for (int i = 0; i < 15; i++) {
+-        float branchAngle = hash(float(i) * 13.0 + uSeed * 1.3) * PI * 2.0;
+-        float branchStart = 0.08 + hash(float(i) * 17.0 + uSeed) * 0.4;
+-        float branchLen = 0.03 + hash(float(i) * 23.0 + uSeed) * 0.06;
++        // Random length
++        float len = 0.1 + hash(fi * 137.9 + 4.0) * 0.4;
+         
+-        // Slight curve
+-        float curve = (hash(float(i) * 31.0 + uSeed) - 0.5) * 0.15;
+-        float localDist = dist - branchStart;
+-        float curvedAngle = branchAngle + curve * localDist;
++        // End point - straight line
++        vec2 end = start + vec2(cos(angle), sin(angle)) * len;
+         
+-        float angleDiff = mod(angle - curvedAngle + PI, PI * 2.0) - PI;
++        // Distance to this crack segment
++        float d = distToSegment(uv, start, end);
++        minDist = min(minDist, d);
+         
+-        if (dist > branchStart && dist < branchStart + branchLen) {
+-          float branchDist = abs(angleDiff) * dist;
+-          cracks = min(cracks, smoothstep(0.001, 0.0025, branchDist));
++        // Add a branching crack from midpoint or endpoint
++        if (hash(fi * 157.3 + 5.0) > 0.4) {
++          float branchT = 0.3 + hash(fi * 173.7 + 6.0) * 0.5;
++          vec2 branchStart = mix(start, end, branchT);
++          
++          // Branch angle - fork off at sharp angle
++          float branchAngle = angle + (hash(fi * 193.1 + 7.0) - 0.5) * PI * 0.7;
++          float branchLen = len * (0.3 + hash(fi * 211.9 + 8.0) * 0.4);
++          vec2 branchEnd = branchStart + vec2(cos(branchAngle), sin(branchAngle)) * branchLen;
++          
++          float bd = distToSegment(uv, branchStart, branchEnd);
++          minDist = min(minDist, bd);
++          
++          // Sub-branch
++          if (hash(fi * 229.3 + 9.0) > 0.6) {
++            float subT = 0.4 + hash(fi * 241.7 + 10.0) * 0.4;
++            vec2 subStart = mix(branchStart, branchEnd, subT);
++            float subAngle = branchAngle + (hash(fi * 257.1 + 11.0) - 0.5) * PI * 0.5;
++            float subLen = branchLen * 0.5;
++            vec2 subEnd = subStart + vec2(cos(subAngle), sin(subAngle)) * subLen;
++            
++            float sd = distToSegment(uv, subStart, subEnd);
++            minDist = min(minDist, sd);
++          }
+         }
+       }
+       
+-      return cracks;
++      return minDist;
+     }
+     
+-    // Get shard ID for a given point
+-    float getShardId(vec2 uv, vec2 impact, float numCracks) {
+-      vec2 delta = uv - impact;
+-      float angle = atan(delta.y, delta.x);
+-      float dist = length(delta);
+-      
+-      float baseAngle = hash(uSeed * 3.7) * PI * 2.0;
+-      
+-      // Find which radial segment
+-      float radialId = 0.0;
+-      for (int i = 0; i < 20; i++) {
+-        if (float(i) >= numCracks) break;
+-        float crackAngle = baseAngle + float(i) * PI * 2.0 / numCracks;
+-        crackAngle += (hash(float(i) * 13.7 + uSeed) - 0.5) * 0.25;
+-        if (angle > crackAngle) radialId = float(i);
+-      }
+-      
+-      // Find which ring segment
+-      float ringId = 0.0;
+-      float ringPos = 0.0;
+-      for (int i = 0; i < 4; i++) {
+-        ringPos += 0.1 + hash(float(i) * 23.0 + uSeed) * 0.15;
+-        if (dist > ringPos) ringId = float(i + 1);
+-      }
+-      
+-      return radialId * 10.0 + ringId;
++    // Get a shard ID based on position
++    float getShardId(vec2 uv) {
++      // Use grid-based ID with some randomization
++      vec2 cell = floor(uv * 8.0 + uSeed);
++      return hash(dot(cell, vec2(127.1, 311.7)));
+     }
+     
+     void main() {
+       vec2 uv = vUV;
+-      vec2 impact = getImpactPoint();
+       
+-      // Calculate crack patterns
+-      float radial = radialCracks(uv, impact, uNumRadialCracks);
+-      float concentric = concentricCracks(uv, impact);
+-      float branches = branchCracks(uv, impact);
++      // Get distance to nearest crack
++      float crackDist = crackNetwork(uv);
+       
+-      float crackMask = min(radial, min(concentric, branches));
+-      float isCrack = 1.0 - crackMask;
++      // Crack line - very thin
++      float crackLine = smoothstep(0.0015, 0.004, crackDist);
++      float isCrack = 1.0 - crackLine;
+       
+-      // Get shard info
+-      vec2 delta = uv - impact;
+-      float dist = length(delta);
+-      float shardId = getShardId(uv, impact, uNumRadialCracks);
+-      float shardHash = hash(shardId * 7.0 + uSeed * 5.0);
+-      float shardHash2 = hash(shardId * 13.0 + uSeed * 3.0);
++      // Shard properties
++      float shardId = getShardId(uv);
++      float shardHash2 = hash(shardId * 311.7 + uSeed);
+       
+-      // Subtle displacement per shard
+-      float displacement = uCrackIntensity * 0.008 * shardHash;
+-      vec2 dir = dist > 0.001 ? normalize(delta) : vec2(0.0);
+-      vec2 shardOffset = dir * displacement;
++      // Displacement based on shard - use crack distance to determine displacement direction
++      vec2 displaceDir = vec2(
++        hash(shardId * 127.1) - 0.5,
++        hash(shardId * 283.3) - 0.5
++      );
++      displaceDir = normalize(displaceDir + 0.001);
+       
+-      // Tiny rotation per shard
+-      float rotation = (shardHash - 0.5) * 0.015 * uCrackIntensity;
++      float displaceAmount = uCrackIntensity * 0.006 * shardId;
++      vec2 displacement = displaceDir * displaceAmount;
++      
++      // Slight per-shard rotation
++      float rotation = (shardId - 0.5) * 0.01 * uCrackIntensity;
++      vec2 center = vec2(0.5);
++      vec2 centered = uv - center;
+       float cs = cos(rotation);
+       float sn = sin(rotation);
+-      vec2 centered = uv - impact;
+       vec2 rotated = vec2(centered.x * cs - centered.y * sn, centered.x * sn + centered.y * cs);
+-      vec2 displacedUV = impact + rotated + shardOffset;
+       
+-      vec2 finalUV = clamp(displacedUV, 0.001, 0.999);
++      vec2 finalUV = clamp(center + rotated + displacement, 0.001, 0.999);
+       vec3 color = texture2D(uTexture, finalUV).rgb;
+       
+-      // Glass reflection per shard - simulate slight angle differences
+-      float reflectAngle = shardHash * PI * 2.0;
+-      vec2 reflectDir = vec2(cos(reflectAngle), sin(reflectAngle));
++      // Glass shard reflection - subtle specular based on shard angle
++      float specular = pow(shardHash2, 4.0) * 0.08 * uCrackIntensity;
++      color += vec3(specular);
+       
+-      // Fresnel-like effect: edges of shards brighter
+-      float edgeFactor = 1.0 - smoothstep(0.003, 0.015, min(min(radial, concentric), branches));
+-      
+-      // Specular highlight per shard based on its "tilt"
+-      float specular = pow(max(0.0, shardHash2 * 0.5 + 0.3), 3.0) * 0.12;
+-      
+-      // Add glass reflection/specular
+-      vec3 glassColor = color;
+-      glassColor += vec3(specular * uCrackIntensity);
+-      
+-      // Slight tint variation per shard (glass color variation)
+-      vec3 tint = vec3(
+-        1.0 + (shardHash - 0.5) * 0.03,
+-        1.0 + (shardHash2 - 0.5) * 0.02,
+-        1.0 + (hash(shardId * 17.0 + uSeed) - 0.5) * 0.04
++      // Slight color tint per shard
++      color *= vec3(
++        1.0 + (shardId - 0.5) * 0.02,
++        1.0 + (shardHash2 - 0.5) * 0.015,
++        1.0 + (hash(shardId * 431.1) - 0.5) * 0.025
+       );
+-      glassColor *= tint;
+       
+-      color = glassColor;
+-      
+-      // Crack rendering - thin bright lines
+-      if (isCrack > 0.3) {
+-        // Cracks catch light - bright white
+-        vec3 crackColor = vec3(1.0);
+-        float crackAlpha = smoothstep(0.3, 0.7, isCrack) * 0.9;
+-        color = mix(color, crackColor, crackAlpha);
++      // Crack rendering - bright white lines
++      if (isCrack > 0.2) {
++        vec3 crackColor = vec3(0.95, 0.97, 1.0);
++        color = mix(color, crackColor, isCrack * 0.85);
+       }
+       
+-      // Chromatic aberration at crack edges only
+-      if (isCrack > 0.1 && isCrack < 0.5) {
+-        float aberration = 0.004 * uCrackIntensity;
+-        color.r = texture2D(uTexture, clamp(finalUV + vec2(aberration, 0.0), 0.001, 0.999)).r;
+-        color.b = texture2D(uTexture, clamp(finalUV - vec2(aberration, 0.0), 0.001, 0.999)).b;
++      // Subtle chromatic aberration near cracks
++      if (crackDist < 0.02) {
++        float aberr = (0.02 - crackDist) * 0.15 * uCrackIntensity;
++        color.r = texture2D(uTexture, clamp(finalUV + vec2(aberr, 0.0), 0.001, 0.999)).r;
++        color.b = texture2D(uTexture, clamp(finalUV - vec2(aberr, 0.0), 0.001, 0.999)).b;
+       }
+       
+       gl_FragColor = vec4(color, 1.0);
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_01Coir9XF8bm1fLR5Ta78AeD>
+
+# TOOL RESULT
+
+ID: toolu_01Coir9XF8bm1fLR5Ta78AeD
+
+<tool.toolu_01Coir9XF8bm1fLR5Ta78AeD>
+
+</tool.toolu_01Coir9XF8bm1fLR5Ta78AeD>
