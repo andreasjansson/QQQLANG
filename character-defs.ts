@@ -985,124 +985,57 @@ function fnT(ctx: FnContext, n: number): Image {
   
   const numDrawers = Math.max(1, Math.min(n + 1, 12));
   
+  // Vertex shader with MVP transformation
   const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
     void main() {
-      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
-      gl_Position = vec4(position, 0.0, 1.0);
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * uView * worldPos;
     }
   `;
   
+  // Fragment shader with lighting
   const fragmentShader = `
     precision highp float;
-    uniform sampler2D texture;
-    uniform vec2 resolution;
-    uniform int numDrawers;
-    varying vec2 vUV;
     
-    float hash(float n) {
-      return fract(sin(n) * 43758.5453);
-    }
+    uniform sampler2D uTexture;
+    uniform vec3 uLightDir;
+    uniform int uFaceType; // 0 = front, 1 = side, 2 = top/bottom
     
-    // Check if point p is inside quadrilateral defined by 4 corners (CCW order)
-    bool inQuad(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d) {
-      vec2 ab = b - a, bc = c - b, cd = d - c, da = a - d;
-      vec2 ap = p - a, bp = p - b, cp = p - c, dp = p - d;
-      float cross1 = ab.x * ap.y - ab.y * ap.x;
-      float cross2 = bc.x * bp.y - bc.y * bp.x;
-      float cross3 = cd.x * cp.y - cd.y * cp.x;
-      float cross4 = da.x * dp.y - da.y * dp.x;
-      return (cross1 >= 0.0 && cross2 >= 0.0 && cross3 >= 0.0 && cross4 >= 0.0) ||
-             (cross1 <= 0.0 && cross2 <= 0.0 && cross3 <= 0.0 && cross4 <= 0.0);
-    }
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
     
     void main() {
-      vec2 uv = vUV;
-      vec3 baseColor = texture2D(texture, uv).rgb;
+      vec3 normal = normalize(vNormal);
+      vec3 lightDir = normalize(uLightDir);
       
-      float maxDepth = -1.0;
-      vec3 finalColor = baseColor;
+      float ambient = 0.3;
+      float diffuse = max(dot(normal, lightDir), 0.0) * 0.7;
+      float lighting = ambient + diffuse;
       
-      for (int i = 0; i < 12; i++) {
-        if (i >= numDrawers) break;
-        
-        float fi = float(i);
-        float cx = 0.15 + hash(fi * 127.1) * 0.7;
-        float cy = 0.15 + hash(fi * 311.7) * 0.7;
-        float hw = 0.04 + hash(fi * 74.3) * 0.08;
-        float hh = 0.03 + hash(fi * 183.9) * 0.06;
-        float depth = 0.3 + hash(fi * 271.3) * 0.5;
-        
-        // Back face corners (on the wall, smaller)
-        vec2 backBL = vec2(cx - hw, cy - hh);
-        vec2 backBR = vec2(cx + hw, cy - hh);
-        vec2 backTR = vec2(cx + hw, cy + hh);
-        vec2 backTL = vec2(cx - hw, cy + hh);
-        
-        // Front face corners (towards camera, larger due to perspective)
-        float scale = 1.0 + depth * 1.5;
-        vec2 frontBL = vec2(cx - hw * scale, cy - hh * scale);
-        vec2 frontBR = vec2(cx + hw * scale, cy - hh * scale);
-        vec2 frontTR = vec2(cx + hw * scale, cy + hh * scale);
-        vec2 frontTL = vec2(cx - hw * scale, cy + hh * scale);
-        
-        // Check front face (rectangle)
-        if (uv.x >= frontBL.x && uv.x <= frontBR.x && uv.y >= frontBL.y && uv.y <= frontTL.y) {
-          if (depth > maxDepth) {
-            maxDepth = depth;
-            // Map screen position to texture position on back face
-            vec2 t = (uv - frontBL) / (frontTR - frontBL);
-            vec2 texCoord = backBL + t * (backTR - backBL);
-            finalColor = texture2D(texture, texCoord).rgb;
-          }
-        }
-        // Left side (trapezoid)
-        else if (inQuad(uv, frontBL, backBL, backTL, frontTL)) {
-          if (depth > maxDepth) {
-            maxDepth = depth;
-            float t = (uv.x - frontBL.x) / (backBL.x - frontBL.x);
-            vec2 texCoord = vec2(backBL.x, mix(frontBL.y, frontTL.y, (uv.y - frontBL.y) / (frontTL.y - frontBL.y)));
-            texCoord.y = backBL.y + (uv.y - frontBL.y) / (frontTL.y - frontBL.y) * (backTL.y - backBL.y);
-            finalColor = texture2D(texture, texCoord).rgb * (0.35 + 0.15 * t);
-          }
-        }
-        // Right side (trapezoid)
-        else if (inQuad(uv, frontBR, frontTR, backTR, backBR)) {
-          if (depth > maxDepth) {
-            maxDepth = depth;
-            float t = (uv.x - frontBR.x) / (backBR.x - frontBR.x);
-            vec2 texCoord = vec2(backBR.x, backBR.y + (uv.y - frontBR.y) / (frontTR.y - frontBR.y) * (backTR.y - backBR.y));
-            finalColor = texture2D(texture, texCoord).rgb * (0.35 + 0.15 * t);
-          }
-        }
-        // Top side (trapezoid)
-        else if (inQuad(uv, frontTL, frontTR, backTR, backTL)) {
-          if (depth > maxDepth) {
-            maxDepth = depth;
-            float t = (uv.y - frontTL.y) / (backTL.y - frontTL.y);
-            vec2 texCoord = vec2(backTL.x + (uv.x - frontTL.x) / (frontTR.x - frontTL.x) * (backTR.x - backTL.x), backTL.y);
-            finalColor = texture2D(texture, texCoord).rgb * (0.5 + 0.2 * t);
-          }
-        }
-        // Bottom side (trapezoid)
-        else if (inQuad(uv, frontBL, frontBR, backBR, backBL)) {
-          if (depth > maxDepth) {
-            maxDepth = depth;
-            float t = (frontBL.y - uv.y) / (frontBL.y - backBL.y);
-            vec2 texCoord = vec2(backBL.x + (uv.x - frontBL.x) / (frontBR.x - frontBL.x) * (backBR.x - backBL.x), backBL.y);
-            finalColor = texture2D(texture, texCoord).rgb * (0.4 + 0.15 * t);
-          }
-        }
-      }
-      
-      gl_FragColor = vec4(finalColor, 1.0);
+      vec3 color = texture2D(uTexture, vTexCoord).rgb * lighting;
+      gl_FragColor = vec4(color, 1.0);
     }
   `;
   
   const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
   
+  // Create texture from prev image
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
@@ -1111,22 +1044,166 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  // Helper to create box geometry
+  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number): { vertices: number[], normals: number[], texCoords: number[] } {
+    const x0 = cx - hw, x1 = cx + hw;
+    const y0 = cy - hh, y1 = cy + hh;
+    const z0 = 0, z1 = depth;
+    
+    // Texture coords based on box position in image
+    const u0 = cx - hw, u1 = cx + hw;
+    const v0 = cy - hh, v1 = cy + hh;
+    
+    const vertices: number[] = [];
+    const normals: number[] = [];
+    const texCoords: number[] = [];
+    
+    // Front face (z = z1, facing +z towards camera)
+    vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(0,0,1);
+    texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
+    
+    // Right face (+x)
+    vertices.push(x1,y0,z0, x1,y0,z1, x1,y1,z1, x1,y0,z0, x1,y1,z1, x1,y1,z0);
+    for(let i=0;i<6;i++) normals.push(1,0,0);
+    texCoords.push(u1,v0, u1,v0, u1,v1, u1,v0, u1,v1, u1,v1);
+    
+    // Left face (-x)
+    vertices.push(x0,y0,z1, x0,y0,z0, x0,y1,z0, x0,y0,z1, x0,y1,z0, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(-1,0,0);
+    texCoords.push(u0,v0, u0,v0, u0,v1, u0,v0, u0,v1, u0,v1);
+    
+    // Top face (+y)
+    vertices.push(x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z1, x1,y1,z0, x0,y1,z0);
+    for(let i=0;i<6;i++) normals.push(0,1,0);
+    texCoords.push(u0,v1, u1,v1, u1,v1, u0,v1, u1,v1, u0,v1);
+    
+    // Bottom face (-y)
+    vertices.push(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z0, x1,y0,z1, x0,y0,z1);
+    for(let i=0;i<6;i++) normals.push(0,-1,0);
+    texCoords.push(u0,v0, u1,v0, u1,v0, u0,v0, u1,v0, u0,v0);
+    
+    return { vertices, normals, texCoords };
+  }
   
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  // Seeded random
+  const hash = (n: number) => {
+    const x = Math.sin(n) * 43758.5453;
+    return x - Math.floor(x);
+  };
   
-  gl.uniform1i(gl.getUniformLocation(program, 'texture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'resolution'), ctx.width, ctx.height);
-  gl.uniform1i(gl.getUniformLocation(program, 'numDrawers'), numDrawers);
+  // Generate all boxes
+  const allVertices: number[] = [];
+  const allNormals: number[] = [];
+  const allTexCoords: number[] = [];
+  
+  for (let i = 0; i < numDrawers; i++) {
+    const cx = 0.15 + hash(i * 127.1) * 0.7;
+    const cy = 0.15 + hash(i * 311.7) * 0.7;
+    const hw = 0.05 + hash(i * 74.3) * 0.1;
+    const hh = 0.04 + hash(i * 183.9) * 0.08;
+    const depth = 0.3 + hash(i * 271.3) * 0.7;
+    
+    const box = createBox(cx, cy, hw, hh, depth);
+    allVertices.push(...box.vertices);
+    allNormals.push(...box.normals);
+    allTexCoords.push(...box.texCoords);
+  }
+  
+  // First render the background quad
+  gl.useProgram(program);
+  gl.disable(gl.DEPTH_TEST);
+  
+  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
+  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
+  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
+  
+  const posLoc = gl.getAttribLocation(program, 'aPosition');
+  const normLoc = gl.getAttribLocation(program, 'aNormal');
+  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
+  
+  // Identity matrices for background
+  const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), 0.3, 0.5, 1.0);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  
+  const bgPosBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgVertices, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgNormBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgNormals, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgTexBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgTexCoords, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
   
+  // Now render boxes with depth testing
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LESS);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  
+  // Perspective projection
+  const aspect = ctx.width / ctx.height;
+  const fov = Math.PI / 4;
+  const near = 0.1, far = 10.0;
+  const f = 1.0 / Math.tan(fov / 2);
+  const perspective = new Float32Array([
+    f/aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far+near)/(near-far), -1,
+    0, 0, (2*far*near)/(near-far), 0
+  ]);
+  
+  // View matrix - camera at z=2 looking at origin
+  const view = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    -0.5, -0.5, -2, 1
+  ]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
+  
+  const posBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allVertices), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const normBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allNormals), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const texBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allTexCoords), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+  
+  // Read pixels
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
   
@@ -1142,8 +1219,14 @@ function fnT(ctx: FnContext, n: number): Image {
     }
   }
   
+  // Cleanup
   gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
+  gl.deleteBuffer(bgPosBuf);
+  gl.deleteBuffer(bgNormBuf);
+  gl.deleteBuffer(bgTexBuf);
+  gl.deleteBuffer(posBuf);
+  gl.deleteBuffer(normBuf);
+  gl.deleteBuffer(texBuf);
   gl.deleteProgram(program);
   
   return { width: ctx.width, height: ctx.height, data: flipped };
