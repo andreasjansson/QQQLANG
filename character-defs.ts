@@ -963,11 +963,18 @@ function fnEntangle(ctx: FnContext, j: number): Image {
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
+  const rule = 30;
+  const cells = new Uint8Array(ctx.width);
+  cells[Math.floor(ctx.width / 2)] = 1;
+  
+  const applyRule = (left: number, center: number, right: number): number => {
+    const idx = (left << 2) | (center << 1) | right;
+    return (rule >> idx) & 1;
+  };
+  
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const pattern = ((x ^ y) >> 3) & 1;
-      
-      if (pattern === 1) {
+      if (cells[x] === 1) {
         const [r, g, b] = getPixel(prev, x, y);
         setPixel(out, x, y, r, g, b);
       } else {
@@ -975,6 +982,15 @@ function fnEntangle(ctx: FnContext, j: number): Image {
         setPixel(out, x, y, r, g, b);
       }
     }
+    
+    const newCells = new Uint8Array(ctx.width);
+    for (let x = 0; x < ctx.width; x++) {
+      const left = cells[(x - 1 + ctx.width) % ctx.width];
+      const center = cells[x];
+      const right = cells[(x + 1) % ctx.width];
+      newCells[x] = applyRule(left, center, right);
+    }
+    cells.set(newCells);
   }
   
   return out;
