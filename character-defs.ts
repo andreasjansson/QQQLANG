@@ -2102,6 +2102,54 @@ function fn9(ctx: FnContext, j: number): Image {
   return out;
 }
 
+function fnLessThan(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const shift = Math.floor(ctx.width / 3);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcX = (x + shift) % ctx.width;
+      const [r, g, b] = getPixel(prev, srcX, y);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fnGreaterThan(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const shift = Math.floor(ctx.width / 3);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcX = ((x - shift) % ctx.width + ctx.width) % ctx.width;
+      const [r, g, b] = getPixel(prev, srcX, y);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fnCaret(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const shift = Math.floor(ctx.height / 3);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcY = (y + shift) % ctx.height;
+      const [r, g, b] = getPixel(prev, x, srcY);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
