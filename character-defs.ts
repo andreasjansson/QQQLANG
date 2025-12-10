@@ -1570,9 +1570,10 @@ function fn2(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const oldest = ctx.images.length > 0 ? ctx.images[0] : prev;
-  const midIdx = Math.floor(ctx.images.length / 2);
-  const middle = ctx.images.length > 0 ? ctx.images[midIdx] : prev;
+  const len = ctx.images.length;
+  const img3 = len >= 3 ? ctx.images[len - 3] : (len >= 1 ? ctx.images[0] : prev);
+  const img2 = len >= 2 ? ctx.images[len - 2] : prev;
+  const img1 = prev;
   
   const third1 = Math.floor(ctx.width / 3);
   const third2 = Math.floor(ctx.width * 2 / 3);
@@ -1581,11 +1582,11 @@ function fn2(ctx: FnContext): Image {
     for (let x = 0; x < ctx.width; x++) {
       let src: Image;
       if (x < third1) {
-        src = oldest;
+        src = img3;
       } else if (x < third2) {
-        src = middle;
+        src = img2;
       } else {
-        src = prev;
+        src = img1;
       }
       const [r, g, b] = getPixel(src, x, y);
       setPixel(out, x, y, r, g, b);
