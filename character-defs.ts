@@ -1908,19 +1908,12 @@ function fnX(ctx: FnContext, k: number, c: string): Image {
   
   const maskData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
   
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxDist = Math.min(ctx.width, ctx.height) * 0.45;
-  
   for (let y = 0; y < ctx.height; y++) {
+    const t = y / ctx.height;
+    
     for (let x = 0; x < ctx.width; x++) {
       const maskIdx = (y * ctx.width + x) * 4;
       if (maskData.data[maskIdx] > 128) {
-        const dx = x - cx;
-        const dy = y - cy;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const t = Math.min(1, dist / maxDist);
-        
         const [pr, pg, pb] = getPixel(prev, x, y);
         
         const nr = Math.round(cr * (1 - t) + pr * t);
