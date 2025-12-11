@@ -4087,8 +4087,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnGreaterThan,
     arity: 0,
     argTypes: [],
-    functionName: "shift-right",
-    documentation: "Shifts prev 1/3 of the width to the right with wraparound"
+    functionName: "rotate-90",
+    documentation: "Rotates prev 90 degrees clockwise"
   },
   
   '^': {
