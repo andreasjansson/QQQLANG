@@ -1154,33 +1154,57 @@ function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const strength = Math.max(0.0001, Math.min(0.0002 + (n - 1) * 0.05, 8));
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
+  const strength = Math.max(1, n);
+  const seed = ctx.images.length * 137.5;
+  
+  const freq = new Float32Array(ctx.width * ctx.height);
+  
+  for (let y = 1; y < ctx.height - 1; y++) {
+    for (let x = 1; x < ctx.width - 1; x++) {
+      let gx = 0, gy = 0;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const [r, g, b] = getPixel(prev, x + kx, y + ky);
+          const gray = r * 0.299 + g * 0.587 + b * 0.114;
+          gx += gray * (kx === 0 ? 0 : kx > 0 ? 1 : -1) * (ky === 0 ? 2 : 1);
+          gy += gray * (ky === 0 ? 0 : ky > 0 ? 1 : -1) * (kx === 0 ? 2 : 1);
+        }
+      }
+      freq[y * ctx.width + x] = Math.min(1, Math.sqrt(gx * gx + gy * gy) / 400);
+    }
+  }
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
+      const localFreq = freq[y * ctx.width + x] || 0;
       
-      const normX = dx / cx;
-      const normY = dy / cy;
-      const normR = Math.min(1, Math.sqrt(normX * normX + normY * normY));
+      const wave1 = Math.sin(y * 0.03 * strength + seed) * strength * 8;
+      const wave2 = Math.sin(x * 0.05 * strength + y * 0.02 + seed * 1.3) * strength * 5;
+      const wave3 = Math.cos((x + y) * 0.04 * strength + seed * 0.7) * strength * 3;
       
-      if (normR < 0.001) {
-        const [pr, pg, pb] = getPixel(prev, Math.floor(cx), Math.floor(cy));
-        setPixel(out, x, y, pr, pg, pb);
-        continue;
-      }
+      const freqMult = 0.3 + localFreq * localFreq * 10;
+      const dispX = (wave1 + wave3) * freqMult;
+      const dispY = (wave2 + wave3) * freqMult;
       
-      const falloff = 1 - normR;
-      const factor = 1 + (strength - 1) * falloff;
+      const angle = localFreq * Math.PI * 2 * strength;
+      const scatter = localFreq * strength * 8;
       
-      const sx = cx + dx * factor;
-      const sy = cy + dy * factor;
+      const rAngle = angle;
+      const gAngle = angle + Math.PI * 2 / 3;
+      const bAngle = angle + Math.PI * 4 / 3;
       
-      const [pr, pg, pb] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      setPixel(out, x, y, pr, pg, pb);
+      const rx = x + dispX + Math.cos(rAngle) * scatter;
+      const ry = y + dispY + Math.sin(rAngle) * scatter;
+      const gx = x + dispX + Math.cos(gAngle) * scatter;
+      const gy = y + dispY + Math.sin(gAngle) * scatter;
+      const bx = x + dispX + Math.cos(bAngle) * scatter;
+      const by = y + dispY + Math.sin(bAngle) * scatter;
+      
+      const [r] = getPixel(prev, Math.floor(rx), Math.floor(ry));
+      const [, g] = getPixel(prev, Math.floor(gx), Math.floor(gy));
+      const [, , b] = getPixel(prev, Math.floor(bx), Math.floor(by));
+      
+      setPixel(out, x, y, r, g, b);
     }
   }
   
