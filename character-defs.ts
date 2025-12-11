@@ -1391,24 +1391,23 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.add(light);
   }
 
-  // Glass emerald material
+  // Glass emerald material - transmission requires specific setup
   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.0, 0.8, 0.28),
+    color: new THREE.Color(0.15, 0.9, 0.4),
     metalness: 0.0,
     roughness: 0.0,
-    transmission: 0.92,
-    thickness: 0.6,
-    ior: 1.65,
-    envMapIntensity: 0.35,
+    transmission: 1.0,  // Full transmission for glass
+    thickness: 1.0,     // Thicker for more refraction
+    ior: 1.57,          // Emerald IOR
+    envMapIntensity: 1.0,
     clearcoat: 1.0,
     clearcoatRoughness: 0.0,
     transparent: true,
-    opacity: 1.0,
     side: THREE.DoubleSide,
     flatShading: true,
-    attenuationColor: new THREE.Color(0.0, 0.5, 0.15),
-    attenuationDistance: 0.4,
-    specularIntensity: 1.5,
+    attenuationColor: new THREE.Color(0.0, 0.4, 0.1),
+    attenuationDistance: 0.5,
+    specularIntensity: 2.0,
     specularColor: new THREE.Color(1, 1, 1),
   });
   
