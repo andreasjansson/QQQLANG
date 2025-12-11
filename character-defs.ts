@@ -547,339 +547,51 @@ function fnG(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnH(ctx: FnContext, j: number, rot: number): Image {
+function fnH(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const gl = initWebGL(ctx.width, ctx.height);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const rotation = rot * 0.3;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
   
-  const vertexShader = `
-    attribute vec3 aPosition;
-    attribute vec3 aNormal;
-    attribute vec2 aTexCoord;
-    
-    uniform mat4 uProjection;
-    uniform mat4 uModelView;
-    uniform mat3 uNormalMatrix;
-    
-    varying vec3 vNormal;
-    varying vec3 vPosition;
-    varying vec2 vTexCoord;
-    
-    void main() {
-      vPosition = (uModelView * vec4(aPosition, 1.0)).xyz;
-      vNormal = uNormalMatrix * aNormal;
-      vTexCoord = aTexCoord;
-      gl_Position = uProjection * vec4(vPosition, 1.0);
-    }
-  `;
-  
-  const fragmentShader = `
-    precision highp float;
-    
-    uniform sampler2D uTexture;
-    uniform vec3 uLightPos;
-    
-    varying vec3 vNormal;
-    varying vec3 vPosition;
-    varying vec2 vTexCoord;
-    
-    void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 viewDir = normalize(-vPosition);
-      vec3 lightDir = normalize(uLightPos - vPosition);
-      vec3 halfDir = normalize(lightDir + viewDir);
-      
-      float diff = max(dot(normal, lightDir), 0.0);
-      float spec = pow(max(dot(normal, halfDir), 0.0), 32.0);
-      
-      float ambient = 0.3;
-      float diffuse = diff * 0.6;
-      float specular = spec * 0.5;
-      
-      vec3 texColor = texture2D(uTexture, vTexCoord).rgb;
-      vec3 color = texColor * (ambient + diffuse) + vec3(1.0) * specular;
-      
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
-  
-  const bgVertShader = `
-    attribute vec2 aPosition;
-    varying vec2 vUV;
-    void main() {
-      vUV = aPosition * 0.5 + 0.5;
-      gl_Position = vec4(aPosition, 0.999, 1.0);
-    }
-  `;
-  
-  const bgFragShader = `
-    precision highp float;
-    uniform sampler2D uBgTexture;
-    varying vec2 vUV;
-    void main() {
-      gl_FragColor = texture2D(uBgTexture, vec2(vUV.x, 1.0 - vUV.y));
-    }
-  `;
-  
-  const tubeProgram = createShaderProgram(gl, vertexShader, fragmentShader);
-  const bgProgram = createShaderProgram(gl, bgVertShader, bgFragShader);
-  
-  const prevTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const oldTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const texCoords: number[] = [];
-  
-  const numFibers = 12;
-  const tubeRadius = 0.06;
-  const fiberSegments = 80;
-  const radialSegments = 8;
-  
-  const cross = (a: number[], b: number[]): number[] => [
-    a[1]*b[2] - a[2]*b[1],
-    a[2]*b[0] - a[0]*b[2],
-    a[0]*b[1] - a[1]*b[0]
-  ];
-  const normalize = (v: number[]): number[] => {
-    const len = Math.sqrt(v[0]**2 + v[1]**2 + v[2]**2);
-    if (len < 0.0001) return [1, 0, 0];
-    return [v[0]/len, v[1]/len, v[2]/len];
-  };
-  
-  const hopfFiber = (theta: number, phi: number, t: number): number[] => {
-    const ct = Math.cos(t), st = Math.sin(t);
-    const cth = Math.cos(theta / 2), sth = Math.sin(theta / 2);
-    const cph = Math.cos(phi), sph = Math.sin(phi);
-    
-    const w = cth * ct;
-    const x = cth * st;
-    const y = sth * Math.cos(phi + t);
-    const z = sth * Math.sin(phi + t);
-    
-    const denom = 1 - w;
-    if (Math.abs(denom) < 0.001) {
-      return [x * 10, y * 10, z * 10];
-    }
-    return [x / denom * 0.5, y / denom * 0.5, z / denom * 0.5];
-  };
-  
-  for (let f = 0; f < numFibers; f++) {
-    const theta = (f / numFibers) * Math.PI;
-    const phi = (f / numFibers) * Math.PI * 4;
-    
-    const fiberPoints: number[][] = [];
-    for (let i = 0; i <= fiberSegments; i++) {
-      const t = (i / fiberSegments) * Math.PI * 2;
-      fiberPoints.push(hopfFiber(theta, phi, t));
-    }
-    
-    const frames: {point: number[], normal: number[], binormal: number[]}[] = [];
-    let prevNormal = [1, 0, 0];
-    
-    for (let i = 0; i <= fiberSegments; i++) {
-      const point = fiberPoints[i];
-      const next = fiberPoints[(i + 1) % fiberPoints.length];
-      const prev_pt = fiberPoints[(i - 1 + fiberPoints.length) % fiberPoints.length];
-      const tangent = normalize([next[0] - prev_pt[0], next[1] - prev_pt[1], next[2] - prev_pt[2]]);
-      
-      let normal = normalize(cross(cross(tangent, prevNormal), tangent));
-      if (normal[0] === 0 && normal[1] === 0 && normal[2] === 0) {
-        normal = [1, 0, 0];
-      }
-      const binormal = normalize(cross(tangent, normal));
-      
-      frames.push({ point, normal, binormal });
-      prevNormal = normal;
-    }
-    
-    for (let i = 0; i < fiberSegments; i++) {
-      const f0 = frames[i];
-      const f1 = frames[i + 1];
-      
-      for (let r = 0; r < radialSegments; r++) {
-        const angle0 = (r / radialSegments) * Math.PI * 2;
-        const angle1 = ((r + 1) / radialSegments) * Math.PI * 2;
-        
-        const cos0 = Math.cos(angle0), sin0 = Math.sin(angle0);
-        const cos1 = Math.cos(angle1), sin1 = Math.sin(angle1);
-        
-        const v00 = [
-          f0.point[0] + (f0.normal[0] * cos0 + f0.binormal[0] * sin0) * tubeRadius,
-          f0.point[1] + (f0.normal[1] * cos0 + f0.binormal[1] * sin0) * tubeRadius,
-          f0.point[2] + (f0.normal[2] * cos0 + f0.binormal[2] * sin0) * tubeRadius
-        ];
-        const v01 = [
-          f0.point[0] + (f0.normal[0] * cos1 + f0.binormal[0] * sin1) * tubeRadius,
-          f0.point[1] + (f0.normal[1] * cos1 + f0.binormal[1] * sin1) * tubeRadius,
-          f0.point[2] + (f0.normal[2] * cos1 + f0.binormal[2] * sin1) * tubeRadius
-        ];
-        const v10 = [
-          f1.point[0] + (f1.normal[0] * cos0 + f1.binormal[0] * sin0) * tubeRadius,
-          f1.point[1] + (f1.normal[1] * cos0 + f1.binormal[1] * sin0) * tubeRadius,
-          f1.point[2] + (f1.normal[2] * cos0 + f1.binormal[2] * sin0) * tubeRadius
-        ];
-        const v11 = [
-          f1.point[0] + (f1.normal[0] * cos1 + f1.binormal[0] * sin1) * tubeRadius,
-          f1.point[1] + (f1.normal[1] * cos1 + f1.binormal[1] * sin1) * tubeRadius,
-          f1.point[2] + (f1.normal[2] * cos1 + f1.binormal[2] * sin1) * tubeRadius
-        ];
-        
-        const n00 = [f0.normal[0] * cos0 + f0.binormal[0] * sin0, f0.normal[1] * cos0 + f0.binormal[1] * sin0, f0.normal[2] * cos0 + f0.binormal[2] * sin0];
-        const n01 = [f0.normal[0] * cos1 + f0.binormal[0] * sin1, f0.normal[1] * cos1 + f0.binormal[1] * sin1, f0.normal[2] * cos1 + f0.binormal[2] * sin1];
-        const n10 = [f1.normal[0] * cos0 + f1.binormal[0] * sin0, f1.normal[1] * cos0 + f1.binormal[1] * sin0, f1.normal[2] * cos0 + f1.binormal[2] * sin0];
-        const n11 = [f1.normal[0] * cos1 + f1.binormal[0] * sin1, f1.normal[1] * cos1 + f1.binormal[1] * sin1, f1.normal[2] * cos1 + f1.binormal[2] * sin1];
-        
-        const u0 = i / fiberSegments + f / numFibers;
-        const u1 = (i + 1) / fiberSegments + f / numFibers;
-        const v0 = r / radialSegments;
-        const v1 = (r + 1) / radialSegments;
-        
-        positions.push(...v00, ...v10, ...v11, ...v00, ...v11, ...v01);
-        normals.push(...n00, ...n10, ...n11, ...n00, ...n11, ...n01);
-        texCoords.push(u0, v0, u1, v0, u1, v1, u0, v0, u1, v1, u0, v1);
-      }
-    }
-  }
-  
-  gl.enable(gl.DEPTH_TEST);
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.clearColor(0, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  
-  gl.useProgram(bgProgram);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
-  gl.uniform1i(gl.getUniformLocation(bgProgram, 'uBgTexture'), 0);
-  
-  const bgVerts = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const bgBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, bgBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, bgVerts, gl.STATIC_DRAW);
-  const bgPosLoc = gl.getAttribLocation(bgProgram, 'aPosition');
-  gl.enableVertexAttribArray(bgPosLoc);
-  gl.vertexAttribPointer(bgPosLoc, 2, gl.FLOAT, false, 0, 0);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  gl.disableVertexAttribArray(bgPosLoc);
-  
-  gl.useProgram(tubeProgram);
-  
-  const posLoc = gl.getAttribLocation(tubeProgram, 'aPosition');
-  const normLoc = gl.getAttribLocation(tubeProgram, 'aNormal');
-  const texLoc = gl.getAttribLocation(tubeProgram, 'aTexCoord');
-  
-  const posBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-  
-  const normBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-  
-  const texBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-  gl.enableVertexAttribArray(posLoc);
-  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
-  gl.enableVertexAttribArray(normLoc);
-  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
-  gl.enableVertexAttribArray(texLoc);
-  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  const aspect = ctx.width / ctx.height;
-  const fov = Math.PI / 3.5;
-  const near = 0.1, far = 10.0;
-  const f = 1.0 / Math.tan(fov / 2);
-  const projection = new Float32Array([
-    f / aspect, 0, 0, 0,
-    0, f, 0, 0,
-    0, 0, (far + near) / (near - far), -1,
-    0, 0, (2 * far * near) / (near - far), 0
-  ]);
-  
-  const angleY = rotation;
-  const angleX = 0.4;
-  const cy = Math.cos(angleY), sy = Math.sin(angleY);
-  const cx = Math.cos(angleX), sx = Math.sin(angleX);
-  const modelView = new Float32Array([
-    cy, sy * sx, sy * cx, 0,
-    0, cx, -sx, 0,
-    -sy, cy * sx, cy * cx, 0,
-    0, 0, -2.0, 1
-  ]);
-  
-  const normalMatrix = new Float32Array([
-    cy, sy * sx, sy * cx,
-    0, cx, -sx,
-    -sy, cy * sx, cy * cx
-  ]);
-  
-  gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uProjection'), false, projection);
-  gl.uniformMatrix4fv(gl.getUniformLocation(tubeProgram, 'uModelView'), false, modelView);
-  gl.uniformMatrix3fv(gl.getUniformLocation(tubeProgram, 'uNormalMatrix'), false, normalMatrix);
-  gl.uniform3f(gl.getUniformLocation(tubeProgram, 'uLightPos'), 2.0, 2.0, 3.0);
-  
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
-  gl.uniform1i(gl.getUniformLocation(tubeProgram, 'uTexture'), 1);
-  
-  gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+      const nx = (x - cx) / cx;
+      const ny = (y - cy) / cy;
+      
+      const hourglassWidth = Math.abs(ny);
+      const inHourglass = Math.abs(nx) < hourglassWidth;
+      
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      
+      const distFromCenter = Math.sqrt(nx * nx + ny * ny);
+      const angle = Math.atan2(ny, nx);
+      
+      if (inHourglass) {
+        const gr = Math.floor((1 - Math.abs(ny)) * 255);
+        const gg = Math.floor((Math.abs(nx) / Math.max(0.01, hourglassWidth)) * 255);
+        const gb = Math.floor(distFromCenter * 180);
+        
+        const nr = 255 - (pr & gr);
+        const ng = 255 - (pg & gg);
+        const nb = 255 - (pb & gb);
+        
+        setPixel(out, x, y, nr, ng, nb);
+      } else {
+        const gr = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 255);
+        const gg = Math.floor((1 - distFromCenter) * 200 + 55);
+        const gb = Math.floor(((nx + 1) / 2) * 255);
+        
+        const nr = (pr + gr) % 256;
+        const ng = Math.abs(pg - gg);
+        const nb = pb ^ gb;
+        
+        setPixel(out, x, y, nr, ng, nb);
+      }
     }
   }
   
-  gl.disable(gl.DEPTH_TEST);
-  gl.disableVertexAttribArray(posLoc);
-  gl.disableVertexAttribArray(normLoc);
-  gl.disableVertexAttribArray(texLoc);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.deleteTexture(prevTexture);
-  gl.deleteTexture(oldTexture);
-  gl.deleteBuffer(bgBuffer);
-  gl.deleteBuffer(posBuffer);
-  gl.deleteBuffer(normBuffer);
-  gl.deleteBuffer(texBuffer);
-  gl.deleteProgram(tubeProgram);
-  gl.deleteProgram(bgProgram);
-  
-  return { width: ctx.width, height: ctx.height, data: flipped };
+  return out;
 }
 
 function fnI(ctx: FnContext): Image {
