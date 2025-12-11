@@ -1381,7 +1381,13 @@ function fnE(ctx: FnContext): Image {
     const gem = emeraldModel!.clone();
     gem.traverse((child) => {
       if (child instanceof THREE.Mesh) {
+        // Clone the geometry to avoid modifying the original
+        child.geometry = child.geometry.clone();
+        // Compute normals for proper lighting
+        child.geometry.computeVertexNormals();
         child.material = emeraldMaterial;
+        // Ensure the mesh updates
+        child.material.needsUpdate = true;
       }
     });
     gem.scale.setScalar(scale * 3.0);
