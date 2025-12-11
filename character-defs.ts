@@ -4186,8 +4186,8 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
   const seed = ctx.images.length * 137.5 + n * 17.3;
   
   const hash = (x: number, y: number, s: number): number => {
-    const n = Math.sin(x * 127.1 + y * 311.7 + s * 74.3) * 43758.5453;
-    return n - Math.floor(n);
+    const val = Math.sin(x * 127.1 + y * 311.7 + s * 74.3) * 43758.5453;
+    return val - Math.floor(val);
   };
   
   const smoothstep = (t: number): number => t * t * (3 - 2 * t);
@@ -4223,29 +4223,18 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
   };
   
   const thinFilmInterference = (thickness: number): [number, number, number] => {
-    const t = thickness * Math.PI * 2 * 3;
+    const t = thickness * Math.PI * 2 * 4;
     
-    const rWavelength = 1.0;
-    const gWavelength = 0.85;
-    const bWavelength = 0.7;
+    const r = (Math.cos(t) * 0.5 + 0.5);
+    const g = (Math.cos(t + Math.PI * 2 / 3) * 0.5 + 0.5);
+    const b = (Math.cos(t + Math.PI * 4 / 3) * 0.5 + 0.5);
     
-    const r = (Math.cos(t * rWavelength) * 0.5 + 0.5);
-    const g = (Math.cos(t * gWavelength + 0.5) * 0.5 + 0.5);
-    const b = (Math.cos(t * bWavelength + 1.0) * 0.5 + 0.5);
-    
-    const satBoost = 1.3;
-    const avg = (r + g + b) / 3;
-    
-    return [
-      Math.min(1, avg + (r - avg) * satBoost),
-      Math.min(1, avg + (g - avg) * satBoost),
-      Math.min(1, avg + (b - avg) * satBoost)
-    ];
+    return [r, g, b];
   };
   
-  const scale = 0.003 + n * 0.0005;
-  const warpScale = scale * 0.5;
-  const warpStrength = 80 + n * 15;
+  const scale = 0.004 + n * 0.001;
+  const warpScale = scale * 0.4;
+  const warpStrength = 60 + n * 20;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
@@ -4255,34 +4244,31 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
       const wx1 = x + (warp1x - 0.5) * warpStrength;
       const wy1 = y + (warp1y - 0.5) * warpStrength;
       
-      const warp2x = fbm(wx1 * warpScale * 0.7, wy1 * warpScale * 0.7, 3);
-      const warp2y = fbm(wx1 * warpScale * 0.7 + 100, wy1 * warpScale * 0.7 + 100, 3);
+      const warp2x = fbm(wx1 * warpScale * 0.6, wy1 * warpScale * 0.6, 3);
+      const warp2y = fbm(wx1 * warpScale * 0.6 + 100, wy1 * warpScale * 0.6 + 100, 3);
       
-      const wx2 = wx1 + (warp2x - 0.5) * warpStrength * 0.5;
-      const wy2 = wy1 + (warp2y - 0.5) * warpStrength * 0.5;
+      const wx2 = wx1 + (warp2x - 0.5) * warpStrength * 0.4;
+      const wy2 = wy1 + (warp2y - 0.5) * warpStrength * 0.4;
       
       const thickness = fbm(wx2 * scale, wy2 * scale, 5);
       
-      const swirl = Math.sin(thickness * Math.PI * 4) * 0.5 + 0.5;
-      const finalThickness = thickness * 0.7 + swirl * 0.3;
-      
-      const [ir, ig, ib] = thinFilmInterference(finalThickness);
-      
-      const oilDensity = 0.3 + fbm(x * scale * 2, y * scale * 2, 3) * 0.5;
-      
-      const darkening = 0.85 + finalThickness * 0.15;
+      const [ir, ig, ib] = thinFilmInterference(thickness);
       
       const [pr, pg, pb] = getPixel(prev, x, y);
       
-      const baseR = pr * darkening;
-      const baseG = pg * darkening;
-      const baseB = pb * darkening;
+      const sheenStrength = 0.15 + thickness * 0.1;
       
-      const nr = baseR * (1 - oilDensity) + (ir * 255) * oilDensity;
-      const ng = baseG * (1 - oilDensity) + (ig * 255) * oilDensity;
-      const nb = baseB * (1 - oilDensity) + (ib * 255) * oilDensity;
+      const brightnessVar = 0.92 + thickness * 0.16;
       
-      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
+      const nr = pr * brightnessVar + (ir * 255 - pr) * sheenStrength;
+      const ng = pg * brightnessVar + (ig * 255 - pg) * sheenStrength;
+      const nb = pb * brightnessVar + (ib * 255 - pb) * sheenStrength;
+      
+      setPixel(out, x, y, 
+        Math.max(0, Math.min(255, Math.round(nr))),
+        Math.max(0, Math.min(255, Math.round(ng))),
+        Math.max(0, Math.min(255, Math.round(nb)))
+      );
     }
   }
   
