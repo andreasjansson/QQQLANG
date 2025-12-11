@@ -4430,8 +4430,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnO,
     arity: 1,
     argTypes: ['int'],
-    functionName: "oscillate",
-    documentation: "Frequency-based displacement with chromatic scatter - edges explode with RGB separation, smooth areas wave gently"
+    functionName: "overflow",
+    documentation: "2D FFT with magnitude overflow/wrap and per-channel phase shifts - creates banded halos and chromatic frequency ghosts"
   },
   
   'P': {
