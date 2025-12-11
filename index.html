@@ -243,21 +243,16 @@
     
     function showIntro() {
       introOverlay.classList.remove('hidden');
-      soundToggle.classList.remove('hidden');
       
       introVideo.src = 'intro.mp4';
-      introVideo.muted = true;
       introVideo.loop = true;
       introVideo.play().catch(() => {});
-      
-      updateSoundToggle();
       
       setTimeout(() => {
         introOverlay.classList.add('fading');
         
         setTimeout(() => {
           introOverlay.classList.add('hidden');
-          soundToggle.classList.add('hidden');
           introVideo.pause();
           introVideo.src = '';
           
@@ -271,15 +266,6 @@
         }, FADE_DURATION_MS);
       }, INTRO_DURATION_MS);
     }
-    
-    function updateSoundToggle() {
-      soundToggle.textContent = introVideo.muted ? '🔇' : '🔊';
-    }
-    
-    soundToggle.addEventListener('click', () => {
-      introVideo.muted = !introVideo.muted;
-      updateSoundToggle();
-    });
     
     function visualBell() {
       inputContainer.classList.remove('bell');
