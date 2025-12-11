@@ -359,8 +359,8 @@ function fnD(ctx: FnContext, n: number): Image {
       const y1 = Math.floor(((row + 1) / divisions) * ctx.height);
       
       const triIndex = (row * divisions + col) * 2;
-      const levels1 = 2 + (triIndex % 5);
-      const levels2 = 2 + ((triIndex + 1) % 5);
+      const sat1 = 1.2 + (triIndex % 5) * 0.3;
+      const sat2 = 1.2 + ((triIndex + 1) % 5) * 0.3;
       
       for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
@@ -368,14 +368,12 @@ function fnD(ctx: FnContext, n: number): Image {
           const localY = (y - y0) / (y1 - y0);
           
           const [r, g, b] = getPixel(prev, x, y);
+          const [h, s, l] = rgbToHsl(r, g, b);
           const isUpperTriangle = localX + localY < 1;
-          const levels = isUpperTriangle ? levels1 : levels2;
+          const satMult = isUpperTriangle ? sat1 : sat2;
           
-          const nr = Math.floor(r / 256 * levels) * (255 / (levels - 1));
-          const ng = Math.floor(g / 256 * levels) * (255 / (levels - 1));
-          const nb = Math.floor(b / 256 * levels) * (255 / (levels - 1));
-          
-          setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
+          const [nr, ng, nb] = hslToRgb(h, Math.min(1, s * satMult), l);
+          setPixel(out, x, y, nr, ng, nb);
         }
       }
     }
