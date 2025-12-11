@@ -5347,7 +5347,7 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnHoles,
     arity: 1,
     argTypes: ['int'],
-    functionName: "holes",
+    functionName: "midtone-reveal",
     documentation: "Shows old image j where prev has mid-range (35-65%) saturation or lightness; extremes show prev"
   },
   
