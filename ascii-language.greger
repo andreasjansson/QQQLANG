@@ -15526,5 +15526,119 @@ Fix upload button size and make picture icons clickable
 ID: toolu_011MDisGxA2xy2TeA2joG3vw
 
 <tool.toolu_011MDisGxA2xy2TeA2joG3vw>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Fix upload button size and make picture icons clickable
 </tool.toolu_011MDisGxA2xy2TeA2joG3vw>
+
+# ASSISTANT
+
+Now let me fix the clickable picture icons. The issue is that the input field is on top and blocks clicks. I'll add a click handler on the input wrapper that detects clicks on upload characters:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01WP7ergoWwwi7xmjaGtMG4L
+
+## path
+
+<tool.toolu_01WP7ergoWwwi7xmjaGtMG4L>
+index.html
+</tool.toolu_01WP7ergoWwwi7xmjaGtMG4L>
+
+## git-commit-message
+
+<tool.toolu_01WP7ergoWwwi7xmjaGtMG4L>
+Make picture icons clickable by detecting click position
+</tool.toolu_01WP7ergoWwwi7xmjaGtMG4L>
+
+## diff
+
+<tool.toolu_01WP7ergoWwwi7xmjaGtMG4L>
++    let uploadCharPositions = [];
++    
+     function updateInputColors(program) {
+       const ops = getParsedOperations(program);
+       const chars = [...program].filter(c => {
+         const code = c.codePointAt(0);
+         return (code > 32 && code < 127) || c === UPLOAD_CHAR;
+       });
+       
+       let html = '';
+       let charIdx = 0;
+       let uploadIdx = 0;
++      uploadCharPositions = [];
+       
+       for (let i = 0; i < ops.length; i++) {
+         const op = ops[i];
+         const prevIdentifier = i > 0 ? ops[i - 1].identifier : '';
+         const opChars = [...op.identifier.substring(prevIdentifier.length)];
+         const numChars = opChars.length;
+         
+         let color = '#ffffff';
+         if (op.type === 'solid') {
+           color = op.color;
+         } else if (op.type === 'uploaded-image') {
+           color = '#888888';
+         } else {
+           color = op.fnDef.color;
+         }
+         
+         const bgColor = color + '40';
+         
+         for (let j = 0; j < numChars; j++) {
+           if (charIdx < chars.length) {
+             const char = chars[charIdx];
+             if (char === UPLOAD_CHAR) {
+-              const currentUploadIdx = uploadIdx;
+-              html += `<span class="upload-char" style="background-color: ${bgColor};" data-upload-index="${currentUploadIdx}">${char}</span>`;
++              html += `<span class="upload-char" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
++              uploadCharPositions.push({ charIdx, uploadIdx });
+               uploadIdx++;
+             } else {
+               html += `<span style="background-color: ${bgColor};">${char}</span>`;
+             }
+             charIdx++;
+           }
+         }
+       }
+       
+       inputBackground.innerHTML = html;
++    }
++    
++    function handleInputClick(e) {
++      if (uploadCharPositions.length === 0) return;
+       
+-      inputBackground.querySelectorAll('.upload-char').forEach(span => {
+-        span.addEventListener('click', (e) => {
+-          e.stopPropagation();
++      const inputRect = input.getBoundingClientRect();
++      const clickX = e.clientX - inputRect.left;
++      
++      const spans = inputBackground.querySelectorAll('.upload-char');
++      for (const span of spans) {
++        const spanRect = span.getBoundingClientRect();
++        const bgRect = inputBackground.getBoundingClientRect();
++        const spanLeft = spanRect.left - bgRect.left;
++        const spanRight = spanLeft + spanRect.width;
++        
++        if (clickX >= spanLeft && clickX <= spanRight) {
+           const idx = parseInt(span.dataset.uploadIndex, 10);
+           pendingUploadIndex = idx;
+           fileInput.click();
+-        });
+-      });
++          e.preventDefault();
++          return;
++        }
++      }
+     }
+\ No newline at end of file
+
+</tool.toolu_01WP7ergoWwwi7xmjaGtMG4L>
+
+# TOOL RESULT
+
+ID: toolu_01WP7ergoWwwi7xmjaGtMG4L
+
+<tool.toolu_01WP7ergoWwwi7xmjaGtMG4L>
+
+</tool.toolu_01WP7ergoWwwi7xmjaGtMG4L>

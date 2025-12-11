@@ -538,6 +538,8 @@
       debugPane.innerHTML = html;
     }
 
+    let uploadCharPositions = [];
+    
     function updateInputColors(program) {
       const ops = getParsedOperations(program);
       const chars = [...program].filter(c => {
@@ -548,6 +550,7 @@
       let html = '';
       let charIdx = 0;
       let uploadIdx = 0;
+      uploadCharPositions = [];
       
       for (let i = 0; i < ops.length; i++) {
         const op = ops[i];
@@ -570,8 +573,8 @@
           if (charIdx < chars.length) {
             const char = chars[charIdx];
             if (char === UPLOAD_CHAR) {
-              const currentUploadIdx = uploadIdx;
-              html += `<span class="upload-char" style="background-color: ${bgColor};" data-upload-index="${currentUploadIdx}">${char}</span>`;
+              html += `<span class="upload-char" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
+              uploadCharPositions.push({ charIdx, uploadIdx });
               uploadIdx++;
             } else {
               html += `<span style="background-color: ${bgColor};">${char}</span>`;
@@ -582,15 +585,29 @@
       }
       
       inputBackground.innerHTML = html;
+    }
+    
+    function handleInputClick(e) {
+      if (uploadCharPositions.length === 0) return;
       
-      inputBackground.querySelectorAll('.upload-char').forEach(span => {
-        span.addEventListener('click', (e) => {
-          e.stopPropagation();
+      const inputRect = input.getBoundingClientRect();
+      const clickX = e.clientX - inputRect.left;
+      
+      const spans = inputBackground.querySelectorAll('.upload-char');
+      for (const span of spans) {
+        const spanRect = span.getBoundingClientRect();
+        const bgRect = inputBackground.getBoundingClientRect();
+        const spanLeft = spanRect.left - bgRect.left;
+        const spanRight = spanLeft + spanRect.width;
+        
+        if (clickX >= spanLeft && clickX <= spanRight) {
           const idx = parseInt(span.dataset.uploadIndex, 10);
           pendingUploadIndex = idx;
           fileInput.click();
-        });
-      });
+          e.preventDefault();
+          return;
+        }
+      }
     }
 
     function resize() {
