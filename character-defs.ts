@@ -4689,11 +4689,11 @@ export const characterDefs: Record<string, CharDef> = {
   "'": {
     color: '#FF1493',
     number: 46,
-    fn: fnApostrophe,
+    fn: fnJ,
     arity: 1,
     argTypes: ['int'],
-    functionName: "vertical-streaks",
-    documentation: "Vertical streaks at x positions where x % (n+2) == 0, length based on column luminance, 50% white"
+    functionName: "variable-checkerboard",
+    documentation: "Checkerboard blend where square size increases from top-left (2px) to bottom-right (52px)"
   },
   
   '(': {
