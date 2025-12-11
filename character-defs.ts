@@ -4181,130 +4181,187 @@ function fnCloseBrace(ctx: FnContext): Image {
 
 function fnOilSlick(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  let current = cloneImage(prev);
+  const gl = initWebGL(ctx.width, ctx.height);
   
   const seed = ctx.images.length * 137.5 + n * 17.3;
+  const depth = 6 + n;
+  const resolution = 2.0 + n * 0.3;
   
-  const hash = (x: number, y: number, s: number): number => {
-    const val = Math.sin(x * 127.1 + y * 311.7 + s * 74.3) * 43758.5453;
-    return val - Math.floor(val);
-  };
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
   
-  const smoothstep = (t: number): number => t * t * (3 - 2 * t);
-  
-  const noise = (x: number, y: number, s: number): number => {
-    const ix = Math.floor(x);
-    const iy = Math.floor(y);
-    const fx = smoothstep(x - ix);
-    const fy = smoothstep(y - iy);
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uSeed;
+    uniform float uResolutionScale;
+    uniform int uDepth;
+    varying vec2 vUV;
     
-    const a = hash(ix, iy, s);
-    const b = hash(ix + 1, iy, s);
-    const c = hash(ix, iy + 1, s);
-    const d = hash(ix + 1, iy + 1, s);
-    
-    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
-  };
-  
-  const fbm = (x: number, y: number, octaves: number): number => {
-    let value = 0;
-    let amplitude = 0.5;
-    let frequency = 1;
-    let maxValue = 0;
-    
-    for (let i = 0; i < octaves; i++) {
-      value += amplitude * noise(x * frequency, y * frequency, seed + i * 100);
-      maxValue += amplitude;
-      amplitude *= 0.5;
-      frequency *= 2.0;
+    // Hash function for deterministic noise
+    float hash(vec2 p, float seed) {
+      return fract(sin(dot(p + seed * 0.1, vec2(127.1, 311.7))) * 43758.5453);
     }
     
-    return value / maxValue;
-  };
-  
-  const sampleBilinear = (img: Image, fx: number, fy: number): [number, number, number] => {
-    const x0 = Math.floor(fx);
-    const y0 = Math.floor(fy);
-    const x1 = x0 + 1;
-    const y1 = y0 + 1;
-    const tx = fx - x0;
-    const ty = fy - y0;
+    // Smooth noise
+    float noise(vec2 p, float seed) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      
+      float a = hash(i, seed);
+      float b = hash(i + vec2(1.0, 0.0), seed);
+      float c = hash(i + vec2(0.0, 1.0), seed);
+      float d = hash(i + vec2(1.0, 1.0), seed);
+      
+      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
     
-    const [r00, g00, b00] = getPixel(img, x0, y0);
-    const [r10, g10, b10] = getPixel(img, x1, y0);
-    const [r01, g01, b01] = getPixel(img, x0, y1);
-    const [r11, g11, b11] = getPixel(img, x1, y1);
-    
-    const r = r00 * (1 - tx) * (1 - ty) + r10 * tx * (1 - ty) + r01 * (1 - tx) * ty + r11 * tx * ty;
-    const g = g00 * (1 - tx) * (1 - ty) + g10 * tx * (1 - ty) + g01 * (1 - tx) * ty + g11 * tx * ty;
-    const b = b00 * (1 - tx) * (1 - ty) + b10 * tx * (1 - ty) + b01 * (1 - tx) * ty + b11 * tx * ty;
-    
-    return [r, g, b];
-  };
-  
-  const scale = 0.002;
-  const eps = 0.1;
-  const iterations = 12 + n * 4;
-  const stepSize = 3 + n * 0.5;
-  
-  for (let iter = 0; iter < iterations; iter++) {
-    const out = createSolidImage(current.width, current.height, '#000000');
-    
-    for (let y = 0; y < current.height; y++) {
-      for (let x = 0; x < current.width; x++) {
-        const nx = x * scale;
-        const ny = y * scale;
-        
-        const h = fbm(nx, ny, 4);
-        const hx = fbm(nx + eps, ny, 4);
-        const hy = fbm(nx, ny + eps, 4);
-        
-        const curlX = (hy - h) / eps;
-        const curlY = -(hx - h) / eps;
-        
-        const len = Math.sqrt(curlX * curlX + curlY * curlY) + 0.0001;
-        const dx = (curlX / len) * stepSize;
-        const dy = (curlY / len) * stepSize;
-        
-        const sx = x + dx;
-        const sy = y + dy;
-        
-        const [r, g, b] = sampleBilinear(current, sx, sy);
-        setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+    // FBM for organic patterns
+    float fbm(vec2 p, float seed) {
+      float value = 0.0;
+      float amplitude = 0.5;
+      float frequency = 1.0;
+      for (int i = 0; i < 4; i++) {
+        value += amplitude * noise(p * frequency, seed + float(i) * 100.0);
+        amplitude *= 0.5;
+        frequency *= 2.0;
       }
+      return value;
     }
     
-    current = out;
-  }
+    // Domain warping effect - creates swirling patterns
+    vec2 warpEffect(vec2 p, float i, float seed) {
+      float n1 = fbm(p * 0.5 + seed * 0.01, seed);
+      float n2 = fbm(p * 0.5 + seed * 0.02 + 100.0, seed);
+      return vec2(
+        cos(p.x * i + n1 * 6.28) * sin(length(p) * 0.5 + n2 * 3.14),
+        sin(p.y * i + n2 * 6.28) * cos(length(p.yx) * 0.5 + n1 * 3.14)
+      ) / (i * 0.5 + 1.0);
+    }
+    
+    // Thin-film interference for iridescent colors
+    vec3 thinFilmInterference(float thickness) {
+      // Attempt to simulate thin-film interference colors
+      float t = thickness * 6.28318;
+      return vec3(
+        0.5 + 0.5 * cos(t),
+        0.5 + 0.5 * cos(t + 2.094),
+        0.5 + 0.5 * cos(t + 4.189)
+      );
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      float aspect = uResolution.x / uResolution.y;
+      
+      // Normalize coordinates
+      vec2 p = (uv - 0.5) * 2.0;
+      p.x *= aspect;
+      p *= uResolutionScale;
+      
+      // Store original for blending
+      vec2 originalP = p;
+      
+      // Iterative domain warping
+      for (int i = 1; i < 20; i++) {
+        if (i >= uDepth) break;
+        float fi = float(i);
+        p += warpEffect(p, fi, uSeed);
+      }
+      
+      // Calculate warp intensity for iridescence
+      float warpIntensity = length(p - originalP);
+      
+      // Map warped coordinates back to UV space
+      vec2 warpedUV = p / uResolutionScale;
+      warpedUV.x /= aspect;
+      warpedUV = warpedUV * 0.5 + 0.5;
+      
+      // Clamp to valid UV range
+      warpedUV = clamp(warpedUV, 0.0, 1.0);
+      
+      // Sample texture at warped position
+      vec3 texColor = texture2D(uTexture, warpedUV).rgb;
+      
+      // Add thin-film iridescence based on warp intensity
+      vec3 iridescence = thinFilmInterference(warpIntensity * 0.5 + fbm(p * 2.0, uSeed) * 0.5);
+      
+      // Calculate fake lighting from noise gradient
+      float eps = 0.01;
+      float h = fbm(p, uSeed);
+      float hx = fbm(p + vec2(eps, 0.0), uSeed);
+      float hy = fbm(p + vec2(0.0, eps), uSeed);
+      float highlight = pow(max(0.0, (hx - h) * 0.7 + (hy - h) * 0.7), 2.0) * 0.5;
+      float shadow = 0.85 + h * 0.15;
+      
+      // Blend texture with iridescence
+      float iridescenceAmount = smoothstep(0.0, 2.0, warpIntensity) * 0.4;
+      vec3 color = mix(texColor, iridescence, iridescenceAmount);
+      
+      // Apply lighting
+      color = color * shadow + vec3(highlight);
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
   
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
   
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+  gl.uniform1f(gl.getUniformLocation(program, 'uResolutionScale'), resolution);
+  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const nx = x * scale;
-      const ny = y * scale;
-      
-      const h = fbm(nx, ny, 4);
-      const hx = fbm(nx + eps, ny, 4);
-      const hy = fbm(nx, ny + eps, 4);
-      
-      const gradX = (hx - h) / eps;
-      const gradY = (hy - h) / eps;
-      
-      const highlight = Math.pow(Math.max(0, gradX * 0.7 + gradY * 0.7), 2) * 120;
-      const shadow = 0.85 + h * 0.15;
-      
-      const [r, g, b] = getPixel(current, x, y);
-      
-      const nr = Math.min(255, r * shadow + highlight);
-      const ng = Math.min(255, g * shadow + highlight);
-      const nb = Math.min(255, b * shadow + highlight);
-      
-      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnTilde(ctx: FnContext, n: number): Image {
