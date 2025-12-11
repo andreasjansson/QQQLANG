@@ -1385,8 +1385,8 @@ function fnE(ctx: FnContext): Image {
     const py = Math.sin(elevation) * distance + 2;
     const pz = Math.sin(angle) * Math.cos(elevation) * distance + 5;
     
-    const intensity = 1.5 + hash(i * 191.3) * 2.5;
-    const light = new THREE.PointLight(0xffffff, intensity, 25);
+    const intensity = 4.0 + hash(i * 191.3) * 6.0;
+    const light = new THREE.PointLight(0xffffff, intensity, 30);
     light.position.set(px, py, pz);
     emeraldScene!.add(light);
   }
