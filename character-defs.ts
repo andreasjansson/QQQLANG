@@ -2367,8 +2367,8 @@ function fnU(ctx: FnContext, n: number): Image {
       const hueShift = tH * hueAmount;
       let nh = (oh + hueShift + 360) % 360;
       
-      const satMod = 1 + tS * satAmount;
-      let ns = Math.max(0, Math.min(1, os * satMod));
+      const satMod = 1 + Math.abs(tS) * satAmount;
+      let ns = Math.min(1, os * satMod);
       
       const midtoneFactor = 1 - Math.pow(Math.abs(ol - 0.5) * 2, 2);
       const lightShift = tL * lightAmount * midtoneFactor;
