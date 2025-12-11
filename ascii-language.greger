@@ -9109,5 +9109,59 @@ Fix emerald material - don't use envMap, use good lighting instead
 ID: toolu_01UcT41rXcww2r8efwTDb4Mx
 
 <tool.toolu_01UcT41rXcww2r8efwTDb4Mx>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix emerald material - don't use envMap, use good lighting instead
 </tool.toolu_01UcT41rXcww2r8efwTDb4Mx>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01JAj8jLVjsGQ4M6zGiuPXYJ
+
+## path
+
+<tool.toolu_01JAj8jLVjsGQ4M6zGiuPXYJ>
+character-defs.ts
+</tool.toolu_01JAj8jLVjsGQ4M6zGiuPXYJ>
+
+## git-commit-message
+
+<tool.toolu_01JAj8jLVjsGQ4M6zGiuPXYJ>
+Don't throw on model not loaded - return prev and let it load in background
+</tool.toolu_01JAj8jLVjsGQ4M6zGiuPXYJ>
+
+## diff
+
+<tool.toolu_01JAj8jLVjsGQ4M6zGiuPXYJ>
+ function fnE(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   
+-  console.log('fnE called, modelLoaded:', emeraldModelLoaded, 'modelLoading:', emeraldModelLoading);
+-  
+   initEmeraldScene(ctx.width, ctx.height);
+   
+   if (!emeraldModelLoaded) {
+     loadEmeraldModel();
+-    throw new Error('Emerald model not loaded yet - please wait and try again');
++    // Return prev image while loading - user needs to trigger re-render after load completes
++    return cloneImage(prev);
+   }
+   
+   if (!emeraldModel) {
+-    throw new Error('Emerald model is null');
+-  }
+-  
+-  console.log('Rendering emerald scene...');
+\ No newline at end of file
++    return cloneImage(prev);
++  }
+\ No newline at end of file
+
+</tool.toolu_01JAj8jLVjsGQ4M6zGiuPXYJ>
+
+# TOOL RESULT
+
+ID: toolu_01JAj8jLVjsGQ4M6zGiuPXYJ
+
+<tool.toolu_01JAj8jLVjsGQ4M6zGiuPXYJ>
+
+</tool.toolu_01JAj8jLVjsGQ4M6zGiuPXYJ>
