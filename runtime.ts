@@ -80,6 +80,7 @@ export function clearUploadedImages(): void {
 export function addUploadedBlob(blob: Blob): number {
   const index = uploadedSources.length;
   uploadedSources.push({ blob });
+  imageCache.clear();
   return index;
 }
 
