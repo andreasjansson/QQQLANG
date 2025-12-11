@@ -3916,26 +3916,38 @@ function fnCloseBracket(ctx: FnContext): Image {
   return out;
 }
 
-function fnUnderscore(ctx: FnContext, n: number): Image {
+function fnUnderscore(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const reflectHeight = Math.floor(ctx.height * n * 0.05);
-  const startY = ctx.height - reflectHeight;
+  const blurRadius = 15;
   
-  for (let y = startY; y < ctx.height; y++) {
-    const mirrorY = 2 * startY - y - 1;
-    const wave = Math.sin(y * 0.1) * 5;
-    
+  for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      if (mirrorY >= 0 && mirrorY < ctx.height) {
-        const srcX = Math.floor(((x + wave) % ctx.width + ctx.width) % ctx.width);
-        const [r, g, b] = getPixel(prev, srcX, mirrorY);
-        const idx = (y * ctx.width + x) * 4;
-        out.data[idx] = Math.round(out.data[idx] * 0.5 + r * 0.5);
-        out.data[idx + 1] = Math.round(out.data[idx + 1] * 0.5 + g * 0.5);
-        out.data[idx + 2] = Math.round(out.data[idx + 2] * 0.5 + b * 0.5);
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const luminance = (pr * 0.299 + pg * 0.587 + pb * 0.114) / 255;
+      
+      let br = 0, bg = 0, bb = 0, count = 0;
+      for (let dy = -blurRadius; dy <= blurRadius; dy += 2) {
+        for (let dx = -blurRadius; dx <= blurRadius; dx += 2) {
+          const [or, og, ob] = getPixel(old, x + dx, y + dy);
+          br += or;
+          bg += og;
+          bb += ob;
+          count++;
+        }
       }
+      br /= count;
+      bg /= count;
+      bb /= count;
+      
+      const blendFactor = 1 - luminance;
+      const nr = Math.round(pr * luminance + br * blendFactor);
+      const ng = Math.round(pg * luminance + bg * blendFactor);
+      const nb = Math.round(pb * luminance + bb * blendFactor);
+      
+      setPixel(out, x, y, nr, ng, nb);
     }
   }
   
