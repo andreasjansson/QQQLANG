@@ -14994,5 +14994,58 @@ Update runtime to use new ParseResult format
 ID: toolu_01LDuqsdKvQ9MdQeAoiqnTFh
 
 <tool.toolu_01LDuqsdKvQ9MdQeAoiqnTFh>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Update runtime to use new ParseResult format
 </tool.toolu_01LDuqsdKvQ9MdQeAoiqnTFh>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DDbDR8ypoPada2Bm9kXWGi
+
+## path
+
+<tool.toolu_01DDbDR8ypoPada2Bm9kXWGi>
+runtime.ts
+</tool.toolu_01DDbDR8ypoPada2Bm9kXWGi>
+
+## git-commit-message
+
+<tool.toolu_01DDbDR8ypoPada2Bm9kXWGi>
+Update getParsedOperations and getExpectedNextType for new format
+</tool.toolu_01DDbDR8ypoPada2Bm9kXWGi>
+
+## diff
+
+<tool.toolu_01DDbDR8ypoPada2Bm9kXWGi>
+ export function getParsedOperations(program: string): ParsedOp[] {
+-  return parseProgram(program);
++  return parseProgram(program).ops;
+ }
+ 
++export function getInvalidUploadIndices(program: string): Set<number> {
++  return parseProgram(program).invalidUploadIndices;
++}
++
+ export function getExpectedNextType(program: string): 'function' | 'int' | 'color' | 'index' | 'initial' {
+   if (!program || program.length === 0) {
+     return 'initial';
+   }
+   
+-  const ops = parseProgram(program);
++  const { ops } = parseProgram(program);
+   if (ops.length === 0) {
+     return 'initial';
+   }
+   
+   const lastOp = ops[ops.length - 1];
+\ No newline at end of file
+
+</tool.toolu_01DDbDR8ypoPada2Bm9kXWGi>
+
+# TOOL RESULT
+
+ID: toolu_01DDbDR8ypoPada2Bm9kXWGi
+
+<tool.toolu_01DDbDR8ypoPada2Bm9kXWGi>
+
+</tool.toolu_01DDbDR8ypoPada2Bm9kXWGi>

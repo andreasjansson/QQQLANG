@@ -327,7 +327,11 @@ export function getFinalImage(program: string, width: number, height: number): I
 }
 
 export function getParsedOperations(program: string): ParsedOp[] {
-  return parseProgram(program);
+  return parseProgram(program).ops;
+}
+
+export function getInvalidUploadIndices(program: string): Set<number> {
+  return parseProgram(program).invalidUploadIndices;
 }
 
 export function getExpectedNextType(program: string): 'function' | 'int' | 'color' | 'index' | 'initial' {
@@ -335,7 +339,7 @@ export function getExpectedNextType(program: string): 'function' | 'int' | 'colo
     return 'initial';
   }
   
-  const ops = parseProgram(program);
+  const { ops } = parseProgram(program);
   if (ops.length === 0) {
     return 'initial';
   }
