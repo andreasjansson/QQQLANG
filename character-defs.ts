@@ -1262,50 +1262,96 @@ function fnE(ctx: FnContext): Image {
       return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
     }
     
-    // Upright emerald cut gem - rectangular with beveled corners and prism top/bottom
+    // Emerald cut gem with step-cut facets
     float sdEmerald(vec3 p, float w, float h, float d) {
       vec3 q = abs(p);
       
-      // Main rectangular body (shorter, middle section)
-      float bodyH = h * 0.5;
-      float body = sdBox(p, vec3(w, bodyH, d));
+      // Corner bevel amount
+      float bevel = 0.35 * min(w, d);
       
-      // Large corner bevels on vertical edges
-      float bevel = 0.4 * min(w, d);
-      float corner = q.x + q.z - (w + d - bevel);
-      body = max(body, corner);
+      // Height sections: crown (top), girdle (middle), pavilion (bottom)
+      float tableH = h * 0.15;      // flat top
+      float crownH = h * 0.20;      // crown step facets  
+      float girdleH = h * 0.10;     // thin middle band
+      float pavilionH = h * 0.55;   // pavilion step facets
       
-      // Top prism - slopes inward from all sides
-      float topStart = bodyH;
-      float topH = h - bodyH;
-      if (p.y > 0.0) {
-        float py = p.y - topStart;
-        float slope = 0.7;
-        float topPrism = max(
-          max(q.x - w + py * slope, q.z - d + py * slope),
-          py - topH
-        );
-        // Top corner bevels
-        float topCorner = q.x + q.z - (w + d - bevel) + py * slope * 1.4;
-        topPrism = max(topPrism, topCorner);
-        body = max(body, topPrism - topStart);
-      }
+      float tableY = h - tableH;
+      float crownY = tableY - crownH;
+      float girdleTopY = crownY;
+      float girdleBotY = -h + pavilionH;
       
-      // Bottom prism - slopes inward from all sides  
-      if (p.y < 0.0) {
-        float py = -p.y - topStart;
-        float slope = 0.7;
-        float botPrism = max(
-          max(q.x - w + py * slope, q.z - d + py * slope),
-          py - topH
-        );
-        // Bottom corner bevels
-        float botCorner = q.x + q.z - (w + d - bevel) + py * slope * 1.4;
-        botPrism = max(botPrism, botCorner);
-        body = max(body, botPrism - topStart);
-      }
+      // Start with bounding box
+      float gem = MAX_DIST;
       
-      return body;
+      // Table (flat top) - smaller rectangle
+      float tableW = w * 0.65;
+      float tableD = d * 0.65;
+      float table = max(max(q.x - tableW, q.z - tableD), p.y - h);
+      float tableBevel = q.x + q.z - (tableW + tableD - bevel * 0.5);
+      table = max(table, tableBevel);
+      
+      // Crown step 1 - angled facet from table edge
+      float c1w = w * 0.85;
+      float c1d = d * 0.85;
+      float c1top = tableY;
+      float c1bot = crownY + crownH * 0.5;
+      float crown1 = sdBox(p - vec3(0.0, (c1top + c1bot) * 0.5, 0.0), vec3(c1w, (c1top - c1bot) * 0.5, c1d));
+      float c1bevel = q.x + q.z - (c1w + c1d - bevel * 0.7);
+      crown1 = max(crown1, c1bevel);
+      // Angled top facet
+      float c1angle = (p.y - c1bot) * 0.4;
+      crown1 = max(crown1, q.x - c1w + c1angle);
+      crown1 = max(crown1, q.z - c1d + c1angle);
+      
+      // Crown step 2 - second angled facet
+      float c2w = w;
+      float c2d = d;
+      float c2top = crownY + crownH * 0.5;
+      float c2bot = crownY;
+      float crown2 = sdBox(p - vec3(0.0, (c2top + c2bot) * 0.5, 0.0), vec3(c2w, (c2top - c2bot) * 0.5, c2d));
+      float c2bevel = q.x + q.z - (c2w + c2d - bevel);
+      crown2 = max(crown2, c2bevel);
+      float c2angle = (p.y - c2bot) * 0.3;
+      crown2 = max(crown2, q.x - c2w + c2angle);
+      crown2 = max(crown2, q.z - c2d + c2angle);
+      
+      // Girdle - full width thin band
+      float girdle = sdBox(p - vec3(0.0, (girdleTopY + girdleBotY) * 0.5, 0.0), vec3(w, (girdleTopY - girdleBotY) * 0.5, d));
+      float girdleBevel = q.x + q.z - (w + d - bevel);
+      girdle = max(girdle, girdleBevel);
+      
+      // Pavilion step 1 - angled facet going down
+      float p1w = w * 0.85;
+      float p1d = d * 0.85;
+      float p1top = girdleBotY;
+      float p1bot = girdleBotY - pavilionH * 0.4;
+      float pav1 = sdBox(p - vec3(0.0, (p1top + p1bot) * 0.5, 0.0), vec3(p1w, (p1top - p1bot) * 0.5, p1d));
+      float p1bevel = q.x + q.z - (p1w + p1d - bevel * 0.7);
+      pav1 = max(pav1, p1bevel);
+      float p1angle = (p1top - p.y) * 0.35;
+      pav1 = max(pav1, q.x - p1w + p1angle);
+      pav1 = max(pav1, q.z - p1d + p1angle);
+      
+      // Pavilion step 2 - meets at keel (line along length)
+      float p2top = p1bot;
+      float p2bot = -h;
+      float keelW = w * 0.0;  // keel is a line, no width
+      float p2angle = (p2top - p.y) * 0.5;
+      float pav2 = max(q.z - d * 0.5 + p2angle, p.y - p2top);
+      pav2 = max(pav2, -p.y - h);
+      // Keel bevel at ends
+      float keelEndBevel = q.x - w * 0.6 + (p2top - p.y) * 0.4;
+      pav2 = max(pav2, keelEndBevel);
+      
+      // Combine all parts
+      gem = min(gem, table);
+      gem = min(gem, crown1);
+      gem = min(gem, crown2);
+      gem = min(gem, girdle);
+      gem = min(gem, pav1);
+      gem = min(gem, pav2);
+      
+      return gem;
     }
     
     float sceneSDF(vec3 p) {
