@@ -1368,17 +1368,30 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.add(light);
   });
 
-  // Realistic emerald - deep green with inner glow and bright specular
-  const emeraldMaterial = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(0.02, 0.35, 0.12),
-    emissive: new THREE.Color(0.0, 0.2, 0.08),
-    specular: new THREE.Color(1.0, 1.0, 1.0),
-    shininess: 400,
+  // Glass-like emerald using MeshStandardMaterial
+  const emeraldMaterial = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(0.05, 0.5, 0.2),
+    emissive: new THREE.Color(0.02, 0.18, 0.07),
+    metalness: 0.1,
+    roughness: 0.05,
     transparent: true,
-    opacity: 0.92,
-    side: THREE.DoubleSide,
+    opacity: 0.75,
+    side: THREE.FrontSide,
+    depthWrite: false,
     flatShading: true,
-    reflectivity: 1.0,
+  });
+  
+  // Create a second pass material for back faces to simulate depth
+  const emeraldBackMaterial = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(0.02, 0.3, 0.1),
+    emissive: new THREE.Color(0.01, 0.1, 0.04),
+    metalness: 0.0,
+    roughness: 0.1,
+    transparent: true,
+    opacity: 0.5,
+    side: THREE.BackSide,
+    depthWrite: false,
+    flatShading: true,
   });
 
   const addEmerald = (x: number, y: number, scale: number) => {
