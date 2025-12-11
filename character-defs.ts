@@ -4222,16 +4222,6 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
     return value / maxValue;
   };
   
-  const thinFilmInterference = (thickness: number): [number, number, number] => {
-    const t = thickness * Math.PI * 2 * 4;
-    
-    const r = (Math.cos(t) * 0.5 + 0.5);
-    const g = (Math.cos(t + Math.PI * 2 / 3) * 0.5 + 0.5);
-    const b = (Math.cos(t + Math.PI * 4 / 3) * 0.5 + 0.5);
-    
-    return [r, g, b];
-  };
-  
   const scale = 0.004 + n * 0.001;
   const warpScale = scale * 0.4;
   const warpStrength = 60 + n * 20;
@@ -4252,23 +4242,13 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
       
       const thickness = fbm(wx2 * scale, wy2 * scale, 5);
       
-      const [ir, ig, ib] = thinFilmInterference(thickness);
+      const hueShift = thickness * 360 * 2;
       
       const [pr, pg, pb] = getPixel(prev, x, y);
+      const [h, s, l] = rgbToHsl(pr, pg, pb);
+      const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, Math.min(1, s + 0.2), l);
       
-      const sheenStrength = 0.15 + thickness * 0.1;
-      
-      const brightnessVar = 0.92 + thickness * 0.16;
-      
-      const nr = pr * brightnessVar + (ir * 255 - pr) * sheenStrength;
-      const ng = pg * brightnessVar + (ig * 255 - pg) * sheenStrength;
-      const nb = pb * brightnessVar + (ib * 255 - pb) * sheenStrength;
-      
-      setPixel(out, x, y, 
-        Math.max(0, Math.min(255, Math.round(nr))),
-        Math.max(0, Math.min(255, Math.round(ng))),
-        Math.max(0, Math.min(255, Math.round(nb)))
-      );
+      setPixel(out, x, y, nr, ng, nb);
     }
   }
   
