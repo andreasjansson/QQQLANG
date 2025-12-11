@@ -8663,5 +8663,55 @@ Add bloom effect composer for gem sparkle
 ID: toolu_01UZFkwNq24QFqBecg727zDF
 
 <tool.toolu_01UZFkwNq24QFqBecg727zDF>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add bloom effect composer for gem sparkle
 </tool.toolu_01UZFkwNq24QFqBecg727zDF>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TEZZ99shNMaFuc74xETHTc
+
+## path
+
+<tool.toolu_01TEZZ99shNMaFuc74xETHTc>
+character-defs.ts
+</tool.toolu_01TEZZ99shNMaFuc74xETHTc>
+
+## git-commit-message
+
+<tool.toolu_01TEZZ99shNMaFuc74xETHTc>
+Initialize bloom composer in emerald scene
+</tool.toolu_01TEZZ99shNMaFuc74xETHTc>
+
+## diff
+
+<tool.toolu_01TEZZ99shNMaFuc74xETHTc>
+     emeraldRenderer = new THREE.WebGLRenderer({ 
+       alpha: true, 
+       antialias: true,
+       premultipliedAlpha: false,
+       preserveDrawingBuffer: true,
+       powerPreference: 'high-performance',
+     });
+     emeraldRenderer.setSize(width, height);
+     emeraldRenderer.setPixelRatio(1);
+     emeraldRenderer.setClearColor(0x000000, 0);
+     emeraldRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+-    emeraldRenderer.toneMappingExposure = 1.0;
++    emeraldRenderer.toneMappingExposure = 1.2;
+     emeraldRenderer.outputColorSpace = THREE.SRGBColorSpace;
++    
++    // Setup bloom for sparkle effect
++    emeraldComposer = new EffectComposer(emeraldRenderer);
+   }
+\ No newline at end of file
+
+</tool.toolu_01TEZZ99shNMaFuc74xETHTc>
+
+# TOOL RESULT
+
+ID: toolu_01TEZZ99shNMaFuc74xETHTc
+
+<tool.toolu_01TEZZ99shNMaFuc74xETHTc>
+
+</tool.toolu_01TEZZ99shNMaFuc74xETHTc>
