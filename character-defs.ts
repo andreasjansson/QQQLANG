@@ -5599,9 +5599,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 59,
     fn: fnHoles,
     arity: 1,
-    argTypes: ['int'],
+    argTypes: ['index'],
     functionName: "midtone-reveal",
-    documentation: "Shows old image j where prev has mid-range (35-65%) saturation or lightness; extremes show prev"
+    documentation: "Shows old image where prev has mid-range (35-65%) saturation or lightness; extremes show prev"
   },
   
   '[': {
