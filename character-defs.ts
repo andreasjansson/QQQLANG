@@ -3529,11 +3529,11 @@ function fnCloseParen(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnAsterisk(ctx: FnContext, n: number): Image {
+function fnAsterisk(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
-  const numRays = Math.max(4, n * 2);
+  const numRays = 80;
   
   const vertexShader = `
     attribute vec2 position;
@@ -3549,37 +3549,36 @@ function fnAsterisk(ctx: FnContext, n: number): Image {
     uniform sampler2D uTexture;
     uniform vec2 uLightPos;
     uniform float uLightRadius;
-    uniform int uNumRays;
     varying vec2 vUV;
     
     #define PI 3.14159265359
+    #define NUM_RAYS 80
     
     void main() {
       vec3 texColor = texture2D(uTexture, vUV).rgb;
-      float brightness = dot(texColor, vec3(0.299, 0.587, 0.114));
       
       vec2 diff = vUV - uLightPos;
       float dist = length(diff);
       float angle = atan(diff.y, diff.x);
       
       // Create star/ray pattern from center
-      float rayAngle = PI * 2.0 / float(uNumRays);
+      float rayAngle = PI * 2.0 / float(NUM_RAYS);
       float nearestRay = floor(angle / rayAngle + 0.5) * rayAngle;
       float angleDiff = abs(angle - nearestRay);
       
-      // Ray intensity - thin rays that fade with distance
-      float rayWidth = 0.04;
-      float rayIntensity = smoothstep(rayWidth, 0.0, angleDiff) * (1.0 - smoothstep(0.0, 0.7, dist));
+      // Ray intensity - thin rays that extend outward
+      float rayWidth = 0.025;
+      float rayIntensity = smoothstep(rayWidth, 0.0, angleDiff) * (1.0 - smoothstep(0.0, 0.9, dist));
       
-      // Small central glow
-      float centerGlow = exp(-dist * dist / (uLightRadius * uLightRadius * 0.5)) * 0.8;
+      // Central glow
+      float centerGlow = exp(-dist * dist / (uLightRadius * uLightRadius));
       
-      // Only render the light source pattern (black elsewhere for proper occlusion)
-      float combinedIntensity = max(centerGlow, rayIntensity * 0.6);
+      // Combine for light source pattern
+      float combinedIntensity = centerGlow + rayIntensity * 0.8;
       
-      // Tint by average of scene color for colored rays
-      vec3 avgColor = texColor * 0.5 + vec3(0.5);
-      vec3 result = combinedIntensity * avgColor;
+      // Tint rays by scene color
+      vec3 lightColor = mix(vec3(1.0, 0.98, 0.9), texColor, 0.4);
+      vec3 result = combinedIntensity * lightColor;
       
       gl_FragColor = vec4(result, 1.0);
     }
@@ -3590,18 +3589,19 @@ function fnAsterisk(ctx: FnContext, n: number): Image {
     uniform sampler2D uOcclusionTexture;
     uniform sampler2D uSceneTexture;
     uniform vec2 uLightPos;
-    uniform float uExposure;
-    uniform float uDecay;
-    uniform float uDensity;
-    uniform float uWeight;
     varying vec2 vUV;
     
-    #define NUM_SAMPLES 80
+    #define NUM_SAMPLES 100
     
     void main() {
+      float exposure = 0.22;
+      float decay = 0.97;
+      float density = 0.95;
+      float weight = 0.5;
+      
       vec2 texCoord = vUV;
       vec2 deltaTexCoord = (texCoord - uLightPos);
-      deltaTexCoord *= 1.0 / float(NUM_SAMPLES) * uDensity;
+      deltaTexCoord *= 1.0 / float(NUM_SAMPLES) * density;
       
       float illuminationDecay = 1.0;
       vec3 godrayColor = vec3(0.0);
@@ -3611,18 +3611,18 @@ function fnAsterisk(ctx: FnContext, n: number): Image {
       for (int i = 0; i < NUM_SAMPLES; i++) {
         sampleCoord -= deltaTexCoord;
         vec3 sampleColor = texture2D(uOcclusionTexture, sampleCoord).rgb;
-        sampleColor *= illuminationDecay * uWeight;
+        sampleColor *= illuminationDecay * weight;
         godrayColor += sampleColor;
-        illuminationDecay *= uDecay;
+        illuminationDecay *= decay;
       }
       
-      godrayColor *= uExposure;
+      godrayColor *= exposure;
       
       // Get original scene
       vec3 sceneColor = texture2D(uSceneTexture, vUV).rgb;
       
-      // Screen blend for more natural look (avoids harsh clipping)
-      vec3 finalColor = 1.0 - (1.0 - sceneColor) * (1.0 - godrayColor * 0.6);
+      // Screen blend for natural look
+      vec3 finalColor = 1.0 - (1.0 - sceneColor) * (1.0 - godrayColor);
       
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -3656,7 +3656,7 @@ function fnAsterisk(ctx: FnContext, n: number): Image {
   
   const lightX = 0.5;
   const lightY = 0.5;
-  const lightRadius = 0.08;
+  const lightRadius = 0.1;
   
   // Pass 1: Render occlusion texture with star pattern
   gl.useProgram(occlusionProgram);
@@ -3674,7 +3674,6 @@ function fnAsterisk(ctx: FnContext, n: number): Image {
   gl.uniform1i(gl.getUniformLocation(occlusionProgram, 'uTexture'), 0);
   gl.uniform2f(gl.getUniformLocation(occlusionProgram, 'uLightPos'), lightX, lightY);
   gl.uniform1f(gl.getUniformLocation(occlusionProgram, 'uLightRadius'), lightRadius);
-  gl.uniform1i(gl.getUniformLocation(occlusionProgram, 'uNumRays'), numRays);
   
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   
@@ -3697,10 +3696,6 @@ function fnAsterisk(ctx: FnContext, n: number): Image {
   gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uSceneTexture'), 1);
   
   gl.uniform2f(gl.getUniformLocation(godrayProgram, 'uLightPos'), lightX, lightY);
-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uExposure'), 0.12);
-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDecay'), 0.96);
-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDensity'), 0.8);
-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uWeight'), 0.4);
   
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   
