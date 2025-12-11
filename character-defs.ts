@@ -4274,10 +4274,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#87CEEB',
     number: 19,
     fn: fnS,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 2,
+    argTypes: ['int', 'int'],
     functionName: "sierpinski",
-    documentation: "Sierpiński fractal mask: interior shows old image j, outer shells apply hue shifts, invert, grayscale, saturate"
+    documentation: "Sierpiński triangle fractal: j=old image for interior, size=detail level (1-68); outer shells get hue shifts, invert, grayscale"
   },
   
   'T': {
