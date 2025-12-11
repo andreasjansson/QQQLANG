@@ -596,9 +596,8 @@ function fnI(ctx: FnContext): Image {
   return out;
 }
 
-function fnJ(ctx: FnContext, j: number): Image {
+function fnJ(ctx: FnContext, old: Image): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   for (let y = 0; y < ctx.height; y++) {
