@@ -1401,41 +1401,52 @@ function fnE(ctx: FnContext): Image {
   pointLight2.position.set(-3, 2, 3);
   emeraldScene!.add(pointLight2);
   
+  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color(0.1, 0.6, 0.3),
+    metalness: 0.0,
+    roughness: 0.05,
+    transmission: 0.92,
+    thickness: 1.5,
+    ior: 1.57,
+    transparent: true,
+    opacity: 0.95,
+    envMapIntensity: 1.5,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05,
+    sheen: 0.5,
+    sheenRoughness: 0.2,
+    sheenColor: new THREE.Color(0.2, 0.8, 0.4),
+    attenuationColor: new THREE.Color(0.1, 0.5, 0.25),
+    attenuationDistance: 0.5,
+  });
+  
   if (emeraldModel) {
-    const centerEmerald = emeraldModel.clone();
-    centerEmerald.scale.setScalar(1.0);
-    centerEmerald.position.set(0, 0, 0);
-    emeraldScene!.add(centerEmerald);
+    console.log('Adding emerald models to scene');
     
-    const leftEmerald = emeraldModel.clone();
-    leftEmerald.scale.setScalar(0.6);
-    leftEmerald.position.set(-2.0, 0, 0);
-    emeraldScene!.add(leftEmerald);
+    const addEmerald = (x: number, y: number, scale: number) => {
+      const gem = emeraldModel!.clone();
+      gem.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.material = emeraldMaterial;
+        }
+      });
+      gem.scale.setScalar(scale);
+      gem.position.set(x, y, 0);
+      emeraldScene!.add(gem);
+    };
     
-    const rightEmerald = emeraldModel.clone();
-    rightEmerald.scale.setScalar(0.6);
-    rightEmerald.position.set(2.0, 0, 0);
-    emeraldScene!.add(rightEmerald);
-    
-    const topLeftEmerald = emeraldModel.clone();
-    topLeftEmerald.scale.setScalar(0.4);
-    topLeftEmerald.position.set(-1.2, 0.8, 0);
-    emeraldScene!.add(topLeftEmerald);
-    
-    const topRightEmerald = emeraldModel.clone();
-    topRightEmerald.scale.setScalar(0.4);
-    topRightEmerald.position.set(1.2, 0.8, 0);
-    emeraldScene!.add(topRightEmerald);
-    
-    const botLeftEmerald = emeraldModel.clone();
-    botLeftEmerald.scale.setScalar(0.4);
-    botLeftEmerald.position.set(-1.2, -0.8, 0);
-    emeraldScene!.add(botLeftEmerald);
-    
-    const botRightEmerald = emeraldModel.clone();
-    botRightEmerald.scale.setScalar(0.4);
-    botRightEmerald.position.set(1.2, -0.8, 0);
-    emeraldScene!.add(botRightEmerald);
+    addEmerald(0, 0, 1.0);
+    addEmerald(-2.0, 0, 0.6);
+    addEmerald(2.0, 0, 0.6);
+    addEmerald(-1.2, 0.8, 0.4);
+    addEmerald(1.2, 0.8, 0.4);
+    addEmerald(-1.2, -0.8, 0.4);
+    addEmerald(1.2, -0.8, 0.4);
+  } else {
+    console.log('No emerald model, adding test geometry');
+    const testGeo = new THREE.OctahedronGeometry(0.8, 0);
+    const testMesh = new THREE.Mesh(testGeo, emeraldMaterial);
+    emeraldScene!.add(testMesh);
   }
   
   emeraldRenderer!.render(emeraldScene!, emeraldCamera!);
