@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-144424900068>
+${greger-prompt-code-style<eval-result-144522264980>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-144424900068>}
+</eval-result-144522264980>}
 
 # USER
 
@@ -8630,5 +8630,305 @@ Fix oil slick cross pattern by offsetting coordinates and improving noise
 ID: toolu_01XSoMwVxJKFpbu1n21zRVmZ
 
 <tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix oil slick cross pattern by offsetting coordinates and improving noise
 </tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
+
+# ASSISTANT
+
+Now the coordinates are offset based on the seed so they're never centered at origin, which should eliminate the cross pattern. The normal calculation is also improved to be more responsive.
+
+# USER
+
+no now you're just overwriting the whole thing, none of the original content is preserved
+
+# THINKING
+
+Signature: Er8GCkYIChgCKkAS/AXKDkNUp2tYhQzdw9FOpE5m6lXL0cvMbNVc8GdzUZQVyNl4+A65XIABq/MNy61YrYhMOKvdY0Jj6XN7KVu8EgwcBR/2WbXWOBuCKnIaDEbrCJe4hmzgZ3gmUSIwp5wwn840Y7aBQOhoradT2qiuHRIZ0Kn+TkLqs6UB9uuMJ9ZgwocJg1MglnS10+7yKqYFYB+0nAINQS/Zhu/DqYU+PkxzQLQFKs2Lif84RJrK9jVVioQmAGejBr+BxE1CXAgzNcFrfco2kmGVdN5B7D348+OofJpzMwK5BWrh2RtrqD0bWMsJ0BAL4h5A+Ulag3hMEhGSF9JNiaeZJ67BcV47bl9D63RH6BZSC5Hz5bHy1r41DPXdjufHGPYBqZf61YkOm8c0sMGZ4Gbfd9+/i4f77pMBSjPyoS4fNkODa08+YnKFGC1n1fgBLyU69qjVE1ytGsjbP15rhzdcmUtg/+S+3IMcOOujkhI3L3BxjbmlSEzgC/EpvZHEYQDNyC9Hnteb9TtE6Ixu3Y1hzD1t2eX+ouJgMwYv4lR3W/N7IRb17YfxSezMycMYjnMsGfvWOTvRHxYmehe9SiOClTpqr45UhKkzusdYOgoTdVz5tfWsMGjmrhQyXgdBjyyJs0T3LalPdaxEViMHgwwxn8NGwlCzGiRLHfLOHUpzMKyZsu8hSHHZj6/3auvCuE82pNwSYlRi2Rn4YwNWrQRxiPoPHFJl7giODfzMY4h6RBEATqe+br2ai01HX7fY/TtEZMlpFZy6fiFwwkQcKiXBsJO1zeE9sZg5bd3mkMwkV4my8N0CljxB9k95untCKEdEmjSFFdx5nJcJX0v10VO8ppDrK0UWP2Qo8FNGfHbEdEYvPdFP+MqObfe6P8wDHhEt/1IMRLnY4Rp1BAyj9jwD4JXF8PDxKcFxXRWIwNrDrcp+LK5YT28p7sYEdcSTz8zF/Edlh8UZn7EwHDaEPeCH/lAQOW1/WH+P/BClm2vq+5LTrELuMXtgMc4PyB5gTetePhWNw65ESfO7DoqebqPVd53Ahh2Ed1Ihn+JSRrGonpjSO5oDRDSePdqB6+4x7Vb5fQ8rNaGsT2MA/TfyGAE=
+
+The user is saying that the oil slick effect is completely overwriting the original image content - none of the original is preserved. Looking at the code, the warped UV might be going completely out of bounds, or the lighting is too strong.
+
+Let me look at what's happening:
+1. We warp the coordinates
+2. We sample the texture at the warped position
+3. We apply lighting
+
+The issue might be that the warpedUV is clamping to edges when it goes out of bounds, so we lose the original content. Or the lighting is completely washing out the image.
+
+Let me check the current state and make sure the warping is subtle and the lighting doesn't overpower the original image.
+
+# ASSISTANT
+
+You're right - the warping and lighting are probably too aggressive and clamping is losing the content. Let me tone it down significantly:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_011QiNCgGPN81ssg8FGeB5GY
+
+## path
+
+<tool.toolu_011QiNCgGPN81ssg8FGeB5GY>
+character-defs.ts
+</tool.toolu_011QiNCgGPN81ssg8FGeB5GY>
+
+## start-line
+
+<tool.toolu_011QiNCgGPN81ssg8FGeB5GY>
+4182
+</tool.toolu_011QiNCgGPN81ssg8FGeB5GY>
+
+## end-line
+
+<tool.toolu_011QiNCgGPN81ssg8FGeB5GY>
+4320
+</tool.toolu_011QiNCgGPN81ssg8FGeB5GY>
+
+# TOOL RESULT
+
+ID: toolu_011QiNCgGPN81ssg8FGeB5GY
+
+<tool.toolu_011QiNCgGPN81ssg8FGeB5GY>
+function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
+  const prev = getPrevImage(ctx);
+  const gl = initWebGL(ctx.width, ctx.height);
+  
+  const seed = ctx.images.length * 137.5 + warpN * 17.3 + iridN * 7.1;
+  const depth = 1 + Math.floor(iridN / 4);
+  const warpStrength = 0.05 + warpN * 0.025;
+  const patternScale = 1.5;
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uSeed;
+    uniform int uDepth;
+    uniform float uWarpStrength;
+    uniform float uPatternScale;
+    varying vec2 vUV;
+    
+    // Hash function for deterministic noise
+    float hash(vec2 p, float seed) {
+      return fract(sin(dot(p + seed * 0.1, vec2(127.1, 311.7))) * 43758.5453);
+    }
+    
+    // Smooth noise
+    float noise(vec2 p, float seed) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      
+      float a = hash(i, seed);
+      float b = hash(i + vec2(1.0, 0.0), seed);
+      float c = hash(i + vec2(0.0, 1.0), seed);
+      float d = hash(i + vec2(1.0, 1.0), seed);
+      
+      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
+    
+    // FBM for organic patterns
+    float fbm(vec2 p, float seed) {
+      float value = 0.0;
+      float amplitude = 0.5;
+      float frequency = 1.0;
+      for (int i = 0; i < 4; i++) {
+        value += amplitude * noise(p * frequency, seed + float(i) * 100.0);
+        amplitude *= 0.5;
+        frequency *= 2.0;
+      }
+      return value;
+    }
+    
+    // Domain warping effect - creates swirling patterns
+    vec2 warpEffect(vec2 p, float i, float seed) {
+      float angle = fbm(p * 0.8 + seed * 0.01, seed) * 6.28;
+      float magnitude = fbm(p * 0.5 + seed * 0.02 + 50.0, seed + 100.0);
+      return vec2(cos(angle), sin(angle)) * magnitude / (i * 0.3 + 1.0);
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      float aspect = uResolution.x / uResolution.y;
+      
+      // Offset to avoid symmetry at origin
+      vec2 offset = vec2(uSeed * 0.1 + 5.7, uSeed * 0.07 + 3.2);
+      
+      // Normalize coordinates with pattern scale
+      vec2 p = uv * uPatternScale + offset;
+      p.x *= aspect;
+      
+      // Iterative domain warping
+      for (int i = 1; i < 20; i++) {
+        if (i >= uDepth) break;
+        float fi = float(i);
+        p += warpEffect(p, fi, uSeed) * uWarpStrength;
+      }
+      
+      // Map warped coordinates back to UV space
+      vec2 warpedUV = (p - offset);
+      warpedUV.x /= aspect;
+      warpedUV = warpedUV / uPatternScale;
+      warpedUV = clamp(warpedUV, 0.0, 1.0);
+      
+      // Sample texture at warped position
+      vec3 texColor = texture2D(uTexture, warpedUV).rgb;
+      
+      // Oil slick lighting based on noise gradient - use offset coords
+      vec2 noiseCoord = p * 0.5;
+      float h = fbm(noiseCoord, uSeed);
+      float hx = fbm(noiseCoord + vec2(0.02, 0.0), uSeed);
+      float hy = fbm(noiseCoord + vec2(0.0, 0.02), uSeed);
+      
+      // Fake normal from height field
+      vec3 normal = normalize(vec3((h - hx) * 10.0, (h - hy) * 10.0, 1.0));
+      
+      // Light from top-left
+      vec3 lightDir = normalize(vec3(0.4, 0.5, 1.0));
+      float diffuse = max(dot(normal, lightDir), 0.0);
+      
+      // Specular highlight
+      vec3 viewDir = vec3(0.0, 0.0, 1.0);
+      vec3 reflectDir = reflect(-lightDir, normal);
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
+      
+      // Combine
+      float shadow = 0.7 + diffuse * 0.3;
+      float highlight = spec * 0.4;
+      
+      vec3 color = texColor * shadow + vec3(highlight);
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+</tool.toolu_011QiNCgGPN81ssg8FGeB5GY>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01PTmRSeFNTiHKk1Pebf8CSh
+
+## path
+
+<tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
+character-defs.ts
+</tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
+
+## git-commit-message
+
+<tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
+Rewrite oil slick to preserve original content with subtle warp and overlay lighting
+</tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
+
+## diff
+
+<tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
+     void main() {
+       vec2 uv = vUV;
+       float aspect = uResolution.x / uResolution.y;
+       
+-      // Offset to avoid symmetry at origin
+-      vec2 offset = vec2(uSeed * 0.1 + 5.7, uSeed * 0.07 + 3.2);
++      // Noise coordinates with offset to avoid symmetry
++      vec2 noiseCoord = uv * 4.0 + vec2(uSeed * 0.1 + 5.7, uSeed * 0.07 + 3.2);
++      noiseCoord.x *= aspect;
+       
+-      // Normalize coordinates with pattern scale
+-      vec2 p = uv * uPatternScale + offset;
+-      p.x *= aspect;
+-      
+-      // Iterative domain warping
++      // Calculate warp displacement from noise
++      vec2 warp = vec2(0.0);
+       for (int i = 1; i < 20; i++) {
+         if (i >= uDepth) break;
+         float fi = float(i);
+-        p += warpEffect(p, fi, uSeed) * uWarpStrength;
++        warp += warpEffect(noiseCoord + warp, fi, uSeed) * uWarpStrength;
+       }
+       
+-      // Map warped coordinates back to UV space
+-      vec2 warpedUV = (p - offset);
+-      warpedUV.x /= aspect;
+-      warpedUV = warpedUV / uPatternScale;
++      // Apply warp as UV offset (small displacement)
++      vec2 warpedUV = uv + warp * 0.1;
+       warpedUV = clamp(warpedUV, 0.0, 1.0);
+       
+       // Sample texture at warped position
+       vec3 texColor = texture2D(uTexture, warpedUV).rgb;
+       
+-      // Oil slick lighting based on noise gradient - use offset coords
+-      vec2 noiseCoord = p * 0.5;
+-      float h = fbm(noiseCoord, uSeed);
+-      float hx = fbm(noiseCoord + vec2(0.02, 0.0), uSeed);
+-      float hy = fbm(noiseCoord + vec2(0.0, 0.02), uSeed);
++      // Oil slick lighting overlay based on noise
++      float h = fbm(noiseCoord + warp, uSeed);
++      float hx = fbm(noiseCoord + warp + vec2(0.05, 0.0), uSeed);
++      float hy = fbm(noiseCoord + warp + vec2(0.0, 0.05), uSeed);
+       
+       // Fake normal from height field
+-      vec3 normal = normalize(vec3((h - hx) * 10.0, (h - hy) * 10.0, 1.0));
++      vec3 normal = normalize(vec3((h - hx) * 5.0, (h - hy) * 5.0, 1.0));
+       
+       // Light from top-left
+-      vec3 lightDir = normalize(vec3(0.4, 0.5, 1.0));
++      vec3 lightDir = normalize(vec3(0.5, 0.6, 1.0));
+       float diffuse = max(dot(normal, lightDir), 0.0);
+       
+       // Specular highlight
+       vec3 viewDir = vec3(0.0, 0.0, 1.0);
+       vec3 reflectDir = reflect(-lightDir, normal);
+-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
++      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+       
+-      // Combine
+-      float shadow = 0.7 + diffuse * 0.3;
+-      float highlight = spec * 0.4;
++      // Subtle lighting adjustment - mostly preserve original
++      float lighting = 0.9 + diffuse * 0.1;
++      float highlight = spec * 0.15;
+       
+-      vec3 color = texColor * shadow + vec3(highlight);
++      vec3 color = texColor * lighting + vec3(highlight);
+       
+       gl_FragColor = vec4(color, 1.0);
+     }
+\ No newline at end of file
+
+</tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
+
+# TOOL RESULT
+
+ID: toolu_01PTmRSeFNTiHKk1Pebf8CSh
+
+<tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
+
+</tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>

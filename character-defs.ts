@@ -4250,52 +4250,47 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       vec2 uv = vUV;
       float aspect = uResolution.x / uResolution.y;
       
-      // Offset to avoid symmetry at origin
-      vec2 offset = vec2(uSeed * 0.1 + 5.7, uSeed * 0.07 + 3.2);
+      // Noise coordinates with offset to avoid symmetry
+      vec2 noiseCoord = uv * 4.0 + vec2(uSeed * 0.1 + 5.7, uSeed * 0.07 + 3.2);
+      noiseCoord.x *= aspect;
       
-      // Normalize coordinates with pattern scale
-      vec2 p = uv * uPatternScale + offset;
-      p.x *= aspect;
-      
-      // Iterative domain warping
+      // Calculate warp displacement from noise
+      vec2 warp = vec2(0.0);
       for (int i = 1; i < 20; i++) {
         if (i >= uDepth) break;
         float fi = float(i);
-        p += warpEffect(p, fi, uSeed) * uWarpStrength;
+        warp += warpEffect(noiseCoord + warp, fi, uSeed) * uWarpStrength;
       }
       
-      // Map warped coordinates back to UV space
-      vec2 warpedUV = (p - offset);
-      warpedUV.x /= aspect;
-      warpedUV = warpedUV / uPatternScale;
+      // Apply warp as UV offset (small displacement)
+      vec2 warpedUV = uv + warp * 0.1;
       warpedUV = clamp(warpedUV, 0.0, 1.0);
       
       // Sample texture at warped position
       vec3 texColor = texture2D(uTexture, warpedUV).rgb;
       
-      // Oil slick lighting based on noise gradient - use offset coords
-      vec2 noiseCoord = p * 0.5;
-      float h = fbm(noiseCoord, uSeed);
-      float hx = fbm(noiseCoord + vec2(0.02, 0.0), uSeed);
-      float hy = fbm(noiseCoord + vec2(0.0, 0.02), uSeed);
+      // Oil slick lighting overlay based on noise
+      float h = fbm(noiseCoord + warp, uSeed);
+      float hx = fbm(noiseCoord + warp + vec2(0.05, 0.0), uSeed);
+      float hy = fbm(noiseCoord + warp + vec2(0.0, 0.05), uSeed);
       
       // Fake normal from height field
-      vec3 normal = normalize(vec3((h - hx) * 10.0, (h - hy) * 10.0, 1.0));
+      vec3 normal = normalize(vec3((h - hx) * 5.0, (h - hy) * 5.0, 1.0));
       
       // Light from top-left
-      vec3 lightDir = normalize(vec3(0.4, 0.5, 1.0));
+      vec3 lightDir = normalize(vec3(0.5, 0.6, 1.0));
       float diffuse = max(dot(normal, lightDir), 0.0);
       
       // Specular highlight
       vec3 viewDir = vec3(0.0, 0.0, 1.0);
       vec3 reflectDir = reflect(-lightDir, normal);
-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
       
-      // Combine
-      float shadow = 0.7 + diffuse * 0.3;
-      float highlight = spec * 0.4;
+      // Subtle lighting adjustment - mostly preserve original
+      float lighting = 0.9 + diffuse * 0.1;
+      float highlight = spec * 0.15;
       
-      vec3 color = texColor * shadow + vec3(highlight);
+      vec3 color = texColor * lighting + vec3(highlight);
       
       gl_FragColor = vec4(color, 1.0);
     }
