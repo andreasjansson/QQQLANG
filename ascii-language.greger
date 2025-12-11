@@ -6917,5 +6917,55 @@ Add intro video playback logic with sound toggle
 ID: toolu_013v6bu5LETqNA59NmQVVaUB
 
 <tool.toolu_013v6bu5LETqNA59NmQVVaUB>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Add intro video playback logic with sound toggle
 </tool.toolu_013v6bu5LETqNA59NmQVVaUB>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01UfmqwhpV9QWnHzkLQXv27F
+
+## path
+
+<tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+index.html
+</tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+
+## original-content
+
+<tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+    // Wait for emerald model to load before first render
+    emeraldReady.then(() => {
+      loadProgramFromURL();
+      resize();
+    });
+</tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+
+## new-content
+
+<tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+    // Wait for emerald model to load before first render
+    emeraldReady.then(() => {
+      if (shouldShowIntro()) {
+        showIntro();
+        resize();
+      } else {
+        loadProgramFromURL();
+        resize();
+      }
+    });
+</tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+
+## git-commit-message
+
+<tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+Trigger intro video on first visit without URL params
+</tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+
+# TOOL RESULT
+
+ID: toolu_01UfmqwhpV9QWnHzkLQXv27F
+
+<tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
+
+</tool.toolu_01UfmqwhpV9QWnHzkLQXv27F>
