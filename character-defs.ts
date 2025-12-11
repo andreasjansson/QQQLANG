@@ -1486,7 +1486,7 @@ function fnE(ctx: FnContext): Image {
     },
   });
 
-  const addEmerald = (x: number, y: number, scale: number) => {
+  const addEmerald = (x: number, y: number, scale: number, logGeometry: boolean = false) => {
     const gem = emeraldModel!.clone();
     
     gem.traverse((child) => {
@@ -1496,6 +1496,49 @@ function fnE(ctx: FnContext): Image {
         child.geometry = geom;
         child.material = emeraldMaterial;
         child.renderOrder = 1;
+        
+        // Log geometry info for the first emerald
+        if (logGeometry) {
+          const positions = geom.attributes.position;
+          const normals = geom.attributes.normal;
+          
+          console.log('=== EMERALD GEOMETRY ===');
+          console.log('Vertex count:', positions.count);
+          console.log('Triangle count:', positions.count / 3);
+          
+          // Find unique vertices and their positions
+          const uniqueVerts = new Map<string, {pos: number[], count: number, indices: number[]}>();
+          
+          for (let i = 0; i < positions.count; i++) {
+            const px = positions.getX(i).toFixed(3);
+            const py = positions.getY(i).toFixed(3);
+            const pz = positions.getZ(i).toFixed(3);
+            const key = `${px},${py},${pz}`;
+            
+            if (!uniqueVerts.has(key)) {
+              uniqueVerts.set(key, {pos: [parseFloat(px), parseFloat(py), parseFloat(pz)], count: 0, indices: []});
+            }
+            uniqueVerts.get(key)!.count++;
+            uniqueVerts.get(key)!.indices.push(i);
+          }
+          
+          console.log('Unique vertex positions:', uniqueVerts.size);
+          
+          // Sort by how many triangles share this vertex (corners have more)
+          const sorted = [...uniqueVerts.entries()].sort((a, b) => b[1].count - a[1].count);
+          
+          console.log('\nTop 20 most-shared vertices (likely corners):');
+          sorted.slice(0, 20).forEach(([key, data], i) => {
+            console.log(`  ${i+1}. [${data.pos.join(', ')}] shared by ${data.count} triangles`);
+          });
+          
+          // Also log bounding box
+          geom.computeBoundingBox();
+          const bb = geom.boundingBox!;
+          console.log('\nBounding box:');
+          console.log('  min:', bb.min.x.toFixed(3), bb.min.y.toFixed(3), bb.min.z.toFixed(3));
+          console.log('  max:', bb.max.x.toFixed(3), bb.max.y.toFixed(3), bb.max.z.toFixed(3));
+        }
       }
     });
     
