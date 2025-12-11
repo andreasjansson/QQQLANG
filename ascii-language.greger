@@ -15760,5 +15760,44 @@ Simplify uploaded image handling - preload before sync execution
 ID: toolu_01F92zk92saKqeMwBWGdo12B
 
 <tool.toolu_01F92zk92saKqeMwBWGdo12B>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Simplify uploaded image handling - preload before sync execution
 </tool.toolu_01F92zk92saKqeMwBWGdo12B>
+
+# ASSISTANT
+
+Now update index.html to use the new blob-based API and preload before rendering:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_019aGr5WqPer58875FeTrLiu
+
+## path
+
+<tool.toolu_019aGr5WqPer58875FeTrLiu>
+index.html
+</tool.toolu_019aGr5WqPer58875FeTrLiu>
+
+## git-commit-message
+
+<tool.toolu_019aGr5WqPer58875FeTrLiu>
+Update index.html to use blob-based upload API with preloading
+</tool.toolu_019aGr5WqPer58875FeTrLiu>
+
+## diff
+
+<tool.toolu_019aGr5WqPer58875FeTrLiu>
+-    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, getInvalidUploadIndices, addUploadedImage, setUploadedImage, uploadedImages, clearUploadedImages } from './runtime.ts';
+\ No newline at end of file
++    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, getInvalidUploadIndices, addUploadedBlob, setUploadedBlob, preloadUploadedImages, clearUploadedImages } from './runtime.ts';
+\ No newline at end of file
+
+</tool.toolu_019aGr5WqPer58875FeTrLiu>
+
+# TOOL RESULT
+
+ID: toolu_019aGr5WqPer58875FeTrLiu
+
+<tool.toolu_019aGr5WqPer58875FeTrLiu>
+
+</tool.toolu_019aGr5WqPer58875FeTrLiu>

@@ -276,7 +276,7 @@
   <input type="file" id="file-input" accept="image/*" style="display: none;">
 
   <script type="module">
-    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, getInvalidUploadIndices, addUploadedImage, setUploadedImage, uploadedImages, clearUploadedImages } from './runtime.ts';
+    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, getInvalidUploadIndices, addUploadedBlob, setUploadedBlob, preloadUploadedImages, clearUploadedImages } from './runtime.ts';
     import { characterDefs, emeraldReady, UPLOAD_CHAR, createPlaceholderImage } from './character-defs.ts';
 
     const canvas = document.getElementById('canvas');
