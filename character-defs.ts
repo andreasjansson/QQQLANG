@@ -1417,8 +1417,6 @@ function fnE(ctx: FnContext): Image {
   
   // Clean up
   bgTexture.dispose();
-  envMap.dispose();
-  pmremGenerator.dispose();
   
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
