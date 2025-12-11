@@ -4153,11 +4153,11 @@ export const characterDefs: Record<string, CharDef> = {
   '5': {
     color: '#85C1E9',
     number: 32,
-    fn: fnD,
+    fn: fn5,
     arity: 1,
     argTypes: ['int'],
     functionName: "triangular-split",
-    documentation: "Splits prev into (n+1)² triangles, each colorized with a hue based on its index"
+    documentation: "Splits prev into triangles based on cell width, each with hue shift and lightness variation"
   },
   
   '6': {
