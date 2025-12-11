@@ -3923,15 +3923,6 @@ function fnUnderscore(ctx: FnContext, j: number): Image {
   
   const blurRadius = 25;
   
-  const softLight = (a: number, b: number): number => {
-    const aa = a / 255;
-    const bb = b / 255;
-    const result = bb < 0.5
-      ? aa - (1 - 2 * bb) * aa * (1 - aa)
-      : aa + (2 * bb - 1) * (aa < 0.25 ? ((16 * aa - 12) * aa + 4) * aa : Math.sqrt(aa) - aa);
-    return Math.round(result * 255);
-  };
-  
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const [pr, pg, pb] = getPixel(prev, x, y);
@@ -3950,9 +3941,13 @@ function fnUnderscore(ctx: FnContext, j: number): Image {
       bg /= count;
       bb /= count;
       
-      const nr = softLight(br, pr);
-      const ng = softLight(bg, pg);
-      const nb = softLight(bb, pb);
+      const prevLum = pr * 0.299 + pg * 0.587 + pb * 0.114;
+      const blurLum = br * 0.299 + bg * 0.587 + bb * 0.114;
+      
+      const scale = blurLum > 0 ? prevLum / blurLum : 1;
+      const nr = Math.min(255, Math.round(br * scale));
+      const ng = Math.min(255, Math.round(bg * scale));
+      const nb = Math.min(255, Math.round(bb * scale));
       
       setPixel(out, x, y, nr, ng, nb);
     }
