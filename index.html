@@ -753,6 +753,8 @@
     });
     
     input.addEventListener('click', handleInputClick);
+    input.addEventListener('mousemove', handleInputMouseMove);
+    input.addEventListener('mouseleave', () => { input.style.cursor = ''; });
 
     window.addEventListener('popstate', (event) => {
       loadProgramFromURL();
