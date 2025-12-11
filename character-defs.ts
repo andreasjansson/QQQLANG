@@ -1417,49 +1417,52 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
-  // Create sparkle with real blur filter
+  // Create sparkle with heavy blur
   const sparkleCanvas = document.createElement('canvas');
-  sparkleCanvas.width = 128;
-  sparkleCanvas.height = 128;
+  sparkleCanvas.width = 256;
+  sparkleCanvas.height = 256;
   const sctx = sparkleCanvas.getContext('2d')!;
   
-  const cx = 64, cy = 64;
+  const cx = 128, cy = 128;
   
-  // Draw thin sharp lines first
-  sctx.strokeStyle = 'rgba(255, 255, 255, 1)';
-  sctx.lineWidth = 1;
+  // Draw thin lines
+  sctx.strokeStyle = 'white';
+  sctx.lineWidth = 1.5;
   sctx.lineCap = 'round';
   
   const rays = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4];
   rays.forEach(angle => {
     sctx.beginPath();
-    sctx.moveTo(cx - Math.cos(angle) * 50, cy - Math.sin(angle) * 50);
-    sctx.lineTo(cx + Math.cos(angle) * 50, cy + Math.sin(angle) * 50);
+    sctx.moveTo(cx - Math.cos(angle) * 90, cy - Math.sin(angle) * 90);
+    sctx.lineTo(cx + Math.cos(angle) * 90, cy + Math.sin(angle) * 90);
     sctx.stroke();
   });
   
-  // Bright center dot
+  // Center dot
   sctx.fillStyle = 'white';
   sctx.beginPath();
-  sctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  sctx.arc(cx, cy, 4, 0, Math.PI * 2);
   sctx.fill();
   
-  // Apply real gaussian blur
-  sctx.filter = 'blur(6px)';
+  // Heavy blur - multiple passes
+  sctx.filter = 'blur(12px)';
   sctx.drawImage(sparkleCanvas, 0, 0);
-  sctx.filter = 'blur(4px)';
+  sctx.filter = 'blur(8px)';
   sctx.drawImage(sparkleCanvas, 0, 0);
-  sctx.filter = 'blur(2px)';
+  sctx.filter = 'blur(5px)';
+  sctx.drawImage(sparkleCanvas, 0, 0);
+  sctx.filter = 'blur(3px)';
   sctx.drawImage(sparkleCanvas, 0, 0);
   sctx.filter = 'none';
   
-  // Add a tiny bright core
-  sctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  // Tiny bright core
+  sctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   sctx.beginPath();
   sctx.arc(cx, cy, 2, 0, Math.PI * 2);
   sctx.fill();
   
   const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
+  sparkleTexture.premultiplyAlpha = true;
   
   const sparkleSpriteMaterial = new THREE.SpriteMaterial({
     map: sparkleTexture,
