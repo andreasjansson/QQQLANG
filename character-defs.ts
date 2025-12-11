@@ -5129,9 +5129,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 12,
     fn: fnL,
     arity: 2,
-    argTypes: ['int', 'int'],
+    argTypes: ['index', 'int'],
     functionName: "lissajous",
-    documentation: "3D Lissajous tube textured with prev, old_image as background; j=old image, rot=rotation"
+    documentation: "3D Lissajous tube textured with prev, old_image as background; first arg=old image, second=rotation"
   },
   
   'M': {
