@@ -13296,5 +13296,54 @@ Add 'index' argType and placeholder image helper for uploads
 ID: toolu_012qEordeiPV1JeipeYDXx47
 
 <tool.toolu_012qEordeiPV1JeipeYDXx47>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add 'index' argType and placeholder image helper for uploads
 </tool.toolu_012qEordeiPV1JeipeYDXx47>
+
+# ASSISTANT
+
+Now update the functions that use old images to accept `Image | number`:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01LhHCmkd7azGGsbm1w64Ap3
+
+## path
+
+<tool.toolu_01LhHCmkd7azGGsbm1w64Ap3>
+character-defs.ts
+</tool.toolu_01LhHCmkd7azGGsbm1w64Ap3>
+
+## git-commit-message
+
+<tool.toolu_01LhHCmkd7azGGsbm1w64Ap3>
+Add resolveRefImage helper for index args
+</tool.toolu_01LhHCmkd7azGGsbm1w64Ap3>
+
+## diff
+
+<tool.toolu_01LhHCmkd7azGGsbm1w64Ap3>
+ function getOldImage(ctx: FnContext, j: number): Image {
+   if (ctx.images.length === 0) return createSolidImage(ctx.width, ctx.height, '#000000');
+   if (ctx.images.length === 1) return ctx.images[0];
+   const idx = Math.abs(j) % ctx.images.length;
+   return ctx.images[idx];
++}
++
++function resolveRefImage(ctx: FnContext, ref: Image | number): Image {
++  if (typeof ref === 'number') {
++    return getOldImage(ctx, ref);
++  }
++  return ref;
+ }
+\ No newline at end of file
+
+</tool.toolu_01LhHCmkd7azGGsbm1w64Ap3>
+
+# TOOL RESULT
+
+ID: toolu_01LhHCmkd7azGGsbm1w64Ap3
+
+<tool.toolu_01LhHCmkd7azGGsbm1w64Ap3>
+
+</tool.toolu_01LhHCmkd7azGGsbm1w64Ap3>
