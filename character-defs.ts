@@ -1358,44 +1358,38 @@ function fnE(ctx: FnContext): Image {
   emeraldScene!.add(ambientLight);
   
   // Key light - bright white from top-right-front
-  const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
   keyLight.position.set(5, 8, 10);
   emeraldScene!.add(keyLight);
   
   // Fill light with slight green tint
-  const fillLight = new THREE.DirectionalLight(0xeeffee, 2.0);
+  const fillLight = new THREE.DirectionalLight(0xeeffee, 1.5);
   fillLight.position.set(-5, 3, 8);
   emeraldScene!.add(fillLight);
   
-  // Back rim light for edge highlights
-  const backLight = new THREE.DirectionalLight(0xffffff, 2.0);
-  backLight.position.set(0, 5, -5);
-  emeraldScene!.add(backLight);
+  // Seeded random for deterministic light positions based on image count
+  const seed = ctx.images.length * 137.5;
+  const hash = (n: number) => {
+    const x = Math.sin(n + seed) * 43758.5453;
+    return x - Math.floor(x);
+  };
   
-  // Top light for crown sparkle
-  const topLight = new THREE.DirectionalLight(0xffffff, 2.5);
-  topLight.position.set(0, 15, 5);
-  emeraldScene!.add(topLight);
-  
-  // Many point lights for intense sparkle highlights on facets
-  const sparklePositions = [
-    // Front sparkles
-    [3, 4, 8], [-3, 3, 7], [0, 6, 6], [4, 2, 5], [-4, 5, 5],
-    [2, 7, 4], [-2, 4, 9], [5, 3, 6], [-5, 6, 4], [0, 3, 10],
-    // Top sparkles
-    [1, 8, 5], [-1, 9, 6], [2, 10, 4], [-2, 8, 7], [0, 12, 5],
-    // Side sparkles
-    [6, 4, 4], [-6, 5, 5], [7, 3, 6], [-7, 4, 4], [5, 6, 3],
-    // Close sparkles for intense highlights
-    [1, 3, 7], [-1, 4, 8], [2, 5, 9], [-2, 3, 7], [0, 4, 8],
-  ];
-  
-  sparklePositions.forEach((pos, i) => {
-    const intensity = 3.0 + (i % 3) * 1.5;
-    const light = new THREE.PointLight(0xffffff, intensity, 30);
-    light.position.set(pos[0], pos[1], pos[2]);
+  // Generate random point lights around the emeralds
+  const numLights = 20;
+  for (let i = 0; i < numLights; i++) {
+    const angle = hash(i * 127.1) * Math.PI * 2;
+    const elevation = hash(i * 311.7) * Math.PI * 0.4 + 0.2;  // Above horizon
+    const distance = 4 + hash(i * 74.3) * 8;
+    
+    const px = Math.cos(angle) * Math.cos(elevation) * distance;
+    const py = Math.sin(elevation) * distance + 2;
+    const pz = Math.sin(angle) * Math.cos(elevation) * distance + 5;
+    
+    const intensity = 1.5 + hash(i * 191.3) * 2.5;
+    const light = new THREE.PointLight(0xffffff, intensity, 25);
+    light.position.set(px, py, pz);
     emeraldScene!.add(light);
-  });
+  }
 
   // Glass emerald material
   const emeraldMaterial = new THREE.MeshPhysicalMaterial({

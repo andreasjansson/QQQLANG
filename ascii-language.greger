@@ -10406,5 +10406,199 @@ Make sparkles more visible and add seeded random light positions
 ID: toolu_01ANRbCa1t7QMjyPcrKaEqyV
 
 <tool.toolu_01ANRbCa1t7QMjyPcrKaEqyV>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make sparkles more visible and add seeded random light positions
 </tool.toolu_01ANRbCa1t7QMjyPcrKaEqyV>
+
+# ASSISTANT
+
+Now let me find and update the light positioning to use seeded randomness:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01EZp3TebiNwsDHnR5EmXQJF
+
+## path
+
+<tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+character-defs.ts
+</tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+
+## start-line
+
+<tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+1355
+</tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+
+## end-line
+
+<tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+1410
+</tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+
+## include-line-numbers
+
+<tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+true
+</tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+
+# TOOL RESULT
+
+ID: toolu_01EZp3TebiNwsDHnR5EmXQJF
+
+<tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+1355:   emeraldScene!.environment = envRT.texture;
+1356: 
+1357:   const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+1358:   emeraldScene!.add(ambientLight);
+1359:   
+1360:   // Key light - bright white from top-right-front
+1361:   const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
+1362:   keyLight.position.set(5, 8, 10);
+1363:   emeraldScene!.add(keyLight);
+1364:   
+1365:   // Fill light with slight green tint
+1366:   const fillLight = new THREE.DirectionalLight(0xeeffee, 2.0);
+1367:   fillLight.position.set(-5, 3, 8);
+1368:   emeraldScene!.add(fillLight);
+1369:   
+1370:   // Back rim light for edge highlights
+1371:   const backLight = new THREE.DirectionalLight(0xffffff, 2.0);
+1372:   backLight.position.set(0, 5, -5);
+1373:   emeraldScene!.add(backLight);
+1374:   
+1375:   // Top light for crown sparkle
+1376:   const topLight = new THREE.DirectionalLight(0xffffff, 2.5);
+1377:   topLight.position.set(0, 15, 5);
+1378:   emeraldScene!.add(topLight);
+1379:   
+1380:   // Many point lights for intense sparkle highlights on facets
+1381:   const sparklePositions = [
+1382:     // Front sparkles
+1383:     [3, 4, 8], [-3, 3, 7], [0, 6, 6], [4, 2, 5], [-4, 5, 5],
+1384:     [2, 7, 4], [-2, 4, 9], [5, 3, 6], [-5, 6, 4], [0, 3, 10],
+1385:     // Top sparkles
+1386:     [1, 8, 5], [-1, 9, 6], [2, 10, 4], [-2, 8, 7], [0, 12, 5],
+1387:     // Side sparkles
+1388:     [6, 4, 4], [-6, 5, 5], [7, 3, 6], [-7, 4, 4], [5, 6, 3],
+1389:     // Close sparkles for intense highlights
+1390:     [1, 3, 7], [-1, 4, 8], [2, 5, 9], [-2, 3, 7], [0, 4, 8],
+1391:   ];
+1392:   
+1393:   sparklePositions.forEach((pos, i) => {
+1394:     const intensity = 3.0 + (i % 3) * 1.5;
+1395:     const light = new THREE.PointLight(0xffffff, intensity, 30);
+1396:     light.position.set(pos[0], pos[1], pos[2]);
+1397:     emeraldScene!.add(light);
+1398:   });
+1399: 
+1400:   // Glass emerald material
+1401:   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+1402:     color: new THREE.Color(0.0, 0.8, 0.28),
+1403:     metalness: 0.0,
+1404:     roughness: 0.0,
+1405:     transmission: 0.92,
+1406:     thickness: 0.6,
+1407:     ior: 1.65,
+1408:     envMapIntensity: 0.35,
+1409:     clearcoat: 1.0,
+1410:     clearcoatRoughness: 0.0,
+</tool.toolu_01EZp3TebiNwsDHnR5EmXQJF>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XoA9ERNgNTGzvqxpXBimVE
+
+## path
+
+<tool.toolu_01XoA9ERNgNTGzvqxpXBimVE>
+character-defs.ts
+</tool.toolu_01XoA9ERNgNTGzvqxpXBimVE>
+
+## git-commit-message
+
+<tool.toolu_01XoA9ERNgNTGzvqxpXBimVE>
+Use seeded random light positions based on image count
+</tool.toolu_01XoA9ERNgNTGzvqxpXBimVE>
+
+## diff
+
+<tool.toolu_01XoA9ERNgNTGzvqxpXBimVE>
+   const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+   emeraldScene!.add(ambientLight);
+   
+   // Key light - bright white from top-right-front
+-  const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
++  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+   keyLight.position.set(5, 8, 10);
+   emeraldScene!.add(keyLight);
+   
+   // Fill light with slight green tint
+-  const fillLight = new THREE.DirectionalLight(0xeeffee, 2.0);
++  const fillLight = new THREE.DirectionalLight(0xeeffee, 1.5);
+   fillLight.position.set(-5, 3, 8);
+   emeraldScene!.add(fillLight);
+   
+-  // Back rim light for edge highlights
+-  const backLight = new THREE.DirectionalLight(0xffffff, 2.0);
+-  backLight.position.set(0, 5, -5);
+-  emeraldScene!.add(backLight);
++  // Seeded random for deterministic light positions based on image count
++  const seed = ctx.images.length * 137.5;
++  const hash = (n: number) => {
++    const x = Math.sin(n + seed) * 43758.5453;
++    return x - Math.floor(x);
++  };
+   
+-  // Top light for crown sparkle
+-  const topLight = new THREE.DirectionalLight(0xffffff, 2.5);
+-  topLight.position.set(0, 15, 5);
+-  emeraldScene!.add(topLight);
+-  
+-  // Many point lights for intense sparkle highlights on facets
+-  const sparklePositions = [
+-    // Front sparkles
+-    [3, 4, 8], [-3, 3, 7], [0, 6, 6], [4, 2, 5], [-4, 5, 5],
+-    [2, 7, 4], [-2, 4, 9], [5, 3, 6], [-5, 6, 4], [0, 3, 10],
+-    // Top sparkles
+-    [1, 8, 5], [-1, 9, 6], [2, 10, 4], [-2, 8, 7], [0, 12, 5],
+-    // Side sparkles
+-    [6, 4, 4], [-6, 5, 5], [7, 3, 6], [-7, 4, 4], [5, 6, 3],
+-    // Close sparkles for intense highlights
+-    [1, 3, 7], [-1, 4, 8], [2, 5, 9], [-2, 3, 7], [0, 4, 8],
+-  ];
+-  
+-  sparklePositions.forEach((pos, i) => {
+-    const intensity = 3.0 + (i % 3) * 1.5;
+-    const light = new THREE.PointLight(0xffffff, intensity, 30);
+-    light.position.set(pos[0], pos[1], pos[2]);
++  // Generate random point lights around the emeralds
++  const numLights = 20;
++  for (let i = 0; i < numLights; i++) {
++    const angle = hash(i * 127.1) * Math.PI * 2;
++    const elevation = hash(i * 311.7) * Math.PI * 0.4 + 0.2;  // Above horizon
++    const distance = 4 + hash(i * 74.3) * 8;
++    
++    const px = Math.cos(angle) * Math.cos(elevation) * distance;
++    const py = Math.sin(elevation) * distance + 2;
++    const pz = Math.sin(angle) * Math.cos(elevation) * distance + 5;
++    
++    const intensity = 1.5 + hash(i * 191.3) * 2.5;
++    const light = new THREE.PointLight(0xffffff, intensity, 25);
++    light.position.set(px, py, pz);
+     emeraldScene!.add(light);
+-  });
+\ No newline at end of file
++  }
+\ No newline at end of file
+
+</tool.toolu_01XoA9ERNgNTGzvqxpXBimVE>
+
+# TOOL RESULT
+
+ID: toolu_01XoA9ERNgNTGzvqxpXBimVE
+
+<tool.toolu_01XoA9ERNgNTGzvqxpXBimVE>
+
+</tool.toolu_01XoA9ERNgNTGzvqxpXBimVE>
