@@ -1277,77 +1277,42 @@ function initEmeraldScene(width: number, height: number) {
 }
 
 function loadEmeraldModel(): Promise<void> {
-  if (emeraldModelLoaded || emeraldModelLoading) {
-    return Promise.resolve();
+  if (emeraldLoadPromise) {
+    return emeraldLoadPromise;
   }
   
-  emeraldModelLoading = true;
-  console.log('Loading emerald model...');
-  
-  return new Promise((resolve, reject) => {
+  emeraldLoadPromise = new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
     loader.load(
       './emerald.glb',
       (gltf) => {
-        console.log('Emerald model loaded successfully', gltf);
         emeraldModel = gltf.scene;
-        
-        const emeraldMaterial = new THREE.MeshPhysicalMaterial({
-          color: new THREE.Color(0.1, 0.6, 0.3),
-          metalness: 0.0,
-          roughness: 0.05,
-          transmission: 0.92,
-          thickness: 1.5,
-          ior: 1.57,
-          transparent: true,
-          opacity: 0.95,
-          envMapIntensity: 1.5,
-          clearcoat: 1.0,
-          clearcoatRoughness: 0.05,
-          sheen: 0.5,
-          sheenRoughness: 0.2,
-          sheenColor: new THREE.Color(0.2, 0.8, 0.4),
-          attenuationColor: new THREE.Color(0.1, 0.5, 0.25),
-          attenuationDistance: 0.5,
-        });
-        
-        emeraldModel.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            child.material = emeraldMaterial;
-            console.log('Applied material to mesh:', child.name);
-          }
-        });
         
         const box = new THREE.Box3().setFromObject(emeraldModel);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
-        console.log('Model bounds - center:', center.x, center.y, center.z);
-        console.log('Model bounds - size:', size.x, size.y, size.z);
         const maxDim = Math.max(size.x, size.y, size.z);
         const scale = 2.0 / maxDim;
-        console.log('Applying scale:', scale);
         
         emeraldModel.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
         emeraldModel.scale.setScalar(scale);
-        console.log('Model position after centering:', emeraldModel.position.x, emeraldModel.position.y, emeraldModel.position.z);
-        console.log('Model scale:', emeraldModel.scale.x);
         
         emeraldModelLoaded = true;
-        emeraldModelLoading = false;
-        console.log('Emerald model ready');
         resolve();
       },
-      (progress) => {
-        console.log('Loading progress:', progress.loaded, '/', progress.total);
-      },
+      undefined,
       (error) => {
         console.error('Error loading emerald model:', error);
-        emeraldModelLoading = false;
         reject(error);
       }
     );
   });
+  
+  return emeraldLoadPromise;
 }
+
+// Start loading immediately when module loads
+export const emeraldReady = loadEmeraldModel();
 
 function fnE(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
