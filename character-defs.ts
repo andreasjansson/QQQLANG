@@ -1368,16 +1368,11 @@ function fnE(ctx: FnContext): Image {
   pointLight2.position.set(-3, 2, 3);
   emeraldScene!.add(pointLight2);
   
-  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.15, 0.75, 0.35),
-    emissive: new THREE.Color(0.02, 0.15, 0.05),
-    metalness: 0.2,
-    roughness: 0.08,
+  // DEBUG: Use BasicMaterial to test if geometry renders (ignores lights)
+  const emeraldMaterial = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(0.2, 0.8, 0.4),
     transparent: true,
     opacity: 0.9,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.05,
-    reflectivity: 1.0,
     side: THREE.DoubleSide,
   });
   
