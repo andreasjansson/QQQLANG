@@ -4702,7 +4702,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "holes",
-    documentation: "Shows old image j where prev has mid-range (20-80%) saturation or lightness; extremes show prev"
+    documentation: "Shows old image j where prev has mid-range (35-65%) saturation or lightness; extremes show prev"
   },
   
   '[': {
