@@ -1343,20 +1343,18 @@ function fnE(ctx: FnContext): Image {
     float sceneSDF(vec3 p) {
       float d = MAX_DIST;
       
-      // Large center emerald
-      d = min(d, sdEmerald(p - vec3(0.0, 0.0, 0.0), 0.5, 0.9, 0.3));
+      // Large center emerald (w, h, d) - wider than tall
+      d = min(d, sdEmerald(p - vec3(0.0, 0.0, 0.0), 0.6, 0.35, 0.4));
       
-      // Side emeralds - same z, different x/y
-      d = min(d, sdEmerald(p - vec3(-1.4, 0.0, 0.0), 0.3, 0.55, 0.18));
-      d = min(d, sdEmerald(p - vec3(1.4, 0.0, 0.0), 0.3, 0.55, 0.18));
+      // Side emeralds - same z, different x
+      d = min(d, sdEmerald(p - vec3(-1.5, 0.0, 0.0), 0.35, 0.2, 0.22));
+      d = min(d, sdEmerald(p - vec3(1.5, 0.0, 0.0), 0.35, 0.2, 0.22));
       
-      // Smaller corner emeralds
-      d = min(d, sdEmerald(p - vec3(-0.75, -0.5, 0.0), 0.18, 0.35, 0.11));
-      d = min(d, sdEmerald(p - vec3(0.75, -0.5, 0.0), 0.18, 0.35, 0.11));
-      
-      // Top smaller emeralds
-      d = min(d, sdEmerald(p - vec3(-0.6, 0.55, 0.0), 0.14, 0.28, 0.09));
-      d = min(d, sdEmerald(p - vec3(0.6, 0.55, 0.0), 0.14, 0.28, 0.09));
+      // Diagonal emeralds
+      d = min(d, sdEmerald(p - vec3(-0.9, 0.5, 0.0), 0.25, 0.15, 0.16));
+      d = min(d, sdEmerald(p - vec3(0.9, 0.5, 0.0), 0.25, 0.15, 0.16));
+      d = min(d, sdEmerald(p - vec3(-0.9, -0.5, 0.0), 0.25, 0.15, 0.16));
+      d = min(d, sdEmerald(p - vec3(0.9, -0.5, 0.0), 0.25, 0.15, 0.16));
       
       return d;
     }

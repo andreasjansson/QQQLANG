@@ -8726,5 +8726,67 @@ Fix emerald cut geometry - proper proportions and step facets
 ID: toolu_017AQit2oZuBTxUi35AyV7kH
 
 <tool.toolu_017AQit2oZuBTxUi35AyV7kH>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix emerald cut geometry - proper proportions and step facets
 </tool.toolu_017AQit2oZuBTxUi35AyV7kH>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01WEnSvQ5R5HHZSMEENQgWVk
+
+## path
+
+<tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
+character-defs.ts
+</tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
+
+## git-commit-message
+
+<tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
+Update emerald scene with proper dimensions and camera
+</tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
+
+## diff
+
+<tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
+     float sceneSDF(vec3 p) {
+       float d = MAX_DIST;
+       
+-      // Large center emerald
+-      d = min(d, sdEmerald(p - vec3(0.0, 0.0, 0.0), 0.5, 0.9, 0.3));
++      // Large center emerald (w, h, d) - wider than tall
++      d = min(d, sdEmerald(p - vec3(0.0, 0.0, 0.0), 0.6, 0.35, 0.4));
+       
+-      // Side emeralds - same z, different x/y
+-      d = min(d, sdEmerald(p - vec3(-1.4, 0.0, 0.0), 0.3, 0.55, 0.18));
+-      d = min(d, sdEmerald(p - vec3(1.4, 0.0, 0.0), 0.3, 0.55, 0.18));
++      // Side emeralds - same z, different x
++      d = min(d, sdEmerald(p - vec3(-1.5, 0.0, 0.0), 0.35, 0.2, 0.22));
++      d = min(d, sdEmerald(p - vec3(1.5, 0.0, 0.0), 0.35, 0.2, 0.22));
+       
+-      // Smaller corner emeralds
+-      d = min(d, sdEmerald(p - vec3(-0.75, -0.5, 0.0), 0.18, 0.35, 0.11));
+-      d = min(d, sdEmerald(p - vec3(0.75, -0.5, 0.0), 0.18, 0.35, 0.11));
++      // Diagonal emeralds
++      d = min(d, sdEmerald(p - vec3(-0.9, 0.5, 0.0), 0.25, 0.15, 0.16));
++      d = min(d, sdEmerald(p - vec3(0.9, 0.5, 0.0), 0.25, 0.15, 0.16));
++      d = min(d, sdEmerald(p - vec3(-0.9, -0.5, 0.0), 0.25, 0.15, 0.16));
++      d = min(d, sdEmerald(p - vec3(0.9, -0.5, 0.0), 0.25, 0.15, 0.16));
+       
+-      // Top smaller emeralds
+-      d = min(d, sdEmerald(p - vec3(-0.6, 0.55, 0.0), 0.14, 0.28, 0.09));
+-      d = min(d, sdEmerald(p - vec3(0.6, 0.55, 0.0), 0.14, 0.28, 0.09));
+-      
+       return d;
+     }
+\ No newline at end of file
+
+</tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
+
+# TOOL RESULT
+
+ID: toolu_01WEnSvQ5R5HHZSMEENQgWVk
+
+<tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
+
+</tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
