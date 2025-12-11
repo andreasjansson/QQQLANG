@@ -7325,5 +7325,42 @@ Set uIsBackground uniform in fnT for background vs cubes
 ID: toolu_01Kpof2bZW1BBLDdpGymS244
 
 <tool.toolu_01Kpof2bZW1BBLDdpGymS244>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Set uIsBackground uniform in fnT for background vs cubes
 </tool.toolu_01Kpof2bZW1BBLDdpGymS244>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TCrrS4Xn1xJCFW648evwjY
+
+## path
+
+<tool.toolu_01TCrrS4Xn1xJCFW648evwjY>
+character-defs.ts
+</tool.toolu_01TCrrS4Xn1xJCFW648evwjY>
+
+## git-commit-message
+
+<tool.toolu_01TCrrS4Xn1xJCFW648evwjY>
+Set uIsBackground to 0 when drawing cubes in fnT
+</tool.toolu_01TCrrS4Xn1xJCFW648evwjY>
+
+## diff
+
+<tool.toolu_01TCrrS4Xn1xJCFW648evwjY>
+   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
+   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
++  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 0.0);
+   
+   const posBuf = gl.createBuffer();
+\ No newline at end of file
+
+</tool.toolu_01TCrrS4Xn1xJCFW648evwjY>
+
+# TOOL RESULT
+
+ID: toolu_01TCrrS4Xn1xJCFW648evwjY
+
+<tool.toolu_01TCrrS4Xn1xJCFW648evwjY>
+
+</tool.toolu_01TCrrS4Xn1xJCFW648evwjY>
