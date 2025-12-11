@@ -6775,5 +6775,281 @@ Import fft.js for fast FFT operations
 ID: toolu_01T9yNvvunkpx9vngZZ6njrb
 
 <tool.toolu_01T9yNvvunkpx9vngZZ6njrb>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Import fft.js for fast FFT operations
 </tool.toolu_01T9yNvvunkpx9vngZZ6njrb>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Y4nbPf1fyrHRoTMfifjfX7
+
+## path
+
+<tool.toolu_01Y4nbPf1fyrHRoTMfifjfX7>
+character-defs.ts
+</tool.toolu_01Y4nbPf1fyrHRoTMfifjfX7>
+
+## git-commit-message
+
+<tool.toolu_01Y4nbPf1fyrHRoTMfifjfX7>
+Replace fnO with fft.js-based overflow effect for better performance
+</tool.toolu_01Y4nbPf1fyrHRoTMfifjfX7>
+
+## diff
+
+<tool.toolu_01Y4nbPf1fyrHRoTMfifjfX7>
+ function fnO(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   
+   const multiplier = 1.5 + n * 0.8;
+   
+   const nextPow2 = (v: number) => {
+     v--;
+     v |= v >> 1;
+     v |= v >> 2;
+     v |= v >> 4;
+     v |= v >> 8;
+     v |= v >> 16;
+     return v + 1;
+   };
+   
+   const fftW = nextPow2(ctx.width);
+   const fftH = nextPow2(ctx.height);
+-  const bitsW = Math.log2(fftW);
+-  const bitsH = Math.log2(fftH);
+   
+-  const bitReverse = (x: number, bits: number): number => {
+-    let result = 0;
+-    for (let i = 0; i < bits; i++) {
+-      result = (result << 1) | (x & 1);
+-      x >>= 1;
+-    }
+-    return result;
+-  };
++  const fftRow = new FFT(fftW);
++  const fftCol = new FFT(fftH);
+   
+-  const fft1d = (real: Float32Array, imag: Float32Array, inverse: boolean) => {
+-    const len = real.length;
+-    const bits = Math.log2(len);
+-    
+-    for (let i = 0; i < len; i++) {
+-      const j = bitReverse(i, bits);
+-      if (i < j) {
+-        [real[i], real[j]] = [real[j], real[i]];
+-        [imag[i], imag[j]] = [imag[j], imag[i]];
+-      }
+-    }
+-    
+-    const sign = inverse ? 1 : -1;
+-    for (let size = 2; size <= len; size *= 2) {
+-      const halfSize = size / 2;
+-      const angle = sign * 2 * Math.PI / size;
+-      
+-      for (let i = 0; i < len; i += size) {
+-        for (let j = 0; j < halfSize; j++) {
+-          const wReal = Math.cos(angle * j);
+-          const wImag = Math.sin(angle * j);
+-          
+-          const u = i + j;
+-          const v = i + j + halfSize;
+-          
+-          const tReal = real[v] * wReal - imag[v] * wImag;
+-          const tImag = real[v] * wImag + imag[v] * wReal;
+-          
+-          real[v] = real[u] - tReal;
+-          imag[v] = imag[u] - tImag;
+-          real[u] = real[u] + tReal;
+-          imag[u] = imag[u] + tImag;
+-        }
+-      }
+-    }
+-    
+-    if (inverse) {
+-      for (let i = 0; i < len; i++) {
+-        real[i] /= len;
+-        imag[i] /= len;
+-      }
+-    }
+-  };
+-  
+   const processChannel = (channel: Float32Array, mult: number, phaseShift: number): Float32Array => {
+-    const real = new Float32Array(fftW * fftH);
+-    const imag = new Float32Array(fftW * fftH);
++    const data = new Float64Array(fftW * fftH * 2);
+     
+     for (let y = 0; y < ctx.height; y++) {
+       for (let x = 0; x < ctx.width; x++) {
+-        real[y * fftW + x] = channel[y * ctx.width + x];
++        data[(y * fftW + x) * 2] = channel[y * ctx.width + x];
+       }
+     }
+     
+-    const rowReal = new Float32Array(fftW);
+-    const rowImag = new Float32Array(fftW);
++    const rowIn = fftRow.createComplexArray();
++    const rowOut = fftRow.createComplexArray();
+     for (let y = 0; y < fftH; y++) {
+       for (let x = 0; x < fftW; x++) {
+-        rowReal[x] = real[y * fftW + x];
+-        rowImag[x] = imag[y * fftW + x];
++        rowIn[x * 2] = data[(y * fftW + x) * 2];
++        rowIn[x * 2 + 1] = data[(y * fftW + x) * 2 + 1];
+       }
+-      fft1d(rowReal, rowImag, false);
++      fftRow.transform(rowOut, rowIn);
+       for (let x = 0; x < fftW; x++) {
+-        real[y * fftW + x] = rowReal[x];
+-        imag[y * fftW + x] = rowImag[x];
++        data[(y * fftW + x) * 2] = rowOut[x * 2];
++        data[(y * fftW + x) * 2 + 1] = rowOut[x * 2 + 1];
+       }
+     }
+     
+-    const colReal = new Float32Array(fftH);
+-    const colImag = new Float32Array(fftH);
++    const colIn = fftCol.createComplexArray();
++    const colOut = fftCol.createComplexArray();
+     for (let x = 0; x < fftW; x++) {
+       for (let y = 0; y < fftH; y++) {
+-        colReal[y] = real[y * fftW + x];
+-        colImag[y] = imag[y * fftW + x];
++        colIn[y * 2] = data[(y * fftW + x) * 2];
++        colIn[y * 2 + 1] = data[(y * fftW + x) * 2 + 1];
+       }
+-      fft1d(colReal, colImag, false);
++      fftCol.transform(colOut, colIn);
+       for (let y = 0; y < fftH; y++) {
+-        real[y * fftW + x] = colReal[y];
+-        imag[y * fftW + x] = colImag[y];
++        data[(y * fftW + x) * 2] = colOut[y * 2];
++        data[(y * fftW + x) * 2 + 1] = colOut[y * 2 + 1];
+       }
+     }
+     
+     const cx = fftW / 2;
+     const cy = fftH / 2;
++    const maxFreqDist = Math.sqrt(cx * cx + cy * cy);
++    const wrapLimit = 255 * fftW * fftH / 4;
++    
+     for (let y = 0; y < fftH; y++) {
+       for (let x = 0; x < fftW; x++) {
+-        const i = y * fftW + x;
+-        const mag = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
+-        let phase = Math.atan2(imag[i], real[i]);
++        const i = (y * fftW + x) * 2;
++        const re = data[i];
++        const im = data[i + 1];
++        const mag = Math.sqrt(re * re + im * im);
++        let phase = Math.atan2(im, re);
+         
+         const dx = (x < cx ? x : x - fftW);
+         const dy = (y < cy ? y : y - fftH);
+-        const freqDist = Math.sqrt(dx * dx + dy * dy) / Math.sqrt(cx * cx + cy * cy);
++        const freqDist = Math.sqrt(dx * dx + dy * dy) / maxFreqDist;
+         
+         let newMag = mag * mult;
+-        const wrapLimit = 255 * fftW * fftH / 4;
+         while (newMag > wrapLimit) {
+           newMag = Math.abs(newMag - wrapLimit * 2);
+         }
+         
+         phase += phaseShift * freqDist;
+         
+-        real[i] = newMag * Math.cos(phase);
+-        imag[i] = newMag * Math.sin(phase);
++        data[i] = newMag * Math.cos(phase);
++        data[i + 1] = newMag * Math.sin(phase);
+       }
+     }
+     
+     for (let x = 0; x < fftW; x++) {
+       for (let y = 0; y < fftH; y++) {
+-        colReal[y] = real[y * fftW + x];
+-        colImag[y] = imag[y * fftW + x];
++        colIn[y * 2] = data[(y * fftW + x) * 2];
++        colIn[y * 2 + 1] = data[(y * fftW + x) * 2 + 1];
+       }
+-      fft1d(colReal, colImag, true);
++      fftCol.inverseTransform(colOut, colIn);
+       for (let y = 0; y < fftH; y++) {
+-        real[y * fftW + x] = colReal[y];
+-        imag[y * fftW + x] = colImag[y];
++        data[(y * fftW + x) * 2] = colOut[y * 2];
++        data[(y * fftW + x) * 2 + 1] = colOut[y * 2 + 1];
+       }
+     }
+     
+     for (let y = 0; y < fftH; y++) {
+       for (let x = 0; x < fftW; x++) {
+-        rowReal[x] = real[y * fftW + x];
+-        rowImag[x] = imag[y * fftW + x];
++        rowIn[x * 2] = data[(y * fftW + x) * 2];
++        rowIn[x * 2 + 1] = data[(y * fftW + x) * 2 + 1];
+       }
+-      fft1d(rowReal, rowImag, true);
++      fftRow.inverseTransform(rowOut, rowIn);
+       for (let x = 0; x < fftW; x++) {
+-        real[y * fftW + x] = rowReal[x];
++        data[(y * fftW + x) * 2] = rowOut[x * 2];
+       }
+     }
+     
+     const result = new Float32Array(ctx.width * ctx.height);
+     for (let y = 0; y < ctx.height; y++) {
+       for (let x = 0; x < ctx.width; x++) {
+-        result[y * ctx.width + x] = real[y * fftW + x];
++        result[y * ctx.width + x] = data[(y * fftW + x) * 2];
+       }
+     }
+     
+     return result;
+   };
+   
+   const rIn = new Float32Array(ctx.width * ctx.height);
+   const gIn = new Float32Array(ctx.width * ctx.height);
+   const bIn = new Float32Array(ctx.width * ctx.height);
+   
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+       const [r, g, b] = getPixel(prev, x, y);
+       const idx = y * ctx.width + x;
+       rIn[idx] = r;
+       gIn[idx] = g;
+       bIn[idx] = b;
+     }
+   }
+   
+   const rOut = processChannel(rIn, multiplier, 0);
+   const gOut = processChannel(gIn, multiplier * 1.1, Math.PI * 0.1);
+   const bOut = processChannel(bIn, multiplier * 0.9, -Math.PI * 0.1);
+   
+   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+       const idx = y * ctx.width + x;
+       let r = rOut[idx];
+       let g = gOut[idx];
+       let b = bOut[idx];
+       
+       r = ((r % 256) + 256) % 256;
+       g = ((g % 256) + 256) % 256;
+       b = ((b % 256) + 256) % 256;
+       
+       setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+     }
+   }
+   
+   return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_01Y4nbPf1fyrHRoTMfifjfX7>
+
+# TOOL RESULT
+
+ID: toolu_01Y4nbPf1fyrHRoTMfifjfX7
+
+<tool.toolu_01Y4nbPf1fyrHRoTMfifjfX7>
+
+</tool.toolu_01Y4nbPf1fyrHRoTMfifjfX7>
