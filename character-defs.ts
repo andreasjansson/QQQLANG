@@ -5279,9 +5279,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 27,
     fn: fn0,
     arity: 1,
-    argTypes: ['int'],
+    argTypes: ['index'],
     functionName: "overlay",
-    documentation: "Overlay blend mode: combines prev with old_image at index j, darkening darks and lightening lights"
+    documentation: "Overlay blend mode: combines prev with old_image, darkening darks and lightening lights"
   },
   
   '1': {
