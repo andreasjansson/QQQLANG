@@ -1417,32 +1417,49 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
-  // Create a sparkle texture (star/cross pattern)
+  // Create a soft sparkle texture with gentle rays
   const sparkleCanvas = document.createElement('canvas');
-  sparkleCanvas.width = 64;
-  sparkleCanvas.height = 64;
+  sparkleCanvas.width = 128;
+  sparkleCanvas.height = 128;
   const sctx = sparkleCanvas.getContext('2d')!;
   
-  // Draw star sparkle pattern
-  const cx = 32, cy = 32;
-  const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
-  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-  gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.8)');
-  gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.2)');
-  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  const cx = 64, cy = 64;
   
-  sctx.fillStyle = gradient;
-  sctx.fillRect(0, 0, 64, 64);
+  // Draw soft rays first
+  const numRays = 4;
+  for (let r = 0; r < numRays; r++) {
+    const angle = (r / numRays) * Math.PI;
+    
+    for (let blur = 20; blur >= 2; blur -= 2) {
+      const alpha = 0.15 * (1 - blur / 20);
+      sctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+      sctx.lineWidth = blur;
+      sctx.lineCap = 'round';
+      sctx.beginPath();
+      sctx.moveTo(cx - Math.cos(angle) * 60, cy - Math.sin(angle) * 60);
+      sctx.lineTo(cx + Math.cos(angle) * 60, cy + Math.sin(angle) * 60);
+      sctx.stroke();
+    }
+  }
   
-  // Add cross/star rays
-  sctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-  sctx.lineWidth = 2;
-  sctx.beginPath();
-  sctx.moveTo(cx, 0); sctx.lineTo(cx, 64);
-  sctx.moveTo(0, cy); sctx.lineTo(64, cy);
-  sctx.moveTo(8, 8); sctx.lineTo(56, 56);
-  sctx.moveTo(56, 8); sctx.lineTo(8, 56);
-  sctx.stroke();
+  // Draw soft central glow
+  for (let i = 60; i > 0; i -= 3) {
+    const alpha = 0.08 * (1 - i / 60);
+    const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, i);
+    gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha + 0.3})`);
+    gradient.addColorStop(0.5, `rgba(255, 255, 255, ${alpha})`);
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    sctx.fillStyle = gradient;
+    sctx.fillRect(0, 0, 128, 128);
+  }
+  
+  // Bright center core
+  const coreGradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 8);
+  coreGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  coreGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.6)');
+  coreGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  sctx.fillStyle = coreGradient;
+  sctx.fillRect(0, 0, 128, 128);
   
   const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
   
