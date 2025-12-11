@@ -10123,5 +10123,63 @@ Make sparkles more subtle and blend better
 ID: toolu_01VG4FGSUSgwDDYR4iFgHaNj
 
 <tool.toolu_01VG4FGSUSgwDDYR4iFgHaNj>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make sparkles more subtle and blend better
 </tool.toolu_01VG4FGSUSgwDDYR4iFgHaNj>
+
+# ASSISTANT
+
+Also make them smaller:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0153tX4LeimpKtUyM7x9kMtr
+
+## path
+
+<tool.toolu_0153tX4LeimpKtUyM7x9kMtr>
+character-defs.ts
+</tool.toolu_0153tX4LeimpKtUyM7x9kMtr>
+
+## git-commit-message
+
+<tool.toolu_0153tX4LeimpKtUyM7x9kMtr>
+Make sparkles smaller
+</tool.toolu_0153tX4LeimpKtUyM7x9kMtr>
+
+## diff
+
+<tool.toolu_0153tX4LeimpKtUyM7x9kMtr>
+     // Add sparkle sprites at corner positions
+     const allCorners = [...girdleCorners, ...crownCorners];
+     const scaleFactor = scale * 3.0;
+     
+     allCorners.forEach((corner, i) => {
+       // Only show sparkles on front-facing corners (positive z or upper parts)
+       if (corner[2] > -0.1 || corner[1] > 0.1) {
+         const sprite = new THREE.Sprite(createSparkleMaterial());
+-        const sparkleSize = 0.06 + (i % 3) * 0.02;  // Vary sizes slightly
++        const sparkleSize = 0.025 + (i % 3) * 0.01;  // Smaller, varied sizes
+         sprite.scale.set(sparkleSize * scaleFactor, sparkleSize * scaleFactor, 1);
+         sprite.position.set(
+           x + corner[0] * scaleFactor,
+           y + corner[1] * scaleFactor,
+-          corner[2] * scaleFactor + 0.01  // Slightly in front
++          corner[2] * scaleFactor + 0.005  // Slightly in front
+         );
+         sprite.renderOrder = 10;
+         emeraldScene!.add(sprite);
+       }
+     });
+   };
+\ No newline at end of file
+
+</tool.toolu_0153tX4LeimpKtUyM7x9kMtr>
+
+# TOOL RESULT
+
+ID: toolu_0153tX4LeimpKtUyM7x9kMtr
+
+<tool.toolu_0153tX4LeimpKtUyM7x9kMtr>
+
+</tool.toolu_0153tX4LeimpKtUyM7x9kMtr>
