@@ -7791,5 +7791,56 @@ Add gloss strength uniform to shader
 ID: toolu_01NLnix3rWMKmJnEBkKx7VWo
 
 <tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add gloss strength uniform to shader
 </tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01WTg5Z4qGs1KJzQskBCXfTE
+
+## path
+
+<tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
+character-defs.ts
+</tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
+
+## git-commit-message
+
+<tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
+Use gloss strength for lighting calculation in shader
+</tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
+
+## diff
+
+<tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
+-      // Calculate lighting from noise gradient
+-      float h = fbm(p, uSeed);
+-      float hx = fbm(p + vec2(0.01, 0.0), uSeed);
+-      float hy = fbm(p + vec2(0.0, 0.01), uSeed);
+-      float highlight = pow(max(0.0, (hx - h) * 0.7 + (hy - h) * 0.7), 2.0) * 0.5;
+-      float shadow = 0.85 + h * 0.15;
++      // Calculate lighting from noise gradient - always computed on original UV for visibility
++      vec2 noiseP = (uv - 0.5) * 2.0 * 3.0;
++      noiseP.x *= aspect;
++      float h = fbm(noiseP, uSeed);
++      float hx = fbm(noiseP + vec2(0.01, 0.0), uSeed);
++      float hy = fbm(noiseP + vec2(0.0, 0.01), uSeed);
++      float gradX = (hx - h) / 0.01;
++      float gradY = (hy - h) / 0.01;
+       
++      float highlight = pow(max(0.0, gradX * 0.5 + gradY * 0.5), 2.0) * uGlossStrength;
++      float shadow = 1.0 - (1.0 - h) * uGlossStrength * 0.3;
++      
+       vec3 color = texColor * shadow + vec3(highlight);
+\ No newline at end of file
+
+</tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
+
+# TOOL RESULT
+
+ID: toolu_01WTg5Z4qGs1KJzQskBCXfTE
+
+<tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
+
+</tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
