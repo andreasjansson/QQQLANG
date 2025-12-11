@@ -1417,7 +1417,7 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
-  // Create sparkle with thin blurred star rays
+  // Create subtle, heavily blurred sparkle
   const sparkleCanvas = document.createElement('canvas');
   sparkleCanvas.width = 128;
   sparkleCanvas.height = 128;
@@ -1425,33 +1425,33 @@ function fnE(ctx: FnContext): Image {
   
   const cx = 64, cy = 64;
   
-  // Draw 4 thin rays with gaussian-like blur (multiple passes, outer to inner)
+  // Draw 4 very soft rays with heavy blur
   const rays = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4];
   
   rays.forEach(angle => {
-    // Draw from widest/faintest to thinnest/brightest
-    for (let w = 12; w >= 0.5; w -= 1.5) {
-      const alpha = Math.pow(1 - w / 12, 2) * 0.4;
+    // Many passes for smooth gradient
+    for (let w = 20; w >= 1; w -= 0.8) {
+      const alpha = Math.pow(1 - w / 20, 3) * 0.15;
       sctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
       sctx.lineWidth = w;
       sctx.lineCap = 'round';
       sctx.beginPath();
-      const len = 55 - w * 2;
+      const len = 50 - w;
       sctx.moveTo(cx - Math.cos(angle) * len, cy - Math.sin(angle) * len);
       sctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
       sctx.stroke();
     }
   });
   
-  // Bright center glow
-  const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 15);
-  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-  gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.5)');
-  gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.15)');
+  // Soft center glow
+  const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 20);
+  gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+  gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.3)');
+  gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
   gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
   sctx.fillStyle = gradient;
   sctx.beginPath();
-  sctx.arc(cx, cy, 15, 0, Math.PI * 2);
+  sctx.arc(cx, cy, 20, 0, Math.PI * 2);
   sctx.fill();
   
   const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
