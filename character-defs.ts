@@ -1417,6 +1417,13 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
+  // Sparkle point material - bright white emissive
+  const sparkleMaterial = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(1, 1, 1),
+    transparent: true,
+    opacity: 0.95,
+  });
+  
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
     
@@ -1432,6 +1439,28 @@ function fnE(ctx: FnContext): Image {
     gem.scale.setScalar(scale * 3.0);
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
+    
+    // Add sparkle points on the emerald
+    const sparkleCount = Math.floor(8 + scale * 10);
+    const sparkleSize = 0.02 + scale * 0.015;
+    
+    for (let i = 0; i < sparkleCount; i++) {
+      const sparkleGeo = new THREE.SphereGeometry(sparkleSize, 4, 4);
+      const sparkle = new THREE.Mesh(sparkleGeo, sparkleMaterial);
+      
+      // Deterministic positions based on i and scale
+      const angle = (i / sparkleCount) * Math.PI * 2 + scale * 10;
+      const radius = 0.15 + (i % 3) * 0.1;
+      const height = 0.1 + ((i * 7) % 5) * 0.08 - 0.1;
+      
+      sparkle.position.set(
+        x + Math.cos(angle) * radius * scale * 3,
+        y + height * scale * 3,
+        Math.sin(angle) * radius * scale * 3 + 0.2
+      );
+      
+      emeraldScene!.add(sparkle);
+    }
   };
   
   addEmerald(0, 0, 1.0);
