@@ -344,12 +344,7 @@ export function runProgram(program: string, width: number, height: number): Imag
       result = createSolidImage(width, height, op.color);
     } else if (op.type === 'uploaded-image') {
       console.log(`  Using uploaded image ${op.uploadIndex}`);
-      if (op.uploadIndex < uploadedImages.length) {
-        result = uploadedImages[op.uploadIndex];
-      } else {
-        console.log(`  Upload ${op.uploadIndex} not found, using placeholder`);
-        result = createPlaceholderImage(width, height);
-      }
+      result = getUploadedImage(op.uploadIndex, width, height);
     } else {
       console.log(`  Executing function: ${op.fnDef.functionName} with args:`, op.args);
       const ctx: FnContext = {
@@ -363,11 +358,7 @@ export function runProgram(program: string, width: number, height: number): Imag
         const argType = op.fnDef.argTypes[idx];
         if (argType === 'index') {
           if (typeof arg === 'object' && arg.type === 'uploaded') {
-            if (arg.index < uploadedImages.length) {
-              return uploadedImages[arg.index];
-            } else {
-              return createPlaceholderImage(width, height);
-            }
+            return getUploadedImage(arg.index, width, height);
           } else if (typeof arg === 'number') {
             return getOldImage(ctx, arg);
           }
