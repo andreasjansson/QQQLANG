@@ -5277,8 +5277,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnPercent,
     arity: 1,
     argTypes: ['int'],
-    functionName: "floyd-steinberg",
-    documentation: "Floyd-Steinberg dithers prev to 4-corner color palette with cell size n+1"
+    functionName: "flip",
+    documentation: "Flips image horizontally if n is even, vertically if n is odd"
   },
   
   '&': {
