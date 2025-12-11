@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-144041054568>
+${greger-prompt-code-style<eval-result-144424900068>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-144041054568>}
+</eval-result-144424900068>}
 
 # USER
 
@@ -8403,5 +8403,232 @@ Make oil slick warp pattern more organic, less axis-aligned
 ID: toolu_018of6b8aFqLmb3q6QzA3E2X
 
 <tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make oil slick warp pattern more organic, less axis-aligned
 </tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
+
+# ASSISTANT
+
+Now the warp uses noise to determine both direction (angle) and strength (magnitude) at each point, which should create more natural swirling patterns instead of axis-aligned crosses.
+
+# USER
+
+no, AO still looks really boring with a cross in the middle
+
+# THINKING
+
+Signature: Eo4KCkYIChgCKkD1ojPv434NWyF2sx8VkDKzYJqTVbIynYuoI4mEcnrYDUd+1jxR8iq2q5mTk3TRgps1au/m4zmn10BLzB923S4cEgwSB6L16M3dXwatDHcaDHlff8EBj51pR1IbFyIwd46mM2L6bWBlyVg3hb8o/wjzInPo7HaBS8FZ9yWJU3XEmV//coYxQ8vKui0sKzo6KvUIpuXU19c/wTisUs+hF7XHDHBVn9csZK4KT2AbdBU2oJt4mOI681oYNUdtRbRtkl+/5qjHt5f8AET4xsMof0rz+lxOtQFeZjGPGPY3VUgReGjpilDyOd4rnRtChMyB+0sG14SxoBZT4A/R6b2cUHbZ5I5hZTZJuXF0jNfadOLoMMfvSVgNd72+YcWlRqaxtnw3feaE5cuG9tcMdDlDOg6dXo3RkPYDy5PoNS9ki+3qD7oSlxXeK4jxPuF6Lzv2U75jPY2MUvsyv/GN5QipeJP+3W8WKlvlcU8oa+U3PsBxlAgL8zMYpc856EWj/5nS1khzxbNwHSnCiA4kNMQHL2RLjDYUB9TpedYyWk/zfoBnxlchLOhr+2d81YEOnVlRw7xMajMSCeSBGRBG4p++sUlvaVyK5NQyionbbl93D3IQg6n14e0jzHoI8rPpktcuuxJEuNipcyQXGbuc24fxBP7YQAhS3cavS3T9/7Ipfwv6T0MkP6n40tXUfOczBHmmjjYD8fwsOWW8R7uBiEr3HjPLa4FMocsB4AEPLNfeHsXj8Q6cURYrQREhIu7ECv+zsiisgnogd6mSEs6530THmyMJLrLSL6UfAUAdgPSbF/99fo5sSMoJ5Mjyly53WgLEcVGMYv5a11e13zryuGBrV7yr7L2cbnSXTCM8HtA+9+VBUAKt17PS2eYsHS3YOnz1LP9rQykoywMjqxtLIWk4koaGqaDT+RzmIu9qJqaS9ex1+B6821a1nCXuIpevO3FxQxeLThe5yHhDeFJ1royAw72YZ7Gfq3HoTHaeXcxbI07F+oWgEImNctke0UAua+shNs5HiXnqCOb+uAewDKrjxwnLS9xYJjGnF81C5KRCI2BXyobfc6pFXYGdYtZ7SwKlu/rEXC9VQpL3fEMeGCUZ4eo18Kt4IsYXnsHNYb+bPzAtPAa4WmpevOdnJuRQOgy+UrUu0rqN284JX5YuozGBQW+6zh3fvNmp4n0YNJdPOFvXgOKgD2ZPJ8aiWAsWRdPsLu/pitkN8b6HK4M8G0/kLWQ6iLdeHRtXSTOsRLqFbEFdPkS4njRWkqL0hzlxql7LzdJ4L4huGyLKmW6EbpIFXl4xbDBXryGj1D+3JmahdiQ5ai3aedIAr/7ayiYVnpUQaxjbXGp1KEtgYVnVDhUgyWUOY8R0pwQnlL4+0CrfeN7nFMqR1ANYVrZTTN0fvlEpklqVxkL4oiguHLUZ4X80O5dS1Fhf+h0Um1v0S6JIOIJyN3RdOkg8jnJRG/fleUV4dNmjkLf+TSzqTyz9U8k8oCXARJdDQJ9GBtm68CVAi9/NsRkYBJuYsPzw0Z2NVMyz/JunXIFY0rzmzVRH8dUDOdABQXXZOWE4Y7d6HlV1MYGq9P7pwhR0kaX4pdVNx4cpvrEHtRTZjRtMqS14OCZEqhOjMSpGAyo5F8j6I46AJ0nDAKOsw3ZVv3BzawfSv8TNttStQYbcABKqc8LWtNJGokWNyqkGb/oB91zddl86SrjuIiSark9LvhgB
+
+The cross pattern might be coming from the lighting calculation, not the warp. Let me look at the lighting code:
+
+```glsl
+// Oil slick lighting based on noise gradient
+float h = fbm(p * 0.5, uSeed);
+float hx = fbm((p + vec2(0.02, 0.0)) * 0.5, uSeed);
+float hy = fbm((p + vec2(0.0, 0.02)) * 0.5, uSeed);
+
+// Fake normal from height field
+vec3 normal = normalize(vec3(h - hx, h - hy, 0.15));
+```
+
+The issue might be that `p` starts at (0,0) in the center and the FBM noise might have some symmetry issues there. Also the coordinate system `p = (uv - 0.5) * 2.0` means the center is at origin.
+
+Let me offset the noise sampling to avoid any symmetry around the origin, and also make the pattern more interesting.
+
+Actually, looking more carefully - the lighting normal calculation uses `h - hx` and `h - hy` which are partial derivatives. If these are similar values near the center, we'd get a cross-like pattern.
+
+Let me rethink this whole approach. Maybe I should:
+1. Offset the noise coordinates so they're not centered at origin
+2. Use a more varied noise pattern
+3. Or change the whole approach to something more visually interesting
+
+# ASSISTANT
+
+The cross is probably from the coordinate system being centered at origin. Let me offset everything and make it more interesting:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01K7n6Zh6SjvJ348HzRESTBK
+
+## path
+
+<tool.toolu_01K7n6Zh6SjvJ348HzRESTBK>
+character-defs.ts
+</tool.toolu_01K7n6Zh6SjvJ348HzRESTBK>
+
+## start-line
+
+<tool.toolu_01K7n6Zh6SjvJ348HzRESTBK>
+4200
+</tool.toolu_01K7n6Zh6SjvJ348HzRESTBK>
+
+## end-line
+
+<tool.toolu_01K7n6Zh6SjvJ348HzRESTBK>
+4280
+</tool.toolu_01K7n6Zh6SjvJ348HzRESTBK>
+
+# TOOL RESULT
+
+ID: toolu_01K7n6Zh6SjvJ348HzRESTBK
+
+<tool.toolu_01K7n6Zh6SjvJ348HzRESTBK>
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uSeed;
+    uniform int uDepth;
+    uniform float uWarpStrength;
+    uniform float uPatternScale;
+    varying vec2 vUV;
+    
+    // Hash function for deterministic noise
+    float hash(vec2 p, float seed) {
+      return fract(sin(dot(p + seed * 0.1, vec2(127.1, 311.7))) * 43758.5453);
+    }
+    
+    // Smooth noise
+    float noise(vec2 p, float seed) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      
+      float a = hash(i, seed);
+      float b = hash(i + vec2(1.0, 0.0), seed);
+      float c = hash(i + vec2(0.0, 1.0), seed);
+      float d = hash(i + vec2(1.0, 1.0), seed);
+      
+      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
+    
+    // FBM for organic patterns
+    float fbm(vec2 p, float seed) {
+      float value = 0.0;
+      float amplitude = 0.5;
+      float frequency = 1.0;
+      for (int i = 0; i < 4; i++) {
+        value += amplitude * noise(p * frequency, seed + float(i) * 100.0);
+        amplitude *= 0.5;
+        frequency *= 2.0;
+      }
+      return value;
+    }
+    
+    // Domain warping effect - creates swirling patterns
+    vec2 warpEffect(vec2 p, float i, float seed) {
+      float angle = fbm(p * 0.8 + seed * 0.01, seed) * 6.28;
+      float magnitude = fbm(p * 0.5 + seed * 0.02 + 50.0, seed + 100.0);
+      return vec2(cos(angle), sin(angle)) * magnitude / (i * 0.3 + 1.0);
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      float aspect = uResolution.x / uResolution.y;
+      
+      // Normalize coordinates with pattern scale
+      vec2 p = (uv - 0.5) * 2.0;
+      p.x *= aspect;
+      p *= uPatternScale;
+      
+      // Iterative domain warping
+      for (int i = 1; i < 20; i++) {
+        if (i >= uDepth) break;
+        float fi = float(i);
+        p += warpEffect(p, fi, uSeed) * uWarpStrength;
+      }
+      
+      // Map warped coordinates back to UV space
+      vec2 warpedUV = p / uPatternScale;
+      warpedUV.x /= aspect;
+      warpedUV = warpedUV * 0.5 + 0.5;
+      warpedUV = clamp(warpedUV, 0.0, 1.0);
+      
+      // Sample texture at warped position
+      vec3 texColor = texture2D(uTexture, warpedUV).rgb;
+      
+      // Oil slick lighting based on noise gradient
+      float h = fbm(p * 0.5, uSeed);
+      float hx = fbm((p + vec2(0.02, 0.0)) * 0.5, uSeed);
+      float hy = fbm((p + vec2(0.0, 0.02)) * 0.5, uSeed);
+      
+      // Fake normal from height field
+      vec3 normal = normalize(vec3(h - hx, h - hy, 0.15));
+</tool.toolu_01K7n6Zh6SjvJ348HzRESTBK>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XSoMwVxJKFpbu1n21zRVmZ
+
+## path
+
+<tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
+character-defs.ts
+</tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
+
+## git-commit-message
+
+<tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
+Fix oil slick cross pattern by offsetting coordinates and improving noise
+</tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
+
+## diff
+
+<tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
+     void main() {
+       vec2 uv = vUV;
+       float aspect = uResolution.x / uResolution.y;
+       
++      // Offset to avoid symmetry at origin
++      vec2 offset = vec2(uSeed * 0.1 + 5.7, uSeed * 0.07 + 3.2);
++      
+       // Normalize coordinates with pattern scale
+-      vec2 p = (uv - 0.5) * 2.0;
++      vec2 p = uv * uPatternScale + offset;
+       p.x *= aspect;
+-      p *= uPatternScale;
+       
+       // Iterative domain warping
+       for (int i = 1; i < 20; i++) {
+         if (i >= uDepth) break;
+         float fi = float(i);
+         p += warpEffect(p, fi, uSeed) * uWarpStrength;
+       }
+       
+       // Map warped coordinates back to UV space
+-      vec2 warpedUV = p / uPatternScale;
++      vec2 warpedUV = (p - offset);
+       warpedUV.x /= aspect;
+-      warpedUV = warpedUV * 0.5 + 0.5;
++      warpedUV = warpedUV / uPatternScale;
+       warpedUV = clamp(warpedUV, 0.0, 1.0);
+       
+       // Sample texture at warped position
+       vec3 texColor = texture2D(uTexture, warpedUV).rgb;
+       
+-      // Oil slick lighting based on noise gradient
+-      float h = fbm(p * 0.5, uSeed);
+-      float hx = fbm((p + vec2(0.02, 0.0)) * 0.5, uSeed);
+-      float hy = fbm((p + vec2(0.0, 0.02)) * 0.5, uSeed);
++      // Oil slick lighting based on noise gradient - use offset coords
++      vec2 noiseCoord = p * 0.5;
++      float h = fbm(noiseCoord, uSeed);
++      float hx = fbm(noiseCoord + vec2(0.02, 0.0), uSeed);
++      float hy = fbm(noiseCoord + vec2(0.0, 0.02), uSeed);
+       
+       // Fake normal from height field
+-      vec3 normal = normalize(vec3(h - hx, h - hy, 0.15));
+\ No newline at end of file
++      vec3 normal = normalize(vec3((h - hx) * 10.0, (h - hy) * 10.0, 1.0));
+\ No newline at end of file
+
+</tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
+
+# TOOL RESULT
+
+ID: toolu_01XSoMwVxJKFpbu1n21zRVmZ
+
+<tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>
+
+</tool.toolu_01XSoMwVxJKFpbu1n21zRVmZ>

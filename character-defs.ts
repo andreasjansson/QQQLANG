@@ -4250,10 +4250,12 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       vec2 uv = vUV;
       float aspect = uResolution.x / uResolution.y;
       
+      // Offset to avoid symmetry at origin
+      vec2 offset = vec2(uSeed * 0.1 + 5.7, uSeed * 0.07 + 3.2);
+      
       // Normalize coordinates with pattern scale
-      vec2 p = (uv - 0.5) * 2.0;
+      vec2 p = uv * uPatternScale + offset;
       p.x *= aspect;
-      p *= uPatternScale;
       
       // Iterative domain warping
       for (int i = 1; i < 20; i++) {
@@ -4263,21 +4265,22 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       }
       
       // Map warped coordinates back to UV space
-      vec2 warpedUV = p / uPatternScale;
+      vec2 warpedUV = (p - offset);
       warpedUV.x /= aspect;
-      warpedUV = warpedUV * 0.5 + 0.5;
+      warpedUV = warpedUV / uPatternScale;
       warpedUV = clamp(warpedUV, 0.0, 1.0);
       
       // Sample texture at warped position
       vec3 texColor = texture2D(uTexture, warpedUV).rgb;
       
-      // Oil slick lighting based on noise gradient
-      float h = fbm(p * 0.5, uSeed);
-      float hx = fbm((p + vec2(0.02, 0.0)) * 0.5, uSeed);
-      float hy = fbm((p + vec2(0.0, 0.02)) * 0.5, uSeed);
+      // Oil slick lighting based on noise gradient - use offset coords
+      vec2 noiseCoord = p * 0.5;
+      float h = fbm(noiseCoord, uSeed);
+      float hx = fbm(noiseCoord + vec2(0.02, 0.0), uSeed);
+      float hy = fbm(noiseCoord + vec2(0.0, 0.02), uSeed);
       
       // Fake normal from height field
-      vec3 normal = normalize(vec3(h - hx, h - hy, 0.15));
+      vec3 normal = normalize(vec3((h - hx) * 10.0, (h - hy) * 10.0, 1.0));
       
       // Light from top-left
       vec3 lightDir = normalize(vec3(0.4, 0.5, 1.0));
