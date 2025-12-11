@@ -5369,9 +5369,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 36,
     fn: fn9,
     arity: 1,
-    argTypes: ['int'],
+    argTypes: ['index'],
     functionName: "xor-blend",
-    documentation: "XORs prev with old_image at index j, creating glitchy digital artifacts"
+    documentation: "XORs prev with old_image, creating glitchy digital artifacts"
   },
   
   '<': {
