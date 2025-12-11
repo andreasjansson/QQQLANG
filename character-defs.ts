@@ -1391,25 +1391,25 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.add(light);
   }
 
-  // Glass emerald material - clearer, less reflective
+  // Glass emerald material - clear with emerald green tint
   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.2, 0.95, 0.5),
+    color: new THREE.Color(0.3, 0.95, 0.5),
     metalness: 0.0,
     roughness: 0.0,
-    transmission: 1.0,
-    thickness: 0.3,      // Thinner for less refraction distortion
-    ior: 1.3,            // Lower IOR for less bending
-    envMapIntensity: 0.15,  // Much less reflection
-    clearcoat: 0.3,      // Subtle clearcoat
+    transmission: 0.95,   // Slightly less for more color
+    thickness: 0.4,
+    ior: 1.3,
+    envMapIntensity: 0.15,
+    clearcoat: 0.3,
     clearcoatRoughness: 0.0,
     transparent: true,
     side: THREE.DoubleSide,
     flatShading: true,
-    attenuationColor: new THREE.Color(0.1, 0.6, 0.2),
-    attenuationDistance: 1.0,  // Longer distance = less color absorption
-    specularIntensity: 0.5,    // Less specular
+    attenuationColor: new THREE.Color(0.0, 0.75, 0.25),  // Rich emerald green
+    attenuationDistance: 0.4,  // Shorter = more color visible
+    specularIntensity: 0.5,
     specularColor: new THREE.Color(1, 1, 1),
-    reflectivity: 0.1,         // Reduce reflectivity
+    reflectivity: 0.1,
   });
   
   // Corner positions extracted from the emerald geometry
