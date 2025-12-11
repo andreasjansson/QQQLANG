@@ -82,6 +82,11 @@
       padding: 1px 0;
     }
     
+    #input-background span.upload-char {
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    
     .toolbar-button {
       padding: 10px 15px;
       font-size: 14px;
@@ -91,31 +96,52 @@
       color: #fff;
       cursor: pointer;
       white-space: nowrap;
+      min-width: 80px;
+      text-align: center;
     }
     
-    .toolbar-button:hover {
+    .toolbar-button:hover:not(:disabled) {
       border-color: #888;
       background: #333;
     }
     
-    .toolbar-button:active {
+    .toolbar-button:active:not(:disabled) {
       background: #444;
     }
     
-    .btn-icon {
+    .toolbar-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .toolbar-button .btn-icon {
       display: none;
     }
     
+    .toolbar-button .btn-indicator {
+      font-style: italic;
+    }
+    
+    .toolbar-button .btn-rainbow {
+      background: linear-gradient(to bottom, 
+        #ff0000, #ff8000, #ffff00, #00ff00, #0080ff, #8000ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: bold;
+    }
+    
     @media (max-width: 600px) {
-      .btn-text {
+      .toolbar-button .btn-text {
         display: none;
       }
-      .btn-icon {
+      .toolbar-button .btn-icon {
         display: inline;
         font-size: 18px;
       }
       .toolbar-button {
         padding: 10px 12px;
+        min-width: 50px;
       }
     }
     
@@ -211,6 +237,10 @@
         <div id="input-background"></div>
         <input type="text" id="program-input" placeholder="Enter program (e.g., ABC!*D)" autofocus autocomplete="off">
       </div>
+      <button id="upload-button" class="toolbar-button" disabled>
+        <span class="btn-text"><span class="btn-indicator">𝑓𝑛</span></span>
+        <span class="btn-icon">𝑓</span>
+      </button>
       <button id="download-button" class="toolbar-button"><span class="btn-text">Download</span><span class="btn-icon">⬇</span></button>
       <button id="help-button" class="toolbar-button"><span class="btn-text">Help</span><span class="btn-icon">?</span></button>
     </div>
@@ -223,10 +253,12 @@
   <div id="intro-overlay" class="hidden">
     <video id="intro-video" playsinline muted></video>
   </div>
+  
+  <input type="file" id="file-input" accept="image/*" style="display: none;">
 
   <script type="module">
-    import { runProgram, getParsedOperations } from './runtime.ts';
-    import { characterDefs, emeraldReady } from './character-defs.ts';
+    import { runProgram, getParsedOperations, getExpectedNextType, addUploadedImage, setUploadedImage, uploadedImages, clearUploadedImages } from './runtime.ts';
+    import { characterDefs, emeraldReady, UPLOAD_CHAR, createPlaceholderImage } from './character-defs.ts';
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -236,6 +268,8 @@
     const debugPane = document.getElementById('debug-pane');
     const helpButton = document.getElementById('help-button');
     const downloadButton = document.getElementById('download-button');
+    const uploadButton = document.getElementById('upload-button');
+    const fileInput = document.getElementById('file-input');
 
     const introOverlay = document.getElementById('intro-overlay');
     const introVideo = document.getElementById('intro-video');
@@ -248,6 +282,8 @@
     const INTRO_SEEN_KEY = 'qqqlang-intro-seen';
     const INTRO_DURATION_MS = 4000;
     const FADE_DURATION_MS = 1000;
+    
+    let pendingUploadIndex = null;
     
     function shouldShowIntro() {
       const params = new URLSearchParams(window.location.search);
@@ -290,7 +326,7 @@
     }
     
     function isValidChar(char) {
-      return char in characterDefs;
+      return char in characterDefs || char === UPLOAD_CHAR;
     }
     
     function completeProgram(program) {
@@ -302,7 +338,7 @@
       if (lastOp.type === 'function') {
         const def = lastOp.fnDef;
         const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
-        const currentOpChars = lastOp.identifier.substring(prevIdentifier.length);
+        const currentOpChars = [...lastOp.identifier.substring(prevIdentifier.length)];
         const argsProvided = currentOpChars.length - 1;
         const argsNeeded = def.arity - argsProvided;
         
@@ -315,6 +351,121 @@
       }
       return program;
     }
+    
+    function updateUploadButtonState() {
+      const expectedType = getExpectedNextType(input.value);
+      const btnText = uploadButton.querySelector('.btn-text .btn-indicator');
+      const btnIcon = uploadButton.querySelector('.btn-icon');
+      
+      if (expectedType === 'initial' || expectedType === 'index') {
+        uploadButton.disabled = false;
+        btnText.className = 'btn-indicator';
+        btnText.textContent = 'Upload';
+        btnIcon.textContent = '📷';
+      } else if (expectedType === 'function') {
+        uploadButton.disabled = true;
+        btnText.className = 'btn-indicator';
+        btnText.textContent = '𝑓𝑛';
+        btnIcon.textContent = '𝑓';
+      } else if (expectedType === 'int') {
+        uploadButton.disabled = true;
+        btnText.className = 'btn-indicator';
+        btnText.textContent = '𝑥';
+        btnIcon.textContent = '𝑥';
+      } else if (expectedType === 'color') {
+        uploadButton.disabled = true;
+        btnText.className = 'btn-indicator btn-rainbow';
+        btnText.textContent = '■';
+        btnIcon.textContent = '🌈';
+      }
+    }
+    
+    function loadImageFromFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            const scale = Math.min(
+              canvas.width / img.width,
+              canvas.height / img.height
+            );
+            const scaledWidth = img.width * scale;
+            const scaledHeight = img.height * scale;
+            const x = (canvas.width - scaledWidth) / 2;
+            const y = (canvas.height - scaledHeight) / 2;
+            
+            tempCtx.fillStyle = '#000000';
+            tempCtx.fillRect(0, 0, canvas.width, canvas.height);
+            tempCtx.drawImage(img, x, y, scaledWidth, scaledHeight);
+            
+            const imageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
+            resolve({
+              width: canvas.width,
+              height: canvas.height,
+              data: new Uint8ClampedArray(imageData.data)
+            });
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    function countUploadChars(str) {
+      return [...str].filter(c => c === UPLOAD_CHAR).length;
+    }
+    
+    function getUploadCharIndex(str, charPosition) {
+      let uploadIndex = 0;
+      const chars = [...str];
+      for (let i = 0; i < charPosition && i < chars.length; i++) {
+        if (chars[i] === UPLOAD_CHAR) {
+          uploadIndex++;
+        }
+      }
+      return uploadIndex;
+    }
+    
+    uploadButton.addEventListener('click', () => {
+      const expectedType = getExpectedNextType(input.value);
+      if (expectedType === 'initial' || expectedType === 'index') {
+        pendingUploadIndex = null;
+        fileInput.click();
+      }
+    });
+    
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const img = await loadImageFromFile(file);
+      
+      if (pendingUploadIndex !== null) {
+        setUploadedImage(pendingUploadIndex, img);
+        pendingUploadIndex = null;
+      } else {
+        const uploadIndex = addUploadedImage(img);
+        
+        const start = input.selectionStart;
+        const before = input.value.substring(0, start);
+        const after = input.value.substring(input.selectionEnd);
+        input.value = before + UPLOAD_CHAR + after;
+        input.selectionStart = input.selectionEnd = start + 1;
+      }
+      
+      fileInput.value = '';
+      updateURL(input.value);
+      render();
+      input.focus();
+    });
     
     helpButton.addEventListener('click', () => {
       let program = input.value;
@@ -369,8 +520,12 @@
         
         if (op.type === 'solid') {
           html += `<div class="op">[${i}] "${opChars}" initial-color(${op.color})</div>`;
+        } else if (op.type === 'uploaded-image') {
+          html += `<div class="op">[${i}] "${opChars}" uploaded-image(${op.uploadIndex})</div>`;
         } else {
-          const argsStr = op.args.length > 0 ? op.args.join(', ') : '';
+          const argsStr = op.args.length > 0 ? op.args.map(a => 
+            typeof a === 'object' ? `upload:${a.index}` : a
+          ).join(', ') : '';
           html += `<div class="op">[${i}] "${opChars}" ${op.fnDef.functionName}(${argsStr})</div>`;
         }
       }
@@ -380,20 +535,26 @@
 
     function updateInputColors(program) {
       const ops = getParsedOperations(program);
-      const chars = program.split('').filter(c => c.charCodeAt(0) > 32 && c.charCodeAt(0) < 127);
+      const chars = [...program].filter(c => {
+        const code = c.codePointAt(0);
+        return (code > 32 && code < 127) || c === UPLOAD_CHAR;
+      });
       
       let html = '';
       let charIdx = 0;
+      let uploadIdx = 0;
       
       for (let i = 0; i < ops.length; i++) {
         const op = ops[i];
         const prevIdentifier = i > 0 ? ops[i - 1].identifier : '';
-        const opChars = op.identifier.substring(prevIdentifier.length);
+        const opChars = [...op.identifier.substring(prevIdentifier.length)];
         const numChars = opChars.length;
         
         let color = '#ffffff';
         if (op.type === 'solid') {
           color = op.color;
+        } else if (op.type === 'uploaded-image') {
+          color = '#888888';
         } else {
           color = op.fnDef.color;
         }
@@ -402,13 +563,29 @@
         
         for (let j = 0; j < numChars; j++) {
           if (charIdx < chars.length) {
-            html += `<span style="background-color: ${bgColor};">${chars[charIdx]}</span>`;
+            const char = chars[charIdx];
+            if (char === UPLOAD_CHAR) {
+              const currentUploadIdx = uploadIdx;
+              html += `<span class="upload-char" style="background-color: ${bgColor};" data-upload-index="${currentUploadIdx}">${char}</span>`;
+              uploadIdx++;
+            } else {
+              html += `<span style="background-color: ${bgColor};">${char}</span>`;
+            }
             charIdx++;
           }
         }
       }
       
       inputBackground.innerHTML = html;
+      
+      inputBackground.querySelectorAll('.upload-char').forEach(span => {
+        span.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(span.dataset.uploadIndex, 10);
+          pendingUploadIndex = idx;
+          fileInput.click();
+        });
+      });
     }
 
     function resize() {
@@ -447,9 +624,20 @@
         favicon.href = 'favicon-32.png';
       }
     }
+    
+    function syncUploadedImagesToProgram(program) {
+      const uploadCount = countUploadChars(program);
+      
+      while (uploadedImages.length < uploadCount) {
+        addUploadedImage(createPlaceholderImage(canvas.width, canvas.height));
+      }
+    }
 
     function render() {
       const program = input.value || '';
+      
+      syncUploadedImagesToProgram(program);
+      
       const images = runProgram(program, canvas.width, canvas.height);
       const finalImage = images[images.length - 1];
       
@@ -459,11 +647,15 @@
       updateDebugPane(program);
       updateInputColors(program);
       updateFaviconAndTitle(program);
+      updateUploadButtonState();
     }
 
     function loadProgramFromURL() {
       const program = getProgramFromURL();
       input.value = program;
+      
+      clearUploadedImages();
+      
       render();
     }
 
@@ -510,7 +702,6 @@
       loadProgramFromURL();
     });
     
-    // Wait for emerald model to load before first render
     emeraldReady.then(() => {
       if (shouldShowIntro()) {
         showIntro();
