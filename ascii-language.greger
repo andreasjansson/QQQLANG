@@ -8869,5 +8869,73 @@ Add specular highlight overlay for sharp facet sparkles
 ID: toolu_01SoazMbc3DvN1KyVN38pmAC
 
 <tool.toolu_01SoazMbc3DvN1KyVN38pmAC>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add specular highlight overlay for sharp facet sparkles
 </tool.toolu_01SoazMbc3DvN1KyVN38pmAC>
+
+# ASSISTANT
+
+Now update the addEmerald function to add the sparkle overlay:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01EG5pS6csM4XYQLKspvxUqR
+
+## path
+
+<tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
+character-defs.ts
+</tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
+
+## git-commit-message
+
+<tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
+Add sparkle overlay mesh to each emerald
+</tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
+
+## diff
+
+<tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
+   const addEmerald = (x: number, y: number, scale: number) => {
+     const gem = emeraldModel!.clone();
+     
+     gem.traverse((child) => {
+       if (child instanceof THREE.Mesh) {
+         const geom = child.geometry.clone();
+         geom.computeVertexNormals();
+         child.geometry = geom;
+         child.material = emeraldMaterial;
++        child.renderOrder = 1;
+       }
+     });
+     
+     gem.scale.setScalar(scale * 3.0);
+     gem.position.set(x, y, 0);
+     emeraldScene!.add(gem);
++    
++    // Add sparkle overlay - same geometry with specular-only material
++    const sparkleGem = emeraldModel!.clone();
++    sparkleGem.traverse((child) => {
++      if (child instanceof THREE.Mesh) {
++        const geom = child.geometry.clone();
++        geom.computeVertexNormals();
++        child.geometry = geom;
++        child.material = sparkleMaterial;
++        child.renderOrder = 2;
++      }
++    });
++    sparkleGem.scale.setScalar(scale * 3.0);
++    sparkleGem.position.set(x, y, 0);
++    emeraldScene!.add(sparkleGem);
+   };
+\ No newline at end of file
+
+</tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
+
+# TOOL RESULT
+
+ID: toolu_01EG5pS6csM4XYQLKspvxUqR
+
+<tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
+
+</tool.toolu_01EG5pS6csM4XYQLKspvxUqR>

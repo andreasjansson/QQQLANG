@@ -1440,12 +1440,28 @@ function fnE(ctx: FnContext): Image {
         geom.computeVertexNormals();
         child.geometry = geom;
         child.material = emeraldMaterial;
+        child.renderOrder = 1;
       }
     });
     
     gem.scale.setScalar(scale * 3.0);
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
+    
+    // Add sparkle overlay - same geometry with specular-only material
+    const sparkleGem = emeraldModel!.clone();
+    sparkleGem.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const geom = child.geometry.clone();
+        geom.computeVertexNormals();
+        child.geometry = geom;
+        child.material = sparkleMaterial;
+        child.renderOrder = 2;
+      }
+    });
+    sparkleGem.scale.setScalar(scale * 3.0);
+    sparkleGem.position.set(x, y, 0);
+    emeraldScene!.add(sparkleGem);
   };
   
   addEmerald(0, 0, 1.0);
