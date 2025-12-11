@@ -12225,5 +12225,63 @@ Try MeshStandardMaterial for better glass-like appearance
 ID: toolu_01JQLgce1GRo6U2e8crxpEMo
 
 <tool.toolu_01JQLgce1GRo6U2e8crxpEMo>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Try MeshStandardMaterial for better glass-like appearance
 </tool.toolu_01JQLgce1GRo6U2e8crxpEMo>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015YbV2tybjNfbJ6BiCzERyS
+
+## path
+
+<tool.toolu_015YbV2tybjNfbJ6BiCzERyS>
+character-defs.ts
+</tool.toolu_015YbV2tybjNfbJ6BiCzERyS>
+
+## git-commit-message
+
+<tool.toolu_015YbV2tybjNfbJ6BiCzERyS>
+Add back face mesh for glass depth effect
+</tool.toolu_015YbV2tybjNfbJ6BiCzERyS>
+
+## diff
+
+<tool.toolu_015YbV2tybjNfbJ6BiCzERyS>
+   const addEmerald = (x: number, y: number, scale: number) => {
+     const gem = emeraldModel!.clone();
+     gem.traverse((child) => {
+       if (child instanceof THREE.Mesh) {
+         // Clone the geometry to avoid modifying the original
+-        child.geometry = child.geometry.clone();
+-        // Compute normals for proper lighting
+-        child.geometry.computeVertexNormals();
++        const geom = child.geometry.clone();
++        geom.computeVertexNormals();
++        child.geometry = geom;
+         child.material = emeraldMaterial;
+-        // Ensure the mesh updates
+-        child.material.needsUpdate = true;
++        child.renderOrder = 1;
++        
++        // Add a back-face mesh for glass depth illusion
++        const backMesh = new THREE.Mesh(geom, emeraldBackMaterial);
++        backMesh.renderOrder = 0;
++        child.add(backMesh);
+       }
+     });
+     gem.scale.setScalar(scale * 3.0);
+     gem.position.set(x, y, 0);
+     emeraldScene!.add(gem);
+   };
+\ No newline at end of file
+
+</tool.toolu_015YbV2tybjNfbJ6BiCzERyS>
+
+# TOOL RESULT
+
+ID: toolu_015YbV2tybjNfbJ6BiCzERyS
+
+<tool.toolu_015YbV2tybjNfbJ6BiCzERyS>
+
+</tool.toolu_015YbV2tybjNfbJ6BiCzERyS>
