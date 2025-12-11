@@ -4208,11 +4208,11 @@ export const characterDefs: Record<string, CharDef> = {
   'J': {
     color: '#FF8C00',
     number: 10,
-    fn: fnJ,
+    fn: fnF,
     arity: 1,
     argTypes: ['int'],
-    functionName: "variable-checkerboard",
-    documentation: "Checkerboard blend where square size increases from top-left (2px) to bottom-right (52px)"
+    functionName: "julia-fractal",
+    documentation: "Julia set fractal masks prev - inside set shows prev, outside darkened; n controls zoom level"
   },
   
   'K': {
