@@ -180,6 +180,8 @@
     const inputContainer = document.getElementById('input-container');
     const inputBackground = document.getElementById('input-background');
     const debugPane = document.getElementById('debug-pane');
+    const helpButton = document.getElementById('help-button');
+    const downloadButton = document.getElementById('download-button');
 
     const isDebugMode = window.location.search.includes('debug');
     if (isDebugMode) {
@@ -195,6 +197,45 @@
     function isValidChar(char) {
       return char in characterDefs;
     }
+    
+    function completeProgram(program) {
+      if (!program) return program;
+      const ops = getParsedOperations(program);
+      if (ops.length === 0) return program;
+      
+      const lastOp = ops[ops.length - 1];
+      if (lastOp.type === 'function') {
+        const def = lastOp.fnDef;
+        const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
+        const currentOpChars = lastOp.identifier.substring(prevIdentifier.length);
+        const argsProvided = currentOpChars.length - 1;
+        const argsNeeded = def.arity - argsProvided;
+        
+        if (argsNeeded > 0) {
+          const fnChar = currentOpChars[0];
+          for (let i = 0; i < argsNeeded; i++) {
+            program += fnChar;
+          }
+        }
+      }
+      return program;
+    }
+    
+    helpButton.addEventListener('click', () => {
+      let program = completeProgram(input.value);
+      program += '??';
+      input.value = program;
+      updateURL(program);
+      render();
+      input.focus();
+    });
+    
+    downloadButton.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'qqqlang-' + (input.value || 'empty') + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
 
     function getProgramFromURL() {
       const path = window.location.pathname;

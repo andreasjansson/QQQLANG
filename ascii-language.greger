@@ -14059,5 +14059,105 @@ Add Help and Download button elements
 ID: toolu_01GaFTL2aFiL3bBesBdspBuA
 
 <tool.toolu_01GaFTL2aFiL3bBesBdspBuA>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Add Help and Download button elements
 </tool.toolu_01GaFTL2aFiL3bBesBdspBuA>
+
+# ASSISTANT
+
+Now let me add the JavaScript for the buttons:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Nxz1P4C1HsWw234DDUGWRK
+
+## path
+
+<tool.toolu_01Nxz1P4C1HsWw234DDUGWRK>
+index.html
+</tool.toolu_01Nxz1P4C1HsWw234DDUGWRK>
+
+## git-commit-message
+
+<tool.toolu_01Nxz1P4C1HsWw234DDUGWRK>
+Add Help and Download button functionality
+</tool.toolu_01Nxz1P4C1HsWw234DDUGWRK>
+
+## diff
+
+<tool.toolu_01Nxz1P4C1HsWw234DDUGWRK>
+     const canvas = document.getElementById('canvas');
+     const ctx = canvas.getContext('2d');
+     const input = document.getElementById('program-input');
+     const inputContainer = document.getElementById('input-container');
+     const inputBackground = document.getElementById('input-background');
+     const debugPane = document.getElementById('debug-pane');
++    const helpButton = document.getElementById('help-button');
++    const downloadButton = document.getElementById('download-button');
+ 
+     const isDebugMode = window.location.search.includes('debug');
+     if (isDebugMode) {
+       debugPane.classList.add('visible');
+     }
+     
+     function visualBell() {
+       inputContainer.classList.remove('bell');
+       void inputContainer.offsetWidth;
+       inputContainer.classList.add('bell');
+     }
+     
+     function isValidChar(char) {
+       return char in characterDefs;
+-    }
+\ No newline at end of file
++    }
++    
++    function completeProgram(program) {
++      if (!program) return program;
++      const ops = getParsedOperations(program);
++      if (ops.length === 0) return program;
++      
++      const lastOp = ops[ops.length - 1];
++      if (lastOp.type === 'function') {
++        const def = lastOp.fnDef;
++        const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
++        const currentOpChars = lastOp.identifier.substring(prevIdentifier.length);
++        const argsProvided = currentOpChars.length - 1;
++        const argsNeeded = def.arity - argsProvided;
++        
++        if (argsNeeded > 0) {
++          const fnChar = currentOpChars[0];
++          for (let i = 0; i < argsNeeded; i++) {
++            program += fnChar;
++          }
++        }
++      }
++      return program;
++    }
++    
++    helpButton.addEventListener('click', () => {
++      let program = completeProgram(input.value);
++      program += '??';
++      input.value = program;
++      updateURL(program);
++      render();
++      input.focus();
++    });
++    
++    downloadButton.addEventListener('click', () => {
++      const link = document.createElement('a');
++      link.download = 'qqqlang-' + (input.value || 'empty') + '.png';
++      link.href = canvas.toDataURL('image/png');
++      link.click();
++    });
+\ No newline at end of file
+
+</tool.toolu_01Nxz1P4C1HsWw234DDUGWRK>
+
+# TOOL RESULT
+
+ID: toolu_01Nxz1P4C1HsWw234DDUGWRK
+
+<tool.toolu_01Nxz1P4C1HsWw234DDUGWRK>
+
+</tool.toolu_01Nxz1P4C1HsWw234DDUGWRK>
