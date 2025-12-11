@@ -4278,7 +4278,7 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
       for (int i = 1; i < 20; i++) {
         if (i >= uDepth) break;
         float fi = float(i);
-        p += warpEffect(p, fi, uSeed);
+        p += warpEffect(p, fi, uSeed) * uWarpStrength;
       }
       
       // Calculate warp intensity for iridescence

@@ -6581,5 +6581,44 @@ Pass warp and iridescence strength uniforms to shader
 ID: toolu_01Hr52o5tvJWMutMBnkbqY4x
 
 <tool.toolu_01Hr52o5tvJWMutMBnkbqY4x>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Pass warp and iridescence strength uniforms to shader
 </tool.toolu_01Hr52o5tvJWMutMBnkbqY4x>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01BLNDZCEePHKr59FHACBZMF
+
+## path
+
+<tool.toolu_01BLNDZCEePHKr59FHACBZMF>
+character-defs.ts
+</tool.toolu_01BLNDZCEePHKr59FHACBZMF>
+
+## git-commit-message
+
+<tool.toolu_01BLNDZCEePHKr59FHACBZMF>
+Use warp strength uniform in domain warping loop
+</tool.toolu_01BLNDZCEePHKr59FHACBZMF>
+
+## diff
+
+<tool.toolu_01BLNDZCEePHKr59FHACBZMF>
+       // Iterative domain warping
+       for (int i = 1; i < 20; i++) {
+         if (i >= uDepth) break;
+         float fi = float(i);
+-        p += warpEffect(p, fi, uSeed);
++        p += warpEffect(p, fi, uSeed) * uWarpStrength;
+       }
+\ No newline at end of file
+
+</tool.toolu_01BLNDZCEePHKr59FHACBZMF>
+
+# TOOL RESULT
+
+ID: toolu_01BLNDZCEePHKr59FHACBZMF
+
+<tool.toolu_01BLNDZCEePHKr59FHACBZMF>
+
+</tool.toolu_01BLNDZCEePHKr59FHACBZMF>
