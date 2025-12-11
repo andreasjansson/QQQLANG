@@ -7862,23 +7862,18 @@ character-defs.ts
 Set gloss strength uniform
 </tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
 
-## original-content
+## diff
 
 <tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
-  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
-  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
-  gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
-  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
-</tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+   gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+   gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
+   gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
+-  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
+\ No newline at end of file
++  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
++  gl.uniform1f(gl.getUniformLocation(program, 'uGlossStrength'), glossStrength);
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
-  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
-  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
-  gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
-  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
-  gl.uniform1f(gl.getUniformLocation(program, 'uGlossStrength'), glossStrength);
 </tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
 
 # TOOL RESULT
@@ -7886,5 +7881,41 @@ Set gloss strength uniform
 ID: toolu_01SjxnrN7XUWTYw19jDSGGG8
 
 <tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Set gloss strength uniform
 </tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017FkpBi3ux5PVL2mJmXJnKE
+
+## path
+
+<tool.toolu_017FkpBi3ux5PVL2mJmXJnKE>
+character-defs.ts
+</tool.toolu_017FkpBi3ux5PVL2mJmXJnKE>
+
+## git-commit-message
+
+<tool.toolu_017FkpBi3ux5PVL2mJmXJnKE>
+Update oil-slick documentation for gloss parameter
+</tool.toolu_017FkpBi3ux5PVL2mJmXJnKE>
+
+## diff
+
+<tool.toolu_017FkpBi3ux5PVL2mJmXJnKE>
+     functionName: "oil-slick",
+-    documentation: "Domain warping effect; first arg controls warp intensity, second controls pattern scale"
+\ No newline at end of file
++    documentation: "Domain warping effect; first arg controls warp intensity, second controls gloss/lighting"
+\ No newline at end of file
+
+</tool.toolu_017FkpBi3ux5PVL2mJmXJnKE>
+
+# TOOL RESULT
+
+ID: toolu_017FkpBi3ux5PVL2mJmXJnKE
+
+<tool.toolu_017FkpBi3ux5PVL2mJmXJnKE>
+
+</tool.toolu_017FkpBi3ux5PVL2mJmXJnKE>
