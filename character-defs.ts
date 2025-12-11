@@ -3016,56 +3016,16 @@ function fnPlus(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const hw = ctx.width / 2;
-  const hh = ctx.height / 2;
-  
-  const sharpenKernel = [
-    [0, -1, 0],
-    [-1, 5, -1],
-    [0, -1, 0]
-  ];
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const zoom = 1.2;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const inTopLeft = x < hw && y < hh;
-      const inBottomRight = x >= hw && y >= hh;
-      const shouldSharpen = inTopLeft || inBottomRight;
-      
-      if (shouldSharpen) {
-        let sr = 0, sg = 0, sb = 0;
-        for (let ky = -1; ky <= 1; ky++) {
-          for (let kx = -1; kx <= 1; kx++) {
-            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
-            const weight = sharpenKernel[ky + 1][kx + 1];
-            sr += pr * weight;
-            sg += pg * weight;
-            sb += pb * weight;
-          }
-        }
-        setPixel(out, x, y,
-          Math.max(0, Math.min(255, Math.round(sr))),
-          Math.max(0, Math.min(255, Math.round(sg))),
-          Math.max(0, Math.min(255, Math.round(sb)))
-        );
-      } else {
-        let sr = 0, sg = 0, sb = 0;
-        const radius = 2;
-        let count = 0;
-        for (let ky = -radius; ky <= radius; ky++) {
-          for (let kx = -radius; kx <= radius; kx++) {
-            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
-            sr += pr;
-            sg += pg;
-            sb += pb;
-            count++;
-          }
-        }
-        setPixel(out, x, y,
-          Math.round(sr / count),
-          Math.round(sg / count),
-          Math.round(sb / count)
-        );
-      }
+      const sx = cx + (x - cx) / zoom;
+      const sy = cy + (y - cy) / zoom;
+      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      setPixel(out, x, y, r, g, b);
     }
   }
   
