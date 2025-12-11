@@ -4179,6 +4179,116 @@ function fnCloseBrace(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
+function fnOilSlick(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const seed = ctx.images.length * 137.5 + n * 17.3;
+  
+  const hash = (x: number, y: number, s: number): number => {
+    const n = Math.sin(x * 127.1 + y * 311.7 + s * 74.3) * 43758.5453;
+    return n - Math.floor(n);
+  };
+  
+  const smoothstep = (t: number): number => t * t * (3 - 2 * t);
+  
+  const noise = (x: number, y: number, s: number): number => {
+    const ix = Math.floor(x);
+    const iy = Math.floor(y);
+    const fx = smoothstep(x - ix);
+    const fy = smoothstep(y - iy);
+    
+    const a = hash(ix, iy, s);
+    const b = hash(ix + 1, iy, s);
+    const c = hash(ix, iy + 1, s);
+    const d = hash(ix + 1, iy + 1, s);
+    
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+  };
+  
+  const fbm = (x: number, y: number, octaves: number): number => {
+    let value = 0;
+    let amplitude = 0.5;
+    let frequency = 1;
+    let maxValue = 0;
+    
+    for (let i = 0; i < octaves; i++) {
+      value += amplitude * noise(x * frequency, y * frequency, seed + i * 100);
+      maxValue += amplitude;
+      amplitude *= 0.5;
+      frequency *= 2.0;
+    }
+    
+    return value / maxValue;
+  };
+  
+  const thinFilmInterference = (thickness: number): [number, number, number] => {
+    const t = thickness * Math.PI * 2 * 3;
+    
+    const rWavelength = 1.0;
+    const gWavelength = 0.85;
+    const bWavelength = 0.7;
+    
+    const r = (Math.cos(t * rWavelength) * 0.5 + 0.5);
+    const g = (Math.cos(t * gWavelength + 0.5) * 0.5 + 0.5);
+    const b = (Math.cos(t * bWavelength + 1.0) * 0.5 + 0.5);
+    
+    const satBoost = 1.3;
+    const avg = (r + g + b) / 3;
+    
+    return [
+      Math.min(1, avg + (r - avg) * satBoost),
+      Math.min(1, avg + (g - avg) * satBoost),
+      Math.min(1, avg + (b - avg) * satBoost)
+    ];
+  };
+  
+  const scale = 0.003 + n * 0.0005;
+  const warpScale = scale * 0.5;
+  const warpStrength = 80 + n * 15;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const warp1x = fbm(x * warpScale, y * warpScale, 4);
+      const warp1y = fbm(x * warpScale + 50, y * warpScale + 50, 4);
+      
+      const wx1 = x + (warp1x - 0.5) * warpStrength;
+      const wy1 = y + (warp1y - 0.5) * warpStrength;
+      
+      const warp2x = fbm(wx1 * warpScale * 0.7, wy1 * warpScale * 0.7, 3);
+      const warp2y = fbm(wx1 * warpScale * 0.7 + 100, wy1 * warpScale * 0.7 + 100, 3);
+      
+      const wx2 = wx1 + (warp2x - 0.5) * warpStrength * 0.5;
+      const wy2 = wy1 + (warp2y - 0.5) * warpStrength * 0.5;
+      
+      const thickness = fbm(wx2 * scale, wy2 * scale, 5);
+      
+      const swirl = Math.sin(thickness * Math.PI * 4) * 0.5 + 0.5;
+      const finalThickness = thickness * 0.7 + swirl * 0.3;
+      
+      const [ir, ig, ib] = thinFilmInterference(finalThickness);
+      
+      const oilDensity = 0.3 + fbm(x * scale * 2, y * scale * 2, 3) * 0.5;
+      
+      const darkening = 0.85 + finalThickness * 0.15;
+      
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      
+      const baseR = pr * darkening;
+      const baseG = pg * darkening;
+      const baseB = pb * darkening;
+      
+      const nr = baseR * (1 - oilDensity) + (ir * 255) * oilDensity;
+      const ng = baseG * (1 - oilDensity) + (ig * 255) * oilDensity;
+      const nb = baseB * (1 - oilDensity) + (ib * 255) * oilDensity;
+      
+      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
+    }
+  }
+  
+  return out;
+}
+
 function fnTilde(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
