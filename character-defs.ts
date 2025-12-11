@@ -1379,14 +1379,14 @@ function fnE(ctx: FnContext): Image {
   for (let i = 0; i < numLights; i++) {
     const angle = hash(i * 127.1) * Math.PI * 2;
     const elevation = hash(i * 311.7) * Math.PI * 0.4 + 0.2;  // Above horizon
-    const distance = 1.5 + hash(i * 74.3) * 3;  // Much closer
+    const distance = 4 + hash(i * 74.3) * 8;
     
     const px = Math.cos(angle) * Math.cos(elevation) * distance;
-    const py = Math.sin(elevation) * distance + 1;
-    const pz = Math.sin(angle) * Math.cos(elevation) * distance + 2;
+    const py = Math.sin(elevation) * distance + 2;
+    const pz = Math.sin(angle) * Math.cos(elevation) * distance + 5;
     
-    const intensity = 8.0 + hash(i * 191.3) * 12.0;
-    const light = new THREE.PointLight(0xffffff, intensity, 15);
+    const intensity = 20.0 + hash(i * 191.3) * 30.0;
+    const light = new THREE.PointLight(0xffffff, intensity, 50);
     light.position.set(px, py, pz);
     emeraldScene!.add(light);
   }
