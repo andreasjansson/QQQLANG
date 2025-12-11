@@ -1418,67 +1418,77 @@ function fnE(ctx: FnContext): Image {
     specularColor: new THREE.Color(1, 1, 1),
   });
   
-  // Custom shader for facet edge sparkles using screen-space edge detection
-  const sparkleMaterial = new THREE.ShaderMaterial({
-    uniforms: {},
-    vertexShader: `
-      varying vec3 vNormal;
-      varying vec3 vWorldPos;
-      varying vec3 vViewNormal;
-      
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        vViewNormal = normalize((modelViewMatrix * vec4(normal, 0.0)).xyz);
-        vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vNormal;
-      varying vec3 vWorldPos;
-      varying vec3 vViewNormal;
-      
-      void main() {
-        vec3 normal = normalize(vNormal);
-        vec3 viewDir = normalize(cameraPosition - vWorldPos);
-        
-        // Edge detection: where the normal changes rapidly in screen space
-        vec3 dNdx = dFdx(vViewNormal);
-        vec3 dNdy = dFdy(vViewNormal);
-        float edgeStrength = length(dNdx) + length(dNdy);
-        float isEdge = smoothstep(0.3, 1.5, edgeStrength);
-        
-        // Light positions for sparkle
-        vec3 lights[6];
-        lights[0] = vec3(5.0, 8.0, 10.0);
-        lights[1] = vec3(-5.0, 3.0, 8.0);
-        lights[2] = vec3(3.0, 4.0, 8.0);
-        lights[3] = vec3(-3.0, 6.0, 7.0);
-        lights[4] = vec3(0.0, 10.0, 5.0);
-        lights[5] = vec3(2.0, -3.0, 8.0);
-        
-        // Very sharp specular highlights
-        float totalSpec = 0.0;
-        for (int i = 0; i < 6; i++) {
-          vec3 lightDir = normalize(lights[i] - vWorldPos);
-          vec3 reflectDir = reflect(-lightDir, normal);
-          float spec = pow(max(dot(viewDir, reflectDir), 0.0), 512.0);
-          totalSpec += spec;
-        }
-        
-        // Sparkle only at edges with strong specular
-        float sparkle = totalSpec * isEdge * 3.0;
-        
-        // Threshold to make sparkles more point-like
-        sparkle = smoothstep(0.1, 0.5, sparkle) * sparkle;
-        
-        gl_FragColor = vec4(vec3(1.0), min(sparkle, 1.0));
-      }
-    `,
+  // Corner positions extracted from the emerald geometry
+  // Girdle corners (8 points around y ≈ 0.07)
+  const girdleCorners = [
+    [0.0, 0.064, -0.323],    // front
+    [0.227, 0.069, -0.226],  // front-right
+    [0.322, 0.063, 0.0],     // right
+    [0.224, 0.072, 0.228],   // back-right
+    [0.0, 0.064, 0.322],     // back
+    [-0.227, 0.07, 0.226],   // back-left
+    [-0.322, 0.07, 0.0],     // left (inferred)
+    [-0.225, 0.069, -0.227], // front-left
+  ];
+  
+  // Crown corners (upper facet intersections around y ≈ 0.176)
+  const crownCorners = [
+    [-0.169, 0.176, -0.092],
+    [-0.089, 0.176, 0.174],
+    [0.169, 0.176, -0.092],  // mirrored
+    [0.089, 0.176, 0.174],   // mirrored
+    [0.0, 0.176, -0.18],     // front center
+    [0.0, 0.176, 0.18],      // back center
+    [-0.15, 0.176, 0.0],     // left center
+    [0.15, 0.176, 0.0],      // right center
+  ];
+  
+  // Create sparkle sprite texture
+  const sparkleCanvas = document.createElement('canvas');
+  sparkleCanvas.width = 64;
+  sparkleCanvas.height = 64;
+  const sctx = sparkleCanvas.getContext('2d')!;
+  const cx = 32, cy = 32;
+  
+  // Soft radial glow with subtle rays
+  const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
+  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.8)');
+  gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.3)');
+  gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.1)');
+  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  sctx.fillStyle = gradient;
+  sctx.fillRect(0, 0, 64, 64);
+  
+  // Add thin cross rays
+  sctx.globalCompositeOperation = 'lighter';
+  const rayGradient = sctx.createLinearGradient(0, cy, 64, cy);
+  rayGradient.addColorStop(0, 'rgba(255,255,255,0)');
+  rayGradient.addColorStop(0.4, 'rgba(255,255,255,0.4)');
+  rayGradient.addColorStop(0.5, 'rgba(255,255,255,0.8)');
+  rayGradient.addColorStop(0.6, 'rgba(255,255,255,0.4)');
+  rayGradient.addColorStop(1, 'rgba(255,255,255,0)');
+  sctx.fillStyle = rayGradient;
+  sctx.fillRect(0, cy-1, 64, 2);
+  
+  const rayGradientV = sctx.createLinearGradient(cx, 0, cx, 64);
+  rayGradientV.addColorStop(0, 'rgba(255,255,255,0)');
+  rayGradientV.addColorStop(0.4, 'rgba(255,255,255,0.4)');
+  rayGradientV.addColorStop(0.5, 'rgba(255,255,255,0.8)');
+  rayGradientV.addColorStop(0.6, 'rgba(255,255,255,0.4)');
+  rayGradientV.addColorStop(1, 'rgba(255,255,255,0)');
+  sctx.fillStyle = rayGradientV;
+  sctx.fillRect(cx-1, 0, 2, 64);
+  
+  const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
+  
+  const createSparkleMaterial = () => new THREE.SpriteMaterial({
+    map: sparkleTexture,
+    color: 0xffffff,
     transparent: true,
     blending: THREE.AdditiveBlending,
+    depthTest: false,
     depthWrite: false,
-    side: THREE.FrontSide,
   });
 
   const addEmerald = (x: number, y: number, scale: number, logGeometry: boolean = false) => {
