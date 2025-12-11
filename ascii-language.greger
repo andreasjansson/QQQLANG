@@ -6339,5 +6339,50 @@ Much more blur and better background blending
 ID: toolu_01EdTFnr777GzkZGTdJ6CEqy
 
 <tool.toolu_01EdTFnr777GzkZGTdJ6CEqy>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Much more blur and better background blending
 </tool.toolu_01EdTFnr777GzkZGTdJ6CEqy>
+
+# ASSISTANT
+
+Also let me make sure the sprite material blends properly:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0184jpq2nRao7Vqfirb6HzNX
+
+## path
+
+<tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
+character-defs.ts
+</tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
+
+## git-commit-message
+
+<tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
+Fix sprite material blending
+</tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
+
+## diff
+
+<tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
+   const sparkleSpriteMaterial = new THREE.SpriteMaterial({
+     map: sparkleTexture,
+     color: 0xffffff,
+     transparent: true,
++    opacity: 0.6,
+     blending: THREE.AdditiveBlending,
++    depthTest: false,
+     depthWrite: false,
+   });
+\ No newline at end of file
+
+</tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
+
+# TOOL RESULT
+
+ID: toolu_0184jpq2nRao7Vqfirb6HzNX
+
+<tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
+
+</tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
