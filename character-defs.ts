@@ -1374,8 +1374,8 @@ function fnE(ctx: FnContext): Image {
     return x - Math.floor(x);
   };
   
-  // Generate random point lights around the emeralds
-  const numLights = 20;
+  // Generate random point lights around the emeralds - softer, larger lights
+  const numLights = 15;
   for (let i = 0; i < numLights; i++) {
     const angle = hash(i * 127.1) * Math.PI * 2;
     const elevation = hash(i * 311.7) * Math.PI * 0.4 + 0.2;  // Above horizon
@@ -1385,8 +1385,9 @@ function fnE(ctx: FnContext): Image {
     const py = Math.sin(elevation) * distance + 2;
     const pz = Math.sin(angle) * Math.cos(elevation) * distance + 5;
     
-    const intensity = 20.0 + hash(i * 191.3) * 30.0;
-    const light = new THREE.PointLight(0xffffff, intensity, 50);
+    const intensity = 5.0 + hash(i * 191.3) * 8.0;
+    const light = new THREE.PointLight(0xffffff, intensity, 100);  // Larger range, no falloff
+    light.decay = 1;  // Softer falloff
     light.position.set(px, py, pz);
     emeraldScene!.add(light);
   }
