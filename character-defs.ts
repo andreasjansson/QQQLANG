@@ -4701,19 +4701,7 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   tempCanvas.height = ctx.height;
   const tempCtx = tempCanvas.getContext('2d')!;
   
-  tempCtx.fillStyle = '#000000';
-  tempCtx.fillRect(0, 0, ctx.width, ctx.height);
-  
-  const fontSize = 14;
-  const lineHeight = Math.floor(fontSize * 1.5);
   const margin = 20;
-  
-  tempCtx.font = `${fontSize}px monospace`;
-  tempCtx.fillStyle = '#00FF00';
-  
-  const charWidth = tempCtx.measureText('M').width;
-  const charsPerLine = Math.floor((ctx.width - margin * 2) / charWidth);
-  const linesPerPage = Math.floor((ctx.height - margin * 2) / lineHeight);
   
   let page: number;
   if (pageArg === 58 || pageArg === 1) {
@@ -4722,14 +4710,47 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
     page = pageArg;
   }
   
-  const pages = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
+  let fontSize = 14;
+  const minFontSize = 6;
+  let lines: string[] = [];
+  let lineHeight: number;
+  let linesPerPage: number;
   
-  let lines: string[];
-  if (page >= 1 && page <= pages.length) {
-    lines = pages[page - 1];
-  } else {
-    lines = generateIndexPage(pages.length);
+  while (fontSize >= minFontSize) {
+    lineHeight = Math.floor(fontSize * 1.5);
+    tempCtx.font = `${fontSize}px monospace`;
+    
+    const charWidth = tempCtx.measureText('M').width;
+    const charsPerLine = Math.floor((ctx.width - margin * 2) / charWidth);
+    linesPerPage = Math.floor((ctx.height - margin * 2) / lineHeight);
+    
+    if (charsPerLine < 20 || linesPerPage < 5) {
+      fontSize -= 1;
+      continue;
+    }
+    
+    const pages = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
+    
+    if (page >= 1 && page <= pages.length) {
+      lines = pages[page - 1];
+    } else {
+      lines = generateIndexPage(pages.length);
+    }
+    
+    if (lines.length <= linesPerPage) {
+      break;
+    }
+    
+    fontSize -= 1;
   }
+  
+  tempCtx.fillStyle = '#000000';
+  tempCtx.fillRect(0, 0, ctx.width, ctx.height);
+  tempCtx.font = `${fontSize}px monospace`;
+  tempCtx.fillStyle = '#00FF00';
+  
+  lineHeight = Math.floor(fontSize * 1.5);
+  linesPerPage = Math.floor((ctx.height - margin * 2) / lineHeight);
   
   let y = margin + fontSize;
   for (let i = 0; i < Math.min(lines.length, linesPerPage); i++) {
