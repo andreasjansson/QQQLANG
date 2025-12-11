@@ -5469,7 +5469,7 @@ export const characterDefs: Record<string, CharDef> = {
     number: 46,
     fn: fnJ,
     arity: 1,
-    argTypes: ['int'],
+    argTypes: ['index'],
     functionName: "variable-checkerboard",
     documentation: "Checkerboard blend where square size increases from top-left (2px) to bottom-right (52px)"
   },
