@@ -1253,55 +1253,51 @@ function fnE(ctx: FnContext): Image {
     uniform sampler2D uTexture;
     varying vec2 vUV;
     
-    #define MAX_STEPS 64
-    #define MAX_DIST 20.0
-    #define SURF_DIST 0.001
-    
-    mat2 rot2D(float a) {
-      float c = cos(a), s = sin(a);
-      return mat2(c, -s, s, c);
-    }
+    #define MAX_STEPS 80
+    #define MAX_DIST 30.0
+    #define SURF_DIST 0.002
     
     float sdBox(vec3 p, vec3 b) {
       vec3 q = abs(p) - b;
       return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
     }
     
-    float sdEmeraldCut(vec3 p, float size) {
-      float octagon = sdBox(p, vec3(size * 0.7, size * 0.3, size * 0.7));
-      vec3 p45 = p;
-      p45.xz = rot2D(0.785398) * p45.xz;
-      float octagon2 = sdBox(p45, vec3(size * 0.7, size * 0.3, size * 0.7));
-      float base = max(octagon, octagon2);
+    // Upright emerald cut gem - rectangular with beveled corners
+    float sdEmerald(vec3 p, float w, float h, float d) {
+      // Main rectangular body
+      float body = sdBox(p, vec3(w, h, d));
       
-      float topCut = p.y - size * 0.2 + length(p.xz) * 0.3;
-      float bottomCut = -p.y - size * 0.2 + length(p.xz) * 0.3;
+      // Bevel the vertical edges
+      float bevel = 0.15 * w;
+      vec3 q = abs(p);
+      float corner1 = q.x + q.z - (w + d - bevel);
+      float corner2 = q.x + q.z - (w + d - bevel * 0.5);
+      body = max(body, corner1);
       
-      vec3 tp = p - vec3(0.0, size * 0.15, 0.0);
-      float table = sdBox(tp, vec3(size * 0.4, size * 0.05, size * 0.4));
-      vec3 tp45 = tp;
-      tp45.xz = rot2D(0.785398) * tp45.xz;
-      float table2 = sdBox(tp45, vec3(size * 0.4, size * 0.05, size * 0.4));
-      float tableTop = max(table, table2);
+      // Bevel top and bottom edges
+      float topBevel = (q.y - h + bevel * 0.8) + (q.x - w) * 0.3 + (q.z - d) * 0.3;
+      float botBevel = (-p.y - h + bevel * 0.8) + (q.x - w) * 0.3 + (q.z - d) * 0.3;
       
-      float gem = max(base, max(topCut, bottomCut));
-      gem = min(gem, tableTop + size * 0.1);
-      
-      return gem;
+      return body;
     }
     
     float sceneSDF(vec3 p) {
       float d = MAX_DIST;
       
-      d = min(d, sdEmeraldCut(p, 0.8));
-      d = min(d, sdEmeraldCut(p - vec3(-1.8, 0.0, 0.0), 0.45));
-      d = min(d, sdEmeraldCut(p - vec3(1.8, 0.0, 0.0), 0.45));
-      d = min(d, sdEmeraldCut(p - vec3(-1.1, 0.0, -1.1), 0.35));
-      d = min(d, sdEmeraldCut(p - vec3(1.1, 0.0, -1.1), 0.35));
-      d = min(d, sdEmeraldCut(p - vec3(-1.1, 0.0, 1.1), 0.35));
-      d = min(d, sdEmeraldCut(p - vec3(1.1, 0.0, 1.1), 0.35));
-      d = min(d, sdEmeraldCut(p - vec3(0.0, 0.0, -1.8), 0.4));
-      d = min(d, sdEmeraldCut(p - vec3(0.0, 0.0, 1.8), 0.4));
+      // Large center emerald
+      d = min(d, sdEmerald(p - vec3(0.0, 0.0, 0.0), 0.4, 0.7, 0.25));
+      
+      // Side emeralds - same z, different x/y
+      d = min(d, sdEmerald(p - vec3(-1.2, -0.15, 0.0), 0.25, 0.45, 0.15));
+      d = min(d, sdEmerald(p - vec3(1.2, -0.15, 0.0), 0.25, 0.45, 0.15));
+      
+      // Smaller corner emeralds
+      d = min(d, sdEmerald(p - vec3(-0.7, -0.25, 0.0), 0.15, 0.3, 0.1));
+      d = min(d, sdEmerald(p - vec3(0.7, -0.25, 0.0), 0.15, 0.3, 0.1));
+      
+      // Top smaller emeralds
+      d = min(d, sdEmerald(p - vec3(-0.5, 0.5, 0.0), 0.12, 0.22, 0.08));
+      d = min(d, sdEmerald(p - vec3(0.5, 0.5, 0.0), 0.12, 0.22, 0.08));
       
       return d;
     }
@@ -1322,7 +1318,7 @@ function fnE(ctx: FnContext): Image {
         float d = sceneSDF(p);
         if (d < SURF_DIST) return t;
         if (t > MAX_DIST) break;
-        t += d;
+        t += d * 0.9;
       }
       return -1.0;
     }
@@ -1331,15 +1327,12 @@ function fnE(ctx: FnContext): Image {
       vec2 uv = vUV;
       vec2 p = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
       
-      vec3 ro = vec3(0.0, 3.5, 4.0);
-      vec3 lookAt = vec3(0.0, 0.0, 0.0);
+      // Camera looking straight at emeralds
+      vec3 ro = vec3(0.0, 0.0, 4.0);
+      vec3 rd = normalize(vec3(p.x, p.y, -1.5));
       
-      vec3 forward = normalize(lookAt - ro);
-      vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), forward));
-      vec3 up = cross(forward, right);
-      vec3 rd = normalize(forward + p.x * right + p.y * up);
-      
-      vec3 bgColor = texture2D(uTexture, uv).rgb * 0.3;
+      // Background - full brightness
+      vec3 bgColor = texture2D(uTexture, uv).rgb;
       vec3 color = bgColor;
       
       float t = rayMarch(ro, rd);
@@ -1347,52 +1340,63 @@ function fnE(ctx: FnContext): Image {
       if (t > 0.0) {
         vec3 pos = ro + rd * t;
         vec3 normal = getNormal(pos);
-        
-        vec3 lightPos1 = vec3(3.0, 5.0, 4.0);
-        vec3 lightPos2 = vec3(-3.0, 4.0, 2.0);
-        vec3 lightPos3 = vec3(0.0, 3.0, -3.0);
-        
-        vec3 lightDir1 = normalize(lightPos1 - pos);
-        vec3 lightDir2 = normalize(lightPos2 - pos);
-        vec3 lightDir3 = normalize(lightPos3 - pos);
         vec3 viewDir = normalize(ro - pos);
         
-        vec3 emeraldColor = vec3(0.15, 0.75, 0.35);
-        vec3 emeraldDeep = vec3(0.05, 0.45, 0.2);
+        // Multiple bright lights
+        vec3 lights[4];
+        lights[0] = normalize(vec3(2.0, 3.0, 4.0));
+        lights[1] = normalize(vec3(-2.0, 2.0, 3.0));
+        lights[2] = normalize(vec3(0.0, 4.0, 2.0));
+        lights[3] = normalize(vec3(1.0, -1.0, 3.0));
         
-        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
+        // Emerald color - bright green
+        vec3 emeraldTint = vec3(0.2, 0.9, 0.4);
         
-        float diff1 = max(dot(normal, lightDir1), 0.0);
-        float diff2 = max(dot(normal, lightDir2), 0.0);
-        float diff3 = max(dot(normal, lightDir3), 0.0);
-        float diffuse = diff1 * 0.5 + diff2 * 0.3 + diff3 * 0.2;
+        // Fresnel for edge reflections
+        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 4.0);
         
-        vec3 halfDir1 = normalize(lightDir1 + viewDir);
-        vec3 halfDir2 = normalize(lightDir2 + viewDir);
-        vec3 halfDir3 = normalize(lightDir3 + viewDir);
-        float spec1 = pow(max(dot(normal, halfDir1), 0.0), 80.0);
-        float spec2 = pow(max(dot(normal, halfDir2), 0.0), 60.0);
-        float spec3 = pow(max(dot(normal, halfDir3), 0.0), 40.0);
-        float specular = spec1 * 1.0 + spec2 * 0.7 + spec3 * 0.5;
+        // Accumulate lighting
+        float diffuse = 0.0;
+        float specular = 0.0;
         
-        float depth = 0.3 + 0.7 * (1.0 - abs(dot(normal, viewDir)));
-        vec3 gemColor = mix(emeraldColor, emeraldDeep, depth);
+        for (int i = 0; i < 4; i++) {
+          vec3 L = lights[i];
+          vec3 H = normalize(L + viewDir);
+          
+          diffuse += max(dot(normal, L), 0.0) * 0.4;
+          specular += pow(max(dot(normal, H), 0.0), 60.0) * 0.8;
+          specular += pow(max(dot(normal, H), 0.0), 200.0) * 1.2;
+        }
         
-        float sparkle = pow(max(dot(reflect(-lightDir1, normal), viewDir), 0.0), 120.0);
-        sparkle += pow(max(dot(reflect(-lightDir2, normal), viewDir), 0.0), 100.0) * 0.5;
+        // Refraction - sample background with offset
+        vec3 refractDir = refract(-viewDir, normal, 0.65);
+        vec2 refractUV = uv + refractDir.xy * 0.08;
+        refractUV = clamp(refractUV, 0.0, 1.0);
+        vec3 refractedBg = texture2D(uTexture, refractUV).rgb;
         
+        // Reflection
         vec3 reflectDir = reflect(-viewDir, normal);
-        vec2 reflectUV = uv + reflectDir.xz * 0.1;
-        vec3 envReflect = texture2D(uTexture, clamp(reflectUV, 0.0, 1.0)).rgb;
+        vec2 reflectUV = uv + reflectDir.xy * 0.15;
+        reflectUV = clamp(reflectUV, 0.0, 1.0);
+        vec3 reflectedBg = texture2D(uTexture, reflectUV).rgb;
         
-        float ambient = 0.3;
-        color = gemColor * (ambient + diffuse * 0.7);
-        color += vec3(1.0) * specular * 0.8;
-        color += vec3(1.0, 1.0, 0.95) * sparkle * 1.5;
-        color = mix(color, envReflect * emeraldColor + vec3(0.2), fresnel * 0.4);
-        color += emeraldColor * 0.1;
+        // Glassy translucent emerald
+        // Base: tinted refracted background
+        vec3 gemColor = refractedBg * emeraldTint;
         
-        color = pow(color, vec3(0.9));
+        // Add diffuse lighting
+        gemColor += emeraldTint * diffuse * 0.3;
+        
+        // Add bright specular highlights
+        gemColor += vec3(1.0, 1.0, 0.95) * specular;
+        
+        // Fresnel reflection
+        gemColor = mix(gemColor, reflectedBg * 0.8 + vec3(0.2), fresnel * 0.5);
+        
+        // Slight inner glow
+        gemColor += emeraldTint * 0.15;
+        
+        color = gemColor;
       }
       
       gl_FragColor = vec4(color, 1.0);
