@@ -10299,5 +10299,108 @@ Simplify scene setup - remove envMap, use simple background color
 ID: toolu_01Dv4QA1GMH9SBi1urQ8PZ98
 
 <tool.toolu_01Dv4QA1GMH9SBi1urQ8PZ98>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Simplify scene setup - remove envMap, use simple background color
 </tool.toolu_01Dv4QA1GMH9SBi1urQ8PZ98>
+
+# ASSISTANT
+
+Also need to remove the dispose calls at the end:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01Gn4MtbriLhHRz8W9FLy7ZK
+
+## path
+
+<tool.toolu_01Gn4MtbriLhHRz8W9FLy7ZK>
+character-defs.ts
+</tool.toolu_01Gn4MtbriLhHRz8W9FLy7ZK>
+
+## start-line
+
+<tool.toolu_01Gn4MtbriLhHRz8W9FLy7ZK>
+1440
+</tool.toolu_01Gn4MtbriLhHRz8W9FLy7ZK>
+
+## end-line
+
+<tool.toolu_01Gn4MtbriLhHRz8W9FLy7ZK>
+1470
+</tool.toolu_01Gn4MtbriLhHRz8W9FLy7ZK>
+
+# TOOL RESULT
+
+ID: toolu_01Gn4MtbriLhHRz8W9FLy7ZK
+
+<tool.toolu_01Gn4MtbriLhHRz8W9FLy7ZK>
+  let flippedNonZero = 0;
+  for (let i = 0; i < flipped.length; i += 4) {
+    if (flipped[i] > 0 || flipped[i+1] > 0 || flipped[i+2] > 0) {
+      flippedNonZero++;
+    }
+  }
+  console.log('Flipped non-zero pixels:', flippedNonZero);
+  const flippedCenterIdx = (Math.floor(ctx.height/2) * ctx.width + Math.floor(ctx.width/2)) * 4;
+  console.log('Flipped center pixel:', flipped[flippedCenterIdx], flipped[flippedCenterIdx+1], flipped[flippedCenterIdx+2], flipped[flippedCenterIdx+3]);
+  
+  bgTexture.dispose();
+  envMap.dispose();
+  pmremGenerator.dispose();
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
+}
+
+function fnR(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const gl = initWebGL(ctx.width, ctx.height);
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+</tool.toolu_01Gn4MtbriLhHRz8W9FLy7ZK>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01F6tcHx8iPjs1SveGaKU21U
+
+## path
+
+<tool.toolu_01F6tcHx8iPjs1SveGaKU21U>
+character-defs.ts
+</tool.toolu_01F6tcHx8iPjs1SveGaKU21U>
+
+## git-commit-message
+
+<tool.toolu_01F6tcHx8iPjs1SveGaKU21U>
+Remove disposed texture references
+</tool.toolu_01F6tcHx8iPjs1SveGaKU21U>
+
+## diff
+
+<tool.toolu_01F6tcHx8iPjs1SveGaKU21U>
+-  bgTexture.dispose();
+-  envMap.dispose();
+-  pmremGenerator.dispose();
+-  
+   return { width: ctx.width, height: ctx.height, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_01F6tcHx8iPjs1SveGaKU21U>
+
+# TOOL RESULT
+
+ID: toolu_01F6tcHx8iPjs1SveGaKU21U
+
+<tool.toolu_01F6tcHx8iPjs1SveGaKU21U>
+
+</tool.toolu_01F6tcHx8iPjs1SveGaKU21U>
