@@ -11011,5 +11011,53 @@ Debug emerald loading and fix path
 ID: toolu_01Luxim6chZmYLjMPtD6WXeL
 
 <tool.toolu_01Luxim6chZmYLjMPtD6WXeL>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Debug emerald loading and fix path
 </tool.toolu_01Luxim6chZmYLjMPtD6WXeL>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01KmiHddmRzyomPyrPnWXLUL
+
+## path
+
+<tool.toolu_01KmiHddmRzyomPyrPnWXLUL>
+character-defs.ts
+</tool.toolu_01KmiHddmRzyomPyrPnWXLUL>
+
+## git-commit-message
+
+<tool.toolu_01KmiHddmRzyomPyrPnWXLUL>
+Add debug logging to fnE render
+</tool.toolu_01KmiHddmRzyomPyrPnWXLUL>
+
+## diff
+
+<tool.toolu_01KmiHddmRzyomPyrPnWXLUL>
+ function fnE(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   
++  console.log('fnE called, modelLoaded:', emeraldModelLoaded, 'modelLoading:', emeraldModelLoading);
++  
+   initEmeraldScene(ctx.width, ctx.height);
+   
+   if (!emeraldModelLoaded) {
+     loadEmeraldModel();
++    console.log('Model not loaded yet, returning prev image');
+     return cloneImage(prev);
+-  }
+\ No newline at end of file
++  }
++  
++  console.log('Rendering emerald scene...');
+\ No newline at end of file
+
+</tool.toolu_01KmiHddmRzyomPyrPnWXLUL>
+
+# TOOL RESULT
+
+ID: toolu_01KmiHddmRzyomPyrPnWXLUL
+
+<tool.toolu_01KmiHddmRzyomPyrPnWXLUL>
+
+</tool.toolu_01KmiHddmRzyomPyrPnWXLUL>
