@@ -1572,7 +1572,7 @@ function fnE(ctx: FnContext): Image {
     });
   };
   
-  addEmerald(0, 0, 1.0, true);  // Log geometry for inspection
+  addEmerald(0, 0, 1.0, false);  // Main emerald
   addEmerald(-2.5, 0, 0.5);
   addEmerald(2.5, 0, 0.5);
   addEmerald(-1.5, 1.2, 0.35);
