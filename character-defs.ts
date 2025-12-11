@@ -3700,10 +3700,10 @@ function fnAsterisk(ctx: FnContext): Image {
   gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uSceneTexture'), 1);
   
   gl.uniform2f(gl.getUniformLocation(godrayProgram, 'uLightPos'), lightX, lightY);
-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uExposure'), 0.25);
-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDecay'), 0.97);
-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDensity'), 0.95);
-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uWeight'), 0.6);
+  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uExposure'), 0.15);
+  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDecay'), 0.96);
+  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDensity'), 0.85);
+  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uWeight'), 0.4);
   
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   
