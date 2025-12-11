@@ -12131,5 +12131,59 @@ Make emeralds more dramatic with stronger contrast lighting
 ID: toolu_01BCAagMh8UB1o4P1CnNC4iR
 
 <tool.toolu_01BCAagMh8UB1o4P1CnNC4iR>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make emeralds more dramatic with stronger contrast lighting
 </tool.toolu_01BCAagMh8UB1o4P1CnNC4iR>
+
+# ASSISTANT
+
+Also boost the key/fill lights and make sparkles more visible:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_019wU6tRJJ1yNhJbZigoJChb
+
+## path
+
+<tool.toolu_019wU6tRJJ1yNhJbZigoJChb>
+character-defs.ts
+</tool.toolu_019wU6tRJJ1yNhJbZigoJChb>
+
+## git-commit-message
+
+<tool.toolu_019wU6tRJJ1yNhJbZigoJChb>
+Boost key lights for more drama
+</tool.toolu_019wU6tRJJ1yNhJbZigoJChb>
+
+## diff
+
+<tool.toolu_019wU6tRJJ1yNhJbZigoJChb>
+   // Key light - bright white from top-right-front
+-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
++  const keyLight = new THREE.DirectionalLight(0xffffff, 4.0);
+   keyLight.position.set(5, 8, 10);
+   emeraldScene!.add(keyLight);
+   
+   // Fill light with slight green tint
+-  const fillLight = new THREE.DirectionalLight(0xeeffee, 1.5);
++  const fillLight = new THREE.DirectionalLight(0xeeffee, 2.0);
+   fillLight.position.set(-5, 3, 8);
+-  emeraldScene!.add(fillLight);
+\ No newline at end of file
++  emeraldScene!.add(fillLight);
++  
++  // Rim light for edge highlights
++  const rimLight = new THREE.DirectionalLight(0xffffff, 3.0);
++  rimLight.position.set(0, -2, 8);
++  emeraldScene!.add(rimLight);
+\ No newline at end of file
+
+</tool.toolu_019wU6tRJJ1yNhJbZigoJChb>
+
+# TOOL RESULT
+
+ID: toolu_019wU6tRJJ1yNhJbZigoJChb
+
+<tool.toolu_019wU6tRJJ1yNhJbZigoJChb>
+
+</tool.toolu_019wU6tRJJ1yNhJbZigoJChb>
