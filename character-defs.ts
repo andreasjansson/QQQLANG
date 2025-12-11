@@ -3159,17 +3159,47 @@ function fnCaret(ctx: FnContext): Image {
 
 function fnExclaim(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  const opacity = 0.3;
-  const factor = n + 17;
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const brightness = ((x * factor) ^ (y * 31) ^ (x * y)) % 256;
-      const idx = (y * ctx.width + x) * 4;
-      out.data[idx] = Math.round(out.data[idx] * (1 - opacity) + brightness * opacity);
-      out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - opacity) + brightness * opacity);
-      out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - opacity) + brightness * opacity);
+  const intensity = Math.max(1, n) * 0.12;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxDist = Math.min(cx, cy) * 0.85;
+  
+  const sampleStep = 2;
+  
+  for (let y = 0; y < ctx.height; y += sampleStep) {
+    for (let x = 0; x < ctx.width; x += sampleStep) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const [h, s, l] = rgbToHsl(r, g, b);
+      
+      if (l < 0.03 && s < 0.03) continue;
+      
+      const angle = (h / 360) * Math.PI * 2;
+      const dist = maxDist * s * (0.2 + l * 0.8) * intensity;
+      
+      const targetX = cx + Math.cos(angle) * dist;
+      const targetY = cy + Math.sin(angle) * dist;
+      
+      const dx = targetX - x;
+      const dy = targetY - y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const steps = Math.max(1, Math.floor(len));
+      
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const px = Math.floor(x + dx * t);
+        const py = Math.floor(y + dy * t);
+        
+        if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+          const fade = 0.08 + 0.92 * t * t;
+          const idx = (py * ctx.width + px) * 4;
+          
+          out.data[idx] = Math.min(255, out.data[idx] + Math.floor(r * fade * 0.6));
+          out.data[idx + 1] = Math.min(255, out.data[idx + 1] + Math.floor(g * fade * 0.6));
+          out.data[idx + 2] = Math.min(255, out.data[idx + 2] + Math.floor(b * fade * 0.6));
+        }
+      }
     }
   }
   
