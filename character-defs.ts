@@ -1367,13 +1367,14 @@ function fnE(ctx: FnContext): Image {
 
   // Shiny emerald material using Phong for reliable specular highlights
   const emeraldMaterial = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(0.0, 0.45, 0.18),
-    emissive: new THREE.Color(0.0, 0.08, 0.03),
+    color: new THREE.Color(0.0, 0.5, 0.2),
+    emissive: new THREE.Color(0.0, 0.1, 0.04),
     specular: new THREE.Color(1.0, 1.0, 0.9),
-    shininess: 150,
+    shininess: 200,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.7,
     side: THREE.DoubleSide,
+    depthWrite: false,
     reflectivity: 1.0,
   });
 
