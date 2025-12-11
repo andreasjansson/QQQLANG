@@ -2537,7 +2537,7 @@ function fn9(ctx: FnContext, j: number): Image {
 function fnLessThan(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  const shift = Math.floor(ctx.width / 3);
+  const shift = Math.floor(ctx.width / 8);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
