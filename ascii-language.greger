@@ -7059,5 +7059,197 @@ Rename fnD to fn5 (triangular split)
 ID: toolu_017b4VdyyAeeq5cvnUbe36Qo
 
 <tool.toolu_017b4VdyyAeeq5cvnUbe36Qo>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Rename fnD to fn5 (triangular split)
 </tool.toolu_017b4VdyyAeeq5cvnUbe36Qo>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01BtSzttLc2THuG2yBC2huas
+
+## path
+
+<tool.toolu_01BtSzttLc2THuG2yBC2huas>
+character-defs.ts
+</tool.toolu_01BtSzttLc2THuG2yBC2huas>
+
+## start-line
+
+<tool.toolu_01BtSzttLc2THuG2yBC2huas>
+2230
+</tool.toolu_01BtSzttLc2THuG2yBC2huas>
+
+## end-line
+
+<tool.toolu_01BtSzttLc2THuG2yBC2huas>
+2350
+</tool.toolu_01BtSzttLc2THuG2yBC2huas>
+
+# TOOL RESULT
+
+ID: toolu_01BtSzttLc2THuG2yBC2huas
+
+<tool.toolu_01BtSzttLc2THuG2yBC2huas>
+    }
+  }
+  
+  return out;
+}
+
+function fn5(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const gl = initWebGL(ctx.width, ctx.height);
+  
+  const n = 7;
+  const numDrips = Math.max(1, n * 3);
+  const dripStrength = Math.max(0.5, Math.min(n * 0.2 + 0.8, 2.0));
+  const seed = ctx.images.length * 137.5;
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uStrength;
+    uniform int uNumDrips;
+    uniform float uSeed;
+    varying vec2 vUV;
+    
+    #define MAX_DRIPS 100
+    #define MAX_STEPS 64
+    #define WALL_Z 0.0
+    #define EPS 0.001
+    
+    float hash(float n) {
+      return fract(sin(n) * 43758.5453123);
+    }
+    
+    // Smooth min for organic blending
+    float smin(float a, float b, float k) {
+      float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+      return mix(b, a, h) - k * h * (1.0 - h);
+    }
+    
+    // Simple sphere SDF
+    float sdSphere(vec3 p, vec3 center, float r) {
+      return length(p - center) - r;
+    }
+    
+    // Scene SDF - randomly distributed clusters of 4 metaballs each
+    float sceneSDF(vec3 p, int numClusters, float strength) {
+      float d = 1000.0;
+      
+      for (int i = 0; i < MAX_DRIPS; i++) {
+        if (i >= numClusters) break;
+        
+        float fi = float(i);
+        
+        // Random cluster center position across full screen (seeded by image count)
+        float clusterX = (hash(fi * 127.1 + uSeed) * 2.0 - 1.0) * 1.5;
+        float clusterY = (hash(fi * 311.7 + uSeed) * 2.0 - 1.0) * 1.2;
+        
+        // Cluster size
+        float clusterSize = 0.15 + hash(fi * 74.3 + uSeed) * 0.15;
+        
+        // 4 balls per cluster (fixed to avoid dynamic loop issues)
+        for (int j = 0; j < 4; j++) {
+          float fj = float(j);
+          float localSeed = fi * 100.0 + fj + uSeed;
+          
+          // Random offset from cluster center
+          float offX = (hash(localSeed * 123.4) - 0.5) * clusterSize;
+          float offY = (hash(localSeed * 234.5) - 0.5) * clusterSize * 1.5; // More vertical spread
+          
+          float x = clusterX + offX;
+          float y = clusterY + offY;
+          
+          // Varying ball sizes within cluster
+          float r = (0.06 + hash(localSeed * 345.6) * 0.08) * strength * 0.6;
+          
+          float z = 0.05 + r * 0.3;
+          
+          vec3 center = vec3(x, y, z);
+          float sphere = sdSphere(p, center, r);
+          
+          // Smooth blend to merge balls in cluster
+          d = smin(d, sphere, 0.12);
+        }
+      }
+      
+      return d;
+    }
+    
+    // Calculate normal via gradient
+    vec3 calcNormal(vec3 p, int numDrips, float strength) {
+      vec2 e = vec2(0.001, 0.0);
+      return normalize(vec3(
+        sceneSDF(p + e.xyy, numDrips, strength) - sceneSDF(p - e.xyy, numDrips, strength),
+        sceneSDF(p + e.yxy, numDrips, strength) - sceneSDF(p - e.yxy, numDrips, strength),
+        sceneSDF(p + e.yyx, numDrips, strength) - sceneSDF(p - e.yyx, numDrips, strength)
+      ));
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      float aspect = uResolution.x / uResolution.y;
+      
+      // Ray origin and direction (orthographic-ish camera)
+      vec3 ro = vec3((uv.x * 2.0 - 1.0) * aspect, uv.y * 2.0 - 1.0, 2.0);
+      vec3 rd = vec3(0.0, 0.0, -1.0);
+      
+      // Raymarch to find metaball surface
+      float t = 0.0;
+      float d = 0.0;
+      bool hit = false;
+      vec3 p;
+      
+</tool.toolu_01BtSzttLc2THuG2yBC2huas>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0191XUhrxuwqszHRyYrHaoM1
+
+## path
+
+<tool.toolu_0191XUhrxuwqszHRyYrHaoM1>
+character-defs.ts
+</tool.toolu_0191XUhrxuwqszHRyYrHaoM1>
+
+## git-commit-message
+
+<tool.toolu_0191XUhrxuwqszHRyYrHaoM1>
+Rename old fn5 (drip) to fnD
+</tool.toolu_0191XUhrxuwqszHRyYrHaoM1>
+
+## diff
+
+<tool.toolu_0191XUhrxuwqszHRyYrHaoM1>
+-function fn5(ctx: FnContext): Image {
++function fnD(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
+   const n = 7;
+   const numDrips = Math.max(1, n * 3);
+   const dripStrength = Math.max(0.5, Math.min(n * 0.2 + 0.8, 2.0));
+   const seed = ctx.images.length * 137.5;
+\ No newline at end of file
+
+</tool.toolu_0191XUhrxuwqszHRyYrHaoM1>
+
+# TOOL RESULT
+
+ID: toolu_0191XUhrxuwqszHRyYrHaoM1
+
+<tool.toolu_0191XUhrxuwqszHRyYrHaoM1>
+
+</tool.toolu_0191XUhrxuwqszHRyYrHaoM1>

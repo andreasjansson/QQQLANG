@@ -2233,7 +2233,7 @@ function fn4(ctx: FnContext): Image {
   return out;
 }
 
-function fn5(ctx: FnContext): Image {
+function fnD(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
