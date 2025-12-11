@@ -4241,12 +4241,9 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
     
     // Domain warping effect - creates swirling patterns
     vec2 warpEffect(vec2 p, float i, float seed) {
-      float n1 = fbm(p * 0.5 + seed * 0.01, seed);
-      float n2 = fbm(p * 0.5 + seed * 0.02 + 100.0, seed);
-      return vec2(
-        cos(p.x * i + n1 * 6.28) * sin(length(p) * 0.5 + n2 * 3.14),
-        sin(p.y * i + n2 * 6.28) * cos(length(p.yx) * 0.5 + n1 * 3.14)
-      ) / (i * 0.5 + 1.0);
+      float angle = fbm(p * 0.8 + seed * 0.01, seed) * 6.28;
+      float magnitude = fbm(p * 0.5 + seed * 0.02 + 50.0, seed + 100.0);
+      return vec2(cos(angle), sin(angle)) * magnitude / (i * 0.3 + 1.0);
     }
     
     void main() {
