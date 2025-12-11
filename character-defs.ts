@@ -5557,7 +5557,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "vertical-split",
-    documentation: "Left half is prev, right half is old_image, center column is 10px blend"
+    documentation: "Left=prev, right=old image j; 20% wavy blend zone uses screen/difference/xor in alternating horizontal bands"
   },
   
   '}': {
