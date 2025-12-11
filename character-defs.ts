@@ -1909,21 +1909,27 @@ function fnT(ctx: FnContext, n: number): Image {
     
     uniform sampler2D uTexture;
     uniform vec3 uLightDir;
+    uniform float uIsBackground;
     
     varying vec3 vNormal;
     varying vec2 vTexCoord;
     varying vec3 vWorldPos;
     
     void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 lightDir = normalize(uLightDir);
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
       
-      float ambient = 0.5;
-      float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
-      float lighting = ambient + diffuse;
-      
-      vec3 color = texture2D(uTexture, vTexCoord).rgb * lighting;
-      gl_FragColor = vec4(color, 1.0);
+      if (uIsBackground > 0.5) {
+        gl_FragColor = vec4(color, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        vec3 lightDir = normalize(uLightDir);
+        
+        float ambient = 0.5;
+        float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
+        float lighting = ambient + diffuse;
+        
+        gl_FragColor = vec4(color * lighting, 1.0);
+      }
     }
   `;
   
