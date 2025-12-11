@@ -5229,7 +5229,7 @@ export const characterDefs: Record<string, CharDef> = {
     number: 22,
     fn: fnB,
     arity: 1,
-    argTypes: ['int'],
+    argTypes: ['index'],
     functionName: "voronoi",
     documentation: "Breaks image into 36 voronoi cells, alternating between prev and old image"
   },
