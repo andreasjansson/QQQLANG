@@ -1152,59 +1152,204 @@ function fnN(ctx: FnContext): Image {
 
 function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const strength = Math.max(1, n);
-  const seed = ctx.images.length * 137.5;
+  const multiplier = 1.5 + n * 0.8;
   
-  const freq = new Float32Array(ctx.width * ctx.height);
+  const nextPow2 = (v: number) => {
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    return v + 1;
+  };
   
-  for (let y = 1; y < ctx.height - 1; y++) {
-    for (let x = 1; x < ctx.width - 1; x++) {
-      let gx = 0, gy = 0;
-      for (let ky = -1; ky <= 1; ky++) {
-        for (let kx = -1; kx <= 1; kx++) {
-          const [r, g, b] = getPixel(prev, x + kx, y + ky);
-          const gray = r * 0.299 + g * 0.587 + b * 0.114;
-          gx += gray * (kx === 0 ? 0 : kx > 0 ? 1 : -1) * (ky === 0 ? 2 : 1);
-          gy += gray * (ky === 0 ? 0 : ky > 0 ? 1 : -1) * (kx === 0 ? 2 : 1);
+  const fftW = nextPow2(ctx.width);
+  const fftH = nextPow2(ctx.height);
+  const bitsW = Math.log2(fftW);
+  const bitsH = Math.log2(fftH);
+  
+  const bitReverse = (x: number, bits: number): number => {
+    let result = 0;
+    for (let i = 0; i < bits; i++) {
+      result = (result << 1) | (x & 1);
+      x >>= 1;
+    }
+    return result;
+  };
+  
+  const fft1d = (real: Float32Array, imag: Float32Array, inverse: boolean) => {
+    const len = real.length;
+    const bits = Math.log2(len);
+    
+    for (let i = 0; i < len; i++) {
+      const j = bitReverse(i, bits);
+      if (i < j) {
+        [real[i], real[j]] = [real[j], real[i]];
+        [imag[i], imag[j]] = [imag[j], imag[i]];
+      }
+    }
+    
+    const sign = inverse ? 1 : -1;
+    for (let size = 2; size <= len; size *= 2) {
+      const halfSize = size / 2;
+      const angle = sign * 2 * Math.PI / size;
+      
+      for (let i = 0; i < len; i += size) {
+        for (let j = 0; j < halfSize; j++) {
+          const wReal = Math.cos(angle * j);
+          const wImag = Math.sin(angle * j);
+          
+          const u = i + j;
+          const v = i + j + halfSize;
+          
+          const tReal = real[v] * wReal - imag[v] * wImag;
+          const tImag = real[v] * wImag + imag[v] * wReal;
+          
+          real[v] = real[u] - tReal;
+          imag[v] = imag[u] - tImag;
+          real[u] = real[u] + tReal;
+          imag[u] = imag[u] + tImag;
         }
       }
-      freq[y * ctx.width + x] = Math.min(1, Math.sqrt(gx * gx + gy * gy) / 400);
     }
-  }
+    
+    if (inverse) {
+      for (let i = 0; i < len; i++) {
+        real[i] /= len;
+        imag[i] /= len;
+      }
+    }
+  };
+  
+  const processChannel = (channel: Float32Array, mult: number, phaseShift: number): Float32Array => {
+    const real = new Float32Array(fftW * fftH);
+    const imag = new Float32Array(fftW * fftH);
+    
+    for (let y = 0; y < ctx.height; y++) {
+      for (let x = 0; x < ctx.width; x++) {
+        real[y * fftW + x] = channel[y * ctx.width + x];
+      }
+    }
+    
+    const rowReal = new Float32Array(fftW);
+    const rowImag = new Float32Array(fftW);
+    for (let y = 0; y < fftH; y++) {
+      for (let x = 0; x < fftW; x++) {
+        rowReal[x] = real[y * fftW + x];
+        rowImag[x] = imag[y * fftW + x];
+      }
+      fft1d(rowReal, rowImag, false);
+      for (let x = 0; x < fftW; x++) {
+        real[y * fftW + x] = rowReal[x];
+        imag[y * fftW + x] = rowImag[x];
+      }
+    }
+    
+    const colReal = new Float32Array(fftH);
+    const colImag = new Float32Array(fftH);
+    for (let x = 0; x < fftW; x++) {
+      for (let y = 0; y < fftH; y++) {
+        colReal[y] = real[y * fftW + x];
+        colImag[y] = imag[y * fftW + x];
+      }
+      fft1d(colReal, colImag, false);
+      for (let y = 0; y < fftH; y++) {
+        real[y * fftW + x] = colReal[y];
+        imag[y * fftW + x] = colImag[y];
+      }
+    }
+    
+    const cx = fftW / 2;
+    const cy = fftH / 2;
+    for (let y = 0; y < fftH; y++) {
+      for (let x = 0; x < fftW; x++) {
+        const i = y * fftW + x;
+        const mag = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
+        let phase = Math.atan2(imag[i], real[i]);
+        
+        const dx = (x < cx ? x : x - fftW);
+        const dy = (y < cy ? y : y - fftH);
+        const freqDist = Math.sqrt(dx * dx + dy * dy) / Math.sqrt(cx * cx + cy * cy);
+        
+        let newMag = mag * mult;
+        const wrapLimit = 255 * fftW * fftH / 4;
+        while (newMag > wrapLimit) {
+          newMag = Math.abs(newMag - wrapLimit * 2);
+        }
+        
+        phase += phaseShift * freqDist;
+        
+        real[i] = newMag * Math.cos(phase);
+        imag[i] = newMag * Math.sin(phase);
+      }
+    }
+    
+    for (let x = 0; x < fftW; x++) {
+      for (let y = 0; y < fftH; y++) {
+        colReal[y] = real[y * fftW + x];
+        colImag[y] = imag[y * fftW + x];
+      }
+      fft1d(colReal, colImag, true);
+      for (let y = 0; y < fftH; y++) {
+        real[y * fftW + x] = colReal[y];
+        imag[y * fftW + x] = colImag[y];
+      }
+    }
+    
+    for (let y = 0; y < fftH; y++) {
+      for (let x = 0; x < fftW; x++) {
+        rowReal[x] = real[y * fftW + x];
+        rowImag[x] = imag[y * fftW + x];
+      }
+      fft1d(rowReal, rowImag, true);
+      for (let x = 0; x < fftW; x++) {
+        real[y * fftW + x] = rowReal[x];
+      }
+    }
+    
+    const result = new Float32Array(ctx.width * ctx.height);
+    for (let y = 0; y < ctx.height; y++) {
+      for (let x = 0; x < ctx.width; x++) {
+        result[y * ctx.width + x] = real[y * fftW + x];
+      }
+    }
+    
+    return result;
+  };
+  
+  const rIn = new Float32Array(ctx.width * ctx.height);
+  const gIn = new Float32Array(ctx.width * ctx.height);
+  const bIn = new Float32Array(ctx.width * ctx.height);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const localFreq = freq[y * ctx.width + x] || 0;
+      const [r, g, b] = getPixel(prev, x, y);
+      const idx = y * ctx.width + x;
+      rIn[idx] = r;
+      gIn[idx] = g;
+      bIn[idx] = b;
+    }
+  }
+  
+  const rOut = processChannel(rIn, multiplier, 0);
+  const gOut = processChannel(gIn, multiplier * 1.1, Math.PI * 0.1);
+  const bOut = processChannel(bIn, multiplier * 0.9, -Math.PI * 0.1);
+  
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const idx = y * ctx.width + x;
+      let r = rOut[idx];
+      let g = gOut[idx];
+      let b = bOut[idx];
       
-      const wave1 = Math.sin(y * 0.03 * strength + seed) * strength * 8;
-      const wave2 = Math.sin(x * 0.05 * strength + y * 0.02 + seed * 1.3) * strength * 5;
-      const wave3 = Math.cos((x + y) * 0.04 * strength + seed * 0.7) * strength * 3;
+      r = ((r % 256) + 256) % 256;
+      g = ((g % 256) + 256) % 256;
+      b = ((b % 256) + 256) % 256;
       
-      const freqMult = 0.3 + localFreq * localFreq * 10;
-      const dispX = (wave1 + wave3) * freqMult;
-      const dispY = (wave2 + wave3) * freqMult;
-      
-      const angle = localFreq * Math.PI * 2 * strength;
-      const scatter = localFreq * strength * 8;
-      
-      const rAngle = angle;
-      const gAngle = angle + Math.PI * 2 / 3;
-      const bAngle = angle + Math.PI * 4 / 3;
-      
-      const rx = x + dispX + Math.cos(rAngle) * scatter;
-      const ry = y + dispY + Math.sin(rAngle) * scatter;
-      const gx = x + dispX + Math.cos(gAngle) * scatter;
-      const gy = y + dispY + Math.sin(gAngle) * scatter;
-      const bx = x + dispX + Math.cos(bAngle) * scatter;
-      const by = y + dispY + Math.sin(bAngle) * scatter;
-      
-      const [r] = getPixel(prev, Math.floor(rx), Math.floor(ry));
-      const [, g] = getPixel(prev, Math.floor(gx), Math.floor(gy));
-      const [, , b] = getPixel(prev, Math.floor(bx), Math.floor(by));
-      
-      setPixel(out, x, y, r, g, b);
+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
     }
   }
   
