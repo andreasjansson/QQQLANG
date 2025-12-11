@@ -296,8 +296,11 @@
       loadProgramFromURL();
     });
     
-    loadProgramFromURL();
-    resize();
+    // Wait for emerald model to load before first render
+    emeraldReady.then(() => {
+      loadProgramFromURL();
+      resize();
+    });
   </script>
 </body>
 </html>
