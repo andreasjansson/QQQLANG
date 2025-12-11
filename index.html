@@ -775,6 +775,10 @@
       render();
     });
     
+    input.addEventListener('keyup', updateUploadButtonState);
+    input.addEventListener('mouseup', updateUploadButtonState);
+    input.addEventListener('focus', updateUploadButtonState);
+    
     input.addEventListener('click', handleInputClick);
     input.addEventListener('mousemove', handleInputMouseMove);
     input.addEventListener('mouseleave', () => { input.style.cursor = ''; });
