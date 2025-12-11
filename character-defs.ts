@@ -1420,12 +1420,11 @@ function fnE(ctx: FnContext): Image {
   // Sparkle point material - bright white emissive
   const sparkleMaterial = new THREE.MeshBasicMaterial({
     color: new THREE.Color(1, 1, 1),
-    transparent: true,
-    opacity: 0.95,
   });
   
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
+    const sparklePositions: THREE.Vector3[] = [];
     
     gem.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -1433,6 +1432,25 @@ function fnE(ctx: FnContext): Image {
         geom.computeVertexNormals();
         child.geometry = geom;
         child.material = emeraldMaterial;
+        
+        // Get vertex positions for sparkles
+        const positions = geom.attributes.position;
+        const normals = geom.attributes.normal;
+        
+        for (let i = 0; i < positions.count; i += 3) {
+          const nx = normals.getX(i);
+          const ny = normals.getY(i);
+          const nz = normals.getZ(i);
+          
+          // Only add sparkles on facets facing the camera (positive Z normal)
+          if (nz > 0.3 || ny > 0.5) {
+            sparklePositions.push(new THREE.Vector3(
+              positions.getX(i),
+              positions.getY(i),
+              positions.getZ(i)
+            ));
+          }
+        }
       }
     });
     
@@ -1440,23 +1458,21 @@ function fnE(ctx: FnContext): Image {
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
     
-    // Add sparkle points on the emerald
-    const sparkleCount = Math.floor(8 + scale * 10);
-    const sparkleSize = 0.02 + scale * 0.015;
+    // Add sparkles at some vertex positions
+    const sparkleSize = 0.015 * scale;
+    const maxSparkles = Math.min(sparklePositions.length, 15);
     
-    for (let i = 0; i < sparkleCount; i++) {
+    for (let i = 0; i < maxSparkles; i++) {
+      const idx = Math.floor((i * 17) % sparklePositions.length);
+      const pos = sparklePositions[idx];
+      
       const sparkleGeo = new THREE.SphereGeometry(sparkleSize, 4, 4);
       const sparkle = new THREE.Mesh(sparkleGeo, sparkleMaterial);
       
-      // Deterministic positions based on i and scale
-      const angle = (i / sparkleCount) * Math.PI * 2 + scale * 10;
-      const radius = 0.15 + (i % 3) * 0.1;
-      const height = 0.1 + ((i * 7) % 5) * 0.08 - 0.1;
-      
       sparkle.position.set(
-        x + Math.cos(angle) * radius * scale * 3,
-        y + height * scale * 3,
-        Math.sin(angle) * radius * scale * 3 + 0.2
+        x + pos.x * scale * 3.0,
+        y + pos.y * scale * 3.0,
+        pos.z * scale * 3.0 + 0.01
       );
       
       emeraldScene!.add(sparkle);
