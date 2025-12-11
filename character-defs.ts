@@ -1834,33 +1834,33 @@ function fnS(ctx: FnContext, j: number, size: number): Image {
   
   const resolution = Math.pow(2, Math.floor((size - 1) / 10) + 2);
   
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
+  const centerX = ctx.width / 2;
+  const centerY = ctx.height / 2;
   const triHeight = Math.min(ctx.width, ctx.height) * 0.95;
   const triWidth = triHeight / (Math.sqrt(3) / 2);
   
-  const v0x = cx, v0y = cy - triHeight / 2;
-  const v1x = cx - triWidth / 2, v1y = cy + triHeight / 2;
-  const v2x = cx + triWidth / 2, v2y = cy + triHeight / 2;
+  const v0x = centerX, v0y = centerY - triHeight / 2;
+  const v1x = centerX - triWidth / 2, v1y = centerY + triHeight / 2;
+  const v2x = centerX + triWidth / 2, v2y = centerY + triHeight / 2;
   
   const denom = (v1y - v2y) * (v0x - v2x) + (v2x - v1x) * (v0y - v2y);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const a = ((v1y - v2y) * (x - v2x) + (v2x - v1x) * (y - v2y)) / denom;
-      const b = ((v2y - v0y) * (x - v2x) + (v0x - v2x) * (y - v2y)) / denom;
-      const c = 1 - a - b;
+      const baryA = ((v1y - v2y) * (x - v2x) + (v2x - v1x) * (y - v2y)) / denom;
+      const baryB = ((v2y - v0y) * (x - v2x) + (v0x - v2x) * (y - v2y)) / denom;
+      const baryC = 1 - baryA - baryB;
       
       const [pr, pg, pb] = getPixel(prev, x, y);
       
-      if (a < 0 || b < 0 || c < 0) {
+      if (baryA < 0 || baryB < 0 || baryC < 0) {
         setPixel(out, x, y, pr, pg, pb);
         continue;
       }
       
-      const ai = Math.floor(a * resolution);
-      const bi = Math.floor(b * resolution);
-      const ci = Math.floor(c * resolution);
+      const ai = Math.floor(baryA * resolution);
+      const bi = Math.floor(baryB * resolution);
+      const ci = Math.floor(baryC * resolution);
       
       const overlap = (ai & bi) | (bi & ci) | (ai & ci);
       const level = popcount(overlap) % 6;
