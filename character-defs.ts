@@ -363,7 +363,7 @@ function fnD(ctx: FnContext, n: number): Image {
       const cellW = x1 - x0;
       const cellH = y1 - y0;
       
-      const triIndex1 = (row * divisions + col) * 2;
+      const triIndex1 = (row * cols + col) * 2;
       const triIndex2 = triIndex1 + 1;
       
       const hueShift1 = (triIndex1 * 137.5) % 360;
