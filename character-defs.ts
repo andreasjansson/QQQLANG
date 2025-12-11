@@ -3666,10 +3666,10 @@ function fnComma(ctx: FnContext, c: string): Image {
   return out;
 }
 
-function fnMinus(ctx: FnContext, n: number): Image {
+function fnMinus(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  const spacing = Math.max(2, n);
+  const spacing = 2;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
