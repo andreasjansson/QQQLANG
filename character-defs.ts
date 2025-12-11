@@ -4774,9 +4774,8 @@ function fnTilde(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnHoles(ctx: FnContext, j: number): Image {
+function fnHoles(ctx: FnContext, old: Image): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   for (let y = 0; y < ctx.height; y++) {
