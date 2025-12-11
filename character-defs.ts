@@ -23,9 +23,28 @@ export interface CharDef {
   number: number;
   fn: (ctx: FnContext, ...args: any[]) => Image;
   arity: number;
-  argTypes: ('int' | 'color')[];
+  argTypes: ('int' | 'color' | 'index')[];
   functionName: string;
   documentation: string;
+}
+
+export const UPLOAD_CHAR = '🖼';
+
+export function createPlaceholderImage(width: number, height: number): Image {
+  const data = new Uint8ClampedArray(width * height * 4);
+  const checkSize = 16;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const isLight = (Math.floor(x / checkSize) + Math.floor(y / checkSize)) % 2 === 0;
+      const gray = isLight ? 128 : 96;
+      data[i] = gray;
+      data[i + 1] = gray;
+      data[i + 2] = gray;
+      data[i + 3] = 255;
+    }
+  }
+  return { width, height, data };
 }
 
 let glCanvas: HTMLCanvasElement | null = null;
