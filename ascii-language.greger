@@ -6620,5 +6620,41 @@ Use warp strength uniform in domain warping loop
 ID: toolu_01BLNDZCEePHKr59FHACBZMF
 
 <tool.toolu_01BLNDZCEePHKr59FHACBZMF>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Use warp strength uniform in domain warping loop
 </tool.toolu_01BLNDZCEePHKr59FHACBZMF>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011GiMrM6qBQR1CXsRkQ5EoZ
+
+## path
+
+<tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
+character-defs.ts
+</tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
+
+## git-commit-message
+
+<tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
+Use iridescence strength uniform for blending
+</tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
+
+## diff
+
+<tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
+       // Blend texture with iridescence
+-      float iridescenceAmount = smoothstep(0.0, 2.0, warpIntensity) * 0.4;
++      float iridescenceAmount = smoothstep(0.0, 2.0, warpIntensity) * uIridescenceStrength;
+       vec3 color = mix(texColor, iridescence, iridescenceAmount);
+\ No newline at end of file
+
+</tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
+
+# TOOL RESULT
+
+ID: toolu_011GiMrM6qBQR1CXsRkQ5EoZ
+
+<tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
+
+</tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>

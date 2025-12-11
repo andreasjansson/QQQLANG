@@ -4307,7 +4307,7 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
       float shadow = 0.85 + h * 0.15;
       
       // Blend texture with iridescence
-      float iridescenceAmount = smoothstep(0.0, 2.0, warpIntensity) * 0.4;
+      float iridescenceAmount = smoothstep(0.0, 2.0, warpIntensity) * uIridescenceStrength;
       vec3 color = mix(texColor, iridescence, iridescenceAmount);
       
       // Apply lighting
