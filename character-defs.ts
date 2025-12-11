@@ -5639,9 +5639,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 63,
     fn: fnUnderscore,
     arity: 1,
-    argTypes: ['int'],
+    argTypes: ['index'],
     functionName: "blur-luminosity",
-    documentation: "Luminosity blend: colors from heavily blurred old image j, luminance/structure from prev"
+    documentation: "Luminosity blend: colors from heavily blurred old image, luminance/structure from prev"
   },
   
   '`': {
