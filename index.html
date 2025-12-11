@@ -591,6 +591,26 @@
       inputBackground.innerHTML = html;
     }
     
+    function isOverUploadChar(clientX) {
+      if (uploadCharPositions.length === 0) return false;
+      
+      const inputRect = input.getBoundingClientRect();
+      const clickX = clientX - inputRect.left;
+      
+      const spans = inputBackground.querySelectorAll('.upload-char');
+      for (const span of spans) {
+        const spanRect = span.getBoundingClientRect();
+        const bgRect = inputBackground.getBoundingClientRect();
+        const spanLeft = spanRect.left - bgRect.left;
+        const spanRight = spanLeft + spanRect.width;
+        
+        if (clickX >= spanLeft && clickX <= spanRight) {
+          return true;
+        }
+      }
+      return false;
+    }
+    
     function handleInputClick(e) {
       if (uploadCharPositions.length === 0) return;
       
@@ -611,6 +631,14 @@
           e.preventDefault();
           return;
         }
+      }
+    }
+    
+    function handleInputMouseMove(e) {
+      if (isOverUploadChar(e.clientX)) {
+        input.style.cursor = 'pointer';
+      } else {
+        input.style.cursor = '';
       }
     }
 
