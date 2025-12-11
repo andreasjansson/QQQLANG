@@ -1241,8 +1241,8 @@ let emeraldScene: THREE.Scene | null = null;
 let emeraldRenderer: THREE.WebGLRenderer | null = null;
 let emeraldCamera: THREE.PerspectiveCamera | null = null;
 let emeraldModel: THREE.Group | null = null;
-let emeraldModelLoading = false;
 let emeraldModelLoaded = false;
+let emeraldLoadPromise: Promise<void> | null = null;
 
 function initEmeraldScene(width: number, height: number) {
   if (!emeraldRenderer || emeraldRenderer.domElement.width !== width || emeraldRenderer.domElement.height !== height) {
