@@ -1955,9 +1955,8 @@ function fnR(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnS(ctx: FnContext, j: number, size: number): Image {
+function fnS(ctx: FnContext, old: Image, size: number): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const popcount = (n: number): number => {
