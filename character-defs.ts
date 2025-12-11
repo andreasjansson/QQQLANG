@@ -1818,6 +1818,77 @@ function fnR(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
+function fnS(ctx: FnContext, j: number): Image {
+  const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const popcount = (n: number): number => {
+    let count = 0;
+    while (n) {
+      count += n & 1;
+      n >>= 1;
+    }
+    return count;
+  };
+  
+  const baseSize = Math.min(ctx.width, ctx.height);
+  const scale = Math.max(1, Math.floor(baseSize / 128));
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const sx = Math.floor(x / scale);
+      const sy = Math.floor(y / scale);
+      
+      const bits = sx & sy;
+      const level = popcount(bits) % 6;
+      
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
+      
+      let r: number, g: number, b: number;
+      
+      switch (level) {
+        case 0: {
+          r = or; g = og; b = ob;
+          break;
+        }
+        case 1: {
+          r = 255 - pr; g = 255 - pg; b = 255 - pb;
+          break;
+        }
+        case 2: {
+          const [h, s, l] = rgbToHsl(pr, pg, pb);
+          [r, g, b] = hslToRgb((h + 120) % 360, s, l);
+          break;
+        }
+        case 3: {
+          const [h, s, l] = rgbToHsl(pr, pg, pb);
+          [r, g, b] = hslToRgb((h + 240) % 360, s, l);
+          break;
+        }
+        case 4: {
+          const gray = Math.round(pr * 0.299 + pg * 0.587 + pb * 0.114);
+          const contrast = gray < 128 ? gray * 0.5 : 128 + (gray - 128) * 1.5;
+          r = g = b = Math.max(0, Math.min(255, Math.round(contrast)));
+          break;
+        }
+        case 5: {
+          const [h, s, l] = rgbToHsl(pr, pg, pb);
+          [r, g, b] = hslToRgb((h + 60) % 360, Math.min(1, s * 1.5), l);
+          break;
+        }
+        default:
+          r = pr; g = pg; b = pb;
+      }
+      
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
 function fnSkewLeft(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
