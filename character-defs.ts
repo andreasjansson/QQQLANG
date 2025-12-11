@@ -1357,22 +1357,15 @@ function fnE(ctx: FnContext): Image {
   pointLight2.position.set(-3, 2, 3);
   emeraldScene!.add(pointLight2);
   
-  // DEBUG: Use BasicMaterial to test if geometry renders (ignores lights)
-  const emeraldMaterial = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(0.2, 0.8, 0.4),
+  const emeraldMaterial = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(0.1, 0.65, 0.3),
+    emissive: new THREE.Color(0.02, 0.12, 0.04),
+    metalness: 0.1,
+    roughness: 0.15,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.85,
     side: THREE.DoubleSide,
   });
-  
-  console.log('Adding emerald models to scene');
-  
-  // DEBUG: Add a simple test box to verify rendering
-  const testGeo = new THREE.BoxGeometry(1, 1, 1);
-  const testMesh = new THREE.Mesh(testGeo, emeraldMaterial);
-  testMesh.position.set(0, 0, 0);
-  emeraldScene!.add(testMesh);
-  console.log('Added test box');
   
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
