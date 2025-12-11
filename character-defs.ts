@@ -1390,29 +1390,31 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.add(light);
   });
 
-  // Realistic glass emerald with transmission
+  // Sparkling glass emerald with transmission
   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.0, 0.85, 0.3),
+    color: new THREE.Color(0.0, 0.8, 0.28),
     metalness: 0.0,
     roughness: 0.0,
-    transmission: 0.95,
-    thickness: 0.8,
-    ior: 1.6,
-    envMapIntensity: 0.25,
+    transmission: 0.92,
+    thickness: 0.6,
+    ior: 1.65,
+    envMapIntensity: 0.35,
     clearcoat: 1.0,
     clearcoatRoughness: 0.0,
     transparent: true,
     opacity: 1.0,
     side: THREE.DoubleSide,
     flatShading: true,
-    attenuationColor: new THREE.Color(0.0, 0.55, 0.18),
-    attenuationDistance: 0.5,
-    specularIntensity: 1.0,
+    attenuationColor: new THREE.Color(0.0, 0.5, 0.15),
+    attenuationDistance: 0.4,
+    specularIntensity: 1.5,
     specularColor: new THREE.Color(1, 1, 1),
-    reflectivity: 0.5,
-    sheen: 0.3,
-    sheenRoughness: 0.2,
-    sheenColor: new THREE.Color(0.5, 1, 0.6),
+    reflectivity: 0.6,
+    sheen: 0.5,
+    sheenRoughness: 0.1,
+    sheenColor: new THREE.Color(0.6, 1, 0.7),
+    iridescence: 0.3,
+    iridescenceIOR: 1.3,
   });
 
   const addEmerald = (x: number, y: number, scale: number) => {
