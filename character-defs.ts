@@ -5193,8 +5193,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnU,
     arity: 1,
     argTypes: ['int'],
-    functionName: "undulate",
-    documentation: "Vertical wave distortion with amplitude n*5px, frequency n cycles, phase based on luminance"
+    functionName: "underglow",
+    documentation: "Edge detection creates regions; each filled with gradient from darkest to brightest point (extended by n*5), direction follows color flow; additive glow overlay"
   },
   
   'V': {
