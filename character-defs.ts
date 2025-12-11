@@ -1358,14 +1358,19 @@ function fnE(ctx: FnContext): Image {
   emeraldScene!.add(ambientLight);
   
   // Key light - bright white from top-right-front
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 4.0);
   keyLight.position.set(5, 8, 10);
   emeraldScene!.add(keyLight);
   
   // Fill light with slight green tint
-  const fillLight = new THREE.DirectionalLight(0xeeffee, 1.5);
+  const fillLight = new THREE.DirectionalLight(0xeeffee, 2.0);
   fillLight.position.set(-5, 3, 8);
   emeraldScene!.add(fillLight);
+  
+  // Rim light for edge highlights
+  const rimLight = new THREE.DirectionalLight(0xffffff, 3.0);
+  rimLight.position.set(0, -2, 8);
+  emeraldScene!.add(rimLight);
   
   // Seeded random for deterministic light positions based on image count
   const seed = ctx.images.length * 137.5;
