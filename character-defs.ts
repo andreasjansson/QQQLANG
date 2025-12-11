@@ -1417,6 +1417,7 @@ function fnE(ctx: FnContext): Image {
     ior: 1.57,
     transparent: true,
     opacity: 1.0,
+    envMap: envMap,
     envMapIntensity: 2.0,
     clearcoat: 1.0,
     clearcoatRoughness: 0.02,
