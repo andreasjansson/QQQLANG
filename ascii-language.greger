@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-143819426738>
+${greger-prompt-code-style<eval-result-144041054568>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-143819426738>}
+</eval-result-144041054568>}
 
 # USER
 
@@ -8278,45 +8278,39 @@ character-defs.ts
 Add oil slick lighting/shading that works on solid backgrounds
 </tool.toolu_01EbNCSePF8u7L7DABirFYkP>
 
-## original-content
+## diff
 
 <tool.toolu_01EbNCSePF8u7L7DABirFYkP>
-      // Sample texture at warped position
-      vec3 color = texture2D(uTexture, warpedUV).rgb;
-      
-      gl_FragColor = vec4(color, 1.0);
-</tool.toolu_01EbNCSePF8u7L7DABirFYkP>
+       // Sample texture at warped position
+-      vec3 color = texture2D(uTexture, warpedUV).rgb;
++      vec3 texColor = texture2D(uTexture, warpedUV).rgb;
+       
++      // Oil slick lighting based on noise gradient
++      float h = fbm(p * 0.5, uSeed);
++      float hx = fbm((p + vec2(0.02, 0.0)) * 0.5, uSeed);
++      float hy = fbm((p + vec2(0.0, 0.02)) * 0.5, uSeed);
++      
++      // Fake normal from height field
++      vec3 normal = normalize(vec3(h - hx, h - hy, 0.15));
++      
++      // Light from top-left
++      vec3 lightDir = normalize(vec3(0.4, 0.5, 1.0));
++      float diffuse = max(dot(normal, lightDir), 0.0);
++      
++      // Specular highlight
++      vec3 viewDir = vec3(0.0, 0.0, 1.0);
++      vec3 reflectDir = reflect(-lightDir, normal);
++      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
++      
++      // Combine
++      float shadow = 0.7 + diffuse * 0.3;
++      float highlight = spec * 0.4;
++      
++      vec3 color = texColor * shadow + vec3(highlight);
++      
+       gl_FragColor = vec4(color, 1.0);
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01EbNCSePF8u7L7DABirFYkP>
-      // Sample texture at warped position
-      vec3 texColor = texture2D(uTexture, warpedUV).rgb;
-      
-      // Oil slick lighting based on noise gradient
-      float h = fbm(p * 0.5, uSeed);
-      float hx = fbm((p + vec2(0.02, 0.0)) * 0.5, uSeed);
-      float hy = fbm((p + vec2(0.0, 0.02)) * 0.5, uSeed);
-      
-      // Fake normal from height field
-      vec3 normal = normalize(vec3(h - hx, h - hy, 0.15));
-      
-      // Light from top-left
-      vec3 lightDir = normalize(vec3(0.4, 0.5, 1.0));
-      float diffuse = max(dot(normal, lightDir), 0.0);
-      
-      // Specular highlight
-      vec3 viewDir = vec3(0.0, 0.0, 1.0);
-      vec3 reflectDir = reflect(-lightDir, normal);
-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
-      
-      // Combine
-      float shadow = 0.7 + diffuse * 0.3;
-      float highlight = spec * 0.4;
-      
-      vec3 color = texColor * shadow + vec3(highlight);
-      
-      gl_FragColor = vec4(color, 1.0);
 </tool.toolu_01EbNCSePF8u7L7DABirFYkP>
 
 # TOOL RESULT
@@ -8324,5 +8318,90 @@ Add oil slick lighting/shading that works on solid backgrounds
 ID: toolu_01EbNCSePF8u7L7DABirFYkP
 
 <tool.toolu_01EbNCSePF8u7L7DABirFYkP>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add oil slick lighting/shading that works on solid backgrounds
 </tool.toolu_01EbNCSePF8u7L7DABirFYkP>
+
+# ASSISTANT
+
+Now the effect uses a noise-based height field to create lighting with:
+- Diffuse shading (darker in valleys, lighter on slopes facing the light)
+- Specular highlights (shiny spots)
+
+This should be visible even on solid color backgrounds and give it that oily/glossy look.
+
+# USER
+
+AO just creates what looks like a cross in the middle of the screen, not very inspired
+
+# THINKING
+
+Signature: EoAKCkYIChgCKkCjCtFQgdQBhId+/gglRlYvnB7hNk3iCBxGSD42gFEPrg2JEUO8wqfG+/nLtPlKdibJGhr4fSXdVtJjUjhbmm4xEgxrqLCa3Ci1Iu58LIgaDOrn8OtwT0+uSKv5mCIwXSFwKT4K1joKDNZL3xHRxYbMeAz3Mw3+vwFJ8FJG6jDjnIfIfV1oqkOPJmaLO8oDKucIF7vkGLAX70xl1KDZRn4QeB1DwY35WmfKpBArYEkr+T5FUBUCVLB4eFIlhIQcWLT/EY+6zuOeiT5ZUS6R3PV/yuyDtdpqfxixD0OIRvvltsqmK2ok+bamebeDUd3xrwAYXRc5aNph9s2I3N8oMbfSMXUV1WoGcK0dnIBOKar2ghK41Kpwnr/KbhQYxp1onjM4wtvh/lZshS3FEWrI7fSEUYf7XX0ZHkQf2EoJhLLNDqcFfeEr+/W2mQUffOXtbYELsEKoRRxKVUmMEjcJzntDvXPsfurUKXIZn9oPqWp22jZ+HODLMcAQdwuRmP7hG3xKOtncKO4r3DRANuFGuzRz9iS/JEr8FrzxPbrKAiuz7ENi5dXS6+rcGlBSodmGRE7RPaGahSmBKaq/mies5X4QkojaxqvL+1jyup+g2nhpWMJ35GMnj5M1L9Y1biQd4KQWPU595HujGweAteyMBkouxqe2+lVDfVgyNWsEDelFAS0pUk7RI2HPZ2y4vyXIujWm9CIhqtnKwde3nOfWqPc4hNlBF4/lMYqXr3zo2Wa5E9ghvBRDeSim83CBejo0ZUrIlWLBAfggzaoBov8LqhmYl/MB+m/nBa92X1zH+fveXzKlDRZIv5/j3obUo36Lp9PwnEiDlxgcKF0pMsnK1HKiK9fZf7rWZJdRJojx7s508QDn2xY2oVTh/T33/gu08ylE/p4v18PCIW94NPo8jbSyRXS5V496HzJ4XMafTg7pbXJUSGieaWHm4pBljmr1b23qdBU9L6R8OCG1oip2/4bwD6Uw9sJWHY12FXmuu3cMHBl4QzwUJBpUm+sJWf9bE9JJPsOgy6yddtSp0T16UZo9BDAuujX1tTKkqPY41oM6bDfCJbd0FIafs6EL/aw3zxSXYAqovw5qnVanUY0ockJu97jKfCS9Mdul4bUkGw7icM3t0uARX6SHiDcevIDFtSqP0HWUIW7F4oXU3EWFGsa9EWlB851SANhyGXPwJ3b5dOk77bXYBouv70HwoB/lmi1EUQwuLGmqhyu61LMMsQE1U4kl/ImuCxzosRr55wEW19WS5BuR2gePIWsbVx0hyJsiRpFP01wMlagbVeC7wbnpb+sHeIoao4w1D5tHKF2TDOFFY3SOI3iJxSdl7un0HdNvK3GWsGIUBR43Jq6Mqvl9LzZ9YZvuW1DiicdgOuW+Kbx1PkYXAMucEWTr2rFCPfuD7+BZvsN1aZB2UKOx3ueDnnwNnYNeQ/LM9xd7xSQHJcrRU2oMBYBum8gonM1FrJwxmpvaselM/6BwJBysZ0xlGhDWg5NcxTiyclPFJBbauD+V+f6pqs0FWcEFa4WzF2hLshbWLoRqbriPDqUySZL/pqJw/F2o3gSq57NkeghNvfepjhQuFjoCx+yvuikg/g/ERIz30DIuusc5cQUSLxglORO1W2jC/2nPIuU77svtUXH6I/F49/QfX99pjeNNkdPrKmcPZn/f2F9dBETcBUYtY/WEkketFC4YAQ==
+
+The user is saying that OAO (or maybe they mean the program "AO" which would be A followed by O with default args) creates a cross pattern which isn't interesting. Let me think about what's happening...
+
+Actually they said "AO" - so that's the color A as the first image, then O with its default arguments (O's number is 15 for both args).
+
+The cross pattern is probably coming from the warp effect or the lighting calculation. The domain warping function might be creating symmetric patterns. Let me look at the warpEffect function:
+
+```glsl
+vec2 warpEffect(vec2 p, float i, float seed) {
+  float n1 = fbm(p * 0.5 + seed * 0.01, seed);
+  float n2 = fbm(p * 0.5 + seed * 0.02 + 100.0, seed);
+  return vec2(
+    cos(p.x * i + n1 * 6.28) * sin(length(p) * 0.5 + n2 * 3.14),
+    sin(p.y * i + n2 * 6.28) * cos(length(p.yx) * 0.5 + n1 * 3.14)
+  ) / (i * 0.5 + 1.0);
+}
+```
+
+The `cos(p.x * i)` and `sin(p.y * i)` terms are separable in x and y, which could create cross-like patterns. I should make the warp effect more interesting and organic, less axis-aligned.
+
+Let me rewrite the warp effect to be more swirly and organic.
+
+# ASSISTANT
+
+The warp function has separable x/y terms creating that cross pattern. Let me make it more organic:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_018of6b8aFqLmb3q6QzA3E2X
+
+## path
+
+<tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
+character-defs.ts
+</tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
+
+## git-commit-message
+
+<tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
+Make oil slick warp pattern more organic, less axis-aligned
+</tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
+
+## diff
+
+<tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
+     // Domain warping effect - creates swirling patterns
+     vec2 warpEffect(vec2 p, float i, float seed) {
+-      float n1 = fbm(p * 0.5 + seed * 0.01, seed);
+-      float n2 = fbm(p * 0.5 + seed * 0.02 + 100.0, seed);
+-      return vec2(
+-        cos(p.x * i + n1 * 6.28) * sin(length(p) * 0.5 + n2 * 3.14),
+-        sin(p.y * i + n2 * 6.28) * cos(length(p.yx) * 0.5 + n1 * 3.14)
+-      ) / (i * 0.5 + 1.0);
++      float angle = fbm(p * 0.8 + seed * 0.01, seed) * 6.28;
++      float magnitude = fbm(p * 0.5 + seed * 0.02 + 50.0, seed + 100.0);
++      return vec2(cos(angle), sin(angle)) * magnitude / (i * 0.3 + 1.0);
+     }
+\ No newline at end of file
+
+</tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
+
+# TOOL RESULT
+
+ID: toolu_018of6b8aFqLmb3q6QzA3E2X
+
+<tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
+
+</tool.toolu_018of6b8aFqLmb3q6QzA3E2X>
