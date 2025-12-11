@@ -243,7 +243,7 @@ export function runProgram(program: string, width: number, height: number): Imag
     lastUploadCount = currentUploadCount;
   }
 
-  const ops = parseProgram(program);
+  const { ops } = parseProgram(program);
   
   if (ops.length === 0) {
     console.log('No operations, returning black image');
