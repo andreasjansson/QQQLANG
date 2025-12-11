@@ -129,6 +129,13 @@ function getOldImage(ctx: FnContext, j: number): Image {
   return ctx.images[idx];
 }
 
+function resolveRefImage(ctx: FnContext, ref: Image | number): Image {
+  if (typeof ref === 'number') {
+    return getOldImage(ctx, ref);
+  }
+  return ref;
+}
+
 function getPixel(img: Image, x: number, y: number): [number, number, number, number] {
   const cx = Math.max(0, Math.min(img.width - 1, Math.floor(x)));
   const cy = Math.max(0, Math.min(img.height - 1, Math.floor(y)));
