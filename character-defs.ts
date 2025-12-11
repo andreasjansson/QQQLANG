@@ -1327,8 +1327,16 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.remove(emeraldScene!.children[0]);
   }
   
-  // Simple black background for now
-  emeraldScene!.background = new THREE.Color(0x000000);
+  // Create background from prev image
+  const bgTexture = new THREE.DataTexture(
+    prev.data,
+    prev.width,
+    prev.height,
+    THREE.RGBAFormat
+  );
+  bgTexture.needsUpdate = true;
+  bgTexture.flipY = true;
+  emeraldScene!.background = bgTexture;
   
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
   emeraldScene!.add(ambientLight);
