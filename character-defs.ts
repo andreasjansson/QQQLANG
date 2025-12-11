@@ -1294,7 +1294,7 @@ function fnP(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnE(ctx: FnContext): Image {
+function fnEmerald(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
