@@ -4681,11 +4681,11 @@ export const characterDefs: Record<string, CharDef> = {
   '{': {
     color: '#DC143C',
     number: 65,
-    fn: fnTornLeft,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "torn-left",
-    documentation: "Left third shows old_image, right two-thirds show prev, torn-paper edge using sin waves"
+    fn: fnSkewLeft,
+    arity: 0,
+    argTypes: [],
+    functionName: "skew-left",
+    documentation: "Skews image 20 degrees left (top shifts left, bottom shifts right) with wraparound"
   },
   
   '|': {
