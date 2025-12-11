@@ -7439,5 +7439,364 @@ Revert N documentation back to neon
 ID: toolu_013HwpmurVTwtRZJsLRrXBhk
 
 <tool.toolu_013HwpmurVTwtRZJsLRrXBhk>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Revert N documentation back to neon
 </tool.toolu_013HwpmurVTwtRZJsLRrXBhk>
+
+# ASSISTANT
+
+Now let me find the fnAsterisk function and update it with god rays:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01NF5DyDsjxphftVxaP4ZSYQ
+
+## pattern
+
+<tool.toolu_01NF5DyDsjxphftVxaP4ZSYQ>
+function fnAsterisk
+</tool.toolu_01NF5DyDsjxphftVxaP4ZSYQ>
+
+# TOOL RESULT
+
+ID: toolu_01NF5DyDsjxphftVxaP4ZSYQ
+
+<tool.toolu_01NF5DyDsjxphftVxaP4ZSYQ>
+/Users/ajansson/projects/ascii-language/ascii-language.greger:3839:function fnAsterisk(ctx: FnContext, n: number): Image {
+/Users/ajansson/projects/ascii-language/character-defs.ts:3532:function fnAsterisk(ctx: FnContext, n: number): Image {
+
+</tool.toolu_01NF5DyDsjxphftVxaP4ZSYQ>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01HfuMAaVJZKpWHMsWGxvEhg
+
+## path
+
+<tool.toolu_01HfuMAaVJZKpWHMsWGxvEhg>
+character-defs.ts
+</tool.toolu_01HfuMAaVJZKpWHMsWGxvEhg>
+
+## start-line
+
+<tool.toolu_01HfuMAaVJZKpWHMsWGxvEhg>
+3532
+</tool.toolu_01HfuMAaVJZKpWHMsWGxvEhg>
+
+## end-line
+
+<tool.toolu_01HfuMAaVJZKpWHMsWGxvEhg>
+3570
+</tool.toolu_01HfuMAaVJZKpWHMsWGxvEhg>
+
+# TOOL RESULT
+
+ID: toolu_01HfuMAaVJZKpWHMsWGxvEhg
+
+<tool.toolu_01HfuMAaVJZKpWHMsWGxvEhg>
+function fnAsterisk(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  const numRays = Math.max(2, n);
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  const opacity = 0.6;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      let angle = Math.atan2(dy, dx);
+      if (angle < 0) angle += Math.PI * 2;
+      
+      const rayAngle = (Math.PI * 2) / numRays;
+      const nearestRay = Math.round(angle / rayAngle) * rayAngle;
+      const angleDiff = Math.abs(angle - nearestRay);
+      
+      const rayWidth = 0.05;
+      if (angleDiff < rayWidth) {
+        const softness = 1 - angleDiff / rayWidth;
+        const sampleX = Math.floor(cx + Math.cos(nearestRay) * (ctx.width / numRays));
+        const [sr, sg, sb] = getPixel(prev, sampleX, Math.floor(cy));
+        
+        const idx = (y * ctx.width + x) * 4;
+        const blend = softness * opacity;
+        out.data[idx] = Math.round(out.data[idx] * (1 - blend) + sr * blend);
+        out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - blend) + sg * blend);
+        out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - blend) + sb * blend);
+      }
+    }
+  }
+  
+  return out;
+}
+
+</tool.toolu_01HfuMAaVJZKpWHMsWGxvEhg>
+
+# ASSISTANT
+
+Now let me replace fnAsterisk with the god rays WebGL implementation:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01V5wUyAbwowy6K7qZGazsqN
+
+## path
+
+<tool.toolu_01V5wUyAbwowy6K7qZGazsqN>
+character-defs.ts
+</tool.toolu_01V5wUyAbwowy6K7qZGazsqN>
+
+## git-commit-message
+
+<tool.toolu_01V5wUyAbwowy6K7qZGazsqN>
+Replace fnAsterisk with WebGL god rays volumetric light scattering effect
+</tool.toolu_01V5wUyAbwowy6K7qZGazsqN>
+
+## diff
+
+<tool.toolu_01V5wUyAbwowy6K7qZGazsqN>
+ function fnAsterisk(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+-  const out = cloneImage(prev);
++  const gl = initWebGL(ctx.width, ctx.height);
+   
+-  const numRays = Math.max(2, n);
+-  const cx = ctx.width / 2;
+-  const cy = ctx.height / 2;
+-  const maxR = Math.sqrt(cx * cx + cy * cy);
+-  const opacity = 0.6;
++  const numRays = Math.max(4, n * 2);
+   
+-  for (let y = 0; y < ctx.height; y++) {
+-    for (let x = 0; x < ctx.width; x++) {
+-      const dx = x - cx;
+-      const dy = y - cy;
+-      let angle = Math.atan2(dy, dx);
+-      if (angle < 0) angle += Math.PI * 2;
++  const vertexShader = `
++    attribute vec2 position;
++    varying vec2 vUV;
++    void main() {
++      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
++      gl_Position = vec4(position, 0.0, 1.0);
++    }
++  `;
++  
++  const occlusionFragShader = `
++    precision highp float;
++    uniform sampler2D uTexture;
++    uniform vec2 uLightPos;
++    uniform float uLightRadius;
++    uniform int uNumRays;
++    varying vec2 vUV;
++    
++    #define PI 3.14159265359
++    
++    void main() {
++      vec3 texColor = texture2D(uTexture, vUV).rgb;
++      float brightness = dot(texColor, vec3(0.299, 0.587, 0.114));
+       
+-      const rayAngle = (Math.PI * 2) / numRays;
+-      const nearestRay = Math.round(angle / rayAngle) * rayAngle;
+-      const angleDiff = Math.abs(angle - nearestRay);
++      vec2 diff = vUV - uLightPos;
++      float dist = length(diff);
++      float angle = atan(diff.y, diff.x);
+       
+-      const rayWidth = 0.05;
+-      if (angleDiff < rayWidth) {
+-        const softness = 1 - angleDiff / rayWidth;
+-        const sampleX = Math.floor(cx + Math.cos(nearestRay) * (ctx.width / numRays));
+-        const [sr, sg, sb] = getPixel(prev, sampleX, Math.floor(cy));
+-        
+-        const idx = (y * ctx.width + x) * 4;
+-        const blend = softness * opacity;
+-        out.data[idx] = Math.round(out.data[idx] * (1 - blend) + sr * blend);
+-        out.data[idx + 1] = Math.round(out.data[idx + 1] * (1 - blend) + sg * blend);
+-        out.data[idx + 2] = Math.round(out.data[idx + 2] * (1 - blend) + sb * blend);
++      // Create star/ray pattern from center
++      float rayAngle = PI * 2.0 / float(uNumRays);
++      float nearestRay = floor(angle / rayAngle + 0.5) * rayAngle;
++      float angleDiff = abs(angle - nearestRay);
++      
++      // Ray intensity - sharper rays
++      float rayWidth = 0.08;
++      float rayIntensity = smoothstep(rayWidth, 0.0, angleDiff);
++      
++      // Central glow
++      float centerGlow = exp(-dist * dist / (uLightRadius * uLightRadius));
++      
++      // Combine center glow with rays, tinted by image color
++      vec3 lightColor = mix(vec3(1.0, 0.95, 0.85), texColor * 1.5, 0.3);
++      float combinedIntensity = centerGlow + rayIntensity * (1.0 - dist * 0.8) * 0.7;
++      
++      // Also include bright areas from the image
++      float brightThreshold = step(0.6, brightness);
++      
++      vec3 result = combinedIntensity * lightColor + brightThreshold * texColor * 0.5;
++      
++      gl_FragColor = vec4(result, 1.0);
++    }
++  `;
++  
++  const godrayFragShader = `
++    precision highp float;
++    uniform sampler2D uOcclusionTexture;
++    uniform sampler2D uSceneTexture;
++    uniform vec2 uLightPos;
++    uniform float uExposure;
++    uniform float uDecay;
++    uniform float uDensity;
++    uniform float uWeight;
++    varying vec2 vUV;
++    
++    #define NUM_SAMPLES 100
++    
++    void main() {
++      vec2 texCoord = vUV;
++      vec2 deltaTexCoord = (texCoord - uLightPos);
++      deltaTexCoord *= 1.0 / float(NUM_SAMPLES) * uDensity;
++      
++      float illuminationDecay = 1.0;
++      vec3 godrayColor = vec3(0.0);
++      
++      vec2 sampleCoord = texCoord;
++      
++      for (int i = 0; i < NUM_SAMPLES; i++) {
++        sampleCoord -= deltaTexCoord;
++        vec3 sampleColor = texture2D(uOcclusionTexture, sampleCoord).rgb;
++        sampleColor *= illuminationDecay * uWeight;
++        godrayColor += sampleColor;
++        illuminationDecay *= uDecay;
+       }
++      
++      godrayColor *= uExposure;
++      
++      // Get original scene
++      vec3 sceneColor = texture2D(uSceneTexture, vUV).rgb;
++      
++      // Additive blend with slight screen blend for more natural look
++      vec3 finalColor = sceneColor + godrayColor * 0.8;
++      finalColor = min(finalColor, vec3(1.0));
++      
++      gl_FragColor = vec4(finalColor, 1.0);
+     }
++  `;
++  
++  const occlusionProgram = createShaderProgram(gl, vertexShader, occlusionFragShader);
++  const godrayProgram = createShaderProgram(gl, vertexShader, godrayFragShader);
++  
++  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
++  const buffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
++  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
++  
++  const sceneTexture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const occlusionTexture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, occlusionTexture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const framebuffer = gl.createFramebuffer();
++  
++  const lightX = 0.5;
++  const lightY = 0.5;
++  const lightRadius = 0.12;
++  
++  // Pass 1: Render occlusion texture with star pattern
++  gl.useProgram(occlusionProgram);
++  
++  const occPosLoc = gl.getAttribLocation(occlusionProgram, 'position');
++  gl.enableVertexAttribArray(occPosLoc);
++  gl.vertexAttribPointer(occPosLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
++  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, occlusionTexture, 0);
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
++  gl.uniform1i(gl.getUniformLocation(occlusionProgram, 'uTexture'), 0);
++  gl.uniform2f(gl.getUniformLocation(occlusionProgram, 'uLightPos'), lightX, lightY);
++  gl.uniform1f(gl.getUniformLocation(occlusionProgram, 'uLightRadius'), lightRadius);
++  gl.uniform1i(gl.getUniformLocation(occlusionProgram, 'uNumRays'), numRays);
++  
++  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  
++  // Pass 2: Apply god rays and combine with scene
++  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  
++  gl.useProgram(godrayProgram);
++  
++  const grPosLoc = gl.getAttribLocation(godrayProgram, 'position');
++  gl.enableVertexAttribArray(grPosLoc);
++  gl.vertexAttribPointer(grPosLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, occlusionTexture);
++  gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uOcclusionTexture'), 0);
++  
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
++  gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uSceneTexture'), 1);
++  
++  gl.uniform2f(gl.getUniformLocation(godrayProgram, 'uLightPos'), lightX, lightY);
++  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uExposure'), 0.3);
++  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDecay'), 0.975);
++  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDensity'), 0.9);
++  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uWeight'), 0.5);
++  
++  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  
++  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
++  
++  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
++      const dstIdx = (y * ctx.width + x) * 4;
++      flipped[dstIdx] = pixels[srcIdx];
++      flipped[dstIdx + 1] = pixels[srcIdx + 1];
++      flipped[dstIdx + 2] = pixels[srcIdx + 2];
++      flipped[dstIdx + 3] = pixels[srcIdx + 3];
++    }
+   }
+   
+-  return out;
++  gl.deleteTexture(sceneTexture);
++  gl.deleteTexture(occlusionTexture);
++  gl.deleteFramebuffer(framebuffer);
++  gl.deleteBuffer(buffer);
++  gl.deleteProgram(occlusionProgram);
++  gl.deleteProgram(godrayProgram);
++  
++  return { width: ctx.width, height: ctx.height, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_01V5wUyAbwowy6K7qZGazsqN>
+
+# TOOL RESULT
+
+ID: toolu_01V5wUyAbwowy6K7qZGazsqN
+
+<tool.toolu_01V5wUyAbwowy6K7qZGazsqN>
+
+</tool.toolu_01V5wUyAbwowy6K7qZGazsqN>
