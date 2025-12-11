@@ -11916,5 +11916,66 @@ Debug pixel data values
 ID: toolu_01HvfydWSDLdZ9eUMwiJMvSA
 
 <tool.toolu_01HvfydWSDLdZ9eUMwiJMvSA>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Debug pixel data values
 </tool.toolu_01HvfydWSDLdZ9eUMwiJMvSA>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01A4pTZz44YcHqQAiDjaxSvV
+
+## path
+
+<tool.toolu_01A4pTZz44YcHqQAiDjaxSvV>
+character-defs.ts
+</tool.toolu_01A4pTZz44YcHqQAiDjaxSvV>
+
+## git-commit-message
+
+<tool.toolu_01A4pTZz44YcHqQAiDjaxSvV>
+Debug flipped pixel values too
+</tool.toolu_01A4pTZz44YcHqQAiDjaxSvV>
+
+## diff
+
+<tool.toolu_01A4pTZz44YcHqQAiDjaxSvV>
+   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+       const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+       const dstIdx = (y * ctx.width + x) * 4;
+       flipped[dstIdx] = pixels[srcIdx];
+       flipped[dstIdx + 1] = pixels[srcIdx + 1];
+       flipped[dstIdx + 2] = pixels[srcIdx + 2];
+       flipped[dstIdx + 3] = pixels[srcIdx + 3];
+     }
+   }
+   
++  // Debug: check flipped data
++  let flippedNonZero = 0;
++  for (let i = 0; i < flipped.length; i += 4) {
++    if (flipped[i] > 0 || flipped[i+1] > 0 || flipped[i+2] > 0) {
++      flippedNonZero++;
++    }
++  }
++  console.log('Flipped non-zero pixels:', flippedNonZero);
++  const flippedCenterIdx = (Math.floor(ctx.height/2) * ctx.width + Math.floor(ctx.width/2)) * 4;
++  console.log('Flipped center pixel:', flipped[flippedCenterIdx], flipped[flippedCenterIdx+1], flipped[flippedCenterIdx+2], flipped[flippedCenterIdx+3]);
++  
+   bgTexture.dispose();
+   envMap.dispose();
+   pmremGenerator.dispose();
+   
+   return { width: ctx.width, height: ctx.height, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_01A4pTZz44YcHqQAiDjaxSvV>
+
+# TOOL RESULT
+
+ID: toolu_01A4pTZz44YcHqQAiDjaxSvV
+
+<tool.toolu_01A4pTZz44YcHqQAiDjaxSvV>
+
+</tool.toolu_01A4pTZz44YcHqQAiDjaxSvV>

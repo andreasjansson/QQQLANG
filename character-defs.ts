@@ -1487,6 +1487,17 @@ function fnE(ctx: FnContext): Image {
     }
   }
   
+  // Debug: check flipped data
+  let flippedNonZero = 0;
+  for (let i = 0; i < flipped.length; i += 4) {
+    if (flipped[i] > 0 || flipped[i+1] > 0 || flipped[i+2] > 0) {
+      flippedNonZero++;
+    }
+  }
+  console.log('Flipped non-zero pixels:', flippedNonZero);
+  const flippedCenterIdx = (Math.floor(ctx.height/2) * ctx.width + Math.floor(ctx.width/2)) * 4;
+  console.log('Flipped center pixel:', flipped[flippedCenterIdx], flipped[flippedCenterIdx+1], flipped[flippedCenterIdx+2], flipped[flippedCenterIdx+3]);
+  
   bgTexture.dispose();
   envMap.dispose();
   pmremGenerator.dispose();
