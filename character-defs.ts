@@ -4272,7 +4272,30 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       warpedUV = clamp(warpedUV, 0.0, 1.0);
       
       // Sample texture at warped position
-      vec3 color = texture2D(uTexture, warpedUV).rgb;
+      vec3 texColor = texture2D(uTexture, warpedUV).rgb;
+      
+      // Oil slick lighting based on noise gradient
+      float h = fbm(p * 0.5, uSeed);
+      float hx = fbm((p + vec2(0.02, 0.0)) * 0.5, uSeed);
+      float hy = fbm((p + vec2(0.0, 0.02)) * 0.5, uSeed);
+      
+      // Fake normal from height field
+      vec3 normal = normalize(vec3(h - hx, h - hy, 0.15));
+      
+      // Light from top-left
+      vec3 lightDir = normalize(vec3(0.4, 0.5, 1.0));
+      float diffuse = max(dot(normal, lightDir), 0.0);
+      
+      // Specular highlight
+      vec3 viewDir = vec3(0.0, 0.0, 1.0);
+      vec3 reflectDir = reflect(-lightDir, normal);
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
+      
+      // Combine
+      float shadow = 0.7 + diffuse * 0.3;
+      float highlight = spec * 0.4;
+      
+      vec3 color = texColor * shadow + vec3(highlight);
       
       gl_FragColor = vec4(color, 1.0);
     }
