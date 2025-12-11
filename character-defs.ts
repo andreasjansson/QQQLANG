@@ -350,6 +350,7 @@ function fnD(ctx: FnContext, n: number): Image {
   const out = cloneImage(prev);
   
   const divisions = Math.max(2, Math.min(n + 2, 10));
+  const totalTriangles = divisions * divisions * 2;
   
   for (let row = 0; row < divisions; row++) {
     for (let col = 0; col < divisions; col++) {
@@ -359,8 +360,8 @@ function fnD(ctx: FnContext, n: number): Image {
       const y1 = Math.floor(((row + 1) / divisions) * ctx.height);
       
       const triIndex = (row * divisions + col) * 2;
-      const sat1 = 1.2 + (triIndex % 5) * 0.3;
-      const sat2 = 1.2 + ((triIndex + 1) % 5) * 0.3;
+      const hueShift1 = (triIndex / totalTriangles) * 360;
+      const hueShift2 = ((triIndex + 1) / totalTriangles) * 360;
       
       for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
@@ -370,9 +371,9 @@ function fnD(ctx: FnContext, n: number): Image {
           const [r, g, b] = getPixel(prev, x, y);
           const [h, s, l] = rgbToHsl(r, g, b);
           const isUpperTriangle = localX + localY < 1;
-          const satMult = isUpperTriangle ? sat1 : sat2;
+          const hueShift = isUpperTriangle ? hueShift1 : hueShift2;
           
-          const [nr, ng, nb] = hslToRgb(h, Math.min(1, s * satMult), l);
+          const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
           setPixel(out, x, y, nr, ng, nb);
         }
       }
