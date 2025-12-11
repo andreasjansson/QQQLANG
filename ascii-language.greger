@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-141913015803>
+${greger-prompt-code-style<eval-result-142104709123>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-141913015803>}
+</eval-result-142104709123>}
 
 # USER
 
@@ -7022,5 +7022,189 @@ Oil-slick now smudges/distorts the image using noise-based displacement
 ID: toolu_01VD1yA8o41mhP4LojJUXAL2
 
 <tool.toolu_01VD1yA8o41mhP4LojJUXAL2>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Oil-slick now smudges/distorts the image using noise-based displacement
 </tool.toolu_01VD1yA8o41mhP4LojJUXAL2>
+
+# ASSISTANT
+
+Now the oil slick effect uses noise-based displacement to smudge/warp the entire image. Each pixel samples from a displaced location based on the procedural noise field, creating organic oily distortion patterns across the whole image.
+
+# USER
+
+it doesn't look very oily, make it smudge out more, and make the smudging smoother and less jagged. also add some shades and fake reflective light so it actually looks like oil
+
+# THINKING
+
+Signature: EpIFCkYIChgCKkC02LUzzkfufDgUu+cUGEm7RCVSWJfQsyRN2EfnXH9VHmv8Sc9BY1kp2L2pc8UobeY7C8HVNHNk6n8VwfpS3tIvEgyi+cxR4jCqCN6AcEYaDOTHdCHsKNzLuDu9xSIwF4OFuBIokQb2VQzryk551qCq5HAUBkG/clyLzL4JvishC6fe1PaPofpni98+oJkIKvkDzgAE6FZ6BRth6M+PzxpnSF/O/lfcW4Rse6uggMSKdvxGISttpqkYeWdcpS93BNFSLSIDjLyhNvuWv9cpmFljqBFv/zwtbZ3YQbFwUu9MtisGM6wkVgqpmUa74uoSNZm5XBvYAsu9xZKvXaOASkhoekVebuQTQJPx1nwrwoFaN9R3qkTAzCD5mvDmgNOIfUR+WcRC7rZg9io2XiABlbIv2fQUXYdW8GV+6yAD5P9Mk++uiVXcoR+lsQKnuMSacsXCFCqSfvEsHfBtMnwYexaf4gDaAIzsB2L/hYwvY7H9PCs2WNC2aUcqe7gOT6bcTlnefhjzdH/OJ5i3FgmLrPdDrsAQ9ctHj6dZLqX92gcXwKrslhhT5A4PIrunBhgch5PSPklsxTn4C2zEFDnB12gQlQ2jB+JIVPwJjXEeO11n2tAjy1yOskfEddMV2//wOyBjXH7AG3FpUHc3tHbfzG4Xruz31mxDMLArmur5ErkuZ4VdQ07YuDj1YVIPGLYsSso5svFs2ai8mEaaZr5o3yd5FNGq94AAYOSHAXsCK4G/kpbffesLBmI7x3hWUvOr2zn92zuYxGb5PbQ0tmUIGFKYrx3ePLj3PuJx59/9nHHRx4VtUdIacpik9yTVUvomo5Sus02O9SE4yljqBBlYedHDTaplUKve2Y91TBgB
+
+The user wants:
+1. More smudging/distortion
+2. Smoother smudging (less jagged) - probably need bilinear interpolation when sampling
+3. Add shading and fake reflective highlights to make it look like actual oil
+
+Let me revise the function to:
+1. Use bilinear interpolation for smoother sampling
+2. Increase the smudge strength
+3. Add specular highlights based on the noise gradient (where the "surface" is angled toward a light)
+4. Add some darkening/shading based on the noise to simulate depth
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01HXB51wj62Y6tYFRJbD1HmM
+
+## path
+
+<tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
+character-defs.ts
+</tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
+
+## git-commit-message
+
+<tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
+Oil-slick: more smudging, bilinear sampling, add shading and specular highlights
+</tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
+
+## diff
+
+<tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
+ function fnOilSlick(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+   const seed = ctx.images.length * 137.5 + n * 17.3;
+   
+   const hash = (x: number, y: number, s: number): number => {
+     const val = Math.sin(x * 127.1 + y * 311.7 + s * 74.3) * 43758.5453;
+     return val - Math.floor(val);
+   };
+   
+   const smoothstep = (t: number): number => t * t * (3 - 2 * t);
+   
+   const noise = (x: number, y: number, s: number): number => {
+     const ix = Math.floor(x);
+     const iy = Math.floor(y);
+     const fx = smoothstep(x - ix);
+     const fy = smoothstep(y - iy);
+     
+     const a = hash(ix, iy, s);
+     const b = hash(ix + 1, iy, s);
+     const c = hash(ix, iy + 1, s);
+     const d = hash(ix + 1, iy + 1, s);
+     
+     return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+   };
+   
+   const fbm = (x: number, y: number, octaves: number): number => {
+     let value = 0;
+     let amplitude = 0.5;
+     let frequency = 1;
+     let maxValue = 0;
+     
+     for (let i = 0; i < octaves; i++) {
+       value += amplitude * noise(x * frequency, y * frequency, seed + i * 100);
+       maxValue += amplitude;
+       amplitude *= 0.5;
+       frequency *= 2.0;
+     }
+     
+     return value / maxValue;
+   };
+   
+-  const scale = 0.006 + n * 0.002;
+-  const smudgeStrength = 40 + n * 15;
++  const sampleBilinear = (img: Image, fx: number, fy: number): [number, number, number] => {
++    const x0 = Math.floor(fx);
++    const y0 = Math.floor(fy);
++    const x1 = x0 + 1;
++    const y1 = y0 + 1;
++    const tx = fx - x0;
++    const ty = fy - y0;
++    
++    const [r00, g00, b00] = getPixel(img, x0, y0);
++    const [r10, g10, b10] = getPixel(img, x1, y0);
++    const [r01, g01, b01] = getPixel(img, x0, y1);
++    const [r11, g11, b11] = getPixel(img, x1, y1);
++    
++    const r = r00 * (1 - tx) * (1 - ty) + r10 * tx * (1 - ty) + r01 * (1 - tx) * ty + r11 * tx * ty;
++    const g = g00 * (1 - tx) * (1 - ty) + g10 * tx * (1 - ty) + g01 * (1 - tx) * ty + g11 * tx * ty;
++    const b = b00 * (1 - tx) * (1 - ty) + b10 * tx * (1 - ty) + b01 * (1 - tx) * ty + b11 * tx * ty;
++    
++    return [r, g, b];
++  };
+   
++  const scale = 0.003 + n * 0.001;
++  const smudgeStrength = 80 + n * 25;
++  
++  const lightDir = [0.4, -0.3, 0.8];
++  const lightLen = Math.sqrt(lightDir[0] ** 2 + lightDir[1] ** 2 + lightDir[2] ** 2);
++  lightDir[0] /= lightLen;
++  lightDir[1] /= lightLen;
++  lightDir[2] /= lightLen;
++  
++  const eps = 0.5;
++  
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+-      const dx = (fbm(x * scale, y * scale, 5) - 0.5) * smudgeStrength;
+-      const dy = (fbm(x * scale + 100, y * scale + 100, 5) - 0.5) * smudgeStrength;
++      const nx = x * scale;
++      const ny = y * scale;
+       
++      const height = fbm(nx, ny, 6);
++      const heightX = fbm(nx + eps * scale, ny, 6);
++      const heightY = fbm(nx, ny + eps * scale, 6);
++      
++      const gradX = (heightX - height) / eps;
++      const gradY = (heightY - height) / eps;
++      
++      const normalX = -gradX * 8;
++      const normalY = -gradY * 8;
++      const normalZ = 1;
++      const nLen = Math.sqrt(normalX ** 2 + normalY ** 2 + normalZ ** 2);
++      
++      const nnx = normalX / nLen;
++      const nny = normalY / nLen;
++      const nnz = normalZ / nLen;
++      
++      const diffuse = Math.max(0, nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]);
++      
++      const reflectX = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nnx - lightDir[0];
++      const reflectY = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nny - lightDir[1];
++      const reflectZ = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nnz - lightDir[2];
++      const specular = Math.pow(Math.max(0, reflectZ), 32);
++      
++      const dx = gradX * smudgeStrength;
++      const dy = gradY * smudgeStrength;
++      
+       const sx = x + dx;
+       const sy = y + dy;
+       
+-      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+-      setPixel(out, x, y, r, g, b);
++      const [r, g, b] = sampleBilinear(prev, sx, sy);
++      
++      const lighting = 0.7 + diffuse * 0.3;
++      const spec = specular * 180;
++      
++      const nr = Math.min(255, r * lighting + spec);
++      const ng = Math.min(255, g * lighting + spec);
++      const nb = Math.min(255, b * lighting + spec);
++      
++      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
+     }
+   }
+   
+   return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
+
+# TOOL RESULT
+
+ID: toolu_01HXB51wj62Y6tYFRJbD1HmM
+
+<tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
+
+</tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>

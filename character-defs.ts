@@ -4222,19 +4222,81 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
     return value / maxValue;
   };
   
-  const scale = 0.006 + n * 0.002;
-  const smudgeStrength = 40 + n * 15;
+  const sampleBilinear = (img: Image, fx: number, fy: number): [number, number, number] => {
+    const x0 = Math.floor(fx);
+    const y0 = Math.floor(fy);
+    const x1 = x0 + 1;
+    const y1 = y0 + 1;
+    const tx = fx - x0;
+    const ty = fy - y0;
+    
+    const [r00, g00, b00] = getPixel(img, x0, y0);
+    const [r10, g10, b10] = getPixel(img, x1, y0);
+    const [r01, g01, b01] = getPixel(img, x0, y1);
+    const [r11, g11, b11] = getPixel(img, x1, y1);
+    
+    const r = r00 * (1 - tx) * (1 - ty) + r10 * tx * (1 - ty) + r01 * (1 - tx) * ty + r11 * tx * ty;
+    const g = g00 * (1 - tx) * (1 - ty) + g10 * tx * (1 - ty) + g01 * (1 - tx) * ty + g11 * tx * ty;
+    const b = b00 * (1 - tx) * (1 - ty) + b10 * tx * (1 - ty) + b01 * (1 - tx) * ty + b11 * tx * ty;
+    
+    return [r, g, b];
+  };
+  
+  const scale = 0.003 + n * 0.001;
+  const smudgeStrength = 80 + n * 25;
+  
+  const lightDir = [0.4, -0.3, 0.8];
+  const lightLen = Math.sqrt(lightDir[0] ** 2 + lightDir[1] ** 2 + lightDir[2] ** 2);
+  lightDir[0] /= lightLen;
+  lightDir[1] /= lightLen;
+  lightDir[2] /= lightLen;
+  
+  const eps = 0.5;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = (fbm(x * scale, y * scale, 5) - 0.5) * smudgeStrength;
-      const dy = (fbm(x * scale + 100, y * scale + 100, 5) - 0.5) * smudgeStrength;
+      const nx = x * scale;
+      const ny = y * scale;
+      
+      const height = fbm(nx, ny, 6);
+      const heightX = fbm(nx + eps * scale, ny, 6);
+      const heightY = fbm(nx, ny + eps * scale, 6);
+      
+      const gradX = (heightX - height) / eps;
+      const gradY = (heightY - height) / eps;
+      
+      const normalX = -gradX * 8;
+      const normalY = -gradY * 8;
+      const normalZ = 1;
+      const nLen = Math.sqrt(normalX ** 2 + normalY ** 2 + normalZ ** 2);
+      
+      const nnx = normalX / nLen;
+      const nny = normalY / nLen;
+      const nnz = normalZ / nLen;
+      
+      const diffuse = Math.max(0, nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]);
+      
+      const reflectX = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nnx - lightDir[0];
+      const reflectY = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nny - lightDir[1];
+      const reflectZ = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nnz - lightDir[2];
+      const specular = Math.pow(Math.max(0, reflectZ), 32);
+      
+      const dx = gradX * smudgeStrength;
+      const dy = gradY * smudgeStrength;
       
       const sx = x + dx;
       const sy = y + dy;
       
-      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      setPixel(out, x, y, r, g, b);
+      const [r, g, b] = sampleBilinear(prev, sx, sy);
+      
+      const lighting = 0.7 + diffuse * 0.3;
+      const spec = specular * 180;
+      
+      const nr = Math.min(255, r * lighting + spec);
+      const ng = Math.min(255, g * lighting + spec);
+      const nb = Math.min(255, b * lighting + spec);
+      
+      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
     }
   }
   
