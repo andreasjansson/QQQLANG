@@ -2330,269 +2330,67 @@ function fnU(ctx: FnContext, n: number): Image {
   const w = ctx.width;
   const h = ctx.height;
   
-  const k = Math.max(25, n * 8);
-  const edgeThreshold = 25 + n * 3;
-  const edgeRadius = 2;
+  const k = Math.max(30, n * 10);
   
-  const colorDist = (x1: number, y1: number, x2: number, y2: number): number => {
-    const [r1, g1, b1] = getPixel(prev, x1, y1);
-    const [r2, g2, b2] = getPixel(prev, x2, y2);
-    return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
-  };
-  
-  const thinEdges = new Uint8Array(w * h);
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-      let maxDist = 0;
-      maxDist = Math.max(maxDist, colorDist(x, y, x - 1, y));
-      maxDist = Math.max(maxDist, colorDist(x, y, x + 1, y));
-      maxDist = Math.max(maxDist, colorDist(x, y, x, y - 1));
-      maxDist = Math.max(maxDist, colorDist(x, y, x, y + 1));
-      maxDist = Math.max(maxDist, colorDist(x, y, x - 1, y - 1) * 0.7);
-      maxDist = Math.max(maxDist, colorDist(x, y, x + 1, y - 1) * 0.7);
-      maxDist = Math.max(maxDist, colorDist(x, y, x - 1, y + 1) * 0.7);
-      maxDist = Math.max(maxDist, colorDist(x, y, x + 1, y + 1) * 0.7);
-      thinEdges[y * w + x] = maxDist > edgeThreshold ? 1 : 0;
-    }
-  }
-  
-  const edges = new Uint8Array(w * h);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      let isEdge = 0;
-      outer: for (let dy = -edgeRadius; dy <= edgeRadius; dy++) {
-        for (let dx = -edgeRadius; dx <= edgeRadius; dx++) {
-          const nx = x + dx, ny = y + dy;
-          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-            if (thinEdges[ny * w + nx] === 1) {
-              isEdge = 1;
-              break outer;
-            }
-          }
-        }
-      }
-      edges[y * w + x] = isEdge;
-    }
-  }
-  
-  const labels = new Int32Array(w * h);
-  labels.fill(-1);
-  let currentLabel = 0;
+  let minR = 255, maxR = 0;
+  let minG = 255, maxG = 0;
+  let minB = 255, maxB = 0;
   
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const idx = y * w + x;
-      if (edges[idx] === 1 || labels[idx] !== -1) continue;
-      
-      const queue = [idx];
-      labels[idx] = currentLabel;
-      let head = 0;
-      
-      while (head < queue.length) {
-        const cidx = queue[head++];
-        const cx = cidx % w;
-        const cy = Math.floor(cidx / w);
-        
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            if (dx === 0 && dy === 0) continue;
-            const nx = cx + dx, ny = cy + dy;
-            if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
-            const nidx = ny * w + nx;
-            if (edges[nidx] === 1 || labels[nidx] !== -1) continue;
-            labels[nidx] = currentLabel;
-            queue.push(nidx);
-          }
-        }
-      }
-      currentLabel++;
-    }
-  }
-  
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y * w + x;
-      if (labels[idx] !== -1) continue;
-      
-      for (let r = 1; r <= edgeRadius + 2; r++) {
-        let found = false;
-        for (let dy = -r; dy <= r && !found; dy++) {
-          for (let dx = -r; dx <= r && !found; dx++) {
-            if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
-            const nx = x + dx, ny = y + dy;
-            if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
-            const nidx = ny * w + nx;
-            if (labels[nidx] !== -1) {
-              labels[idx] = labels[nidx];
-              found = true;
-            }
-          }
-        }
-        if (found) break;
-      }
-      
-      if (labels[idx] === -1) {
-        labels[idx] = 0;
-      }
-    }
-  }
-  
-  interface RegionData {
-    minLum: number;
-    maxLum: number;
-    minColor: [number, number, number];
-    maxColor: [number, number, number];
-    darkCentroidX: number;
-    darkCentroidY: number;
-    darkCount: number;
-    lightCentroidX: number;
-    lightCentroidY: number;
-    lightCount: number;
-    boundMinX: number;
-    boundMinY: number;
-    boundMaxX: number;
-    boundMaxY: number;
-    pixels: number[];
-  }
-  
-  const regions = new Map<number, RegionData>();
-  
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y * w + x;
-      const label = labels[idx];
-      
       const [r, g, b] = getPixel(prev, x, y);
-      const lum = r * 0.299 + g * 0.587 + b * 0.114;
-      
-      if (!regions.has(label)) {
-        regions.set(label, {
-          minLum: lum, maxLum: lum,
-          minColor: [r, g, b], maxColor: [r, g, b],
-          darkCentroidX: 0, darkCentroidY: 0, darkCount: 0,
-          lightCentroidX: 0, lightCentroidY: 0, lightCount: 0,
-          boundMinX: x, boundMinY: y, boundMaxX: x, boundMaxY: y,
-          pixels: []
-        });
-      }
-      
-      const data = regions.get(label)!;
-      data.pixels.push(idx);
-      
-      data.boundMinX = Math.min(data.boundMinX, x);
-      data.boundMinY = Math.min(data.boundMinY, y);
-      data.boundMaxX = Math.max(data.boundMaxX, x);
-      data.boundMaxY = Math.max(data.boundMaxY, y);
-      
-      if (lum < data.minLum) {
-        data.minLum = lum;
-        data.minColor = [r, g, b];
-      }
-      if (lum > data.maxLum) {
-        data.maxLum = lum;
-        data.maxColor = [r, g, b];
-      }
+      minR = Math.min(minR, r);
+      maxR = Math.max(maxR, r);
+      minG = Math.min(minG, g);
+      maxG = Math.max(maxG, g);
+      minB = Math.min(minB, b);
+      maxB = Math.max(maxB, b);
     }
   }
   
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y * w + x;
-      const label = labels[idx];
-      const data = regions.get(label)!;
-      
-      const [r, g, b] = getPixel(prev, x, y);
-      const lum = r * 0.299 + g * 0.587 + b * 0.114;
-      
-      const midLum = (data.minLum + data.maxLum) / 2;
-      
-      if (lum < midLum) {
-        data.darkCentroidX += x;
-        data.darkCentroidY += y;
-        data.darkCount++;
-      } else {
-        data.lightCentroidX += x;
-        data.lightCentroidY += y;
-        data.lightCount++;
-      }
-    }
-  }
+  minR = Math.max(0, minR - k);
+  maxR = Math.min(255, maxR + k);
+  minG = Math.max(0, minG - k);
+  maxG = Math.min(255, maxG + k);
+  minB = Math.max(0, minB - k);
+  maxB = Math.min(255, maxB + k);
   
-  for (const [, data] of regions) {
-    if (data.darkCount > 0) {
-      data.darkCentroidX /= data.darkCount;
-      data.darkCentroidY /= data.darkCount;
-    }
-    if (data.lightCount > 0) {
-      data.lightCentroidX /= data.lightCount;
-      data.lightCentroidY /= data.lightCount;
-    }
-  }
+  const baseAngle = n * 0.3;
+  const angleR = baseAngle;
+  const angleG = baseAngle + Math.PI * 2 / 3;
+  const angleB = baseAngle + Math.PI * 4 / 3;
+  
+  const dirRX = Math.cos(angleR);
+  const dirRY = Math.sin(angleR);
+  const dirGX = Math.cos(angleG);
+  const dirGY = Math.sin(angleG);
+  const dirBX = Math.cos(angleB);
+  const dirBY = Math.sin(angleB);
+  
+  const cx = w / 2;
+  const cy = h / 2;
+  const maxDist = Math.sqrt(cx * cx + cy * cy);
   
   const out = createSolidImage(w, h, '#000000');
   
-  for (const [label, data] of regions) {
-    let dirX = data.lightCentroidX - data.darkCentroidX;
-    let dirY = data.lightCentroidY - data.darkCentroidY;
-    let dirLen = Math.sqrt(dirX * dirX + dirY * dirY);
-    
-    const lumRange = data.maxLum - data.minLum;
-    const isSolid = lumRange < 10 || dirLen < 5;
-    
-    if (isSolid) {
-      dirX = 0;
-      dirY = 1;
-      dirLen = 1;
-    } else {
-      dirX /= dirLen;
-      dirY /= dirLen;
-    }
-    
-    const minColor: [number, number, number] = [
-      Math.max(0, data.minColor[0] - k),
-      Math.max(0, data.minColor[1] - k),
-      Math.max(0, data.minColor[2] - k)
-    ];
-    const maxColor: [number, number, number] = [
-      Math.min(255, data.maxColor[0] + k),
-      Math.min(255, data.maxColor[1] + k),
-      Math.min(255, data.maxColor[2] + k)
-    ];
-    
-    let minProj = Infinity, maxProj = -Infinity;
-    for (const idx of data.pixels) {
-      const px = idx % w;
-      const py = Math.floor(idx / w);
-      const proj = px * dirX + py * dirY;
-      minProj = Math.min(minProj, proj);
-      maxProj = Math.max(maxProj, proj);
-    }
-    
-    const projRange = maxProj - minProj;
-    
-    for (const idx of data.pixels) {
-      const px = idx % w;
-      const py = Math.floor(idx / w);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const rx = x - cx;
+      const ry = y - cy;
       
-      let t: number;
-      if (isSolid || projRange < 1) {
-        t = (py - data.boundMinY) / Math.max(1, data.boundMaxY - data.boundMinY);
-      } else {
-        const proj = px * dirX + py * dirY;
-        t = (proj - minProj) / projRange;
-      }
+      const tR = (rx * dirRX + ry * dirRY) / maxDist * 0.5 + 0.5;
+      const tG = (rx * dirGX + ry * dirGY) / maxDist * 0.5 + 0.5;
+      const tB = (rx * dirBX + ry * dirBY) / maxDist * 0.5 + 0.5;
       
-      t = Math.max(0, Math.min(1, t));
+      const r = Math.round(minR + tR * (maxR - minR));
+      const g = Math.round(minG + tG * (maxG - minG));
+      const b = Math.round(minB + tB * (maxB - minB));
       
-      const r = Math.round(minColor[0] + t * (maxColor[0] - minColor[0]));
-      const g = Math.round(minColor[1] + t * (maxColor[1] - minColor[1]));
-      const b = Math.round(minColor[2] + t * (maxColor[2] - minColor[2]));
-      
-      setPixel(out, px, py, r, g, b);
+      setPixel(out, x, y, r, g, b);
     }
   }
   
-  const glowRadius = 6;
+  const glowRadius = 8;
   const blurredH = createSolidImage(w, h, '#000000');
   
   for (let y = 0; y < h; y++) {
@@ -2632,7 +2430,7 @@ function fnU(ctx: FnContext, n: number): Image {
     }
   }
   
-  const glowIntensity = 0.4;
+  const glowIntensity = 0.35;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const [r1, g1, b1] = getPixel(out, x, y);
