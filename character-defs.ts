@@ -2619,7 +2619,9 @@ function fnQ(ctx: FnContext): Image {
           const outX = qx * hw + x;
           const outY = qy * hh + y;
           if (outX < ctx.width && outY < ctx.height) {
-            const [r, g, b] = getPixel(temp, x, y);
+            const srcX = qx === 1 ? hw - 1 - x : x;
+            const srcY = qy === 1 ? hh - 1 - y : y;
+            const [r, g, b] = getPixel(temp, srcX, srcY);
             setPixel(out, outX, outY, r, g, b);
           }
         }
