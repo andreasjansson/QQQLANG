@@ -719,6 +719,8 @@
       updateURL(input.value);
       render();
     });
+    
+    input.addEventListener('click', handleInputClick);
 
     window.addEventListener('popstate', (event) => {
       loadProgramFromURL();
