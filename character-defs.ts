@@ -4133,33 +4133,86 @@ function fnUnderscore(ctx: FnContext, j: number): Image {
 
 function fnBacktick(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const { width, height } = ctx;
   
-  const glitchN = Math.max(1, n);
+  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
   
-  for (let y = 0; y < ctx.height; y++) {
-    const shouldGlitch = (y * 17) % 23 < glitchN;
-    const shiftAmount = shouldGlitch ? ((y * 31) % (glitchN * 20)) : 0;
-    
-    for (let x = 0; x < ctx.width; x++) {
-      if (shouldGlitch) {
-        const srcXR = ((x - shiftAmount - glitchN) % ctx.width + ctx.width) % ctx.width;
-        const srcXG = ((x - shiftAmount) % ctx.width + ctx.width) % ctx.width;
-        const srcXB = ((x - shiftAmount + glitchN) % ctx.width + ctx.width) % ctx.width;
-        
-        const [rr] = getPixel(prev, srcXR, y);
-        const [, gg] = getPixel(prev, srcXG, y);
-        const [, , bb] = getPixel(prev, srcXB, y);
-        
-        setPixel(out, x, y, rr, gg, bb);
-      } else {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
+  const gradX = new Float32Array(width * height);
+  const gradY = new Float32Array(width * height);
+  const gradMag = new Float32Array(width * height);
+  
+  let maxMag = 1;
+  
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      let gx = 0, gy = 0;
+      
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const [r, g, b] = getPixel(prev, x + kx, y + ky);
+          const gray = r * 0.299 + g * 0.587 + b * 0.114;
+          const kidx = (ky + 1) * 3 + (kx + 1);
+          gx += gray * sobelX[kidx];
+          gy += gray * sobelY[kidx];
+        }
       }
+      
+      const idx = y * width + x;
+      gradX[idx] = gx;
+      gradY[idx] = gy;
+      const mag = Math.sqrt(gx * gx + gy * gy);
+      gradMag[idx] = mag;
+      if (mag > maxMag) maxMag = mag;
     }
   }
   
-  return out;
+  const iterations = Math.max(2, Math.min(n + 3, 20));
+  const baseStrength = 2.0 + n * 0.8;
+  const threshold = 12;
+  
+  let current = cloneImage(prev);
+  
+  for (let iter = 0; iter < iterations; iter++) {
+    const next = createSolidImage(width, height, '#000000');
+    const iterDecay = 1 - (iter / iterations) * 0.4;
+    const iterStrength = baseStrength * iterDecay;
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = y * width + x;
+        const mag = gradMag[idx];
+        
+        if (mag < threshold) {
+          const [r, g, b] = getPixel(current, x, y);
+          setPixel(next, x, y, r, g, b);
+          continue;
+        }
+        
+        const normMag = mag / maxMag;
+        const scale = normMag * iterStrength;
+        const dx = (gradX[idx] / mag) * scale;
+        const dy = (gradY[idx] / mag) * scale;
+        
+        const srcX = x - dx;
+        const srcY = y - dy;
+        
+        const [r1, g1, b1] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
+        const [r2, g2, b2] = getPixel(current, x, y);
+        
+        const blend = Math.min(0.9, normMag * 0.7 + 0.2);
+        setPixel(next, x, y,
+          Math.round(r1 * blend + r2 * (1 - blend)),
+          Math.round(g1 * blend + g2 * (1 - blend)),
+          Math.round(b1 * blend + b2 * (1 - blend))
+        );
+      }
+    }
+    
+    current = next;
+  }
+  
+  return current;
 }
 
 function fnOpenBrace(ctx: FnContext): Image {
