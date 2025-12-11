@@ -1955,14 +1955,9 @@ function fnS(ctx: FnContext, j: number, size: number): Image {
   
   const resolution = Math.pow(2, Math.floor((size - 1) / 10) + 2);
   
-  const centerX = ctx.width / 2;
-  const centerY = ctx.height / 2;
-  const triHeight = Math.min(ctx.width, ctx.height) * 0.95;
-  const triWidth = triHeight / (Math.sqrt(3) / 2);
-  
-  const v0x = centerX, v0y = centerY - triHeight / 2;
-  const v1x = centerX - triWidth / 2, v1y = centerY + triHeight / 2;
-  const v2x = centerX + triWidth / 2, v2y = centerY + triHeight / 2;
+  const v0x = ctx.width / 2, v0y = 0;
+  const v1x = 0, v1y = ctx.height;
+  const v2x = ctx.width, v2y = ctx.height;
   
   const denom = (v1y - v2y) * (v0x - v2x) + (v2x - v1x) * (v0y - v2y);
   
