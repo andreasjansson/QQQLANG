@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-224558598497>
+${greger-prompt-code-style<eval-result-224905199690>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-224558598497>}
+</eval-result-224905199690>}
 
 # IMPORTANT
 
@@ -76,7 +76,7 @@ Assign a random color to each character, and a number that starts at 1 at `A`, i
 
 # runtime.ts:
 
-${:sh cat runtime.ts<eval-result-223027526958>import { characterDefs, createSolidImage, Image, FnContext, CharDef } from './character-defs.js';
+${:sh cat runtime.ts<eval-result-224905574692>import { characterDefs, createSolidImage, Image, FnContext, CharDef } from './character-defs.js';
 
 interface ParsedSolidColor {
   type: 'solid';
@@ -299,13 +299,13 @@ export function getFinalImage(program: string, width: number, height: number): I
 export function getParsedOperations(program: string): ParsedOp[] {
   return parseProgram(program);
 }
-</eval-result-223027526958>}
+</eval-result-224905574692>}
 
 ---
 
 # character-defs.ts:
 
-${:sh cat character-defs.ts<eval-result-223027560053>import * as THREE from 'three';
+${:sh cat character-defs.ts<eval-result-224905768667>import * as THREE from 'three';
 import FFT from 'fft.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -3704,73 +3704,14 @@ function fnPercent(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const cellSize = Math.max(1, n + 1);
-  const corners = [
-    getPixel(prev, 0, 0),
-    getPixel(prev, ctx.width - 1, 0),
-    getPixel(prev, 0, ctx.height - 1),
-    getPixel(prev, ctx.width - 1, ctx.height - 1)
-  ];
-  const palette = corners.map(([r, g, b]) => [r, g, b] as [number, number, number]);
+  const horizontal = n % 2 === 0;
   
-  const findClosest = (r: number, g: number, b: number): [number, number, number] => {
-    let minDist = Infinity;
-    let closest = palette[0];
-    for (const [pr, pg, pb] of palette) {
-      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
-      if (dist < minDist) {
-        minDist = dist;
-        closest = [pr, pg, pb];
-      }
-    }
-    return closest;
-  };
-  
-  const tempData = new Float32Array(ctx.width * ctx.height * 3);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      const idx = (y * ctx.width + x) * 3;
-      tempData[idx] = r;
-      tempData[idx + 1] = g;
-      tempData[idx + 2] = b;
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y += cellSize) {
-    for (let x = 0; x < ctx.width; x += cellSize) {
-      const idx = (y * ctx.width + x) * 3;
-      const oldR = tempData[idx];
-      const oldG = tempData[idx + 1];
-      const oldB = tempData[idx + 2];
-      
-      const [newR, newG, newB] = findClosest(oldR, oldG, oldB);
-      
-      for (let cy = 0; cy < cellSize && y + cy < ctx.height; cy++) {
-        for (let cx = 0; cx < cellSize && x + cx < ctx.width; cx++) {
-          setPixel(out, x + cx, y + cy, newR, newG, newB);
-        }
-      }
-      
-      const errR = oldR - newR;
-      const errG = oldG - newG;
-      const errB = oldB - newB;
-      
-      const distribute = (dx: number, dy: number, factor: number) => {
-        const nx = x + dx * cellSize;
-        const ny = y + dy * cellSize;
-        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
-          const nidx = (ny * ctx.width + nx) * 3;
-          tempData[nidx] += errR * factor;
-          tempData[nidx + 1] += errG * factor;
-          tempData[nidx + 2] += errB * factor;
-        }
-      };
-      
-      distribute(1, 0, 7 / 16);
-      distribute(-1, 1, 3 / 16);
-      distribute(0, 1, 5 / 16);
-      distribute(1, 1, 1 / 16);
+      const srcX = horizontal ? ctx.width - 1 - x : x;
+      const srcY = horizontal ? y : ctx.height - 1 - y;
+      const [r, g, b] = getPixel(prev, srcX, srcY);
+      setPixel(out, x, y, r, g, b);
     }
   }
   
@@ -4440,33 +4381,86 @@ function fnUnderscore(ctx: FnContext, j: number): Image {
 
 function fnBacktick(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const { width, height } = ctx;
   
-  const glitchN = Math.max(1, n);
+  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
   
-  for (let y = 0; y < ctx.height; y++) {
-    const shouldGlitch = (y * 17) % 23 < glitchN;
-    const shiftAmount = shouldGlitch ? ((y * 31) % (glitchN * 20)) : 0;
-    
-    for (let x = 0; x < ctx.width; x++) {
-      if (shouldGlitch) {
-        const srcXR = ((x - shiftAmount - glitchN) % ctx.width + ctx.width) % ctx.width;
-        const srcXG = ((x - shiftAmount) % ctx.width + ctx.width) % ctx.width;
-        const srcXB = ((x - shiftAmount + glitchN) % ctx.width + ctx.width) % ctx.width;
-        
-        const [rr] = getPixel(prev, srcXR, y);
-        const [, gg] = getPixel(prev, srcXG, y);
-        const [, , bb] = getPixel(prev, srcXB, y);
-        
-        setPixel(out, x, y, rr, gg, bb);
-      } else {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
+  const gradX = new Float32Array(width * height);
+  const gradY = new Float32Array(width * height);
+  const gradMag = new Float32Array(width * height);
+  
+  let maxMag = 1;
+  
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      let gx = 0, gy = 0;
+      
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const [r, g, b] = getPixel(prev, x + kx, y + ky);
+          const gray = r * 0.299 + g * 0.587 + b * 0.114;
+          const kidx = (ky + 1) * 3 + (kx + 1);
+          gx += gray * sobelX[kidx];
+          gy += gray * sobelY[kidx];
+        }
       }
+      
+      const idx = y * width + x;
+      gradX[idx] = gx;
+      gradY[idx] = gy;
+      const mag = Math.sqrt(gx * gx + gy * gy);
+      gradMag[idx] = mag;
+      if (mag > maxMag) maxMag = mag;
     }
   }
   
-  return out;
+  const iterations = Math.max(5, Math.min(n * 2 + 8, 30));
+  const baseStrength = 4.0 + n * 1.5;
+  const threshold = 8;
+  
+  let current = cloneImage(prev);
+  
+  for (let iter = 0; iter < iterations; iter++) {
+    const next = createSolidImage(width, height, '#000000');
+    const iterDecay = 1 - (iter / iterations) * 0.35;
+    const iterStrength = baseStrength * iterDecay;
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = y * width + x;
+        const mag = gradMag[idx];
+        
+        if (mag < threshold) {
+          const [r, g, b] = getPixel(current, x, y);
+          setPixel(next, x, y, r, g, b);
+          continue;
+        }
+        
+        const normMag = mag / maxMag;
+        const scale = normMag * iterStrength;
+        const dx = (gradX[idx] / mag) * scale;
+        const dy = (gradY[idx] / mag) * scale;
+        
+        const srcX = x - dx;
+        const srcY = y - dy;
+        
+        const [r1, g1, b1] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
+        const [r2, g2, b2] = getPixel(current, x, y);
+        
+        const blend = Math.min(0.95, normMag * 0.6 + 0.35);
+        setPixel(next, x, y,
+          Math.round(r1 * blend + r2 * (1 - blend)),
+          Math.round(g1 * blend + g2 * (1 - blend)),
+          Math.round(b1 * blend + b2 * (1 - blend))
+        );
+      }
+    }
+    
+    current = next;
+  }
+  
+  return current;
 }
 
 function fnOpenBrace(ctx: FnContext): Image {
@@ -4562,25 +4556,68 @@ function fnPipe(ctx: FnContext, j: number): Image {
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const midX = Math.floor(ctx.width / 2);
-  const blendWidth = 5;
+  const blendWidth = Math.floor(ctx.width * 0.1);
   
   for (let y = 0; y < ctx.height; y++) {
+    const waveOffset = Math.sin(y * 0.05) * 15;
+    const effectiveMidX = midX + waveOffset;
+    
     for (let x = 0; x < ctx.width; x++) {
-      if (x < midX - blendWidth) {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
-      } else if (x > midX + blendWidth) {
-        const [r, g, b] = getPixel(old, x, y);
-        setPixel(out, x, y, r, g, b);
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
+      
+      if (x < effectiveMidX - blendWidth) {
+        setPixel(out, x, y, pr, pg, pb);
+      } else if (x > effectiveMidX + blendWidth) {
+        setPixel(out, x, y, or, og, ob);
       } else {
-        const t = (x - (midX - blendWidth)) / (blendWidth * 2);
-        const [pr, pg, pb] = getPixel(prev, x, y);
-        const [or, og, ob] = getPixel(old, x, y);
-        setPixel(out, x, y,
-          Math.round(pr * (1 - t) + or * t),
-          Math.round(pg * (1 - t) + og * t),
-          Math.round(pb * (1 - t) + ob * t)
-        );
+        const t = (x - (effectiveMidX - blendWidth)) / (blendWidth * 2);
+        
+        const screenR = 255 - ((255 - pr) * (255 - or)) / 255;
+        const screenG = 255 - ((255 - pg) * (255 - og)) / 255;
+        const screenB = 255 - ((255 - pb) * (255 - ob)) / 255;
+        
+        const diffR = Math.abs(pr - or);
+        const diffG = Math.abs(pg - og);
+        const diffB = Math.abs(pb - ob);
+        
+        const xorR = pr ^ or;
+        const xorG = pg ^ og;
+        const xorB = pb ^ ob;
+        
+        const band = Math.floor(y / 20) % 3;
+        
+        let r: number, g: number, b: number;
+        
+        if (band === 0) {
+          if (t < 0.5) {
+            const localT = t * 2;
+            r = pr * (1 - localT) + screenR * localT;
+            g = pg * (1 - localT) + screenG * localT;
+            b = pb * (1 - localT) + screenB * localT;
+          } else {
+            const localT = (t - 0.5) * 2;
+            r = screenR * (1 - localT) + or * localT;
+            g = screenG * (1 - localT) + og * localT;
+            b = screenB * (1 - localT) + ob * localT;
+          }
+        } else if (band === 1) {
+          const centerDist = Math.abs(t - 0.5) * 2;
+          const diffWeight = 1 - centerDist;
+          r = (pr * (1 - t) + or * t) * (1 - diffWeight) + diffR * diffWeight;
+          g = (pg * (1 - t) + og * t) * (1 - diffWeight) + diffG * diffWeight;
+          b = (pb * (1 - t) + ob * t) * (1 - diffWeight) + diffB * diffWeight;
+        } else {
+          const xorWeight = Math.sin(t * Math.PI) * 0.7;
+          const baseR = pr * (1 - t) + or * t;
+          const baseG = pg * (1 - t) + og * t;
+          const baseB = pb * (1 - t) + ob * t;
+          r = baseR * (1 - xorWeight) + xorR * xorWeight;
+          g = baseG * (1 - xorWeight) + xorG * xorWeight;
+          b = baseB * (1 - xorWeight) + xorB * xorWeight;
+        }
+        
+        setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
       }
     }
   }
@@ -5547,8 +5584,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnPercent,
     arity: 1,
     argTypes: ['int'],
-    functionName: "floyd-steinberg",
-    documentation: "Floyd-Steinberg dithers prev to 4-corner color palette with cell size n+1"
+    functionName: "flip",
+    documentation: "Flips image horizontally if n is even, vertically if n is odd"
   },
   
   '&': {
@@ -5747,8 +5784,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnBacktick,
     arity: 1,
     argTypes: ['int'],
-    functionName: "glitch",
-    documentation: "Glitch effect: horizontal strips shifted right with RGB separation of n pixels"
+    functionName: "gradient-smear",
+    documentation: "Iteratively smears pixels along image gradients; edges create directional streaks, n controls iterations and strength"
   },
   
   '{': {
@@ -5768,7 +5805,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "vertical-split",
-    documentation: "Left half is prev, right half is old_image, center column is 10px blend"
+    documentation: "Left=prev, right=old image j; 20% wavy blend zone uses screen/difference/xor in alternating horizontal bands"
   },
   
   '}': {
@@ -5791,13 +5828,13 @@ export const characterDefs: Record<string, CharDef> = {
     documentation: "Horizontal wave distortion with amplitude = sin(y*0.05)*n*8, chromatic aberration (R +n px, B -n px)"
   },
 };
-</eval-result-223027560053>}
+</eval-result-224905768667>}
 
 ---
 
 # index.html:
 
-${:sh cat index.html<eval-result-223027633229><!DOCTYPE html>
+${:sh cat index.html<eval-result-224905737526><!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6322,300 +6359,206 @@ ${:sh cat index.html<eval-result-223027633229><!DOCTYPE html>
   </script>
 </body>
 </html>
-</eval-result-223027633229>}
+</eval-result-224905737526>}
 
 
 ---
 
 # NEXT TASK
 
-the glitch at `` ` `` is kind of dull compared to the other functions. come up with 10 alternatives for more interesting procedural glitch effects. do something with a fairly complex algorithm.
+* looks terrible. can you use webgl to create a much more realistic light source at the center that eminates rays out? search the web for solutions
 
 # THINKING
 
-Signature: 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
+Signature: EuwCCkYIChgCKkC6r1/U6EtZatfsTq5tmXt+A9fNU207fqPx0WZuTpTI3CFROW80Kmo6J/V5T0UoQobtTs+aqzOMYCIF+2pntl99EgzOUavKZ+s3pZ1B1tMaDHSDGMAOW90qkeTjLCIwKIub0wauhWGZ2tKxnXGY9TC+hR3fLflyitrC/Sr6KkAndr/kvAu8ME/QWi0aLol/KtMBCSV1LxfG5MzNpskcprb1V4yA715FmXN9y7G259fMtDE6L4IO79ujskpbY+fR7aYFhsROyZYDH1RjorpciNaXPAM/K0pRLkfKOPz0P6y/uZkthXa2fQk+EQXh2vvyUCIjhMYc0XJM4DTMlVQeNAUJkPVsJ992NOPFmlg6osJoVaE5mWnYY1ECOnm5mlt0kKqgbUCzxC9ME+x+dHPF6zu0+YpUFh8jjXzB4mdpFfkeNqfFMsvaCAXjd8VKLNrK3DhyRVOHZBcftRF418L61Q9DEED0oBgB
 
-The user wants me to come up with 10 alternative glitch effects for the backtick character. Let me think about interesting procedural glitch effects that would be visually compelling.
+The user wants me to improve the neon glow effect (fnN) to use WebGL and create a more realistic light source with rays emanating from the center. Let me search for some good techniques for this.
 
-Current implementation just does horizontal strips with RGB separation. Let me think of more complex/interesting glitch effects:
+# SERVER TOOL USE
 
-1. **Databend/JPEG artifact simulation** - Simulate the look of corrupted JPEG compression by creating blocky artifacts, color bleeding, and quantization errors
+Name: web_search
+ID: srvtoolu_01NMNgRwMbwGH3ipGSb4LkKx
 
-2. **VHS tracking glitch** - Simulate VHS tape tracking issues with horizontal displacement that varies over time, color bleeding, and noise bands
+## query
 
-3. **Digital signal corruption** - Simulate what happens when digital video signal gets corrupted - macroblocking, frame tearing, pixel sorting within blocks
+<tool.srvtoolu_01NMNgRwMbwGH3ipGSb4LkKx>
+WebGL god rays volumetric light shader GLSL
+</tool.srvtoolu_01NMNgRwMbwGH3ipGSb4LkKx>
 
-4. **Pixel sorting glitch** - Sort pixels within horizontal bands by brightness/hue, creating those distinctive sorted streaks
+# WEB SEARCH TOOL RESULT
 
-5. **Bit-depth reduction with dithering artifacts** - Reduce color depth in specific regions creating banding and posterization with error diffusion artifacts
+ID: srvtoolu_01NMNgRwMbwGH3ipGSb4LkKx
 
-6. **Channel displacement with feedback** - More sophisticated RGB separation that includes rotation, scaling, and feedback loops
-
-7. **Block shuffle/swap** - Divide image into blocks and swap/shuffle them based on some deterministic pattern, like a corrupted video codec
-
-8. **Interlacing artifacts** - Simulate deinterlacing failures with combing, field blending issues
-
-9. **Compression artifact simulation** - DCT block artifacts, mosquito noise around edges, color subsampling artifacts
-
-10. **Memory corruption glitch** - Simulate what happens when image data in memory gets corrupted - wrong offsets, byte swaps, pointer errors
-
-Let me write out 10 detailed proposals:
-
-1. **Pixel sorting bands** - Sort pixels within horizontal bands by luminance or hue, creating distinctive sorted streaks. Different bands get sorted in different directions or by different criteria.
-
-2. **Block displacement with DCT artifacts** - Divide into 8x8 blocks (like JPEG), displace some blocks, add quantization-like color banding within blocks, simulate mosquito noise at edges.
- 
-I'll simulate a VHS tracking effect with dynamic horizontal band shifts, introducing vertical instability and color smearing. The effect will create a nostalgic analog video breakdown, with random noise bursts interrupting the visual signal. Bands will slide unpredictably, mimicking tape tracking problems.
-
-For databending, I'll treat the image as raw data, intentionally corrupting byte sequences. This will create unexpected color channel shifts, generating repeating patterns that simulate text editor manipulation. The effect will look like the image's digital structure has been deliberately disrupted.
-
-I'll explore recursive feedback by sampling from offset positions, creating cascading echo trails across the image. This technique will generate complex, self-referential visual artifacts that evolve dynamically.
-
-Bitplane corruption will involve manipulating individual color channel bit planes. By flipping bits and swapping bitplanes, I'll create a distinctive low-fidelity, crushed visual aesthetic that exposes the raw digital structure of the image.
-
-Segment duplication and deletion will simulate video frame data loss. Some horizontal image strips will repeat, while others vanish entirely, generating stretching and compression artifacts that reveal the fragility of digital video encoding.
-
-I'll corrupt color palettes by deliberately mismatching color indices, creating unexpected color cycling effects. This will transform the image's chromatic landscape through intentional palette manipulation.
-
-Scan line phase shifting will introduce diagonal tearing and rainbow fringing by offsetting each scan line's phase. This technique will create a sense of digital instability and visual disintegration.
-
-Memory pointer glitches will sample from incorrect memory addresses, displacing image chunks and generating repeated sections. The result will look like the image's data has been randomly scrambled, creating surreal visual dislocations.
+<tool.srvtoolu_01NMNgRwMbwGH3ipGSb4LkKx>
+[
+  {
+    "type": "web_search_result",
+    "title": "GitHub - Erkaman/glsl-godrays: This module implements a volumetric light scattering effect(godrays)",
+    "url": "https://github.com/Erkaman/glsl-godrays",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Light scattering with openGL shader",
+    "url": "https://fabiensanglard.net/lightScattering/",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "God Rays? What’s that?",
+    "url": "https://medium.com/community-play-3d/god-rays-whats-that-5a67f26aeac2",
+    "encrypted_content": "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",
+    "page_age": "May 4, 2014"
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub - aabbtree77/twinpeekz: Volumetric light rendering of Sponza with Golang and OpenGL on Ubuntu and NVIDIA GTX 760. Keywords: Go, OpenGL, GLFW 3.0, GLTF 2.0, volumetric light, full 3D ray marching, light shafts, god rays.",
+    "url": "https://github.com/aabbtree77/twinpeekz",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Alternatives and detailed information of Glsl Godrays - GitPlanet",
+    "url": "https://gitplanet.com/project/glsl-godrays",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "glsl-godrays - npm",
+    "url": "https://www.npmjs.com/package/glsl-godrays",
+    "encrypted_content": "EvEKCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDC66zzArPgNf/aTWDhoMDWBGOln/cYmcxnp/IjAaXHUAB03G/GZ7w8iLS2n4PP/VMnlvpP5jnoxEgoAIQF2xy/9Y9RHNg3xEd6CAQd8q9Ak8wrQeWxrr6GHQp5lyxe8QL84R6D1SGD8Ll7Wqk5JcjAkMmuFzcMfoDL9e1kR5849AZvUfBow8AAb84nFJofVyvlTLYuHiWINgRSswfWVAfNCK5Vlao3fjUepGlzyn9ZYHJ530TmQIZ/CSQ3zjaahHACSb4ubBz0rsT4aXv95gxQjxQ15btfbJN98u7eaFyJlrbWbMAl7v/PMWcnpe5HS9GSyjvgsNeBmmXFkZN/tG818bMlV2ynXQ5voS4qbiZBYC9EYw1WA61uJ0FbHkB+KvUG/yrqIHEBx9/+KFPwBWHN8+HiQyVmHNXPx7T0/DhrF524803z9oCls/xiXFkVi1uXuYkZmPY5+xBh9PosLNLoraGAyWkqIY4RTG3oRMRo9OgGlqtW6Y6c7b0LdiuE5wa7Y5NWM8EKE/ZXXxOO9NG1JpnHP8Y6+VKoLITwrCVlV4qdZ40t4udbYfaM7mrDuDaQXbCUOfOJCe1K5Z0nzuVFq3UbfAtzxFjVlx1rHfHJ2ZsMLiFYQ8OoupH2ej1yUYcSUiWRpjo/ejzY8uUNlx/66DpavTRd1mnaT2aiMTJrFLHN95aVbZaegWHNzxbhfWLfYZvcOQzqCxb17riSXRR49sFbSypWI6J9RZMjj5znE+kkIkZqBl4TqjKRYWzg/y5T4M41JTDgqMNKAFk6AS5CNxxgqijLK0fn9A2/Dk7beClnQQVgkcdXT1TxNxBl1EGREc9Pq/KmLeEqqUEUMiAG7VsBleYh5rAaS3fgvIvyRbaEW/x1JzMFGhcvKjo/H95e91nyMAtHgHrfI8xTRfPSFMFsC6hx3jBv38e62WuHqOwKmvp5Wr7oEKTKP/qhEkxs4x5psPN8f51cLkH3CvqrQmyhsCNzwvCaROfjYlAtYvl/LSinjSkPoVYoZ+g4eWlPBl8nFbxuHsDak00RjF+TmDi9bfe6yR3NZcZiKrShMQAT1WQ9m1IRMUsWnXvO4VvrUoelKHfwmDJBSboMhTca5Q9nzmp+wvMrkFKbRi1ziYi71drCpl+FCexhiiXWToR1oWvA7cXJGwOBVFScfhzgWsz1FpdYIoePzL3HOIR0SzCQPW5WLtxtTSil9LCGkb4wJSfLsSULOy4NzpqqxC+AtdkhI6FB6ZHoxTK7utvfA6g5JF1qW9Cijy/g2rFI6LsoDGsvcj99fHuloMM1Y86fUpIJCxkwBFWcTZk41MFlD7ec3umdrTGM7x2FuJWQN7NgQ1g5yo93ZbVOcJsziDZ4hBgOyTahHB6HCyWR+ZQCHWaaV/nBxWtorkLrNyvDTXafk/3nFeD9HZIVO/zdxilIHtdQ7V2TzmQ4Ya+4fTjlYKm9/xID+YZbNilSnJ4bXpxik9Qk/Z7u86y7Iv97N2zRlrWbCZFuWjig3sN+e0sazjrL0UPlyQrKOzSgp1138ngy19E6lFFEKnuBgNBl+3K+8TGU+EglwPnKzWu8SaNRAl7Pju/M4DtsWQh6lnOYk05QZ9M1dQbvNgPGqbqvmAZ3DzwWixnegTONGZyPTd0hqvT5ts+RnovitXF3j1ACIINnPaJBc1woVlvZbT83FAaskPa2BAzLbSkgT10Kk4JA3k0que9XyE3ovBeFkrUsFfHn9shXvvUgsk3Q1qZm4kt1+w9sv0icnyCg+ZVVGH/INZwQqMuTeMXU2ElB9wHNctJrIshhgD",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub - math-araujo/screen-space-godrays: Implementation of the paper \"Volumetric Light Scattering as a Post-Process\" using OpenGL 4.5",
+    "url": "https://github.com/math-araujo/screen-space-godrays",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "volumetric-lighting · GitHub Topics · GitHub",
+    "url": "https://github.com/topics/volumetric-lighting",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "God Rays – Opengl",
+    "url": "https://lokeshsharma97.wordpress.com/2017/08/04/god-rays-opengl/",
+    "encrypted_content": "EoULCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDDnAMdhuFs/k/NT/yhoM2n3rwONm70GlduzCIjASIdsDDlzZa6uIfU1d1JZd6YcZLlBLAXIahxwrD53sTQft2XZHBFU2LLBKkk9onVMqiAquPKhp4rQdFFIR4c0USFhNjE0EEpcIbEtG/ivm84xwyeM5AI/GmKP0+TOeGdZTKlxIdMCAf5YqOZ06QD2dBR2MJVbypKRGmASaqPx4yfJEfiynDSGg7txnWWRE/ko7UoDpFwwzqrl5HUGszDYVqjJNfrcfbMpE9BsoONMeyf6xFrlg8Qund4MTiBHEXDCqNEFZoaXqPaCtJtZ0dgxJL+NTjxaGqoNUBv507+E5DpFzaxWgQj4VsgZJotPpBy32MKuzbE3RsK9LtLekF4GzMByxjnuaM9uzRG0K3UGt31CmurDj9ZLH/hHuypDo5IfJ99Sr1YQ47mZwHiUW7Ya2SsRzgKdZMgiYVvcPUpv1VviP2D307qQ7ckn0uc8jIutJrZEckLUek+Bkyu/VQScM/4rQ1f93lA/6bXaIa+OXjfx+P9Ikd3nT6nyYheQS5ely70mNTZi4e7RFEbOO0I1AH+ALqae3k333rXNrVP0Fv76RHk9vibRCow1OeZszykj74reJTaPP9g3XtexXJXSL/y1L4jdVPOoZv+y7DPFCAJSBDmOGUBDd3c8w8jqD1iNk52J6bSBoKy5yUTrqYL3ATb2ZpQHXQGiAHBLoylMtlVJzxLbnjH14Py8x3fRNRBpNy5CZGSCTMSmzLTr95ubgWc6fAMz1mCWxlkifincHvd9lKWvsHZpnUFd/UzQqM3SsBRj0qvVCH6KowIIVNENY4fGSwzfP9LuGEOerEh8D24QBu0BfpXxHy2FyvPS3W69rE/Kusn9U74uioPmTRuA2ts30F/WU/PlR4EMZGLjQvw/HYXlZU73am9GdXw4GOsk+eXF2Djx5PyJxEF7G6fpOVqgImMf4vScDiy/lilCJ+0DN3h3HokzvIqdZizzS9zHXLU0X1I9r6UDeYFraChJe60D1y455evHbpuR7tWYIGk7CQz8+SCSTs0m43hW2py7i4cPXY5T3XRY5zkK64MtcTBPn2Iu9ojprrRWfe9Vv7kKdkWmSsASO52r92/Sz6GDVkR+sbT6rPydD/NQTaCywW4bM55QaLqfLMmHYM7EHcWUwt7KhP11e6n/2mUQPy94mvLf0bGSm5YegfR14t0x3aSjpxm8rzCG0f6LLHlA5SzBj/ZDB2eFa7dqAfDHSf1K2qD94DzriKgtmx9onXNWEJoyqckZwZsLqGDdYRumHXVYcnoxUYG2TNIig8zI3btq1Sa7Fz5bZjIGSwvpnlOTVaoCBKPf7G0pVvZyvgu8b4ZuleX/YTuOlkbrLhIy6v3ZxU6ZfHvq9kw3Hz2K20hycRN88H/Qzr4911s0gg7j4+7eOzGtPDHp5zj2eIG0QjXkry+YgWTxWLkzWFlp/0mgykQ0OJ/aE8MaJHTgjwpXeAS0if/7Gx31Fsa2BLwP6EYWV2HPnK28BcUuJzMc/uuasYBNxk95JmEZIWkhwGfPQJE1i29SOPEhxgDZJMQfLoLU6x4f51z5xEvYseOiuCVNOHQO314u2diLFXoqMO7mRcQCkEil+A+etSUh20Bp4rAhZGjfn3d90tOl3YyYt+yHvDIUdTnsb+TGpyydgNIitcwwhJj/Mu3ncS9ZkTTtkK62AgrlEaW+N2myyaQorspV3k9FweaOHN3bMMPDTv1IkmZ3teYzpMA7S5m2E1hW8oDYKO1PivkfQJuoGuhfm3rLp8Y/Z+YYfS97pqwHEwBKD5HwTlUmXUr7IE8YOGAM=",
+    "page_age": "August 4, 2017"
+  },
+  {
+    "type": "web_search_result",
+    "title": "God Rays / Faux Volumetric Fog in URP (WebGL) - Unity Engine - Unity Discussions",
+    "url": "https://discussions.unity.com/t/god-rays-faux-volumetric-fog-in-urp-webgl/952259",
+    "encrypted_content": "EtICCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDB6MSy6pW0PiYSOTohoMK8Yd4kfS+56RNXGgIjB98OzFlMys1Cj+oGt2v9WrmEd9hazUn6AtN7SDks9UL9WttOuLTlsrSzQd3sfZKWkq1QGJPd/Nux7r06alW+t+5Yzt1bw3lpk/4hr6qgYvSKH1fHbmlI4/h6FiuBNeT72B7DWxmSeu3BAhXAWPKcyXOw4+qh84tVLTQhSch9uhSs1GSOk97BY2RfUxTODSCDU7414A5VAEW2fKXlfugByiQwx03nj9Dn4qkVnKZmNz0LSHoJ9m535XXb44OVY0rtl7c5PrQpLpNKrNeiQuhzyc3Y0a9V7wdhIxiF1X3j46WN0331Ta2Q3721qz3AsiybeODiPLlJyxjapHZgUwc0uQzi3RGX9ReWkYAw==",
+    "page_age": "July 8, 2024"
+  }
+]
+</tool.srvtoolu_01NMNgRwMbwGH3ipGSb4LkKx>
 
 # ASSISTANT
 
-Here are 10 alternative glitch effect ideas for the backtick character, ranging from simple to complex:
-
----
-
-## 1. **Pixel Sorting Bands**
-Sort pixels within horizontal bands by luminance, hue, or saturation. Creates those distinctive "sorted streak" glitch aesthetics.
-- Divide image into horizontal bands of varying heights
-- Within each band, sort pixels along rows by brightness (or hue)
-- Some bands sort left-to-right, others right-to-left
-- Threshold: only sort pixels above/below certain brightness
-
----
-
-## 2. **Block Displacement (DCT Corruption)**
-Simulate JPEG/video codec corruption with displaced macroblocks.
-- Divide image into 8x8 or 16x16 blocks
-- Deterministically select blocks to displace (swap with neighbors or distant blocks)
-- Add quantization banding within affected blocks
-- Simulate "mosquito noise" at block edges with high-frequency artifacts
-
----
-
-## 3. **VHS Tracking Simulation**
-Classic analog video distortion with horizontal displacement and color bleeding.
-- Horizontal bands shift left/right with sine-wave variation
-- Color channels (especially chroma) blur/smear horizontally
-- Occasional "noise burst" bands with random pixel values
-- Vertical sync issues: duplicate or skip certain scanlines
-
----
-
-## 4. **Bitplane Manipulation**
-Corrupt individual bit planes of RGB channels for that distinctive digital corruption look.
-- Extract 8 bit planes per channel
-- Swap bitplanes between channels (R's bit 3 ↔ B's bit 5)
-- Flip/invert certain bitplanes
-- Shift bitplanes horizontally by different amounts
-- Creates harsh color posterization with geometric patterns
-
----
-
-## 5. **Recursive Feedback Echo**
-Sample from offset positions with accumulated feedback, creating cascading trails.
-- For each pixel, blend with pixel at offset position
-- Offset direction rotates based on position
-- Multiple feedback iterations create echo trails
-- Intensity fades with each iteration
-- Creates psychedelic trailing/smearing effects
-
----
-
-## 6. **Segment Stretch/Delete**
-Simulate data stream corruption where bytes are duplicated or missing.
-- Divide into horizontal strips
-- Some strips get "stretched" (repeated rows)
-- Some strips get "compressed" (skipped rows)
-- Creates vertical stretching/squishing artifacts
-- Source row indices calculated with cumulative offset errors
-
----
-
-## 7. **Scanline Phase Drift**
-Each scanline has a phase offset that accumulates, creating diagonal tearing.
-- Phase offset accumulates row by row
-- Creates diagonal "tearing" lines across image
-- RGB channels have different phase drift rates
-- Creates rainbow fringing at tear boundaries
-- Phase wraps creating repeating diagonal bands
-
----
-
-## 8. **Memory Address Corruption**
-Simulate reading image data from wrong memory addresses.
-- Calculate "corrupted" source coordinates using bit manipulation
-- XOR, bit rotation, or modular arithmetic on x/y coordinates
-- Creates displaced chunks, repeated sections, mirrored fragments
-- Some regions read from completely wrong locations
-- Others have subtle coordinate errors
-
----
-
-## 9. **Interlace Combing**
-Simulate deinterlacing failures with field mixing artifacts.
-- Separate odd/even scanlines as two "fields"
-- Offset one field horizontally and/or temporally (sample from different image in history)
-- Blend fields with combing artifacts at motion boundaries
-- Create "feathered" edges where fields don't align
-- Add field-rate flicker simulation
-
----
-
-## 10. **Data Moshing (I-Frame Deletion)**
-Simulate video compression artifacts when keyframes are corrupted.
-- Divide into blocks, calculate "motion vectors" (based on gradient/color flow)
-- Displace blocks according to motion vectors
-- Blocks "slide" in direction of dominant gradient
-- Edge pixels smear into gaps
-- Creates fluid, melting appearance with hard block edges
-
----
-
-**Which of these would you like me to implement?** I'd recommend **#4 (Bitplane Manipulation)** or **#10 (Data Moshing)** for the most visually striking and algorithmically interesting results. #1 (Pixel Sorting) is also a classic that always looks good.
-
-# USER
-
-no i meant something more algorithmic and deterministic based on the input image. the scanline phase drift is the closest. come up with five more ideas
-
-# THINKING
-
-Signature: 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
-
-The user wants more algorithmic/deterministic glitch effects that are based on the input image content, not just random displacement. The scanline phase drift was closest because it creates structured patterns. Let me think of more content-aware, algorithmic glitch effects:
-
-1. **Luminance-driven displacement** - Use the brightness of each pixel to determine how much to shift neighboring pixels. Bright areas push pixels away, dark areas pull them in.
-
-2. **Edge-triggered corruption** - Detect edges in the image, and use edge locations as "corruption seeds" - pixels near edges get displaced, color-shifted, or duplicated based on edge direction/strength.
-
-3. **Frequency-domain manipulation** - Do something in frequency space that creates visible artifacts - shift phases, amplify certain frequencies, create interference patterns.
-
-4. **Gradient flow displacement** - Calculate image gradients and displace pixels along gradient directions, creating flow-field distortion.
-
-5. **Color histogram remapping corruption** - Use the color distribution of the image to create a corrupted remapping - colors get shifted based on their frequency in the image.
-
-6. **Recursive self-sampling** - Sample pixel colors and use them as coordinates to sample other pixels, creating feedback loops based on image content.
-
-7. **Local variance-driven effects** - High variance (detailed) areas get one treatment, low variance (flat) areas get another.
-
-8. **Bit-interleaving with image data** - Use pixel values from one region as bit masks or offsets for another region.
-
-9. **Checksum-based corruption** - Calculate local "checksums" of pixel blocks and use mismatches to trigger corruption effects.
-
-10. **Self-referential coordinate transform** - Use the R channel as X offset, G as Y offset, B as rotation - the image literally transforms itself based on its own content.
-
-Let me pick 5 good ones that are algorithmic, deterministic, and content-aware:
+I found great information about the god rays technique. 
 
 # ASSISTANT
 
-Here are 5 more algorithmic, deterministic, content-driven glitch effects:
+The shader works by computing the final color by taking samples along the segment from the current fragment to the light position, using decay, exposure, density, and weight parameters.
 
----
+## https://medium.com/community-play-3d/god-rays-whats-that-5a67f26aeac2
 
-## 1. **Self-Referential Coordinate Warp**
-Use the image's own pixel values as displacement coordinates.
-- For each pixel at (x,y), read its RGB values
-- Use R as X offset, G as Y offset (scaled and centered around 128)
-- Sample from the displaced position
-- Creates feedback-like warping where bright red areas push right, bright green pushes down
-- The distortion pattern is entirely determined by image content
-- Iterate multiple times for more extreme warping
+Title: God Rays? What’s that?
+Cited text: The “God Rays” shader in GLSL (version <= 1.40) language is the following: /// Our light scattering pass texture uniform sampler2D UserMapSampler;/// ...
+Encrypted index: EpABCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDPXziO2JQaFQwDdk4hoMfdw60FDgFkpRr2DuIjAPyAmvjwOA92hq2eclOVMueqWDjLzKIz3mtBTOh+Xuv0+toIQ15o2diOt74NxDFHwqFDvcNPUqFp77034ROR/zMzvQzLF/GAQ=
 
----
+# ASSISTANT
 
-## 2. **Luminance Accumulator Drift**
-Running sum of luminance values causes progressive horizontal drift.
-- Maintain a running sum as you scan left-to-right
-- Each pixel's luminance adds to the accumulator
-- Accumulator (mod width) determines X offset for sampling
-- Bright regions cause rapid drift, dark regions stabilize
-- Creates content-aware horizontal tearing where bright areas "push" subsequent pixels
-- Different rows drift independently based on their content
+ Let me implement this in WebGL:
 
----
+# TOOL USE
 
-## 3. **Gradient Flow Smear**
-Calculate image gradients and smear pixels along the gradient direction.
-- Compute Sobel gradient (dx, dy) at each pixel
-- Displace pixel position along gradient vector, scaled by gradient magnitude
-- Strong edges cause large displacements perpendicular to the edge
-- Flat areas remain stable
-- Creates directional smearing that follows image structure
-- Multiple iterations create motion-blur-like trails along edges
+Name: read-file
+ID: toolu_01VWSbkBgGYyBEhz184uqBDc
 
----
+## path
 
-## 4. **Local Hash Corruption**
-Use local pixel neighborhoods as hash inputs to determine corruption type.
-- For each 4x4 block, compute a hash from its pixel values
-- Hash determines: displacement amount, channel swap, bit flip pattern
-- Blocks with similar content get similar corruption
-- Creates structured, repeating artifacts in uniform areas
-- Detailed areas get chaotic, unique corruption per block
-- Entirely deterministic - same image always produces same glitch
+<tool.toolu_01VWSbkBgGYyBEhz184uqBDc>
+character-defs.ts
+</tool.toolu_01VWSbkBgGYyBEhz184uqBDc>
 
----
+## start-line
 
-## 5. **Entropy-Gated Channel Displacement**
-Measure local entropy/complexity to control RGB separation intensity.
-- Calculate local entropy in sliding window (histogram-based)
-- High entropy (detailed) regions: large RGB channel separation
-- Low entropy (flat) regions: minimal or no separation
-- Separation direction follows local gradient
-- Flat colored areas stay clean, busy areas explode into chromatic chaos
-- Creates content-aware chromatic aberration that emphasizes texture
+<tool.toolu_01VWSbkBgGYyBEhz184uqBDc>
+1010
+</tool.toolu_01VWSbkBgGYyBEhz184uqBDc>
 
----
+## end-line
 
-**My recommendation:** #2 (Luminance Accumulator Drift) is elegant and creates very distinctive, image-dependent tearing patterns. #1 (Self-Referential Warp) produces wild, unique results where the image literally reshapes itself. Both are simple to implement but produce complex, deterministic outputs.
+<tool.toolu_01VWSbkBgGYyBEhz184uqBDc>
+1090
+</tool.toolu_01VWSbkBgGYyBEhz184uqBDc>
 
-# USER
+# TOOL RESULT
 
-yeah do the gradient flow smear on `` ` ``
+ID: toolu_01VWSbkBgGYyBEhz184uqBDc
 
-# THINKING
-
-Signature: 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
-
-The user wants me to implement the "Gradient Flow Smear" effect for the backtick character. Let me look at the current implementation and replace it.
-
-Current implementation:
-```typescript
-function fnBacktick(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+<tool.toolu_01VWSbkBgGYyBEhz184uqBDc>
+    const x = Math.sin(i * 127.1 + n * 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  };
   
-  const glitchN = Math.max(1, n);
+  const scale = 12 + hash(0) * 30;
+  const freqRatio = 1.02 + hash(1) * 0.1;
+  const amp1 = 15 + hash(2) * 80;
+  const amp2 = 15 + hash(3) * 80;
+  const freq1 = 0.006 + hash(4) * 0.025;
+  const angle1 = hash(5) * Math.PI;
+  const angle2 = angle1 + (hash(6) - 0.5) * 0.3;
+  const phase = hash(7) * Math.PI * 2;
+  const hueShift = Math.floor(hash(8) * 360);
+  const harmonic1 = 0.3 + hash(9) * 0.7;
+  const harmonic2 = hash(10) * 0.5;
+  const scaleRatio = 0.95 + hash(11) * 0.1;
+  const crossAmp = hash(12) * 40;
+  const crossFreq = 0.01 + hash(13) * 0.02;
+  
+  const cos_a1 = Math.cos(angle1), sin_a1 = Math.sin(angle1);
+  const cos_a2 = Math.cos(angle2), sin_a2 = Math.sin(angle2);
   
   for (let y = 0; y < ctx.height; y++) {
-    const shouldGlitch = (y * 17) % 23 < glitchN;
-    const shiftAmount = shouldGlitch ? ((y * 31) % (glitchN * 20)) : 0;
-    
     for (let x = 0; x < ctx.width; x++) {
-      if (shouldGlitch) {
-        const srcXR = ((x - shiftAmount - glitchN) % ctx.width + ctx.width) % ctx.width;
-        const srcXG = ((x - shiftAmount) % ctx.width + ctx.width) % ctx.width;
-        const srcXB = ((x - shiftAmount + glitchN) % ctx.width + ctx.width) % ctx.width;
-        
-        const [rr] = getPixel(prev, srcXR, y);
-        const [, gg] = getPixel(prev, srcXG, y);
-        const [, , bb] = getPixel(prev, srcXB, y);
-        
-        setPixel(out, x, y, rr, gg, bb);
+      const rx1 = x * cos_a1 + y * sin_a1;
+      const ry1 = -x * sin_a1 + y * cos_a1;
+      const rx2 = x * cos_a2 + y * sin_a2;
+      const ry2 = -x * sin_a2 + y * cos_a2;
+      
+      const wobble1 = Math.sin(rx1 * freq1) * amp1 
+                    + Math.sin(rx1 * freq1 * 2.1) * amp1 * harmonic1
+                    + Math.sin(ry1 * crossFreq) * crossAmp;
+      const wobble2 = Math.sin(rx2 * freq1 * freqRatio + phase) * amp2
+                    + Math.sin(rx2 * freq1 * freqRatio * 2.3 + phase) * amp2 * harmonic2
+                    + Math.sin(ry2 * crossFreq * 1.1) * crossAmp;
+      
+      const wave1 = ry1 + wobble1;
+      const wave2 = ry2 + wobble2;
+      
+      const line1 = Math.floor(wave1 / scale) % 2;
+      const line2 = Math.floor(wave2 / (scale * scaleRatio)) % 2;
+      
+      const moire = line1 !== line2;
+      
+      const [r, g, b] = getPixel(prev, x, y);
+      
+      if (moire) {
+        setPixel(out, x, y, 255 - r, 255 - g, 255 - b);
       } else {
-        const [r, g, b] = getPixel(prev, x, y);
         setPixel(out, x, y, r, g, b);
       }
     }
@@ -6623,1006 +6566,426 @@ function fnBacktick(ctx: FnContext, n: number): Image {
   
   return out;
 }
-```
 
-I'll design a gradient-based displacement algorithm that creates a fluid, motion-like smearing effect. The approach will involve computing edge gradients and using them to dynamically shift pixel positions, creating organic, directional distortions that follow image contours.
-
-The implementation will leverage Sobel edge detection to generate displacement vectors, allowing pixels to flow along and perpendicular to detected edges. This technique will produce a more sophisticated visual transformation compared to the previous random shifting approach.
-
-Key steps include converting the image to grayscale, calculating directional gradients, and then using those gradients to guide pixel movement across multiple iterations.
-
-```typescript
-function fnBacktick(ctx: FnContext, n: number): Image {
-  const prev = getPrevImage(ctx);
-  const { width, height } = ctx;
-  
-  // Compute image gradients using precise Sobel convolution
-  const gradX = new Float32Array(width * height);
-  const gradY = new Float32Array(width * height);
-  const gradMag = new Float32Array(width * height);
-  
-  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
-  
-  // Iterate through image pixels, calculating gradient vectors
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      let gx = 0, gy = 0;
-      
-      // Apply Sobel kernel to neighborhood
-      for (let ky = -1; ky <= 1; ky++) {
-        for (let kx = -1; kx <= 1; kx++) {
-          const [r, g, b] = getPixel(prev, x + kx, y + ky);
-          const gray = r * 0.299 + g * 0.587 + b * 0.114;
-          const kidx = (ky + 1) * 3 + (kx + 1);
-          gx += gray * sobelX[kidx];
-          gy += gray * sobelY[kidx];
-        }
-      }
-      
-      const idx = y * width + x;
-      gradX[idx] = gx;
-      gradY[idx] = gy;
-      gradMag[idx] = Math.sqrt(gx * gx + gy * gy);
-    }
-  }
-}
-``` I'll compute gradients using the Sobel operator, systematically analyzing pixel neighborhoods to detect edge intensity and direction. By applying convolution kernels, I'll calculate horizontal and vertical gradient components for each pixel, tracking the maximum gradient magnitude to normalize later processing.
-
-The nested loops will iterate through image pixels, strategically sampling surrounding pixel values. I'll carefully apply Sobel kernels to extract gradient information, determining how pixel intensities change across horizontal and vertical axes. This approach enables precise edge detection and gradient flow characterization.
-
-For pixels with minimal gradient magnitude, I'll directly copy original pixel values. Where significant gradient exists, I'll prepare for a directional smearing effect, using the computed gradient information to guide subsequent image transformation.
-
-The implementation ensures comprehensive pixel-level analysis, transforming the image by intelligently interpreting local intensity variations and directional gradients.
-
-I'll normalize the gradient vector, calculate a proportional smearing distance based on magnitude, and strategically sample surrounding pixels. The sampling technique uses a weighted approach, emphasizing central pixel contributions while exploring the gradient's directional influence.
-
-By sampling along the gradient with carefully calculated weights, I create a directional pixel blending that produces a subtle streak effect. The algorithm ensures smooth transitions by averaging pixel values proportionally to their distance from the center point.
-
-The final pixel color emerges from a weighted interpolation, capturing the gradient's directional momentum while maintaining visual coherence across the image transformation. I'll continue the gradient computation, completing the partial thought about gradient calculation in the Sobel operator implementation. The code calculates horizontal and vertical image gradients by applying convolution kernels to grayscale pixel values, which helps detect edge directions and magnitudes.
-
-The nested loops iterate through a 3x3 neighborhood around each pixel, converting RGB to grayscale and multiplying pixel intensities with Sobel kernel coefficients to compute horizontal and vertical gradient components. This technique allows precise edge detection and directional gradient estimation across the image.
-
-After computing gradients, the code finds the maximum gradient magnitude to normalize edge intensities. It then performs an iterative smearing process, using gradient magnitudes to guide pixel blending and create a stylized edge-enhanced effect with controlled iterations and strength.
-
-The implementation dynamically adjusts smearing parameters based on input complexity, ensuring adaptive edge processing across different image characteristics.
-
-For each pixel, it calculates a displacement vector scaled by gradient magnitude, sampling source pixels from the gradient direction and blending them with the original pixel to create a smooth, directional smearing effect.
-
-The algorithm progressively transforms the image by iteratively moving pixels along detected gradient flows, resulting in a dynamic visual distortion that emphasizes structural edges and directional movement.
-
-By controlling iteration count and gradient scaling, the technique allows fine-tuned control over the smearing intensity and visual characteristics of the image transformation.
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_017hvDEgYQZp1Es2T79TsCxg
-
-## path
-
-<tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
-character-defs.ts
-</tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
-
-## original-content
-
-<tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
-function fnBacktick(ctx: FnContext, n: number): Image {
+function fnN(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const glitchN = Math.max(1, n);
+  const scale = Math.min(ctx.width, ctx.height);
+  const numLights = 15;
+  
+  const seed = ctx.images.length * 137.5;
+  const hash = (n: number) => {
+    const x = Math.sin(n + seed) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  
+  const lights: { x: number; y: number; r: number; g: number; b: number; size: number }[] = [];
+  for (let i = 0; i < numLights; i++) {
+    const px = hash(i * 127.1) * ctx.width;
+    const py = hash(i * 311.7) * ctx.height;
+    const colorAngle = hash(i * 74.3) * Math.PI * 2;
+    const size = 0.03 + hash(i * 191.3) * 0.04;
+    lights.push({
+      x: px, y: py,
+      r: Math.cos(colorAngle) * 0.5 + 0.5,
+      g: Math.cos(colorAngle + Math.PI * 2 / 3) * 0.5 + 0.5,
+      b: Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5,
+</tool.toolu_01VWSbkBgGYyBEhz184uqBDc>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01U9x55zsWQM3pjQSWaVuq8B
+
+## path
+
+<tool.toolu_01U9x55zsWQM3pjQSWaVuq8B>
+character-defs.ts
+</tool.toolu_01U9x55zsWQM3pjQSWaVuq8B>
+
+## start-line
+
+<tool.toolu_01U9x55zsWQM3pjQSWaVuq8B>
+1090
+</tool.toolu_01U9x55zsWQM3pjQSWaVuq8B>
+
+## end-line
+
+<tool.toolu_01U9x55zsWQM3pjQSWaVuq8B>
+1160
+</tool.toolu_01U9x55zsWQM3pjQSWaVuq8B>
+
+# TOOL RESULT
+
+ID: toolu_01U9x55zsWQM3pjQSWaVuq8B
+
+<tool.toolu_01U9x55zsWQM3pjQSWaVuq8B>
+      b: Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5,
+      size
+    });
+  }
+  
+  const glowRadius = 8;
   
   for (let y = 0; y < ctx.height; y++) {
-    const shouldGlitch = (y * 17) % 23 < glitchN;
-    const shiftAmount = shouldGlitch ? ((y * 31) % (glitchN * 20)) : 0;
-    
     for (let x = 0; x < ctx.width; x++) {
-      if (shouldGlitch) {
-        const srcXR = ((x - shiftAmount - glitchN) % ctx.width + ctx.width) % ctx.width;
-        const srcXG = ((x - shiftAmount) % ctx.width + ctx.width) % ctx.width;
-        const srcXB = ((x - shiftAmount + glitchN) % ctx.width + ctx.width) % ctx.width;
-        
-        const [rr] = getPixel(prev, srcXR, y);
-        const [, gg] = getPixel(prev, srcXG, y);
-        const [, , bb] = getPixel(prev, srcXB, y);
-        
-        setPixel(out, x, y, rr, gg, bb);
-      } else {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const brightness = (pr + pg + pb) / (255 * 3);
+      
+      let tr = (pr / 255) * 0.3;
+      let tg = (pg / 255) * 0.3;
+      let tb = (pb / 255) * 0.3;
+      
+      if (brightness > 0.3) {
+        let glowSum = 0;
+        let glowR = 0, glowG = 0, glowB = 0;
+        for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
+          for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
+            const sx = Math.max(0, Math.min(ctx.width - 1, x + dx));
+            const sy = Math.max(0, Math.min(ctx.height - 1, y + dy));
+            const [sr, sg, sb] = getPixel(prev, sx, sy);
+            const sBright = (sr + sg + sb) / (255 * 3);
+            if (sBright > 0.3) {
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const weight = Math.max(0, 1 - dist / glowRadius);
+              glowR += (sr / 255) * weight * sBright;
+              glowG += (sg / 255) * weight * sBright;
+              glowB += (sb / 255) * weight * sBright;
+              glowSum += weight;
+            }
+          }
+        }
+        if (glowSum > 0) {
+          tr += (glowR / glowSum) * brightness * 1.5;
+          tg += (glowG / glowSum) * brightness * 1.5;
+          tb += (glowB / glowSum) * brightness * 1.5;
+        }
       }
+      
+      for (const light of lights) {
+        const dx = (x - light.x) / scale;
+        const dy = (y - light.y) / scale;
+        const distSq = dx * dx + dy * dy;
+        const glow = (light.size * light.size) / Math.max(0.0001, distSq);
+        const cappedGlow = Math.min(1, glow);
+        tr += cappedGlow * light.r;
+        tg += cappedGlow * light.g;
+        tb += cappedGlow * light.b;
+      }
+      
+      setPixel(out, x, y,
+        Math.min(255, Math.floor(tr * 255)),
+        Math.min(255, Math.floor(tg * 255)),
+        Math.min(255, Math.floor(tb * 255))
+      );
     }
   }
   
   return out;
 }
-</tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
 
-## new-content
-
-<tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
-function fnBacktick(ctx: FnContext, n: number): Image {
+function fnO(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const { width, height } = ctx;
   
-  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+  const multiplier = 1.5 + n * 0.8;
   
-  const gradX = new Float32Array(width * height);
-  const gradY = new Float32Array(width * height);
-  const gradMag = new Float32Array(width * height);
-  
-  let maxMag = 1;
-  
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      let gx = 0, gy = 0;
-      
-      for (let ky = -1; ky <= 1; ky++) {
-        for (let kx = -1; kx <= 1; kx++) {
-          const [r, g, b] = getPixel(prev, x + kx, y + ky);
-          const gray = r * 0.299 + g * 0.587 + b * 0.114;
-          const kidx = (ky + 1) * 3 + (kx + 1);
-          gx += gray * sobelX[kidx];
-          gy += gray * sobelY[kidx];
-        }
-      }
-      
-      const idx = y * width + x;
-      gradX[idx] = gx;
-      gradY[idx] = gy;
-      const mag = Math.sqrt(gx * gx + gy * gy);
-      gradMag[idx] = mag;
-      if (mag > maxMag) maxMag = mag;
-    }
-  }
-  
-  const iterations = Math.max(2, Math.min(n + 3, 20));
-  const baseStrength = 2.0 + n * 0.8;
-  const threshold = 12;
-  
-  let current = cloneImage(prev);
-  
-  for (let iter = 0; iter < iterations; iter++) {
-    const next = createSolidImage(width, height, '#000000');
-    const iterDecay = 1 - (iter / iterations) * 0.4;
-    const iterStrength = baseStrength * iterDecay;
-    
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const idx = y * width + x;
-        const mag = gradMag[idx];
-        
-        if (mag < threshold) {
-          const [r, g, b] = getPixel(current, x, y);
-          setPixel(next, x, y, r, g, b);
-          continue;
-        }
-        
-        const normMag = mag / maxMag;
-        const scale = normMag * iterStrength;
-        const dx = (gradX[idx] / mag) * scale;
-        const dy = (gradY[idx] / mag) * scale;
-        
-        const srcX = x - dx;
-        const srcY = y - dy;
-        
-        const [r1, g1, b1] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
-        const [r2, g2, b2] = getPixel(current, x, y);
-        
-        const blend = Math.min(0.9, normMag * 0.7 + 0.2);
-        setPixel(next, x, y,
-          Math.round(r1 * blend + r2 * (1 - blend)),
-          Math.round(g1 * blend + g2 * (1 - blend)),
-          Math.round(b1 * blend + b2 * (1 - blend))
-        );
-      }
-    }
-    
-    current = next;
-  }
-  
-  return current;
-}
-</tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
-
-## git-commit-message
-
-<tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
-Replace backtick glitch with gradient flow smear effect
-</tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
-
-# TOOL RESULT
-
-ID: toolu_017hvDEgYQZp1Es2T79TsCxg
-
-<tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Replace backtick glitch with gradient flow smear effect
-</tool.toolu_017hvDEgYQZp1Es2T79TsCxg>
+  const nextPow2 = (v: number) => {
+    v--;
+</tool.toolu_01U9x55zsWQM3pjQSWaVuq8B>
 
 # ASSISTANT
 
-Now let me update the documentation for this character:
+Now I understand the current `fnN` function. Let me rewrite it using WebGL with proper god rays (volumetric light scattering) effect:
 
 # TOOL USE
 
 Name: str-replace
-ID: toolu_01K8ojdvUa1RVhJBNzrRZjXU
+ID: toolu_01SYAZrynd2xGAaUSRpL66q7
 
 ## path
 
-<tool.toolu_01K8ojdvUa1RVhJBNzrRZjXU>
+<tool.toolu_01SYAZrynd2xGAaUSRpL66q7>
 character-defs.ts
-</tool.toolu_01K8ojdvUa1RVhJBNzrRZjXU>
+</tool.toolu_01SYAZrynd2xGAaUSRpL66q7>
 
 ## diff
 
-<tool.toolu_01K8ojdvUa1RVhJBNzrRZjXU>
-   '`': {
-     color: '#6495ED',
-     number: 64,
-     fn: fnBacktick,
-     arity: 1,
-     argTypes: ['int'],
--    functionName: "glitch",
--    documentation: "Glitch effect: horizontal strips shifted right with RGB separation of n pixels"
-+    functionName: "gradient-smear",
-+    documentation: "Iteratively smears pixels along image gradients; edges create directional streaks, n controls iterations and strength"
-   },
-\ No newline at end of file
-
-</tool.toolu_01K8ojdvUa1RVhJBNzrRZjXU>
-
-## git-commit-message
-
-<tool.toolu_01K8ojdvUa1RVhJBNzrRZjXU>
-Update backtick documentation for gradient-smear effect
-</tool.toolu_01K8ojdvUa1RVhJBNzrRZjXU>
-
-# TOOL RESULT
-
-ID: toolu_01K8ojdvUa1RVhJBNzrRZjXU
-
-<tool.toolu_01K8ojdvUa1RVhJBNzrRZjXU>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update backtick documentation for gradient-smear effect
-</tool.toolu_01K8ojdvUa1RVhJBNzrRZjXU>
-
-# ASSISTANT
-
-Done! The new **gradient-smear** effect:
-
-1. **Computes Sobel gradients** from the original image to find edge directions and magnitudes
-2. **Iteratively displaces pixels** along their gradient direction - pixels flow from high-gradient areas toward low-gradient areas
-3. **Blends displaced samples** with original pixels, weighted by gradient magnitude
-4. **Iteration decay** - each iteration has slightly less strength to prevent over-smearing
-5. **Threshold filtering** - flat areas (gradient < 12) remain untouched
-
-The `n` parameter controls:
-- Number of iterations (n+3, capped at 20)
-- Base displacement strength (2.0 + n*0.8)
-
-The effect creates directional streaking at edges - strong edges get pulled/smeared along their gradient direction, while flat areas stay stable. Multiple iterations compound the effect, creating elongated trails that follow image structure.
-
-# USER
-
-make the effect a lot more pronounced
-
-# THINKING
-
-Signature: Es4DCkYIChgCKkBF/5n51wqPvAYflDw8O/2fEeb9nlor+WZ84v1xGiVHuO+0DQskdD3VSpa0s1o3YT56KnBbP63T6Ga0nMMvHV3jEgyPeoJ15FtdJcTsukEaDCXY+qBVrJyTtrWvVyIw3mMYw3jCowbdEmM6KaF4TgrATwd2bkLng1q6OJbwhKx5ZosOn7PBZAaO/zhQ8TQYKrUCfA9kcbQNSkX+kJz9kRRPVLX3oVRW4HyPD71pXhu0wb2yGIgW4eCP1JdfP/W0ULmCSHsTmDjzCg9CMX9Em2sU59S7xGVEcZA4A3UuF4GuzSV2WWw3CZoiUHJbflLt5LIZAtgKK7XlBSZNEA2E9frPWjqs1wmm/kTBrqJAp2inx5MStvDVb+q9FM5vNBxYROCmEwecPB9YpMaEs4iX9nG2UM7Obo48/4MsURZLckY5tiFg7t5cGlFJ8E2CdcdAISr9kvugyqitc3wmfeE3mCqz/Ymdr7sra7xxnumMi9oHj7Lw3jhKB8ryK1oBbnpGeD9HCzBj3xXN0m0bmTdEFaGgBAGk92FPrZFhW78V0kYQbk/FKqY3yxHsmogJ0bLcPI0odu9/b24F2V1JroLE7tmg+DHPZkH9GAE=
-
-The user wants the gradient smear effect to be more pronounced/extreme. I should increase:
-1. The base strength
-2. The number of iterations
-3. Maybe lower the threshold so more pixels are affected
-4. Increase the blend factor so displaced pixels dominate more
-
-Let me make it much more aggressive.
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_01A93Q4hiH4JZK5EPjo5rc1K
-
-## path
-
-<tool.toolu_01A93Q4hiH4JZK5EPjo5rc1K>
-character-defs.ts
-</tool.toolu_01A93Q4hiH4JZK5EPjo5rc1K>
-
-## diff
-
-<tool.toolu_01A93Q4hiH4JZK5EPjo5rc1K>
- function fnBacktick(ctx: FnContext, n: number): Image {
+<tool.toolu_01SYAZrynd2xGAaUSRpL66q7>
+ function fnN(ctx: FnContext): Image {
    const prev = getPrevImage(ctx);
-   const { width, height } = ctx;
+-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  const gl = initWebGL(ctx.width, ctx.height);
    
-   const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-   const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
-   
-   const gradX = new Float32Array(width * height);
-   const gradY = new Float32Array(width * height);
-   const gradMag = new Float32Array(width * height);
-   
-   let maxMag = 1;
-   
-   for (let y = 1; y < height - 1; y++) {
-     for (let x = 1; x < width - 1; x++) {
-       let gx = 0, gy = 0;
-       
-       for (let ky = -1; ky <= 1; ky++) {
-         for (let kx = -1; kx <= 1; kx++) {
-           const [r, g, b] = getPixel(prev, x + kx, y + ky);
-           const gray = r * 0.299 + g * 0.587 + b * 0.114;
-           const kidx = (ky + 1) * 3 + (kx + 1);
-           gx += gray * sobelX[kidx];
-           gy += gray * sobelY[kidx];
-         }
-       }
-       
-       const idx = y * width + x;
-       gradX[idx] = gx;
-       gradY[idx] = gy;
-       const mag = Math.sqrt(gx * gx + gy * gy);
-       gradMag[idx] = mag;
-       if (mag > maxMag) maxMag = mag;
-     }
-   }
-   
--  const iterations = Math.max(2, Math.min(n + 3, 20));
--  const baseStrength = 2.0 + n * 0.8;
--  const threshold = 12;
-+  const iterations = Math.max(8, Math.min(n * 4 + 12, 50));
-+  const baseStrength = 6.0 + n * 2.5;
-+  const threshold = 5;
-   
-   let current = cloneImage(prev);
-   
-   for (let iter = 0; iter < iterations; iter++) {
-     const next = createSolidImage(width, height, '#000000');
--    const iterDecay = 1 - (iter / iterations) * 0.4;
-+    const iterDecay = 1 - (iter / iterations) * 0.3;
-     const iterStrength = baseStrength * iterDecay;
-     
-     for (let y = 0; y < height; y++) {
-       for (let x = 0; x < width; x++) {
-         const idx = y * width + x;
-         const mag = gradMag[idx];
-         
-         if (mag < threshold) {
-           const [r, g, b] = getPixel(current, x, y);
-           setPixel(next, x, y, r, g, b);
-           continue;
-         }
-         
-         const normMag = mag / maxMag;
-         const scale = normMag * iterStrength;
-         const dx = (gradX[idx] / mag) * scale;
-         const dy = (gradY[idx] / mag) * scale;
-         
-         const srcX = x - dx;
-         const srcY = y - dy;
-         
--        const [r1, g1, b1] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
--        const [r2, g2, b2] = getPixel(current, x, y);
--        
--        const blend = Math.min(0.9, normMag * 0.7 + 0.2);
--        setPixel(next, x, y,
--          Math.round(r1 * blend + r2 * (1 - blend)),
--          Math.round(g1 * blend + g2 * (1 - blend)),
--          Math.round(b1 * blend + b2 * (1 - blend))
--        );
-+        const [r, g, b] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
-+        setPixel(next, x, y, r, g, b);
-       }
-     }
-     
-     current = next;
-   }
-   
-   return current;
- }
-\ No newline at end of file
-
-</tool.toolu_01A93Q4hiH4JZK5EPjo5rc1K>
-
-## git-commit-message
-
-<tool.toolu_01A93Q4hiH4JZK5EPjo5rc1K>
-Make gradient-smear effect much more pronounced
-</tool.toolu_01A93Q4hiH4JZK5EPjo5rc1K>
-
-# TOOL RESULT
-
-ID: toolu_01A93Q4hiH4JZK5EPjo5rc1K
-
-<tool.toolu_01A93Q4hiH4JZK5EPjo5rc1K>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make gradient-smear effect much more pronounced
-</tool.toolu_01A93Q4hiH4JZK5EPjo5rc1K>
-
-# ASSISTANT
-
-Changes made:
-
-1. **More iterations**: `n*4 + 12` (was `n + 3`), up to 50 (was 20)
-2. **Much stronger displacement**: `6.0 + n*2.5` (was `2.0 + n*0.8`)
-3. **Lower threshold**: 5 (was 12) - more pixels get smeared
-4. **No blending**: Displaced pixels now fully replace originals instead of blending, creating harder streaks
-5. **Less decay per iteration**: 0.3 (was 0.4) - maintains strength longer through iterations
-
-The effect should now create much more dramatic directional streaking, with edges pulling pixels into long visible trails.
-
-# USER
-
-that's too much, do something in between
-
-# THINKING
-
-Signature: EvMECkYIChgCKkAO62T1KCZjvypUvwrdVIC5YAPAGp0nxrdVuWSiUbYZZ5X+ds0HuZ0i4IOSoA+wKqP87Hg7eIF2P3oYk1VDbDZrEgzvPOBB9CiffwjOERkaDCJT4OfFtVSQcCf72SIwWdRIZm/QbGpIWRy4i82TWbnzDZIB1XHwyvLNdeFiwQi+/8h9V9nVUAkAgrOT/AvkKtoDq0LnlnrLdR1VQXT5Rg+6LVOrnCmgUuwJaN/XOkTb4lJJl0yNLAc1Tr6SgajCRCgzjG6aigP9rIhX2EgnKBOSrI99X2bA+bfqnT5FHpTSP+98/W0bWGKCePdxqQ+8u3lAgb1qcqH7M9IioH2E6qhiuxZuh9ak+4mU7dTbckSFalBNmqFyaCOywvMeXucFHXclM9IFStSW7jhj4VmLd91BbWsDxVik1nyk6Uk+bbtpOnks08a0s4aVYOSRaQeLN1o4I2qKwYDU5epukRPxTXvNYGMNGFkrHSQoMnWMDEEdcZ0vEFIVLc36G5UJncTtuN00R7dQWA2uxn9i4KD1Lxjdu8GI3GBoEhEHMvfqsdD3Dgnso+1Hm2ZLwLIYIvzZY/A2lOpwhgSRLlBKvPo+vDMWWKHNOkElmmyoVyWJF1OhYg1rTjxo2ep42+4hDPZK2LrbC1kNoBwnu38Ic1o72IDB0vJGPGxWJAp8yitZ3FFDuzdivz4st+0MGS2XoF7A6JlA9SP46TVShTEBbO583Z4lqgr+rNJ8d8CecipkquvXFi47I4CZ4FhMRJriDUGDRBZworV0N6dfYzsAn9/gBbRD6ybwy8fncGDoMbzWX8zSojgZ+yclkTdd+/ddGAE=
-
-The user wants something between the original subtle version and the overly aggressive version. Let me find a middle ground:
-
-Original:
-- iterations: n + 3, max 20
-- baseStrength: 2.0 + n * 0.8
-- threshold: 12
-- blend: yes (0.7-0.9)
-
-Too much:
-- iterations: n * 4 + 12, max 50
-- baseStrength: 6.0 + n * 2.5
-- threshold: 5
-- blend: no
-
-Middle ground:
-- iterations: n * 2 + 6, max 30
-- baseStrength: 4.0 + n * 1.5
-- threshold: 8
-- blend: partial (higher blend factor)
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_01FALZ2cRBaSgM4TgUefWs8D
-
-## path
-
-<tool.toolu_01FALZ2cRBaSgM4TgUefWs8D>
-character-defs.ts
-</tool.toolu_01FALZ2cRBaSgM4TgUefWs8D>
-
-## git-commit-message
-
-<tool.toolu_01FALZ2cRBaSgM4TgUefWs8D>
-Tune gradient-smear to balanced intensity
-</tool.toolu_01FALZ2cRBaSgM4TgUefWs8D>
-
-## diff
-
-<tool.toolu_01FALZ2cRBaSgM4TgUefWs8D>
- function fnBacktick(ctx: FnContext, n: number): Image {
-   const prev = getPrevImage(ctx);
-   const { width, height } = ctx;
-   
-   const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-   const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
-   
-   const gradX = new Float32Array(width * height);
-   const gradY = new Float32Array(width * height);
-   const gradMag = new Float32Array(width * height);
-   
-   let maxMag = 1;
-   
-   for (let y = 1; y < height - 1; y++) {
-     for (let x = 1; x < width - 1; x++) {
-       let gx = 0, gy = 0;
-       
-       for (let ky = -1; ky <= 1; ky++) {
-         for (let kx = -1; kx <= 1; kx++) {
-           const [r, g, b] = getPixel(prev, x + kx, y + ky);
-           const gray = r * 0.299 + g * 0.587 + b * 0.114;
-           const kidx = (ky + 1) * 3 + (kx + 1);
-           gx += gray * sobelX[kidx];
-           gy += gray * sobelY[kidx];
-         }
-       }
-       
-       const idx = y * width + x;
-       gradX[idx] = gx;
-       gradY[idx] = gy;
-       const mag = Math.sqrt(gx * gx + gy * gy);
-       gradMag[idx] = mag;
-       if (mag > maxMag) maxMag = mag;
-     }
-   }
-   
--  const iterations = Math.max(8, Math.min(n * 4 + 12, 50));
--  const baseStrength = 6.0 + n * 2.5;
--  const threshold = 5;
-+  const iterations = Math.max(5, Math.min(n * 2 + 8, 30));
-+  const baseStrength = 4.0 + n * 1.5;
-+  const threshold = 8;
-   
-   let current = cloneImage(prev);
-   
-   for (let iter = 0; iter < iterations; iter++) {
-     const next = createSolidImage(width, height, '#000000');
--    const iterDecay = 1 - (iter / iterations) * 0.3;
-+    const iterDecay = 1 - (iter / iterations) * 0.35;
-     const iterStrength = baseStrength * iterDecay;
-     
-     for (let y = 0; y < height; y++) {
-       for (let x = 0; x < width; x++) {
-         const idx = y * width + x;
-         const mag = gradMag[idx];
-         
-         if (mag < threshold) {
-           const [r, g, b] = getPixel(current, x, y);
-           setPixel(next, x, y, r, g, b);
-           continue;
-         }
-         
-         const normMag = mag / maxMag;
-         const scale = normMag * iterStrength;
-         const dx = (gradX[idx] / mag) * scale;
-         const dy = (gradY[idx] / mag) * scale;
-         
-         const srcX = x - dx;
-         const srcY = y - dy;
-         
--        const [r, g, b] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
--        setPixel(next, x, y, r, g, b);
-+        const [r1, g1, b1] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
-+        const [r2, g2, b2] = getPixel(current, x, y);
-+        
-+        const blend = Math.min(0.95, normMag * 0.6 + 0.35);
-+        setPixel(next, x, y,
-+          Math.round(r1 * blend + r2 * (1 - blend)),
-+          Math.round(g1 * blend + g2 * (1 - blend)),
-+          Math.round(b1 * blend + b2 * (1 - blend))
-+        );
-       }
-     }
-     
-     current = next;
-   }
-   
-   return current;
- }
-\ No newline at end of file
-
-</tool.toolu_01FALZ2cRBaSgM4TgUefWs8D>
-
-# TOOL RESULT
-
-ID: toolu_01FALZ2cRBaSgM4TgUefWs8D
-
-<tool.toolu_01FALZ2cRBaSgM4TgUefWs8D>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Tune gradient-smear to balanced intensity
-</tool.toolu_01FALZ2cRBaSgM4TgUefWs8D>
-
-# ASSISTANT
-
-Balanced settings now:
-
-| Parameter | Original | Too Much | Now |
-|-----------|----------|----------|-----|
-| Iterations | n+3, max 20 | n*4+12, max 50 | **n*2+8, max 30** |
-| Strength | 2.0 + n*0.8 | 6.0 + n*2.5 | **4.0 + n*1.5** |
-| Threshold | 12 | 5 | **8** |
-| Blend | 0.7-0.9 | none (1.0) | **0.35-0.95** |
-
-This should give noticeable directional streaking at edges without completely obliterating the image.
-
-# USER
-
-for the |, do a much larger blend (e.g. 20% of the image) but make the blend more interesting with pixel arithmetic than just a plain interoplation
-
-# THINKING
-
-Signature: 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
-
-The user wants to modify the pipe `|` function (fnPipe) to have a larger blend region (20% of the image width) and use more interesting pixel arithmetic instead of simple linear interpolation.
-
-Let me look at the current implementation:
-
-```typescript
-function fnPipe(ctx: FnContext, j: number): Image {
-  const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const midX = Math.floor(ctx.width / 2);
-  const blendWidth = 5;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      if (x < midX - blendWidth) {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
-      } else if (x > midX + blendWidth) {
-        const [r, g, b] = getPixel(old, x, y);
-        setPixel(out, x, y, r, g, b);
-      } else {
-        const t = (x - (midX - blendWidth)) / (blendWidth * 2);
-        const [pr, pg, pb] = getPixel(prev, x, y);
-        const [or, og, ob] = getPixel(old, x, y);
-        setPixel(out, x, y,
-          Math.round(pr * (1 - t) + or * t),
-          Math.round(pg * (1 - t) + og * t),
-          Math.round(pb * (1 - t) + ob * t)
-        );
-      }
-    }
-  }
-  
-  return out;
-}
-```
-
-I'll explore advanced blending techniques that introduce more visual complexity. The blend region could use non-linear transformations like screen or overlay modes, which create more dynamic interactions between pixel values. Channel swapping during the blend could produce unexpected and intriguing visual effects, breaking the predictable linear interpolation. Implementing techniques like XOR or difference blending might generate fascinating transitional artifacts across the image's midpoint.
-
-By varying blend modes across horizontal bands or dynamically selecting operations based on pixel luminance, I can create a more organic, responsive blending process. The goal is to move beyond simple linear interpolation and craft a blend that feels alive and reactive to the image's inherent characteristics.
-
-I'll implement a nuanced blending strategy with a centered transition zone. The approach involves dynamically selecting blend modes that respond to pixel values, creating visual complexity. By mapping different arithmetic operations across the blend region - from additive near one side to subtractive in the middle and multiplicative near the other - I can generate unexpected and intriguing visual transformations.
-
-The implementation involves carefully calculating a transition factor, then applying sophisticated blending logic that considers pixel position and content. This allows for a more intelligent, context-aware image merging technique that goes beyond traditional linear blending methods.
-
-The core innovation involves using screen, difference, and multiply blend modes strategically, with horizontal variation introduced through a row-based modulation factor. This creates subtle textural shifts across the transition zone.
-
-I calculate localized transition points within each blend segment, smoothly interpolating between color channels. The approach allows for nuanced, non-linear color transformations that feel organic and dynamic.
-
-By segmenting the transition into thirds and applying different blend techniques, I generate visually interesting color progressions that aren't simply linear fades. The row factor adds an extra dimension of visual complexity.
-
-I round the final color values and set each pixel, ensuring precise color mapping while maintaining the wave-like transition characteristics. The method creates a fluid, almost organic visual transformation between different image states.
-
-The implementation suggests potential for more experimental blending techniques, potentially incorporating wave patterns, bitwise operations, or more complex interpolation strategies to generate unique visual effects.
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_01DYBRjQxMAqtmsXjmmj1tVG
-
-## path
-
-<tool.toolu_01DYBRjQxMAqtmsXjmmj1tVG>
-character-defs.ts
-</tool.toolu_01DYBRjQxMAqtmsXjmmj1tVG>
-
-## git-commit-message
-
-<tool.toolu_01DYBRjQxMAqtmsXjmmj1tVG>
-Make pipe blend zone 20% width with interesting pixel arithmetic
-</tool.toolu_01DYBRjQxMAqtmsXjmmj1tVG>
-
-## diff
-
-<tool.toolu_01DYBRjQxMAqtmsXjmmj1tVG>
- function fnPipe(ctx: FnContext, j: number): Image {
-   const prev = getPrevImage(ctx);
-   const old = getOldImage(ctx, j);
-   const out = createSolidImage(ctx.width, ctx.height, '#000000');
-   
-   const midX = Math.floor(ctx.width / 2);
--  const blendWidth = 5;
-+  const blendWidth = Math.floor(ctx.width * 0.1);
-   
-   for (let y = 0; y < ctx.height; y++) {
-+    const waveOffset = Math.sin(y * 0.05) * 15;
-+    const effectiveMidX = midX + waveOffset;
+-  const scale = Math.min(ctx.width, ctx.height);
+-  const numLights = 15;
+-  
+   const seed = ctx.images.length * 137.5;
++  
++  const vertexShader = `
++    attribute vec2 position;
++    varying vec2 vUV;
++    void main() {
++      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
++      gl_Position = vec4(position, 0.0, 1.0);
++    }
++  `;
++  
++  const occlusionFragShader = `
++    precision highp float;
++    uniform sampler2D uTexture;
++    uniform vec2 uLightPos;
++    uniform float uLightRadius;
++    varying vec2 vUV;
 +    
-     for (let x = 0; x < ctx.width; x++) {
--      if (x < midX - blendWidth) {
--        const [r, g, b] = getPixel(prev, x, y);
--        setPixel(out, x, y, r, g, b);
--      } else if (x > midX + blendWidth) {
--        const [r, g, b] = getPixel(old, x, y);
--        setPixel(out, x, y, r, g, b);
-+      const [pr, pg, pb] = getPixel(prev, x, y);
-+      const [or, og, ob] = getPixel(old, x, y);
++    void main() {
++      vec3 texColor = texture2D(uTexture, vUV).rgb;
++      float brightness = dot(texColor, vec3(0.299, 0.587, 0.114));
 +      
-+      if (x < effectiveMidX - blendWidth) {
-+        setPixel(out, x, y, pr, pg, pb);
-+      } else if (x > effectiveMidX + blendWidth) {
-+        setPixel(out, x, y, or, og, ob);
-       } else {
--        const t = (x - (midX - blendWidth)) / (blendWidth * 2);
--        const [pr, pg, pb] = getPixel(prev, x, y);
--        const [or, og, ob] = getPixel(old, x, y);
--        setPixel(out, x, y,
--          Math.round(pr * (1 - t) + or * t),
--          Math.round(pg * (1 - t) + og * t),
--          Math.round(pb * (1 - t) + ob * t)
--        );
-+        const t = (x - (effectiveMidX - blendWidth)) / (blendWidth * 2);
-+        
-+        const screenR = 255 - ((255 - pr) * (255 - or)) / 255;
-+        const screenG = 255 - ((255 - pg) * (255 - og)) / 255;
-+        const screenB = 255 - ((255 - pb) * (255 - ob)) / 255;
-+        
-+        const diffR = Math.abs(pr - or);
-+        const diffG = Math.abs(pg - og);
-+        const diffB = Math.abs(pb - ob);
-+        
-+        const xorR = pr ^ or;
-+        const xorG = pg ^ og;
-+        const xorB = pb ^ ob;
-+        
-+        const band = Math.floor(y / 20) % 3;
-+        
-+        let r: number, g: number, b: number;
-+        
-+        if (band === 0) {
-+          if (t < 0.5) {
-+            const localT = t * 2;
-+            r = pr * (1 - localT) + screenR * localT;
-+            g = pg * (1 - localT) + screenG * localT;
-+            b = pb * (1 - localT) + screenB * localT;
-+          } else {
-+            const localT = (t - 0.5) * 2;
-+            r = screenR * (1 - localT) + or * localT;
-+            g = screenG * (1 - localT) + og * localT;
-+            b = screenB * (1 - localT) + ob * localT;
-+          }
-+        } else if (band === 1) {
-+          const centerDist = Math.abs(t - 0.5) * 2;
-+          const diffWeight = 1 - centerDist;
-+          r = (pr * (1 - t) + or * t) * (1 - diffWeight) + diffR * diffWeight;
-+          g = (pg * (1 - t) + og * t) * (1 - diffWeight) + diffG * diffWeight;
-+          b = (pb * (1 - t) + ob * t) * (1 - diffWeight) + diffB * diffWeight;
-+        } else {
-+          const xorWeight = Math.sin(t * Math.PI) * 0.7;
-+          const baseR = pr * (1 - t) + or * t;
-+          const baseG = pg * (1 - t) + og * t;
-+          const baseB = pb * (1 - t) + ob * t;
-+          r = baseR * (1 - xorWeight) + xorR * xorWeight;
-+          g = baseG * (1 - xorWeight) + xorG * xorWeight;
-+          b = baseB * (1 - xorWeight) + xorB * xorWeight;
-+        }
-+        
-+        setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
-       }
-     }
-   }
++      // Distance from light center
++      vec2 diff = vUV - uLightPos;
++      float dist = length(diff);
++      
++      // Light source glow (bright center)
++      float lightGlow = exp(-dist * dist / (uLightRadius * uLightRadius * 2.0));
++      
++      // Threshold bright areas as potential light sources
++      float threshold = step(0.5, brightness);
++      
++      // Combine: light center + bright pixels from image
++      vec3 lightColor = vec3(1.0, 0.95, 0.8); // warm white
++      vec3 result = lightGlow * lightColor + threshold * texColor * 0.8;
++      
++      gl_FragColor = vec4(result, 1.0);
++    }
++  `;
++  
++  const godrayFragShader = `
++    precision highp float;
++    uniform sampler2D uOcclusionTexture;
++    uniform sampler2D uSceneTexture;
++    uniform vec2 uLightPos;
++    uniform float uExposure;
++    uniform float uDecay;
++    uniform float uDensity;
++    uniform float uWeight;
++    varying vec2 vUV;
++    
++    #define NUM_SAMPLES 80
++    
++    void main() {
++      vec2 texCoord = vUV;
++      vec2 deltaTexCoord = (texCoord - uLightPos);
++      deltaTexCoord *= 1.0 / float(NUM_SAMPLES) * uDensity;
++      
++      float illuminationDecay = 1.0;
++      vec3 godrayColor = vec3(0.0);
++      
++      vec2 sampleCoord = texCoord;
++      
++      for (int i = 0; i < NUM_SAMPLES; i++) {
++        sampleCoord -= deltaTexCoord;
++        vec3 sampleColor = texture2D(uOcclusionTexture, sampleCoord).rgb;
++        sampleColor *= illuminationDecay * uWeight;
++        godrayColor += sampleColor;
++        illuminationDecay *= uDecay;
++      }
++      
++      godrayColor *= uExposure;
++      
++      // Get original scene
++      vec3 sceneColor = texture2D(uSceneTexture, vUV).rgb;
++      
++      // Blend godrays additively with scene
++      vec3 finalColor = sceneColor + godrayColor;
++      
++      gl_FragColor = vec4(finalColor, 1.0);
++    }
++  `;
++  
++  const occlusionProgram = createShaderProgram(gl, vertexShader, occlusionFragShader);
++  const godrayProgram = createShaderProgram(gl, vertexShader, godrayFragShader);
++  
++  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
++  const buffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
++  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
++  
++  const sceneTexture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const occlusionTexture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, occlusionTexture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const framebuffer = gl.createFramebuffer();
++  
++  // Light position based on seed for determinism
+   const hash = (n: number) => {
+     const x = Math.sin(n + seed) * 43758.5453;
+     return x - Math.floor(x);
+   };
++  const lightX = 0.3 + hash(1) * 0.4;
++  const lightY = 0.3 + hash(2) * 0.4;
++  const lightRadius = 0.08 + hash(3) * 0.06;
    
-   return out;
- }
-\ No newline at end of file
-
-</tool.toolu_01DYBRjQxMAqtmsXjmmj1tVG>
-
-# TOOL RESULT
-
-ID: toolu_01DYBRjQxMAqtmsXjmmj1tVG
-
-<tool.toolu_01DYBRjQxMAqtmsXjmmj1tVG>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make pipe blend zone 20% width with interesting pixel arithmetic
-</tool.toolu_01DYBRjQxMAqtmsXjmmj1tVG>
-
-# ASSISTANT
-
-Now update the documentation:
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_01SgFeE1B91nk3GvKnPU5Ei9
-
-## path
-
-<tool.toolu_01SgFeE1B91nk3GvKnPU5Ei9>
-character-defs.ts
-</tool.toolu_01SgFeE1B91nk3GvKnPU5Ei9>
-
-## git-commit-message
-
-<tool.toolu_01SgFeE1B91nk3GvKnPU5Ei9>
-Update pipe documentation
-</tool.toolu_01SgFeE1B91nk3GvKnPU5Ei9>
-
-## diff
-
-<tool.toolu_01SgFeE1B91nk3GvKnPU5Ei9>
-   '|': {
-     color: '#00BFFF',
-     number: 66,
-     fn: fnPipe,
-     arity: 1,
-     argTypes: ['int'],
-     functionName: "vertical-split",
--    documentation: "Left half is prev, right half is old_image, center column is 10px blend"
-+    documentation: "Left=prev, right=old image j; 20% wavy blend zone uses screen/difference/xor in alternating horizontal bands"
-   },
-\ No newline at end of file
-
-</tool.toolu_01SgFeE1B91nk3GvKnPU5Ei9>
-
-# TOOL RESULT
-
-ID: toolu_01SgFeE1B91nk3GvKnPU5Ei9
-
-<tool.toolu_01SgFeE1B91nk3GvKnPU5Ei9>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update pipe documentation
-</tool.toolu_01SgFeE1B91nk3GvKnPU5Ei9>
-
-# ASSISTANT
-
-Done! The new pipe `|` blend:
-
-1. **20% blend zone** (10% on each side of center)
-2. **Wavy edge** - sine wave distorts the center line vertically
-3. **Three blend modes in horizontal bands** (every 20 rows):
-   - **Band 0 (Screen)**: prev → screen blend → old (brightening blend good for highlights)
-   - **Band 1 (Difference)**: linear blend with difference peaking at center (creates edge-highlighting effect)
-   - **Band 2 (XOR)**: linear blend with XOR weighted by sine curve (digital glitch aesthetic)
-
-The combination creates a visually interesting seam with varied textures rather than a plain gradient.
-
-# USER
-
-replace % with a plain vertical or horizontal flip based on the %2 of the argument
-
-# THINKING
-
-Signature: Eo0DCkYIChgCKkBPZheakfx+NS84E4Mhkw+5e67F4pfA7CbC94TTL/tstIjErvONkX3nAHBPhPl0ht4c2xot+iM2Ejj1Jr3Luvp1EgwZwmzXjvTZsCwNzj0aDJ5bHgx8m17pW04o6yIwS+gLX+jCHx7I8xyfr5pUxZ5sDq337AWiuDIuWRkbbUQWgiYbdBkvy5lgAmR3I7kgKvQBqXIzd7QZ4UXHVn2n0QwxbE6dCfGMS0Lg+G5Zu1jw+uEIO1yRScSTvaza/80HTtJ9RWANBmYlEV9pb+aoKmrlvNLH7w0miPKBEbDqneUXUEH9/r06KE1YRaED8/6zZnWuKhLL0md/feOJXpaeNiCGrdn37R6AMvkDKd8OSn7hWpcZDpltsNNHY0tUNFsA6d85VDATSuSbxxj2/3lERiyGPWtHTm/Kzl3oKO6rO4XxvCsum5DPSlLpl6rabEIlAhBiK2Goc++bheEU0Gu+5wccBKa6C1chy8E0t11/KOJggLgpCWnLqv3HErHXbH2TdaxFEqkYbBgB
-
-The user wants to replace the current `%` function (Floyd-Steinberg dithering) with a simple vertical or horizontal flip based on whether the argument is even or odd (n % 2).
-
-Let me find the current implementation and replace it.
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_01Nz5eBs9JeoQwhjYv3fHBYf
-
-## path
-
-<tool.toolu_01Nz5eBs9JeoQwhjYv3fHBYf>
-character-defs.ts
-</tool.toolu_01Nz5eBs9JeoQwhjYv3fHBYf>
-
-## git-commit-message
-
-<tool.toolu_01Nz5eBs9JeoQwhjYv3fHBYf>
-Replace % with simple vertical/horizontal flip based on arg parity
-</tool.toolu_01Nz5eBs9JeoQwhjYv3fHBYf>
-
-## diff
-
-<tool.toolu_01Nz5eBs9JeoQwhjYv3fHBYf>
- function fnPercent(ctx: FnContext, n: number): Image {
-   const prev = getPrevImage(ctx);
-   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+-  const lights: { x: number; y: number; r: number; g: number; b: number; size: number }[] = [];
+-  for (let i = 0; i < numLights; i++) {
+-    const px = hash(i * 127.1) * ctx.width;
+-    const py = hash(i * 311.7) * ctx.height;
+-    const colorAngle = hash(i * 74.3) * Math.PI * 2;
+-    const size = 0.03 + hash(i * 191.3) * 0.04;
+-    lights.push({
+-      x: px, y: py,
+-      r: Math.cos(colorAngle) * 0.5 + 0.5,
+-      g: Math.cos(colorAngle + Math.PI * 2 / 3) * 0.5 + 0.5,
+-      b: Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5,
+-      size
+-    });
+-  }
++  // Pass 1: Render occlusion texture (light sources)
++  gl.useProgram(occlusionProgram);
    
--  const cellSize = Math.max(1, n + 1);
--  const corners = [
--    getPixel(prev, 0, 0),
--    getPixel(prev, ctx.width - 1, 0),
--    getPixel(prev, 0, ctx.height - 1),
--    getPixel(prev, ctx.width - 1, ctx.height - 1)
--  ];
--  const palette = corners.map(([r, g, b]) => [r, g, b] as [number, number, number]);
-+  const horizontal = n % 2 === 0;
+-  const glowRadius = 8;
++  const occPosLoc = gl.getAttribLocation(occlusionProgram, 'position');
++  gl.enableVertexAttribArray(occPosLoc);
++  gl.vertexAttribPointer(occPosLoc, 2, gl.FLOAT, false, 0, 0);
    
--  const findClosest = (r: number, g: number, b: number): [number, number, number] => {
--    let minDist = Infinity;
--    let closest = palette[0];
--    for (const [pr, pg, pb] of palette) {
--      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
--      if (dist < minDist) {
--        minDist = dist;
--        closest = [pr, pg, pb];
--      }
--    }
--    return closest;
--  };
--  
--  const tempData = new Float32Array(ctx.width * ctx.height * 3);
++  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
++  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, occlusionTexture, 0);
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
++  gl.uniform1i(gl.getUniformLocation(occlusionProgram, 'uTexture'), 0);
++  gl.uniform2f(gl.getUniformLocation(occlusionProgram, 'uLightPos'), lightX, lightY);
++  gl.uniform1f(gl.getUniformLocation(occlusionProgram, 'uLightRadius'), lightRadius);
++  
++  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  
++  // Pass 2: Apply god rays and combine with scene
++  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
++  gl.viewport(0, 0, ctx.width, ctx.height);
++  
++  gl.useProgram(godrayProgram);
++  
++  const grPosLoc = gl.getAttribLocation(godrayProgram, 'position');
++  gl.enableVertexAttribArray(grPosLoc);
++  gl.vertexAttribPointer(grPosLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, occlusionTexture);
++  gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uOcclusionTexture'), 0);
++  
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
++  gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uSceneTexture'), 1);
++  
++  gl.uniform2f(gl.getUniformLocation(godrayProgram, 'uLightPos'), lightX, lightY);
++  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uExposure'), 0.25);
++  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDecay'), 0.97);
++  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDensity'), 0.95);
++  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uWeight'), 0.6);
++  
++  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  
++  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
++  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
++  
++  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
    for (let y = 0; y < ctx.height; y++) {
      for (let x = 0; x < ctx.width; x++) {
--      const [r, g, b] = getPixel(prev, x, y);
--      const idx = (y * ctx.width + x) * 3;
--      tempData[idx] = r;
--      tempData[idx + 1] = g;
--      tempData[idx + 2] = b;
-+      const srcX = horizontal ? ctx.width - 1 - x : x;
-+      const srcY = horizontal ? y : ctx.height - 1 - y;
-+      const [r, g, b] = getPixel(prev, srcX, srcY);
-+      setPixel(out, x, y, r, g, b);
-     }
-   }
-   
--  for (let y = 0; y < ctx.height; y += cellSize) {
--    for (let x = 0; x < ctx.width; x += cellSize) {
--      const idx = (y * ctx.width + x) * 3;
--      const oldR = tempData[idx];
--      const oldG = tempData[idx + 1];
--      const oldB = tempData[idx + 2];
+-      const [pr, pg, pb] = getPixel(prev, x, y);
+-      const brightness = (pr + pg + pb) / (255 * 3);
 -      
--      const [newR, newG, newB] = findClosest(oldR, oldG, oldB);
+-      let tr = (pr / 255) * 0.3;
+-      let tg = (pg / 255) * 0.3;
+-      let tb = (pb / 255) * 0.3;
 -      
--      for (let cy = 0; cy < cellSize && y + cy < ctx.height; cy++) {
--        for (let cx = 0; cx < cellSize && x + cx < ctx.width; cx++) {
--          setPixel(out, x + cx, y + cy, newR, newG, newB);
+-      if (brightness > 0.3) {
+-        let glowSum = 0;
+-        let glowR = 0, glowG = 0, glowB = 0;
+-        for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
+-          for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
+-            const sx = Math.max(0, Math.min(ctx.width - 1, x + dx));
+-            const sy = Math.max(0, Math.min(ctx.height - 1, y + dy));
+-            const [sr, sg, sb] = getPixel(prev, sx, sy);
+-            const sBright = (sr + sg + sb) / (255 * 3);
+-            if (sBright > 0.3) {
+-              const dist = Math.sqrt(dx * dx + dy * dy);
+-              const weight = Math.max(0, 1 - dist / glowRadius);
+-              glowR += (sr / 255) * weight * sBright;
+-              glowG += (sg / 255) * weight * sBright;
+-              glowB += (sb / 255) * weight * sBright;
+-              glowSum += weight;
+-            }
+-          }
+-        }
+-        if (glowSum > 0) {
+-          tr += (glowR / glowSum) * brightness * 1.5;
+-          tg += (glowG / glowSum) * brightness * 1.5;
+-          tb += (glowB / glowSum) * brightness * 1.5;
 -        }
 -      }
 -      
--      const errR = oldR - newR;
--      const errG = oldG - newG;
--      const errB = oldB - newB;
+-      for (const light of lights) {
+-        const dx = (x - light.x) / scale;
+-        const dy = (y - light.y) / scale;
+-        const distSq = dx * dx + dy * dy;
+-        const glow = (light.size * light.size) / Math.max(0.0001, distSq);
+-        const cappedGlow = Math.min(1, glow);
+-        tr += cappedGlow * light.r;
+-        tg += cappedGlow * light.g;
+-        tb += cappedGlow * light.b;
+-      }
 -      
--      const distribute = (dx: number, dy: number, factor: number) => {
--        const nx = x + dx * cellSize;
--        const ny = y + dy * cellSize;
--        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
--          const nidx = (ny * ctx.width + nx) * 3;
--          tempData[nidx] += errR * factor;
--          tempData[nidx + 1] += errG * factor;
--          tempData[nidx + 2] += errB * factor;
--        }
--      };
--      
--      distribute(1, 0, 7 / 16);
--      distribute(-1, 1, 3 / 16);
--      distribute(0, 1, 5 / 16);
--      distribute(1, 1, 1 / 16);
--    }
--  }
--  
-   return out;
+-      setPixel(out, x, y,
+-        Math.min(255, Math.floor(tr * 255)),
+-        Math.min(255, Math.floor(tg * 255)),
+-        Math.min(255, Math.floor(tb * 255))
+-      );
++      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
++      const dstIdx = (y * ctx.width + x) * 4;
++      flipped[dstIdx] = pixels[srcIdx];
++      flipped[dstIdx + 1] = pixels[srcIdx + 1];
++      flipped[dstIdx + 2] = pixels[srcIdx + 2];
++      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+     }
+   }
+   
+-  return out;
++  gl.deleteTexture(sceneTexture);
++  gl.deleteTexture(occlusionTexture);
++  gl.deleteFramebuffer(framebuffer);
++  gl.deleteBuffer(buffer);
++  gl.deleteProgram(occlusionProgram);
++  gl.deleteProgram(godrayProgram);
++  
++  return { width: ctx.width, height: ctx.height, data: flipped };
  }
 \ No newline at end of file
 
-</tool.toolu_01Nz5eBs9JeoQwhjYv3fHBYf>
-
-# TOOL RESULT
-
-ID: toolu_01Nz5eBs9JeoQwhjYv3fHBYf
-
-<tool.toolu_01Nz5eBs9JeoQwhjYv3fHBYf>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Replace % with simple vertical/horizontal flip based on arg parity
-</tool.toolu_01Nz5eBs9JeoQwhjYv3fHBYf>
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_019BSaJiZnsnDtpcwjfTxzx5
-
-## path
-
-<tool.toolu_019BSaJiZnsnDtpcwjfTxzx5>
-character-defs.ts
-</tool.toolu_019BSaJiZnsnDtpcwjfTxzx5>
+</tool.toolu_01SYAZrynd2xGAaUSRpL66q7>
 
 ## git-commit-message
 
-<tool.toolu_019BSaJiZnsnDtpcwjfTxzx5>
-Update % documentation for flip function
-</tool.toolu_019BSaJiZnsnDtpcwjfTxzx5>
-
-## diff
-
-<tool.toolu_019BSaJiZnsnDtpcwjfTxzx5>
-   '%': {
-     color: '#8B0000',
-     number: 44,
-     fn: fnPercent,
-     arity: 1,
-     argTypes: ['int'],
--    functionName: "floyd-steinberg",
--    documentation: "Floyd-Steinberg dithers prev to 4-corner color palette with cell size n+1"
-+    functionName: "flip",
-+    documentation: "Flips image horizontally if n is even, vertically if n is odd"
-   },
-\ No newline at end of file
-
-</tool.toolu_019BSaJiZnsnDtpcwjfTxzx5>
+<tool.toolu_01SYAZrynd2xGAaUSRpL66q7>
+Rewrite fnN (neon) to use WebGL with god rays volumetric light scattering effect
+</tool.toolu_01SYAZrynd2xGAaUSRpL66q7>
 
 # TOOL RESULT
 
-ID: toolu_019BSaJiZnsnDtpcwjfTxzx5
+ID: toolu_01SYAZrynd2xGAaUSRpL66q7
 
-<tool.toolu_019BSaJiZnsnDtpcwjfTxzx5>
+<tool.toolu_01SYAZrynd2xGAaUSRpL66q7>
 
-</tool.toolu_019BSaJiZnsnDtpcwjfTxzx5>
+</tool.toolu_01SYAZrynd2xGAaUSRpL66q7>
