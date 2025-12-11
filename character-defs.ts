@@ -4167,15 +4167,15 @@ function fnBacktick(ctx: FnContext, n: number): Image {
     }
   }
   
-  const iterations = Math.max(2, Math.min(n + 3, 20));
-  const baseStrength = 2.0 + n * 0.8;
-  const threshold = 12;
+  const iterations = Math.max(8, Math.min(n * 4 + 12, 50));
+  const baseStrength = 6.0 + n * 2.5;
+  const threshold = 5;
   
   let current = cloneImage(prev);
   
   for (let iter = 0; iter < iterations; iter++) {
     const next = createSolidImage(width, height, '#000000');
-    const iterDecay = 1 - (iter / iterations) * 0.4;
+    const iterDecay = 1 - (iter / iterations) * 0.3;
     const iterStrength = baseStrength * iterDecay;
     
     for (let y = 0; y < height; y++) {
@@ -4197,15 +4197,8 @@ function fnBacktick(ctx: FnContext, n: number): Image {
         const srcX = x - dx;
         const srcY = y - dy;
         
-        const [r1, g1, b1] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
-        const [r2, g2, b2] = getPixel(current, x, y);
-        
-        const blend = Math.min(0.9, normMag * 0.7 + 0.2);
-        setPixel(next, x, y,
-          Math.round(r1 * blend + r2 * (1 - blend)),
-          Math.round(g1 * blend + g2 * (1 - blend)),
-          Math.round(b1 * blend + b2 * (1 - blend))
-        );
+        const [r, g, b] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
+        setPixel(next, x, y, r, g, b);
       }
     }
     
