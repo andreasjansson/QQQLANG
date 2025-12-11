@@ -1390,8 +1390,91 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.add(light);
   });
 
-  // Sparkling glass emerald with transmission
-  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+  // Custom shader material with glitter sparkle effect
+  const emeraldMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: { value: new THREE.Color(0.0, 0.8, 0.28) },
+      uGlitterDensity: { value: 150.0 },
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vWorldPos;
+      varying vec3 vLocalPos;
+      
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+        vLocalPos = position;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uGlitterDensity;
+      
+      varying vec3 vNormal;
+      varying vec3 vWorldPos;
+      varying vec3 vLocalPos;
+      
+      // High quality hash
+      float hash(vec3 p) {
+        p = fract(p * vec3(443.897, 441.423, 437.195));
+        p += dot(p, p.yxz + 19.19);
+        return fract((p.x + p.y) * p.z);
+      }
+      
+      void main() {
+        vec3 normal = normalize(vNormal);
+        vec3 viewDir = normalize(cameraPosition - vWorldPos);
+        
+        // Fresnel for glass-like rim
+        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
+        
+        // Base emerald color
+        vec3 baseColor = uColor * (0.5 + fresnel * 0.5);
+        
+        // Multiple lights for specular
+        vec3 lights[3];
+        lights[0] = vec3(3.0, 3.0, 5.0);
+        lights[1] = vec3(-2.0, 4.0, 3.0);
+        lights[2] = vec3(0.0, -2.0, 4.0);
+        
+        float totalSpec = 0.0;
+        for (int i = 0; i < 3; i++) {
+          vec3 lightDir = normalize(lights[i] - vWorldPos);
+          vec3 halfDir = normalize(lightDir + viewDir);
+          float spec = pow(max(dot(normal, halfDir), 0.0), 128.0);
+          totalSpec += spec * (i == 0 ? 1.0 : 0.6);
+        }
+        
+        // Glitter sparkles - hash based on local position for stability
+        vec3 glitterCell = floor(vLocalPos * uGlitterDensity);
+        float glitterRand = hash(glitterCell);
+        
+        // Only some cells sparkle (top 3%)
+        float sparkle = 0.0;
+        if (glitterRand > 0.97) {
+          // Sparkle intensity depends on alignment with view
+          float alignment = max(dot(normal, viewDir), 0.0);
+          // Make sparkle pop only when well-aligned
+          sparkle = smoothstep(0.97, 1.0, glitterRand) * pow(alignment, 2.0) * 5.0;
+        }
+        
+        // Combine
+        vec3 color = baseColor;
+        color += vec3(1.0) * totalSpec * 0.5;
+        color += vec3(1.0, 1.0, 0.95) * sparkle;
+        color += uColor * fresnel * 0.4;
+        
+        gl_FragColor = vec4(color, 0.88 + fresnel * 0.12);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide,
+  });
+  
+  // Keep reference for compatibility but use shader
+  const _unusedPhysicalMaterial = new THREE.MeshPhysicalMaterial({
     color: new THREE.Color(0.0, 0.8, 0.28),
     metalness: 0.0,
     roughness: 0.0,
