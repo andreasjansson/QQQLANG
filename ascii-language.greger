@@ -14260,5 +14260,63 @@ Add initial color A if input is empty when clicking Help
 ID: toolu_0139PyAbpqTrubLG7dD7YLXu
 
 <tool.toolu_0139PyAbpqTrubLG7dD7YLXu>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Add initial color A if input is empty when clicking Help
 </tool.toolu_0139PyAbpqTrubLG7dD7YLXu>
+
+# ASSISTANT
+
+Now let me fix the URL logic to handle the GitHub Pages base path:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01LpZzVXB1sKTiJzRwu2mfJs
+
+## path
+
+<tool.toolu_01LpZzVXB1sKTiJzRwu2mfJs>
+index.html
+</tool.toolu_01LpZzVXB1sKTiJzRwu2mfJs>
+
+## git-commit-message
+
+<tool.toolu_01LpZzVXB1sKTiJzRwu2mfJs>
+Fix URL logic for GitHub Pages base path
+</tool.toolu_01LpZzVXB1sKTiJzRwu2mfJs>
+
+## diff
+
+<tool.toolu_01LpZzVXB1sKTiJzRwu2mfJs>
++    const BASE_PATH = import.meta.env.BASE_URL || '/';
++    
+     function getProgramFromURL() {
+       const path = window.location.pathname;
+-      const encoded = path === '/' ? '' : path.substring(1);
+-      return decodeURIComponent(encoded);
++      const basePath = BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/';
++      const programPath = path.startsWith(basePath) ? path.substring(basePath.length) : path.substring(1);
++      return decodeURIComponent(programPath);
+     }
+ 
+     function updateURL(program) {
+       const search = window.location.search;
+-      const newPath = program ? `/${encodeURIComponent(program)}${search}` : `/${search}`;
+-      const currentPath = `/${encodeURIComponent(getProgramFromURL())}${search}`;
+-      if (currentPath !== newPath) {
++      const basePath = BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/';
++      const newPath = program ? `${basePath}${encodeURIComponent(program)}${search}` : `${basePath}${search}`;
++      if (window.location.pathname + window.location.search !== newPath) {
+         window.history.pushState({ program }, '', newPath);
+       }
+     }
+\ No newline at end of file
+
+</tool.toolu_01LpZzVXB1sKTiJzRwu2mfJs>
+
+# TOOL RESULT
+
+ID: toolu_01LpZzVXB1sKTiJzRwu2mfJs
+
+<tool.toolu_01LpZzVXB1sKTiJzRwu2mfJs>
+
+</tool.toolu_01LpZzVXB1sKTiJzRwu2mfJs>

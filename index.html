@@ -241,17 +241,20 @@
       link.click();
     });
 
+    const BASE_PATH = import.meta.env.BASE_URL || '/';
+    
     function getProgramFromURL() {
       const path = window.location.pathname;
-      const encoded = path === '/' ? '' : path.substring(1);
-      return decodeURIComponent(encoded);
+      const basePath = BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/';
+      const programPath = path.startsWith(basePath) ? path.substring(basePath.length) : path.substring(1);
+      return decodeURIComponent(programPath);
     }
 
     function updateURL(program) {
       const search = window.location.search;
-      const newPath = program ? `/${encodeURIComponent(program)}${search}` : `/${search}`;
-      const currentPath = `/${encodeURIComponent(getProgramFromURL())}${search}`;
-      if (currentPath !== newPath) {
+      const basePath = BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/';
+      const newPath = program ? `${basePath}${encodeURIComponent(program)}${search}` : `${basePath}${search}`;
+      if (window.location.pathname + window.location.search !== newPath) {
         window.history.pushState({ program }, '', newPath);
       }
     }
