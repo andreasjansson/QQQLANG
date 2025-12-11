@@ -5380,11 +5380,11 @@ export const characterDefs: Record<string, CharDef> = {
   '!': {
     color: '#FF4500',
     number: 40,
-    fn: fnExclaim,
+    fn: fnAsterisk,
     arity: 0,
     argTypes: [],
-    functionName: "fur",
-    documentation: "Fur/hair effect: strands grow from each pixel with direction based on hue plus turbulence and swirl"
+    functionName: "godrays",
+    documentation: "Volumetric light scattering (god rays) effect from center, additively blended with prev"
   },
   
   '"': {
