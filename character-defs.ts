@@ -4091,10 +4091,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#82E0AA',
     number: 34,
     fn: fn7,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "hue-rectangles",
-    documentation: "n rectangles placed diagonally, each filled with prev hue-rotated by i*(360/n)°"
+    arity: 0,
+    argTypes: [],
+    functionName: "rgb-split",
+    documentation: "Chromatic aberration: R shifted left 3px, G centered, B shifted right 3px"
   },
   
   '8': {
