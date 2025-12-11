@@ -4184,8 +4184,8 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
   const gl = initWebGL(ctx.width, ctx.height);
   
   const seed = ctx.images.length * 137.5 + warpN * 17.3 + iridN * 7.1;
-  const depth = 1 + iridN;
-  const warpStrength = 0.3 + warpN * 0.12;
+  const depth = 1 + Math.floor(iridN / 4);
+  const warpStrength = 0.05 + warpN * 0.025;
   const patternScale = 1.5;
   
   const vertexShader = `
