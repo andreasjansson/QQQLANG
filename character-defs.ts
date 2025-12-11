@@ -4545,6 +4545,204 @@ function fnHoles(ctx: FnContext, j: number): Image {
   return out;
 }
 
+function wrapText(text: string, maxWidth: number): string[] {
+  const lines: string[] = [];
+  const paragraphs = text.split('\n');
+  
+  for (const para of paragraphs) {
+    if (para.length === 0) {
+      lines.push('');
+      continue;
+    }
+    
+    const words = para.split(' ');
+    let currentLine = '';
+    
+    for (const word of words) {
+      if (currentLine.length === 0) {
+        currentLine = word;
+      } else if (currentLine.length + 1 + word.length <= maxWidth) {
+        currentLine += ' ' + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    
+    if (currentLine.length > 0) {
+      lines.push(currentLine);
+    }
+  }
+  
+  return lines;
+}
+
+function generateIntroPage(charsPerLine: number): string[] {
+  const introText = `QQQLANG: Syntax-free programming language for image generation
+
+In QQQLANG, any string of visible uppercase ascii characters is a valid program.
+
+Each character has three properties:
+* An integer ('A'=1, 'B'=2, [...], '}'=67, '~'=68)
+* A color
+* A function
+
+Functions can take zero or more arguments. If a function takes arguments, the characters that follow are interpreted as arguments. Otherwise characters are interpreted as functions. The exception is the first character of the program string which sets an initial solid color.
+
+For example, the program 'ABCD' has the following interpretation:
+
+* 'A' sets the intial color to #78A10F
+* 'B' is the 'border' function that creates a circular gradient around the edges. It takes one argument, the border color.
+* 'C' becomes the argument to 'B', the color of 'C' is #FF6B35
+* 'D' is the 'drip' function, which creates a water drop effect. It takes no arguments.
+
+If the program string ends before the last function has had arguments defined, it will use its own number and color as default arguments. For example, the programs 'AL', 'ALL', and 'ALLL' are equivalent.
+
+The question mark character '?' is also a function that displays help text. '?1' and '??' show the first page of help, and '?A', '?B', etc. show subsequent pages of help text.`;
+
+  return wrapText(introText, charsPerLine);
+}
+
+function generateCharacterRefLines(char: string, def: CharDef, charsPerLine: number): string[] {
+  const lines: string[] = [];
+  
+  const argsStr = def.arity > 0 ? ` [${def.argTypes.join(', ')}]` : '';
+  const header = `${char} (${def.number}) ${def.color} - ${def.functionName}${argsStr}`;
+  lines.push(header);
+  
+  const docLines = wrapText('  ' + def.documentation, charsPerLine);
+  lines.push(...docLines);
+  
+  return lines;
+}
+
+function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: Record<string, CharDef>): string[][] {
+  const pages: string[][] = [];
+  
+  const introLines = generateIntroPage(charsPerLine);
+  
+  let introPage: string[] = [];
+  for (let i = 0; i < introLines.length; i++) {
+    if (introPage.length >= linesPerPage - 1) {
+      introPage.push('');
+      introPage.push(`[Page ${pages.length + 1}] (continued on next page...)`);
+      pages.push(introPage);
+      introPage = [];
+    }
+    introPage.push(introLines[i]);
+  }
+  if (introPage.length > 0) {
+    pages.push(introPage);
+  }
+  
+  const chars = Object.keys(defs).sort((a, b) => defs[a].number - defs[b].number);
+  
+  let currentPage: string[] = [];
+  currentPage.push('=== CHARACTER REFERENCE ===');
+  currentPage.push('');
+  let linesUsed = 2;
+  
+  for (const char of chars) {
+    const def = defs[char];
+    const charLines = generateCharacterRefLines(char, def, charsPerLine);
+    
+    if (linesUsed + charLines.length + 1 > linesPerPage - 2) {
+      currentPage.push('');
+      currentPage.push(`[Page ${pages.length + 1}]`);
+      pages.push(currentPage);
+      currentPage = [];
+      currentPage.push('=== CHARACTER REFERENCE (continued) ===');
+      currentPage.push('');
+      linesUsed = 2;
+    }
+    
+    currentPage.push(...charLines);
+    currentPage.push('');
+    linesUsed += charLines.length + 1;
+  }
+  
+  if (currentPage.length > 2) {
+    currentPage.push(`[Page ${pages.length + 1}]`);
+    pages.push(currentPage);
+  }
+  
+  return pages;
+}
+
+function generateIndexPage(numPages: number): string[] {
+  const lines: string[] = [];
+  lines.push('=== QQQLANG HELP INDEX ===');
+  lines.push('');
+  lines.push('Available pages:');
+  lines.push('');
+  lines.push('?? or ?A - Introduction to QQQLANG');
+  
+  for (let i = 2; i <= Math.min(numPages, 26); i++) {
+    const char = String.fromCharCode('A'.charCodeAt(0) + i - 1);
+    if (i === 2) {
+      lines.push(`?${char} - Character reference`);
+    } else {
+      lines.push(`?${char} - Character reference (continued)`);
+    }
+  }
+  
+  lines.push('');
+  lines.push('Enter a valid page code to view help.');
+  lines.push('Invalid page codes show this index.');
+  
+  return lines;
+}
+
+function fnHelp(ctx: FnContext, pageArg: number): Image {
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = ctx.width;
+  tempCanvas.height = ctx.height;
+  const tempCtx = tempCanvas.getContext('2d')!;
+  
+  tempCtx.fillStyle = '#000000';
+  tempCtx.fillRect(0, 0, ctx.width, ctx.height);
+  
+  const fontSize = 14;
+  const lineHeight = Math.floor(fontSize * 1.5);
+  const margin = 20;
+  
+  tempCtx.font = `${fontSize}px monospace`;
+  tempCtx.fillStyle = '#00FF00';
+  
+  const charWidth = tempCtx.measureText('M').width;
+  const charsPerLine = Math.floor((ctx.width - margin * 2) / charWidth);
+  const linesPerPage = Math.floor((ctx.height - margin * 2) / lineHeight);
+  
+  let page: number;
+  if (pageArg === 58 || pageArg === 1) {
+    page = 1;
+  } else {
+    page = pageArg;
+  }
+  
+  const pages = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
+  
+  let lines: string[];
+  if (page >= 1 && page <= pages.length) {
+    lines = pages[page - 1];
+  } else {
+    lines = generateIndexPage(pages.length);
+  }
+  
+  let y = margin + fontSize;
+  for (let i = 0; i < Math.min(lines.length, linesPerPage); i++) {
+    tempCtx.fillText(lines[i], margin, y);
+    y += lineHeight;
+  }
+  
+  const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
+  out.data.set(imageData.data);
+  
+  return out;
+}
+
 export const characterDefs: Record<string, CharDef> = {
   'A': {
     color: '#78A10F',
