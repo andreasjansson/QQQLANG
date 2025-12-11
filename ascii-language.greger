@@ -12922,5 +12922,64 @@ Render 3 times for transmission and adjust material
 ID: toolu_01WrCNq2TPVxbvk2namJg1Mj
 
 <tool.toolu_01WrCNq2TPVxbvk2namJg1Mj>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Render 3 times for transmission and adjust material
 </tool.toolu_01WrCNq2TPVxbvk2namJg1Mj>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01FFjCxwbbKiNgakLShT94J6
+
+## path
+
+<tool.toolu_01FFjCxwbbKiNgakLShT94J6>
+character-defs.ts
+</tool.toolu_01FFjCxwbbKiNgakLShT94J6>
+
+## git-commit-message
+
+<tool.toolu_01FFjCxwbbKiNgakLShT94J6>
+Increase transmission and reduce attenuation for more translucency
+</tool.toolu_01FFjCxwbbKiNgakLShT94J6>
+
+## diff
+
+<tool.toolu_01FFjCxwbbKiNgakLShT94J6>
+   // Realistic glass emerald with transmission
+   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+-    color: new THREE.Color(0.1, 0.6, 0.25),
++    color: new THREE.Color(0.2, 0.8, 0.4),
+     metalness: 0.0,
+-    roughness: 0.05,
+-    transmission: 0.9,
+-    thickness: 0.5,
++    roughness: 0.0,
++    transmission: 1.0,
++    thickness: 0.2,
+     ior: 1.57,
+-    envMapIntensity: 0.8,
++    envMapIntensity: 0.5,
+     clearcoat: 1.0,
+     clearcoatRoughness: 0.0,
+     transparent: true,
+     opacity: 1.0,
+     side: THREE.DoubleSide,
+     flatShading: true,
+-    attenuationColor: new THREE.Color(0.05, 0.5, 0.2),
+-    attenuationDistance: 0.3,
++    attenuationColor: new THREE.Color(0.1, 0.7, 0.3),
++    attenuationDistance: 0.1,
++    specularIntensity: 1.0,
++    specularColor: new THREE.Color(1, 1, 1),
+   });
+\ No newline at end of file
+
+</tool.toolu_01FFjCxwbbKiNgakLShT94J6>
+
+# TOOL RESULT
+
+ID: toolu_01FFjCxwbbKiNgakLShT94J6
+
+<tool.toolu_01FFjCxwbbKiNgakLShT94J6>
+
+</tool.toolu_01FFjCxwbbKiNgakLShT94J6>
