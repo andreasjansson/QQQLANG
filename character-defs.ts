@@ -1336,13 +1336,14 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.remove(emeraldScene!.children[0]);
   }
   
-  // Create background texture
+  // Create background texture - preserve original colors
   const bgTexture = new THREE.DataTexture(
     prev.data,
     prev.width,
     prev.height,
     THREE.RGBAFormat
   );
+  bgTexture.colorSpace = THREE.SRGBColorSpace;
   bgTexture.needsUpdate = true;
   bgTexture.flipY = true;
   emeraldScene!.background = bgTexture;
