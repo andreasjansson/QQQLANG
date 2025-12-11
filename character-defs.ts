@@ -1582,9 +1582,9 @@ function fnE(ctx: FnContext): Image {
   
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(ctx.width, ctx.height),
-    0.4,   // strength - reduced intensity
-    0.2,   // radius - tighter spread
-    0.92   // threshold - only bloom very bright spots
+    0.3,   // strength - subtle
+    0.15,  // radius - tight spread
+    0.97   // threshold - only bloom the brightest spots
   );
   emeraldComposer!.addPass(bloomPass);
   
