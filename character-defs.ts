@@ -1588,8 +1588,8 @@ function fnE(ctx: FnContext): Image {
   );
   emeraldComposer!.addPass(bloomPass);
   
-  // Render multiple times - transmission samples from previous frame
-  for (let i = 0; i < 3; i++) {
+  // Render multiple times - transmission needs multiple passes to converge
+  for (let i = 0; i < 6; i++) {
     emeraldComposer!.render();
   }
   
