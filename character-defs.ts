@@ -2476,27 +2476,16 @@ function fn6(ctx: FnContext): Image {
   return out;
 }
 
-function fn7(ctx: FnContext, n: number): Image {
+function fn7(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const numRects = Math.max(1, Math.min(n, 20));
-  
-  for (let i = 1; i <= numRects; i++) {
-    const rx = Math.floor(i * ctx.width / (numRects + 2));
-    const ry = Math.floor(i * ctx.height / (numRects + 4));
-    const rw = Math.floor(ctx.width / (numRects + 2));
-    const rh = Math.floor(ctx.height / (numRects + 4));
-    
-    const hueRotation = (i * 360 / numRects);
-    
-    for (let y = ry; y < ry + rh && y < ctx.height; y++) {
-      for (let x = rx; x < rx + rw && x < ctx.width; x++) {
-        const [r, g, b] = getPixel(prev, x, y);
-        const [h, s, l] = rgbToHsl(r, g, b);
-        const [nr, ng, nb] = hslToRgb((h + hueRotation) % 360, s, l);
-        setPixel(out, x, y, nr, ng, nb);
-      }
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r] = getPixel(prev, x - 3, y);
+      const [, g] = getPixel(prev, x, y);
+      const [, , b] = getPixel(prev, x + 3, y);
+      setPixel(out, x, y, r, g, b);
     }
   }
   
