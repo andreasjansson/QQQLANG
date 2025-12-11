@@ -9623,5 +9623,45 @@ fnE now assumes model is loaded (will be awaited by index.html)
 ID: toolu_01WRHuG7jM2KU3hLXtYxu5H7
 
 <tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: fnE now assumes model is loaded (will be awaited by index.html)
 </tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
+
+# ASSISTANT
+
+Now update index.html to await the emerald model before first render:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_014AyuYb94PrWi7TyBPKCCVo
+
+## path
+
+<tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
+index.html
+</tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
+
+## git-commit-message
+
+<tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
+Await emerald model loading before first render
+</tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
+
+## diff
+
+<tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
+ import { runProgram, getParsedOperations } from './runtime.ts';
+-    import { characterDefs } from './character-defs.ts';
+\ No newline at end of file
++    import { characterDefs, emeraldReady } from './character-defs.ts';
+\ No newline at end of file
+
+</tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
+
+# TOOL RESULT
+
+ID: toolu_014AyuYb94PrWi7TyBPKCCVo
+
+<tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
+
+</tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
