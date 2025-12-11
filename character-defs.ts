@@ -2013,6 +2013,7 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
   gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, 1.0);
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
   
   const bgPosBuf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
