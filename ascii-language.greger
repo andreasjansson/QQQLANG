@@ -8937,5 +8937,336 @@ Add sparkle overlay mesh to each emerald
 ID: toolu_01EG5pS6csM4XYQLKspvxUqR
 
 <tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add sparkle overlay mesh to each emerald
 </tool.toolu_01EG5pS6csM4XYQLKspvxUqR>
+
+# ASSISTANT
+
+Now let me also add more point lights at strategic angles to create highlights on the facet edges:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016YxaufnrfZMGb2zN2yYWdK
+
+## path
+
+<tool.toolu_016YxaufnrfZMGb2zN2yYWdK>
+character-defs.ts
+</tool.toolu_016YxaufnrfZMGb2zN2yYWdK>
+
+## git-commit-message
+
+<tool.toolu_016YxaufnrfZMGb2zN2yYWdK>
+Add more point lights for facet edge highlights
+</tool.toolu_016YxaufnrfZMGb2zN2yYWdK>
+
+## diff
+
+<tool.toolu_016YxaufnrfZMGb2zN2yYWdK>
+-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
++  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+   emeraldScene!.add(ambientLight);
+ 
++  // Main lights for general illumination
+   const pointLightPositions: [number, number, number, number][] = [
+-    [3, 3, 5, 1.2],
+-    [-3, 2, 4, 0.8],
+-    [0, -3, 4, 0.6],
+-    [2, -2, 3, 0.5],
+-    [-2, -1, 5, 0.7],
++    [3, 3, 5, 1.5],
++    [-3, 2, 4, 1.0],
++    [0, -3, 4, 0.8],
+   ];
+   
+   pointLightPositions.forEach(([px, py, pz, intensity]) => {
+     const light = new THREE.PointLight(0xffffff, intensity, 30);
+     light.position.set(px, py, pz);
+     emeraldScene!.add(light);
++  });
++  
++  // Extra small bright lights for sparkle highlights on facet edges
++  const sparkleLightPositions: [number, number, number][] = [
++    [1.5, 2, 3],
++    [-1.5, 2.5, 3],
++    [2, -1, 4],
++    [-2, -1.5, 3.5],
++    [0, 3, 3],
++    [0.5, -2, 4],
++    [3, 0, 3],
++    [-3, 0.5, 3],
++  ];
++  
++  sparkleLightPositions.forEach(([px, py, pz]) => {
++    const light = new THREE.PointLight(0xffffff, 2.0, 8);
++    light.position.set(px, py, pz);
++    emeraldScene!.add(light);
+   });
+\ No newline at end of file
+
+</tool.toolu_016YxaufnrfZMGb2zN2yYWdK>
+
+# TOOL RESULT
+
+ID: toolu_016YxaufnrfZMGb2zN2yYWdK
+
+<tool.toolu_016YxaufnrfZMGb2zN2yYWdK>
+Original content not found in file: /Users/ajansson/projects/ascii-language/character-defs.ts -- Try again!
+</tool.toolu_016YxaufnrfZMGb2zN2yYWdK>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01N1QsCUW3wfVxSu8mpTiUv4
+
+## pattern
+
+<tool.toolu_01N1QsCUW3wfVxSu8mpTiUv4>
+ambientLight
+</tool.toolu_01N1QsCUW3wfVxSu8mpTiUv4>
+
+## path
+
+<tool.toolu_01N1QsCUW3wfVxSu8mpTiUv4>
+character-defs.ts
+</tool.toolu_01N1QsCUW3wfVxSu8mpTiUv4>
+
+## context-lines
+
+<tool.toolu_01N1QsCUW3wfVxSu8mpTiUv4>
+10
+</tool.toolu_01N1QsCUW3wfVxSu8mpTiUv4>
+
+# TOOL RESULT
+
+ID: toolu_01N1QsCUW3wfVxSu8mpTiUv4
+
+<tool.toolu_01N1QsCUW3wfVxSu8mpTiUv4>
+1347-  bgTexture.needsUpdate = true;
+1348-  bgTexture.flipY = true;
+1349-  emeraldScene!.background = bgTexture;
+1350-
+1351-  // Create environment map for reflections
+1352-  const pmremGenerator = new THREE.PMREMGenerator(emeraldRenderer!);
+1353-  pmremGenerator.compileEquirectangularShader();
+1354-  const envRT = pmremGenerator.fromEquirectangular(bgTexture);
+1355-  emeraldScene!.environment = envRT.texture;
+1356-
+1357:  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+1358:  emeraldScene!.add(ambientLight);
+1359-  
+1360-  // Key light - bright white from top-right-front
+1361-  const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
+1362-  keyLight.position.set(5, 8, 10);
+1363-  emeraldScene!.add(keyLight);
+1364-  
+1365-  // Fill light with slight green tint
+1366-  const fillLight = new THREE.DirectionalLight(0xeeffee, 2.0);
+1367-  fillLight.position.set(-5, 3, 8);
+1368-  emeraldScene!.add(fillLight);
+
+</tool.toolu_01N1QsCUW3wfVxSu8mpTiUv4>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_016ycQsrcEvyrfXgnDPJfNi3
+
+## path
+
+<tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+character-defs.ts
+</tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+
+## start-line
+
+<tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+1357
+</tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+
+## end-line
+
+<tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+1410
+</tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+
+## include-line-numbers
+
+<tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+true
+</tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+
+# TOOL RESULT
+
+ID: toolu_016ycQsrcEvyrfXgnDPJfNi3
+
+<tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+1357:   const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+1358:   emeraldScene!.add(ambientLight);
+1359:   
+1360:   // Key light - bright white from top-right-front
+1361:   const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
+1362:   keyLight.position.set(5, 8, 10);
+1363:   emeraldScene!.add(keyLight);
+1364:   
+1365:   // Fill light with slight green tint
+1366:   const fillLight = new THREE.DirectionalLight(0xeeffee, 2.0);
+1367:   fillLight.position.set(-5, 3, 8);
+1368:   emeraldScene!.add(fillLight);
+1369:   
+1370:   // Back rim light for edge highlights
+1371:   const backLight = new THREE.DirectionalLight(0xffffff, 2.0);
+1372:   backLight.position.set(0, 5, -5);
+1373:   emeraldScene!.add(backLight);
+1374:   
+1375:   // Top light for crown sparkle
+1376:   const topLight = new THREE.DirectionalLight(0xffffff, 2.5);
+1377:   topLight.position.set(0, 15, 5);
+1378:   emeraldScene!.add(topLight);
+1379:   
+1380:   // Many point lights for intense sparkle highlights on facets
+1381:   const sparklePositions = [
+1382:     // Front sparkles
+1383:     [3, 4, 8], [-3, 3, 7], [0, 6, 6], [4, 2, 5], [-4, 5, 5],
+1384:     [2, 7, 4], [-2, 4, 9], [5, 3, 6], [-5, 6, 4], [0, 3, 10],
+1385:     // Top sparkles
+1386:     [1, 8, 5], [-1, 9, 6], [2, 10, 4], [-2, 8, 7], [0, 12, 5],
+1387:     // Side sparkles
+1388:     [6, 4, 4], [-6, 5, 5], [7, 3, 6], [-7, 4, 4], [5, 6, 3],
+1389:     // Close sparkles for intense highlights
+1390:     [1, 3, 7], [-1, 4, 8], [2, 5, 9], [-2, 3, 7], [0, 4, 8],
+1391:   ];
+1392:   
+1393:   sparklePositions.forEach((pos, i) => {
+1394:     const intensity = 3.0 + (i % 3) * 1.5;
+1395:     const light = new THREE.PointLight(0xffffff, intensity, 30);
+1396:     light.position.set(pos[0], pos[1], pos[2]);
+1397:     emeraldScene!.add(light);
+1398:   });
+1399: 
+1400:   // Glass emerald material
+1401:   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+1402:     color: new THREE.Color(0.0, 0.8, 0.28),
+1403:     metalness: 0.0,
+1404:     roughness: 0.0,
+1405:     transmission: 0.92,
+1406:     thickness: 0.6,
+1407:     ior: 1.65,
+1408:     envMapIntensity: 0.35,
+1409:     clearcoat: 1.0,
+1410:     clearcoatRoughness: 0.0,
+</tool.toolu_016ycQsrcEvyrfXgnDPJfNi3>
+
+# ASSISTANT
+
+There are already many lights. The issue is that the MeshPhongMaterial specular isn't giving the right sparkle look. Let me try a different approach - use a custom shader for the sparkle overlay that only shows highlights at facet edges where the normal changes sharply:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01PFuYza2Zwe2p7reiBUjc5s
+
+## path
+
+<tool.toolu_01PFuYza2Zwe2p7reiBUjc5s>
+character-defs.ts
+</tool.toolu_01PFuYza2Zwe2p7reiBUjc5s>
+
+## git-commit-message
+
+<tool.toolu_01PFuYza2Zwe2p7reiBUjc5s>
+Use custom edge-detection shader for facet sparkles
+</tool.toolu_01PFuYza2Zwe2p7reiBUjc5s>
+
+## diff
+
+<tool.toolu_01PFuYza2Zwe2p7reiBUjc5s>
+-  // Specular-only material for sharp sparkle highlights
+-  const sparkleMaterial = new THREE.MeshPhongMaterial({
+-    color: new THREE.Color(0, 0, 0),
+-    specular: new THREE.Color(1, 1, 1),
+-    shininess: 800,  // Very sharp highlights
++  // Custom shader for facet edge sparkles
++  const sparkleMaterial = new THREE.ShaderMaterial({
++    uniforms: {
++      uLightPositions: { 
++        value: [
++          new THREE.Vector3(3, 4, 8),
++          new THREE.Vector3(-3, 3, 7),
++          new THREE.Vector3(0, 6, 6),
++          new THREE.Vector3(5, 8, 10),
++          new THREE.Vector3(-5, 3, 8),
++        ]
++      },
++    },
++    vertexShader: `
++      varying vec3 vNormal;
++      varying vec3 vWorldPos;
++      varying vec3 vBarycentric;
++      
++      void main() {
++        vNormal = normalize(normalMatrix * normal);
++        vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
++        
++        // Approximate barycentric for edge detection
++        int idx = gl_VertexID - (gl_VertexID / 3) * 3;
++        if (idx == 0) vBarycentric = vec3(1, 0, 0);
++        else if (idx == 1) vBarycentric = vec3(0, 1, 0);
++        else vBarycentric = vec3(0, 0, 1);
++        
++        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
++      }
++    `,
++    fragmentShader: `
++      uniform vec3 uLightPositions[5];
++      
++      varying vec3 vNormal;
++      varying vec3 vWorldPos;
++      varying vec3 vBarycentric;
++      
++      void main() {
++        vec3 normal = normalize(vNormal);
++        vec3 viewDir = normalize(cameraPosition - vWorldPos);
++        
++        // Edge detection using barycentric coordinates
++        float minBary = min(min(vBarycentric.x, vBarycentric.y), vBarycentric.z);
++        float edgeFactor = smoothstep(0.0, 0.08, minBary);
++        float isEdge = 1.0 - edgeFactor;
++        
++        // Calculate specular from multiple lights
++        float totalSpec = 0.0;
++        for (int i = 0; i < 5; i++) {
++          vec3 lightDir = normalize(uLightPositions[i] - vWorldPos);
++          vec3 halfDir = normalize(lightDir + viewDir);
++          float spec = pow(max(dot(normal, halfDir), 0.0), 256.0);
++          totalSpec += spec;
++        }
++        
++        // Only show sparkle near edges and where specular is strong
++        float sparkle = totalSpec * isEdge * 2.0;
++        
++        // Also add some specular on flat faces but much weaker
++        sparkle += totalSpec * 0.3;
++        
++        gl_FragColor = vec4(vec3(1.0), sparkle);
++      }
++    `,
+     transparent: true,
+-    opacity: 1.0,
+     blending: THREE.AdditiveBlending,
+     depthWrite: false,
+     side: THREE.FrontSide,
+-    flatShading: true,
+   });
+\ No newline at end of file
+
+</tool.toolu_01PFuYza2Zwe2p7reiBUjc5s>
+
+# TOOL RESULT
+
+ID: toolu_01PFuYza2Zwe2p7reiBUjc5s
+
+<tool.toolu_01PFuYza2Zwe2p7reiBUjc5s>
+
+</tool.toolu_01PFuYza2Zwe2p7reiBUjc5s>
