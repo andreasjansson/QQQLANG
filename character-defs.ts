@@ -5219,8 +5219,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnExclaim,
     arity: 1,
     argTypes: ['int'],
-    functionName: "hash-overlay",
-    documentation: "Overlays deterministic hash pattern where brightness = ((x*(n+17)) ^ (y*31) ^ (x*y)) % 256 at 30% opacity"
+    functionName: "pixel-storm",
+    documentation: "Pixels fly toward center clustering by hue (color wheel), leaving glowing trails; saturation/brightness control distance, n controls intensity"
   },
   
   '"': {
