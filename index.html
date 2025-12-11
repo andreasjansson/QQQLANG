@@ -222,7 +222,11 @@
     }
     
     helpButton.addEventListener('click', () => {
-      let program = completeProgram(input.value);
+      let program = input.value;
+      if (!program) {
+        program = 'A';
+      }
+      program = completeProgram(program);
       program += '??';
       input.value = program;
       updateURL(program);
