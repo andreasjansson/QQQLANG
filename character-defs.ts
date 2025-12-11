@@ -1246,6 +1246,7 @@ let emeraldCamera: THREE.PerspectiveCamera | null = null;
 let emeraldModel: THREE.Group | null = null;
 let emeraldModelLoaded = false;
 let emeraldLoadPromise: Promise<void> | null = null;
+let emeraldComposer: EffectComposer | null = null;
 
 function initEmeraldScene(width: number, height: number) {
   if (!emeraldRenderer || emeraldRenderer.domElement.width !== width || emeraldRenderer.domElement.height !== height) {

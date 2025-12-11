@@ -8618,5 +8618,50 @@ Add bloom post-processing imports for sparkle effect
 ID: toolu_01GjwSJWDq2ULWUFUeGuSnXF
 
 <tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add bloom post-processing imports for sparkle effect
 </tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
+
+# ASSISTANT
+
+Now let me add the composer and bloom pass:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01UZFkwNq24QFqBecg727zDF
+
+## path
+
+<tool.toolu_01UZFkwNq24QFqBecg727zDF>
+character-defs.ts
+</tool.toolu_01UZFkwNq24QFqBecg727zDF>
+
+## git-commit-message
+
+<tool.toolu_01UZFkwNq24QFqBecg727zDF>
+Add bloom effect composer for gem sparkle
+</tool.toolu_01UZFkwNq24QFqBecg727zDF>
+
+## diff
+
+<tool.toolu_01UZFkwNq24QFqBecg727zDF>
+ let emeraldScene: THREE.Scene | null = null;
+ let emeraldRenderer: THREE.WebGLRenderer | null = null;
+ let emeraldCamera: THREE.PerspectiveCamera | null = null;
+ let emeraldModel: THREE.Group | null = null;
+ let emeraldModelLoaded = false;
+-let emeraldLoadPromise: Promise<void> | null = null;
+\ No newline at end of file
++let emeraldLoadPromise: Promise<void> | null = null;
++let emeraldComposer: EffectComposer | null = null;
+\ No newline at end of file
+
+</tool.toolu_01UZFkwNq24QFqBecg727zDF>
+
+# TOOL RESULT
+
+ID: toolu_01UZFkwNq24QFqBecg727zDF
+
+<tool.toolu_01UZFkwNq24QFqBecg727zDF>
+
+</tool.toolu_01UZFkwNq24QFqBecg727zDF>
