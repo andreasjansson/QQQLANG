@@ -1551,20 +1551,25 @@ function fnE(ctx: FnContext): Image {
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
     
-    // Add sparkle overlay - same geometry with specular-only material
-    const sparkleGem = emeraldModel!.clone();
-    sparkleGem.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const geom = child.geometry.clone();
-        geom.computeVertexNormals();
-        child.geometry = geom;
-        child.material = sparkleMaterial;
-        child.renderOrder = 2;
+    // Add sparkle sprites at corner positions
+    const allCorners = [...girdleCorners, ...crownCorners];
+    const scaleFactor = scale * 3.0;
+    
+    allCorners.forEach((corner, i) => {
+      // Only show sparkles on front-facing corners (positive z or upper parts)
+      if (corner[2] > -0.1 || corner[1] > 0.1) {
+        const sprite = new THREE.Sprite(createSparkleMaterial());
+        const sparkleSize = 0.06 + (i % 3) * 0.02;  // Vary sizes slightly
+        sprite.scale.set(sparkleSize * scaleFactor, sparkleSize * scaleFactor, 1);
+        sprite.position.set(
+          x + corner[0] * scaleFactor,
+          y + corner[1] * scaleFactor,
+          corner[2] * scaleFactor + 0.01  // Slightly in front
+        );
+        sprite.renderOrder = 10;
+        emeraldScene!.add(sprite);
       }
     });
-    sparkleGem.scale.setScalar(scale * 3.0);
-    sparkleGem.position.set(x, y, 0);
-    emeraldScene!.add(sparkleGem);
   };
   
   addEmerald(0, 0, 1.0, true);  // Log geometry for inspection
