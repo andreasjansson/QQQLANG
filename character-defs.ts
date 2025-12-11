@@ -1473,23 +1473,7 @@ function fnE(ctx: FnContext): Image {
     side: THREE.DoubleSide,
   });
   
-  // Keep reference for compatibility but use shader
-  const _unusedPhysicalMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.0, 0.8, 0.28),
-    metalness: 0.0,
-    roughness: 0.0,
-    transmission: 0.92,
-    thickness: 0.6,
-    ior: 1.65,
-    envMapIntensity: 0.35,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.0,
-    transparent: true,
-    opacity: 1.0,
-    side: THREE.DoubleSide,
-    flatShading: true,
-    attenuationColor: new THREE.Color(0.0, 0.5, 0.15),
-    attenuationDistance: 0.4,
+
     specularIntensity: 1.5,
     specularColor: new THREE.Color(1, 1, 1),
     reflectivity: 0.6,
