@@ -5481,10 +5481,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#FFD700',
     number: 49,
     fn: fnAsterisk,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "rays",
-    documentation: "n rays emanate from center, color sampled from prev at angle*width/n, soft edges at 60% opacity"
+    arity: 0,
+    argTypes: [],
+    functionName: "godrays",
+    documentation: "Volumetric light scattering (god rays) effect with 80 rays emanating from center, screen blended with prev"
   },
   
   '+': {
