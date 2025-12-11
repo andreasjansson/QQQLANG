@@ -1368,16 +1368,15 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.add(light);
   });
 
-  // Sparkly emerald material with flat shading to show facets
+  // Realistic emerald - deep green with inner glow and bright specular
   const emeraldMaterial = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(0.0, 0.55, 0.22),
-    emissive: new THREE.Color(0.0, 0.15, 0.05),
+    color: new THREE.Color(0.02, 0.35, 0.12),
+    emissive: new THREE.Color(0.0, 0.2, 0.08),
     specular: new THREE.Color(1.0, 1.0, 1.0),
-    shininess: 300,
+    shininess: 400,
     transparent: true,
-    opacity: 0.6,
+    opacity: 0.92,
     side: THREE.DoubleSide,
-    depthWrite: false,
     flatShading: true,
     reflectivity: 1.0,
   });
