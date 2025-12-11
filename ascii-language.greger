@@ -7607,5 +7607,49 @@ Update shader main() to use patternScale instead of resolution/iridescence
 ID: toolu_018cNmzt7sGUuhBmAyXfs4nN
 
 <tool.toolu_018cNmzt7sGUuhBmAyXfs4nN>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update shader main() to use patternScale instead of resolution/iridescence
 </tool.toolu_018cNmzt7sGUuhBmAyXfs4nN>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01MoWjYjDmjag5k2C5EXzSZi
+
+## path
+
+<tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+character-defs.ts
+</tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+
+## git-commit-message
+
+<tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+Update uniform setters for oil slick shader
+</tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+
+## original-content
+
+<tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+  gl.uniform1f(gl.getUniformLocation(program, 'uResolutionScale'), resolution);
+  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
+  gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIridescenceStrength'), iridescenceStrength);
+</tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+
+## new-content
+
+<tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
+  gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
+  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
+</tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+
+# TOOL RESULT
+
+ID: toolu_01MoWjYjDmjag5k2C5EXzSZi
+
+<tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
+
+</tool.toolu_01MoWjYjDmjag5k2C5EXzSZi>
