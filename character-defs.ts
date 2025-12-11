@@ -2330,9 +2330,9 @@ function fnU(ctx: FnContext, n: number): Image {
   const w = ctx.width;
   const h = ctx.height;
   
-  const hueAmount = 40 + (n % 16) * 8;
-  const satAmount = 0.2 + (n % 10) * 0.03;
-  const lightAmount = 0.08 + (n % 8) * 0.01;
+  const hueAmount = 90 + (n % 12) * 15;
+  const satAmount = 0.5 + (n % 8) * 0.1;
+  const lightAmount = 0.06 + (n % 8) * 0.01;
   
   const baseAngle = n * 0.5;
   const angleH = baseAngle;
