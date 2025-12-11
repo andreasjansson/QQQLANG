@@ -5229,7 +5229,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "pixel-storm",
-    documentation: "Each pixel emits a short streak in direction of its hue (color wheel); streak length = 5+n*3, fades with distance; saturated/bright pixels streak further"
+    documentation: "Chaotic streaks: base direction from hue, with turbulence, swirl, and wobble; n controls streak length and chaos amount"
   },
   
   '"': {
