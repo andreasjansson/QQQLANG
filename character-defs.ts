@@ -1417,6 +1417,19 @@ function fnE(ctx: FnContext): Image {
     specularIntensity: 1.5,
     specularColor: new THREE.Color(1, 1, 1),
   });
+  
+  // Specular-only material for sharp sparkle highlights
+  const sparkleMaterial = new THREE.MeshPhongMaterial({
+    color: new THREE.Color(0, 0, 0),
+    specular: new THREE.Color(1, 1, 1),
+    shininess: 800,  // Very sharp highlights
+    transparent: true,
+    opacity: 1.0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.FrontSide,
+    flatShading: true,
+  });
 
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
