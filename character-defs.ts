@@ -3858,9 +3858,8 @@ function fnSlash(ctx: FnContext, c: string): Image {
   return out;
 }
 
-function fnColon(ctx: FnContext, j: number): Image {
+function fnColon(ctx: FnContext, old: Image): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const cx = ctx.width / 2;
