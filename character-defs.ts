@@ -4484,11 +4484,11 @@ export const characterDefs: Record<string, CharDef> = {
   'O': {
     color: '#FF6347',
     number: 15,
-    fn: fnApostrophe,
+    fn: fnOilSlick,
     arity: 1,
     argTypes: ['int'],
-    functionName: "vertical-streaks",
-    documentation: "Vertical streaks at x positions where x % (n+2) == 0, length based on column luminance, 50% white"
+    functionName: "oil-slick",
+    documentation: "Procedural oil slick with thin-film interference iridescence, domain-warped for organic swirling patterns; n controls scale"
   },
   
   'P': {

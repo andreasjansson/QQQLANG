@@ -6344,5 +6344,53 @@ Add fnOilSlick function for procedural oil slick effect
 ID: toolu_01S8xYESp7scEMdZY2MheVuf
 
 <tool.toolu_01S8xYESp7scEMdZY2MheVuf>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add fnOilSlick function for procedural oil slick effect
 </tool.toolu_01S8xYESp7scEMdZY2MheVuf>
+
+# ASSISTANT
+
+Now update the 'O' character definition to use the new function:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01C4F1pBwkViXNTTgs1gpYYe
+
+## path
+
+<tool.toolu_01C4F1pBwkViXNTTgs1gpYYe>
+character-defs.ts
+</tool.toolu_01C4F1pBwkViXNTTgs1gpYYe>
+
+## git-commit-message
+
+<tool.toolu_01C4F1pBwkViXNTTgs1gpYYe>
+Update O character to use oil-slick effect
+</tool.toolu_01C4F1pBwkViXNTTgs1gpYYe>
+
+## diff
+
+<tool.toolu_01C4F1pBwkViXNTTgs1gpYYe>
+   'O': {
+     color: '#FF6347',
+     number: 15,
+-    fn: fnApostrophe,
++    fn: fnOilSlick,
+     arity: 1,
+     argTypes: ['int'],
+-    functionName: "vertical-streaks",
+-    documentation: "Vertical streaks at x positions where x % (n+2) == 0, length based on column luminance, 50% white"
++    functionName: "oil-slick",
++    documentation: "Procedural oil slick with thin-film interference iridescence, domain-warped for organic swirling patterns; n controls scale"
+   },
+\ No newline at end of file
+
+</tool.toolu_01C4F1pBwkViXNTTgs1gpYYe>
+
+# TOOL RESULT
+
+ID: toolu_01C4F1pBwkViXNTTgs1gpYYe
+
+<tool.toolu_01C4F1pBwkViXNTTgs1gpYYe>
+
+</tool.toolu_01C4F1pBwkViXNTTgs1gpYYe>
