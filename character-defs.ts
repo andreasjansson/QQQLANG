@@ -1368,10 +1368,18 @@ function fnE(ctx: FnContext): Image {
   fillLight.position.set(-5, 3, 8);
   emeraldScene!.add(fillLight);
   
-  // Rim light for edge highlights
+  // Rim lights for edge highlights from multiple angles
   const rimLight = new THREE.DirectionalLight(0xffffff, 2.5);
   rimLight.position.set(0, -2, 8);
   emeraldScene!.add(rimLight);
+  
+  const rimLight2 = new THREE.DirectionalLight(0xffffff, 2.0);
+  rimLight2.position.set(-6, 0, -2);
+  emeraldScene!.add(rimLight2);
+  
+  const rimLight3 = new THREE.DirectionalLight(0xffffff, 2.0);
+  rimLight3.position.set(6, 0, -2);
+  emeraldScene!.add(rimLight3);
   
   // Seeded random for deterministic light positions based on image count
   const seed = ctx.images.length * 137.5;
