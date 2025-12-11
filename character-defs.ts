@@ -1348,12 +1348,17 @@ function loadEmeraldModel(): Promise<void> {
 function fnE(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   
+  console.log('fnE called, modelLoaded:', emeraldModelLoaded, 'modelLoading:', emeraldModelLoading);
+  
   initEmeraldScene(ctx.width, ctx.height);
   
   if (!emeraldModelLoaded) {
     loadEmeraldModel();
+    console.log('Model not loaded yet, returning prev image');
     return cloneImage(prev);
   }
+  
+  console.log('Rendering emerald scene...');
   
   while (emeraldScene!.children.length > 0) {
     emeraldScene!.remove(emeraldScene!.children[0]);
