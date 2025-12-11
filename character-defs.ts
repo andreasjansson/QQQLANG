@@ -1327,19 +1327,8 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.remove(emeraldScene!.children[0]);
   }
   
-  const bgTexture = new THREE.DataTexture(
-    prev.data,
-    prev.width,
-    prev.height,
-    THREE.RGBAFormat
-  );
-  bgTexture.needsUpdate = true;
-  bgTexture.flipY = true;
-  
-  const pmremGenerator = new THREE.PMREMGenerator(emeraldRenderer!);
-  const envMap = pmremGenerator.fromEquirectangular(bgTexture).texture;
-  emeraldScene!.environment = envMap;
-  emeraldScene!.background = bgTexture;
+  // Simple black background for now
+  emeraldScene!.background = new THREE.Color(0x000000);
   
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
   emeraldScene!.add(ambientLight);
