@@ -3411,7 +3411,7 @@ function fnPercent(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnAmpersand(ctx: FnContext, n: number): Image {
+function fnAmpersand(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
@@ -3426,20 +3426,16 @@ function fnAmpersand(ctx: FnContext, n: number): Image {
     [63, 31, 55, 23, 61, 29, 53, 21]
   ];
   
-  const levels = Math.max(2, 5 - Math.floor(n / 15));
-  const spread = 80 + n * 5;
-  
-  const rOffset = (n * 3) % 8;
-  const gOffset = (n * 5 + 2) % 8;
-  const bOffset = (n * 7 + 4) % 8;
+  const levels = 5;
+  const spread = 85;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const [r, g, b] = getPixel(prev, x, y);
       
-      const tr = (bayer8x8[(y + rOffset) % 8][(x + rOffset) % 8] / 64.0 - 0.5) * spread;
-      const tg = (bayer8x8[(y + gOffset) % 8][(x + gOffset) % 8] / 64.0 - 0.5) * spread;
-      const tb = (bayer8x8[(y + bOffset) % 8][(x + bOffset) % 8] / 64.0 - 0.5) * spread;
+      const tr = (bayer8x8[(y + 3) % 8][(x + 3) % 8] / 64.0 - 0.5) * spread;
+      const tg = (bayer8x8[(y + 7) % 8][(x + 7) % 8] / 64.0 - 0.5) * spread;
+      const tb = (bayer8x8[(y + 11) % 8][(x + 11) % 8] / 64.0 - 0.5) * spread;
       
       const quantize = (v: number, threshold: number) => {
         const adjusted = v + threshold;
