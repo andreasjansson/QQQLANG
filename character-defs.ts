@@ -1237,264 +1237,200 @@ function fnP(ctx: FnContext, n: number): Image {
   return out;
 }
 
+let emeraldScene: THREE.Scene | null = null;
+let emeraldRenderer: THREE.WebGLRenderer | null = null;
+let emeraldCamera: THREE.PerspectiveCamera | null = null;
+let emeraldModel: THREE.Group | null = null;
+let emeraldModelLoading = false;
+let emeraldModelLoaded = false;
+
+function initEmeraldScene(width: number, height: number) {
+  if (!emeraldRenderer || emeraldRenderer.domElement.width !== width || emeraldRenderer.domElement.height !== height) {
+    if (emeraldRenderer) {
+      emeraldRenderer.dispose();
+    }
+    
+    emeraldRenderer = new THREE.WebGLRenderer({ 
+      alpha: true, 
+      antialias: true,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: true
+    });
+    emeraldRenderer.setSize(width, height);
+    emeraldRenderer.setClearColor(0x000000, 0);
+    emeraldRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+    emeraldRenderer.toneMappingExposure = 1.2;
+  }
+  
+  if (!emeraldScene) {
+    emeraldScene = new THREE.Scene();
+  }
+  
+  if (!emeraldCamera) {
+    emeraldCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+    emeraldCamera.position.set(0, 2, 5);
+    emeraldCamera.lookAt(0, 0, 0);
+  } else {
+    emeraldCamera.aspect = width / height;
+    emeraldCamera.updateProjectionMatrix();
+  }
+}
+
+function loadEmeraldModel(): Promise<void> {
+  if (emeraldModelLoaded || emeraldModelLoading) {
+    return Promise.resolve();
+  }
+  
+  emeraldModelLoading = true;
+  
+  return new Promise((resolve, reject) => {
+    const loader = new GLTFLoader();
+    loader.load(
+      '/emerald.glb',
+      (gltf) => {
+        emeraldModel = gltf.scene;
+        
+        const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+          color: new THREE.Color(0.1, 0.6, 0.3),
+          metalness: 0.0,
+          roughness: 0.05,
+          transmission: 0.92,
+          thickness: 1.5,
+          ior: 1.57,
+          transparent: true,
+          opacity: 0.95,
+          envMapIntensity: 1.5,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.05,
+          sheen: 0.5,
+          sheenRoughness: 0.2,
+          sheenColor: new THREE.Color(0.2, 0.8, 0.4),
+          attenuationColor: new THREE.Color(0.1, 0.5, 0.25),
+          attenuationDistance: 0.5,
+        });
+        
+        emeraldModel.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.material = emeraldMaterial;
+          }
+        });
+        
+        const box = new THREE.Box3().setFromObject(emeraldModel);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 2.0 / maxDim;
+        
+        emeraldModel.position.sub(center);
+        emeraldModel.scale.setScalar(scale);
+        
+        emeraldModelLoaded = true;
+        emeraldModelLoading = false;
+        resolve();
+      },
+      undefined,
+      (error) => {
+        console.error('Error loading emerald model:', error);
+        emeraldModelLoading = false;
+        reject(error);
+      }
+    );
+  });
+}
+
 function fnE(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
   
-  const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = position * 0.5 + 0.5;
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
+  initEmeraldScene(ctx.width, ctx.height);
   
-  const fragmentShader = `
-    precision highp float;
-    uniform vec2 uResolution;
-    uniform sampler2D uTexture;
-    varying vec2 vUV;
+  if (!emeraldModelLoaded) {
+    loadEmeraldModel();
+    return cloneImage(prev);
+  }
+  
+  while (emeraldScene!.children.length > 0) {
+    emeraldScene!.remove(emeraldScene!.children[0]);
+  }
+  
+  const bgTexture = new THREE.DataTexture(
+    prev.data,
+    prev.width,
+    prev.height,
+    THREE.RGBAFormat
+  );
+  bgTexture.needsUpdate = true;
+  bgTexture.flipY = true;
+  
+  const pmremGenerator = new THREE.PMREMGenerator(emeraldRenderer!);
+  const envMap = pmremGenerator.fromEquirectangular(bgTexture).texture;
+  emeraldScene!.environment = envMap;
+  emeraldScene!.background = bgTexture;
+  
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  emeraldScene!.add(ambientLight);
+  
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  keyLight.position.set(5, 8, 5);
+  emeraldScene!.add(keyLight);
+  
+  const fillLight = new THREE.DirectionalLight(0xaaffaa, 1.0);
+  fillLight.position.set(-5, 3, 3);
+  emeraldScene!.add(fillLight);
+  
+  const backLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  backLight.position.set(0, 5, -5);
+  emeraldScene!.add(backLight);
+  
+  const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 20);
+  pointLight1.position.set(3, 2, 3);
+  emeraldScene!.add(pointLight1);
+  
+  const pointLight2 = new THREE.PointLight(0x88ffaa, 0.8, 20);
+  pointLight2.position.set(-3, 2, 3);
+  emeraldScene!.add(pointLight2);
+  
+  if (emeraldModel) {
+    const centerEmerald = emeraldModel.clone();
+    centerEmerald.scale.setScalar(1.0);
+    centerEmerald.position.set(0, 0, 0);
+    emeraldScene!.add(centerEmerald);
     
-    #define MAX_STEPS 80
-    #define MAX_DIST 30.0
-    #define SURF_DIST 0.002
+    const leftEmerald = emeraldModel.clone();
+    leftEmerald.scale.setScalar(0.6);
+    leftEmerald.position.set(-2.0, 0, 0);
+    emeraldScene!.add(leftEmerald);
     
-    float sdBox(vec3 p, vec3 b) {
-      vec3 q = abs(p) - b;
-      return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
-    }
+    const rightEmerald = emeraldModel.clone();
+    rightEmerald.scale.setScalar(0.6);
+    rightEmerald.position.set(2.0, 0, 0);
+    emeraldScene!.add(rightEmerald);
     
-    // Emerald cut gem - rectangular step cut
-    // w = half-width (x), h = half-height (y), d = half-depth (z)
-    // Crown is 1/3, pavilion is 2/3 of total height
-    float sdEmerald(vec3 p, float w, float h, float d) {
-      vec3 q = abs(p);
-      
-      // Corner bevel - cuts the corners of the rectangle
-      float bevel = 0.3 * min(w, d);
-      
-      // Girdle is at y=0, crown goes up, pavilion goes down
-      float crownH = h * 0.35;
-      float pavH = h * 0.65;
-      
-      // Start with infinity
-      float gem = MAX_DIST;
-      
-      // === GIRDLE (thin band at y=0) ===
-      float girdleThick = h * 0.05;
-      float girdle = sdBox(p, vec3(w, girdleThick, d));
-      float girdleBevel = q.x + q.z - (w + d - bevel);
-      girdle = max(girdle, girdleBevel);
-      gem = min(gem, girdle);
-      
-      // === CROWN (above girdle) ===
-      // Crown step 1 - outer step
-      float c1h = crownH * 0.5;
-      float c1shrink = 0.12;
-      float crown1Top = girdleThick + c1h;
-      vec3 c1center = vec3(0.0, girdleThick + c1h * 0.5, 0.0);
-      float crown1 = sdBox(p - c1center, vec3(w * (1.0 - c1shrink), c1h * 0.5, d * (1.0 - c1shrink)));
-      // Angled facets
-      float c1slope = (p.y - girdleThick) * 0.25;
-      crown1 = max(crown1, q.x - w + c1slope);
-      crown1 = max(crown1, q.z - d + c1slope);
-      float c1bevel = q.x + q.z - (w + d - bevel) + c1slope * 1.5;
-      crown1 = max(crown1, c1bevel);
-      gem = min(gem, crown1);
-      
-      // Crown step 2 / Table area
-      float c2h = crownH * 0.5;
-      vec3 c2center = vec3(0.0, crown1Top + c2h * 0.5, 0.0);
-      float tableW = w * 0.6;
-      float tableD = d * 0.6;
-      float crown2 = sdBox(p - c2center, vec3(tableW, c2h * 0.5, tableD));
-      float c2slope = (p.y - crown1Top) * 0.35;
-      crown2 = max(crown2, q.x - w * 0.88 + c2slope);
-      crown2 = max(crown2, q.z - d * 0.88 + c2slope);
-      float c2bevel = q.x + q.z - (w * 0.88 + d * 0.88 - bevel * 0.6) + c2slope * 1.5;
-      crown2 = max(crown2, c2bevel);
-      gem = min(gem, crown2);
-      
-      // === PAVILION (below girdle) ===
-      // Pavilion step 1
-      float p1h = pavH * 0.45;
-      vec3 p1center = vec3(0.0, -girdleThick - p1h * 0.5, 0.0);
-      float pav1 = sdBox(p - p1center, vec3(w * 0.85, p1h * 0.5, d * 0.85));
-      float p1slope = (-girdleThick - p.y) * 0.22;
-      pav1 = max(pav1, q.x - w + p1slope);
-      pav1 = max(pav1, q.z - d + p1slope);
-      float p1bevel = q.x + q.z - (w + d - bevel) + p1slope * 1.5;
-      pav1 = max(pav1, p1bevel);
-      gem = min(gem, pav1);
-      
-      // Pavilion step 2 - steeper, going to keel
-      float p2top = -girdleThick - p1h;
-      float p2h = pavH * 0.55;
-      vec3 p2center = vec3(0.0, p2top - p2h * 0.5, 0.0);
-      float pav2 = sdBox(p - p2center, vec3(w * 0.5, p2h * 0.5, d * 0.5));
-      float p2slope = (p2top - p.y) * 0.45;
-      pav2 = max(pav2, q.x - w * 0.85 + p2slope);
-      pav2 = max(pav2, q.z - d * 0.85 + p2slope);
-      float p2bevel = q.x + q.z - (w * 0.85 + d * 0.85 - bevel * 0.5) + p2slope * 1.5;
-      pav2 = max(pav2, p2bevel);
-      gem = min(gem, pav2);
-      
-      return gem;
-    }
+    const topLeftEmerald = emeraldModel.clone();
+    topLeftEmerald.scale.setScalar(0.4);
+    topLeftEmerald.position.set(-1.2, 0.8, 0);
+    emeraldScene!.add(topLeftEmerald);
     
-    float sceneSDF(vec3 p) {
-      float d = MAX_DIST;
-      
-      // Large center emerald (w, h, d) - wider than tall
-      d = min(d, sdEmerald(p - vec3(0.0, 0.0, 0.0), 0.6, 0.35, 0.4));
-      
-      // Side emeralds - same z, different x
-      d = min(d, sdEmerald(p - vec3(-1.5, 0.0, 0.0), 0.35, 0.2, 0.22));
-      d = min(d, sdEmerald(p - vec3(1.5, 0.0, 0.0), 0.35, 0.2, 0.22));
-      
-      // Diagonal emeralds
-      d = min(d, sdEmerald(p - vec3(-0.9, 0.5, 0.0), 0.25, 0.15, 0.16));
-      d = min(d, sdEmerald(p - vec3(0.9, 0.5, 0.0), 0.25, 0.15, 0.16));
-      d = min(d, sdEmerald(p - vec3(-0.9, -0.5, 0.0), 0.25, 0.15, 0.16));
-      d = min(d, sdEmerald(p - vec3(0.9, -0.5, 0.0), 0.25, 0.15, 0.16));
-      
-      return d;
-    }
+    const topRightEmerald = emeraldModel.clone();
+    topRightEmerald.scale.setScalar(0.4);
+    topRightEmerald.position.set(1.2, 0.8, 0);
+    emeraldScene!.add(topRightEmerald);
     
-    vec3 getNormal(vec3 p) {
-      vec2 e = vec2(0.001, 0.0);
-      return normalize(vec3(
-        sceneSDF(p + e.xyy) - sceneSDF(p - e.xyy),
-        sceneSDF(p + e.yxy) - sceneSDF(p - e.yxy),
-        sceneSDF(p + e.yyx) - sceneSDF(p - e.yyx)
-      ));
-    }
+    const botLeftEmerald = emeraldModel.clone();
+    botLeftEmerald.scale.setScalar(0.4);
+    botLeftEmerald.position.set(-1.2, -0.8, 0);
+    emeraldScene!.add(botLeftEmerald);
     
-    float rayMarch(vec3 ro, vec3 rd) {
-      float t = 0.0;
-      for (int i = 0; i < MAX_STEPS; i++) {
-        vec3 p = ro + rd * t;
-        float d = sceneSDF(p);
-        if (d < SURF_DIST) return t;
-        if (t > MAX_DIST) break;
-        t += d * 0.9;
-      }
-      return -1.0;
-    }
-    
-    void main() {
-      vec2 uv = vUV;
-      vec2 p = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
-      
-      // Camera looking at emeralds from slightly above
-      vec3 ro = vec3(0.0, 1.5, 4.0);
-      vec3 lookAt = vec3(0.0, 0.0, 0.0);
-      vec3 forward = normalize(lookAt - ro);
-      vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), forward));
-      vec3 up = cross(forward, right);
-      vec3 rd = normalize(forward * 1.8 + p.x * right + p.y * up);
-      
-      // Background - full brightness
-      vec3 bgColor = texture2D(uTexture, uv).rgb;
-      vec3 color = bgColor;
-      
-      float t = rayMarch(ro, rd);
-      
-      if (t > 0.0) {
-        vec3 pos = ro + rd * t;
-        vec3 normal = getNormal(pos);
-        vec3 viewDir = normalize(ro - pos);
-        
-        // Multiple bright lights
-        vec3 lights[4];
-        lights[0] = normalize(vec3(2.0, 3.0, 4.0));
-        lights[1] = normalize(vec3(-2.0, 2.0, 3.0));
-        lights[2] = normalize(vec3(0.0, 4.0, 2.0));
-        lights[3] = normalize(vec3(1.0, -1.0, 3.0));
-        
-        // Emerald color - bright green
-        vec3 emeraldTint = vec3(0.2, 0.9, 0.4);
-        
-        // Fresnel for edge reflections
-        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 4.0);
-        
-        // Accumulate lighting
-        float diffuse = 0.0;
-        float specular = 0.0;
-        
-        for (int i = 0; i < 4; i++) {
-          vec3 L = lights[i];
-          vec3 H = normalize(L + viewDir);
-          
-          diffuse += max(dot(normal, L), 0.0) * 0.4;
-          specular += pow(max(dot(normal, H), 0.0), 60.0) * 0.8;
-          specular += pow(max(dot(normal, H), 0.0), 200.0) * 1.2;
-        }
-        
-        // Refraction - sample background with offset
-        vec3 refractDir = refract(-viewDir, normal, 0.65);
-        vec2 refractUV = uv + refractDir.xy * 0.08;
-        refractUV = clamp(refractUV, 0.0, 1.0);
-        vec3 refractedBg = texture2D(uTexture, refractUV).rgb;
-        
-        // Reflection
-        vec3 reflectDir = reflect(-viewDir, normal);
-        vec2 reflectUV = uv + reflectDir.xy * 0.15;
-        reflectUV = clamp(reflectUV, 0.0, 1.0);
-        vec3 reflectedBg = texture2D(uTexture, reflectUV).rgb;
-        
-        // Glassy translucent emerald
-        // Base: tinted refracted background
-        vec3 gemColor = refractedBg * emeraldTint;
-        
-        // Add diffuse lighting
-        gemColor += emeraldTint * diffuse * 0.3;
-        
-        // Add bright specular highlights
-        gemColor += vec3(1.0, 1.0, 0.95) * specular;
-        
-        // Fresnel reflection
-        gemColor = mix(gemColor, reflectedBg * 0.8 + vec3(0.2), fresnel * 0.5);
-        
-        // Slight inner glow
-        gemColor += emeraldTint * 0.15;
-        
-        color = gemColor;
-      }
-      
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `;
+    const botRightEmerald = emeraldModel.clone();
+    botRightEmerald.scale.setScalar(0.4);
+    botRightEmerald.position.set(1.2, -0.8, 0);
+    emeraldScene!.add(botRightEmerald);
+  }
   
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
+  emeraldRenderer!.render(emeraldScene!, emeraldCamera!);
   
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
+  const glContext = emeraldRenderer!.getContext();
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  glContext.readPixels(0, 0, ctx.width, ctx.height, glContext.RGBA, glContext.UNSIGNED_BYTE, pixels);
   
   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
@@ -1508,9 +1444,9 @@ function fnE(ctx: FnContext): Image {
     }
   }
   
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(program);
+  bgTexture.dispose();
+  envMap.dispose();
+  pmremGenerator.dispose();
   
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
