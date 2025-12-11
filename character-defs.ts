@@ -1818,7 +1818,7 @@ function fnR(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnS(ctx: FnContext, j: number): Image {
+function fnS(ctx: FnContext, j: number, size: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
@@ -1832,18 +1832,39 @@ function fnS(ctx: FnContext, j: number): Image {
     return count;
   };
   
-  const baseSize = Math.min(ctx.width, ctx.height);
-  const scale = Math.max(1, Math.floor(baseSize / 128));
+  const resolution = Math.pow(2, Math.floor((size - 1) / 10) + 2);
+  
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const triHeight = Math.min(ctx.width, ctx.height) * 0.95;
+  const triWidth = triHeight / (Math.sqrt(3) / 2);
+  
+  const v0x = cx, v0y = cy - triHeight / 2;
+  const v1x = cx - triWidth / 2, v1y = cy + triHeight / 2;
+  const v2x = cx + triWidth / 2, v2y = cy + triHeight / 2;
+  
+  const denom = (v1y - v2y) * (v0x - v2x) + (v2x - v1x) * (v0y - v2y);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const sx = Math.floor(x / scale);
-      const sy = Math.floor(y / scale);
-      
-      const bits = sx & sy;
-      const level = popcount(bits) % 6;
+      const a = ((v1y - v2y) * (x - v2x) + (v2x - v1x) * (y - v2y)) / denom;
+      const b = ((v2y - v0y) * (x - v2x) + (v0x - v2x) * (y - v2y)) / denom;
+      const c = 1 - a - b;
       
       const [pr, pg, pb] = getPixel(prev, x, y);
+      
+      if (a < 0 || b < 0 || c < 0) {
+        setPixel(out, x, y, pr, pg, pb);
+        continue;
+      }
+      
+      const ai = Math.floor(a * resolution);
+      const bi = Math.floor(b * resolution);
+      const ci = Math.floor(c * resolution);
+      
+      const overlap = (ai & bi) | (bi & ci) | (ai & ci);
+      const level = popcount(overlap) % 6;
+      
       const [or, og, ob] = getPixel(old, x, y);
       
       let r: number, g: number, b: number;
