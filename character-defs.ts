@@ -2330,6 +2330,7 @@ function fnU(ctx: FnContext, n: number): Image {
   const w = ctx.width;
   const h = ctx.height;
   
+  const k = Math.max(25, n * 8);
   const edgeThreshold = 25 + n * 3;
   const edgeRadius = 2;
   
@@ -2339,7 +2340,6 @@ function fnU(ctx: FnContext, n: number): Image {
     return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
   };
   
-  // Step 1: Detect thin edges
   const thinEdges = new Uint8Array(w * h);
   for (let y = 1; y < h - 1; y++) {
     for (let x = 1; x < w - 1; x++) {
@@ -2356,7 +2356,6 @@ function fnU(ctx: FnContext, n: number): Image {
     }
   }
   
-  // Step 2: Dilate edges to 5px thick
   const edges = new Uint8Array(w * h);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -2376,7 +2375,6 @@ function fnU(ctx: FnContext, n: number): Image {
     }
   }
   
-  // Step 3: Connected components on non-edge pixels
   const labels = new Int32Array(w * h);
   labels.fill(-1);
   let currentLabel = 0;
@@ -2411,9 +2409,6 @@ function fnU(ctx: FnContext, n: number): Image {
     }
   }
   
-  console.log(`Found ${currentLabel} regions`);
-  
-  // Step 4: Assign edge pixels to nearest region
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const idx = y * w + x;
@@ -2442,32 +2437,148 @@ function fnU(ctx: FnContext, n: number): Image {
     }
   }
   
-  // DEBUG: Generate deterministic colors for each region
-  const regionColors = new Map<number, [number, number, number]>();
-  for (let i = 0; i < currentLabel; i++) {
-    const hue = (i * 137.5) % 360;
-    const [r, g, b] = hslToRgb(hue, 0.8, 0.5);
-    regionColors.set(i, [r, g, b]);
+  interface RegionData {
+    minLum: number;
+    maxLum: number;
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    minColor: [number, number, number];
+    maxColor: [number, number, number];
+  }
+  
+  const regions = new Map<number, RegionData>();
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      const label = labels[idx];
+      
+      const [r, g, b] = getPixel(prev, x, y);
+      const lum = r * 0.299 + g * 0.587 + b * 0.114;
+      
+      if (!regions.has(label)) {
+        regions.set(label, {
+          minLum: lum, maxLum: lum,
+          minX: x, minY: y, maxX: x, maxY: y,
+          minColor: [r, g, b], maxColor: [r, g, b]
+        });
+      }
+      
+      const data = regions.get(label)!;
+      
+      if (lum < data.minLum) {
+        data.minLum = lum;
+        data.minX = x;
+        data.minY = y;
+        data.minColor = [r, g, b];
+      }
+      if (lum > data.maxLum) {
+        data.maxLum = lum;
+        data.maxX = x;
+        data.maxY = y;
+        data.maxColor = [r, g, b];
+      }
+    }
   }
   
   const out = createSolidImage(w, h, '#000000');
   
-  // DEBUG: Color each pixel by its region, show edges in white
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const idx = y * w + x;
+      const label = labels[idx];
+      const data = regions.get(label)!;
       
-      if (thinEdges[idx] === 1) {
-        // Show original thin edges in white
-        setPixel(out, x, y, 255, 255, 255);
-      } else if (edges[idx] === 1) {
-        // Show dilated edges in gray
-        setPixel(out, x, y, 128, 128, 128);
+      const vecX = data.maxX - data.minX;
+      const vecY = data.maxY - data.minY;
+      const dist = Math.sqrt(vecX * vecX + vecY * vecY);
+      
+      const lumRange = data.maxLum - data.minLum;
+      const isSolid = lumRange < 10 || dist < 10;
+      
+      const minColor: [number, number, number] = [
+        Math.max(0, data.minColor[0] - k),
+        Math.max(0, data.minColor[1] - k),
+        Math.max(0, data.minColor[2] - k)
+      ];
+      const maxColor: [number, number, number] = [
+        Math.min(255, data.maxColor[0] + k),
+        Math.min(255, data.maxColor[1] + k),
+        Math.min(255, data.maxColor[2] + k)
+      ];
+      
+      let t: number;
+      if (isSolid) {
+        t = y / h;
       } else {
-        const label = labels[idx];
-        const color = regionColors.get(label) || [255, 0, 255];
-        setPixel(out, x, y, color[0], color[1], color[2]);
+        const relX = x - data.minX;
+        const relY = y - data.minY;
+        const dot = relX * vecX + relY * vecY;
+        t = dot / (dist * dist);
+        t = Math.max(0, Math.min(1, t));
       }
+      
+      const r = Math.round(minColor[0] + t * (maxColor[0] - minColor[0]));
+      const g = Math.round(minColor[1] + t * (maxColor[1] - minColor[1]));
+      const b = Math.round(minColor[2] + t * (maxColor[2] - minColor[2]));
+      
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  const glowRadius = 6;
+  const blurredH = createSolidImage(w, h, '#000000');
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let sr = 0, sg = 0, sb = 0, weight = 0;
+      for (let dx = -glowRadius; dx <= glowRadius; dx++) {
+        const nx = x + dx;
+        if (nx >= 0 && nx < w) {
+          const wt = Math.exp(-(dx * dx) / (2 * (glowRadius / 2) ** 2));
+          const [r, g, b] = getPixel(out, nx, y);
+          sr += r * wt;
+          sg += g * wt;
+          sb += b * wt;
+          weight += wt;
+        }
+      }
+      setPixel(blurredH, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
+    }
+  }
+  
+  const blurred = createSolidImage(w, h, '#000000');
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let sr = 0, sg = 0, sb = 0, weight = 0;
+      for (let dy = -glowRadius; dy <= glowRadius; dy++) {
+        const ny = y + dy;
+        if (ny >= 0 && ny < h) {
+          const wt = Math.exp(-(dy * dy) / (2 * (glowRadius / 2) ** 2));
+          const [r, g, b] = getPixel(blurredH, x, ny);
+          sr += r * wt;
+          sg += g * wt;
+          sb += b * wt;
+          weight += wt;
+        }
+      }
+      setPixel(blurred, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
+    }
+  }
+  
+  const glowIntensity = 0.4;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const [r1, g1, b1] = getPixel(out, x, y);
+      const [r2, g2, b2] = getPixel(blurred, x, y);
+      
+      const nr = Math.min(255, r1 + Math.round(r2 * glowIntensity));
+      const ng = Math.min(255, g1 + Math.round(g2 * glowIntensity));
+      const nb = Math.min(255, b1 + Math.round(b2 * glowIntensity));
+      
+      setPixel(out, x, y, nr, ng, nb);
     }
   }
   
