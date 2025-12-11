@@ -9663,5 +9663,49 @@ Await emerald model loading before first render
 ID: toolu_014AyuYb94PrWi7TyBPKCCVo
 
 <tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Await emerald model loading before first render
 </tool.toolu_014AyuYb94PrWi7TyBPKCCVo>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XDYRo6qkB9hap6ML5FgJyJ
+
+## path
+
+<tool.toolu_01XDYRo6qkB9hap6ML5FgJyJ>
+index.html
+</tool.toolu_01XDYRo6qkB9hap6ML5FgJyJ>
+
+## git-commit-message
+
+<tool.toolu_01XDYRo6qkB9hap6ML5FgJyJ>
+Await emeraldReady before initial render
+</tool.toolu_01XDYRo6qkB9hap6ML5FgJyJ>
+
+## diff
+
+<tool.toolu_01XDYRo6qkB9hap6ML5FgJyJ>
+ window.addEventListener('popstate', (event) => {
+       loadProgramFromURL();
+     });
+     
+-    loadProgramFromURL();
+-    resize();
+\ No newline at end of file
++    // Wait for emerald model to load before first render
++    emeraldReady.then(() => {
++      loadProgramFromURL();
++      resize();
++    });
+\ No newline at end of file
+
+</tool.toolu_01XDYRo6qkB9hap6ML5FgJyJ>
+
+# TOOL RESULT
+
+ID: toolu_01XDYRo6qkB9hap6ML5FgJyJ
+
+<tool.toolu_01XDYRo6qkB9hap6ML5FgJyJ>
+
+</tool.toolu_01XDYRo6qkB9hap6ML5FgJyJ>
