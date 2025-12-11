@@ -4017,8 +4017,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fn0,
     arity: 1,
     argTypes: ['int'],
-    functionName: "radial-light",
-    documentation: "Radial gradient from center (white) to edges (black) multiplied with prev at n*10% opacity, then added back"
+    functionName: "overlay",
+    documentation: "Overlay blend mode: combines prev with old_image at index j, darkening darks and lightening lights"
   },
   
   '1': {
