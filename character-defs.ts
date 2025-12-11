@@ -1396,21 +1396,26 @@ function fnE(ctx: FnContext): Image {
 
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
+    const meshesToAdd: THREE.Mesh[] = [];
+    
     gem.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        // Clone the geometry to avoid modifying the original
         const geom = child.geometry.clone();
         geom.computeVertexNormals();
         child.geometry = geom;
         child.material = emeraldMaterial;
         child.renderOrder = 1;
         
-        // Add a back-face mesh for glass depth illusion
+        // Create back-face mesh but don't add during traverse
         const backMesh = new THREE.Mesh(geom, emeraldBackMaterial);
         backMesh.renderOrder = 0;
-        child.add(backMesh);
+        meshesToAdd.push(backMesh);
       }
     });
+    
+    // Add back meshes after traversal
+    meshesToAdd.forEach(mesh => gem.add(mesh));
+    
     gem.scale.setScalar(scale * 3.0);
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
