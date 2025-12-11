@@ -122,18 +122,11 @@ function getPrevImage(ctx: FnContext): Image {
   return ctx.images[ctx.images.length - 1];
 }
 
-function getOldImage(ctx: FnContext, j: number): Image {
+export function getOldImage(ctx: FnContext, j: number): Image {
   if (ctx.images.length === 0) return createSolidImage(ctx.width, ctx.height, '#000000');
   if (ctx.images.length === 1) return ctx.images[0];
   const idx = Math.abs(j) % ctx.images.length;
   return ctx.images[idx];
-}
-
-function resolveRefImage(ctx: FnContext, ref: Image | number): Image {
-  if (typeof ref === 'number') {
-    return getOldImage(ctx, ref);
-  }
-  return ref;
 }
 
 function getPixel(img: Image, x: number, y: number): [number, number, number, number] {
