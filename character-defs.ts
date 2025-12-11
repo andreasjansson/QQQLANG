@@ -1818,7 +1818,7 @@ function fnR(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnS(ctx: FnContext): Image {
+function fnSkewLeft(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
@@ -1826,6 +1826,24 @@ function fnS(ctx: FnContext): Image {
   
   for (let y = 0; y < ctx.height; y++) {
     const rowSkew = skewAmount * (1 - 2 * y / ctx.height);
+    for (let x = 0; x < ctx.width; x++) {
+      const sx = ((x + rowSkew) % ctx.width + ctx.width) % ctx.width;
+      const [r, g, b] = getPixel(prev, Math.floor(sx), y);
+      setPixel(out, x, y, r, g, b);
+    }
+  }
+  
+  return out;
+}
+
+function fnSkewRight(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const skewAmount = Math.tan(20 * Math.PI / 180) * ctx.height / 2;
+  
+  for (let y = 0; y < ctx.height; y++) {
+    const rowSkew = skewAmount * (2 * y / ctx.height - 1);
     for (let x = 0; x < ctx.width; x++) {
       const sx = ((x + rowSkew) % ctx.width + ctx.width) % ctx.width;
       const [r, g, b] = getPixel(prev, Math.floor(sx), y);
