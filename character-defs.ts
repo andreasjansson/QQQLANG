@@ -1575,22 +1575,9 @@ function fnE(ctx: FnContext): Image {
   addEmerald(-1.5, -1.2, 0.35);
   addEmerald(1.5, -1.2, 0.35);
   
-  // Setup bloom passes
-  emeraldComposer!.passes = [];
-  const renderPass = new RenderPass(emeraldScene!, emeraldCamera!);
-  emeraldComposer!.addPass(renderPass);
-  
-  const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(ctx.width, ctx.height),
-    0.3,   // strength - subtle
-    0.15,  // radius - tight spread
-    0.97   // threshold - only bloom the brightest spots
-  );
-  emeraldComposer!.addPass(bloomPass);
-  
   // Render multiple times - transmission needs multiple passes to converge
   for (let i = 0; i < 6; i++) {
-    emeraldComposer!.render();
+    emeraldRenderer!.render(emeraldScene!, emeraldCamera!);
   }
   
   const glContext = emeraldRenderer!.getContext();
