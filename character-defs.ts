@@ -1254,12 +1254,15 @@ function initEmeraldScene(width: number, height: number) {
       alpha: true, 
       antialias: true,
       premultipliedAlpha: false,
-      preserveDrawingBuffer: true
+      preserveDrawingBuffer: true,
+      powerPreference: 'high-performance',
     });
     emeraldRenderer.setSize(width, height);
+    emeraldRenderer.setPixelRatio(1);
     emeraldRenderer.setClearColor(0x000000, 0);
     emeraldRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    emeraldRenderer.toneMappingExposure = 1.2;
+    emeraldRenderer.toneMappingExposure = 1.0;
+    emeraldRenderer.outputColorSpace = THREE.SRGBColorSpace;
   }
   
   if (!emeraldScene) {
