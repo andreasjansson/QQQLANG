@@ -569,7 +569,7 @@
         if (char === UPLOAD_CHAR) {
           const isInvalid = invalidUploads.has(uploadIdx);
           const invalidClass = isInvalid ? ' upload-invalid' : '';
-          const displayChar = isInvalid ? '▢' : char;
+          const displayChar = isInvalid ? '■' : char;
           html += `<span class="upload-char${invalidClass}" style="background-color: #44444440;" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
           uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
           uploadIdx++;
