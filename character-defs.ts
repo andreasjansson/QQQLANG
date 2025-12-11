@@ -3919,41 +3919,173 @@ function fnCloseBracket(ctx: FnContext): Image {
 function fnUnderscore(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const blurRadius = 25;
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = position * 0.5 + 0.5;
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
   
+  const blurShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uDirection;
+    uniform vec2 uResolution;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 texelSize = 1.0 / uResolution;
+      vec3 result = vec3(0.0);
+      
+      float weights[5];
+      weights[0] = 0.227027;
+      weights[1] = 0.1945946;
+      weights[2] = 0.1216216;
+      weights[3] = 0.054054;
+      weights[4] = 0.016216;
+      
+      result += texture2D(uTexture, vUV).rgb * weights[0];
+      for (int i = 1; i < 5; i++) {
+        vec2 offset = uDirection * texelSize * float(i) * 5.0;
+        result += texture2D(uTexture, vUV + offset).rgb * weights[i];
+        result += texture2D(uTexture, vUV - offset).rgb * weights[i];
+      }
+      
+      gl_FragColor = vec4(result, 1.0);
+    }
+  `;
+  
+  const luminosityShader = `
+    precision highp float;
+    uniform sampler2D uPrev;
+    uniform sampler2D uBlurred;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 flippedUV = vec2(vUV.x, 1.0 - vUV.y);
+      vec3 prevColor = texture2D(uPrev, flippedUV).rgb;
+      vec3 blurColor = texture2D(uBlurred, vUV).rgb;
+      
+      float prevLum = dot(prevColor, vec3(0.299, 0.587, 0.114));
+      float blurLum = dot(blurColor, vec3(0.299, 0.587, 0.114));
+      
+      float scale = blurLum > 0.001 ? prevLum / blurLum : 1.0;
+      vec3 result = clamp(blurColor * scale, 0.0, 1.0);
+      
+      gl_FragColor = vec4(result, 1.0);
+    }
+  `;
+  
+  const blurProgram = createShaderProgram(gl, vertexShader, blurShader);
+  const luminosityProgram = createShaderProgram(gl, vertexShader, luminosityShader);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const oldTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const prevTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const tempTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const blurredTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, blurredTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const framebuffer = gl.createFramebuffer();
+  
+  gl.useProgram(blurProgram);
+  const blurPosLoc = gl.getAttribLocation(blurProgram, 'position');
+  gl.enableVertexAttribArray(blurPosLoc);
+  gl.vertexAttribPointer(blurPosLoc, 2, gl.FLOAT, false, 0, 0);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uResolution'), ctx.width, ctx.height);
+  
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.uniform1i(gl.getUniformLocation(blurProgram, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 1.0, 0.0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, blurredTexture, 0);
+  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 0.0, 1.0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  
+  gl.useProgram(luminosityProgram);
+  const lumPosLoc = gl.getAttribLocation(luminosityProgram, 'position');
+  gl.enableVertexAttribArray(lumPosLoc);
+  gl.vertexAttribPointer(lumPosLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+  gl.uniform1i(gl.getUniformLocation(luminosityProgram, 'uPrev'), 0);
+  
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, blurredTexture);
+  gl.uniform1i(gl.getUniformLocation(luminosityProgram, 'uBlurred'), 1);
+  
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      
-      let br = 0, bg = 0, bb = 0, count = 0;
-      for (let dy = -blurRadius; dy <= blurRadius; dy += 3) {
-        for (let dx = -blurRadius; dx <= blurRadius; dx += 3) {
-          const [or, og, ob] = getPixel(old, x + dx, y + dy);
-          br += or;
-          bg += og;
-          bb += ob;
-          count++;
-        }
-      }
-      br /= count;
-      bg /= count;
-      bb /= count;
-      
-      const prevLum = pr * 0.299 + pg * 0.587 + pb * 0.114;
-      const blurLum = br * 0.299 + bg * 0.587 + bb * 0.114;
-      
-      const scale = blurLum > 0 ? prevLum / blurLum : 1;
-      const nr = Math.min(255, Math.round(br * scale));
-      const ng = Math.min(255, Math.round(bg * scale));
-      const nb = Math.min(255, Math.round(bb * scale));
-      
-      setPixel(out, x, y, nr, ng, nb);
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(oldTexture);
+  gl.deleteTexture(prevTexture);
+  gl.deleteTexture(tempTexture);
+  gl.deleteTexture(blurredTexture);
+  gl.deleteFramebuffer(framebuffer);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(blurProgram);
+  gl.deleteProgram(luminosityProgram);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnBacktick(ctx: FnContext, n: number): Image {
