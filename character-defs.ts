@@ -1556,15 +1556,16 @@ function fnE(ctx: FnContext): Image {
     const scaleFactor = scale * 3.0;
     
     allCorners.forEach((corner, i) => {
-      // Only show sparkles on front-facing corners (positive z or upper parts)
-      if (corner[2] > -0.1 || corner[1] > 0.1) {
+      // Only show sparkles on front-facing corners (positive z)
+      if (corner[2] > 0) {
         const sprite = new THREE.Sprite(createSparkleMaterial());
-        const sparkleSize = 0.025 + (i % 3) * 0.01;  // Smaller, varied sizes
+        const sparkleSize = 0.03 + (i % 3) * 0.01;
         sprite.scale.set(sparkleSize * scaleFactor, sparkleSize * scaleFactor, 1);
+        // Position at the corner, pushed forward a bit to be visible
         sprite.position.set(
           x + corner[0] * scaleFactor,
           y + corner[1] * scaleFactor,
-          corner[2] * scaleFactor + 0.005  // Slightly in front
+          corner[2] * scaleFactor + 0.02
         );
         sprite.renderOrder = 10;
         emeraldScene!.add(sprite);
