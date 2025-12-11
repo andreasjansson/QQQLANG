@@ -5559,9 +5559,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 55,
     fn: fnColon,
     arity: 1,
-    argTypes: ['int'],
+    argTypes: ['index'],
     functionName: "porthole",
-    documentation: "Shows old image j in a center circle (radius 90% of half-size), prev image outside"
+    documentation: "Shows old image in a center circle (radius 90% of half-size), prev image outside"
   },
   
   ';': {
