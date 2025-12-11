@@ -1338,32 +1338,35 @@ function fnE(ctx: FnContext): Image {
   bgTexture.flipY = true;
   emeraldScene!.background = bgTexture;
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
   emeraldScene!.add(ambientLight);
   
   // Key light - bright white from top-right-front
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
   keyLight.position.set(5, 8, 10);
   emeraldScene!.add(keyLight);
   
   // Fill light with slight green tint
-  const fillLight = new THREE.DirectionalLight(0xeeffee, 1.0);
+  const fillLight = new THREE.DirectionalLight(0xeeffee, 1.2);
   fillLight.position.set(-5, 3, 8);
   emeraldScene!.add(fillLight);
   
   // Back rim light for edge highlights
-  const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  const backLight = new THREE.DirectionalLight(0xffffff, 1.0);
   backLight.position.set(0, 5, -5);
   emeraldScene!.add(backLight);
   
-  // Point lights for specular sparkles
-  const specLight1 = new THREE.PointLight(0xffffff, 2.0, 20);
-  specLight1.position.set(3, 4, 8);
-  emeraldScene!.add(specLight1);
+  // Multiple point lights for sparkle highlights on different facets
+  const sparklePositions = [
+    [3, 4, 8], [-3, 3, 7], [0, 6, 6], [4, 2, 5], [-4, 5, 5],
+    [2, 7, 4], [-2, 4, 9], [5, 3, 6], [-5, 6, 4], [0, 3, 10]
+  ];
   
-  const specLight2 = new THREE.PointLight(0xffffff, 1.5, 20);
-  specLight2.position.set(-3, 3, 7);
-  emeraldScene!.add(specLight2);
+  sparklePositions.forEach((pos, i) => {
+    const light = new THREE.PointLight(0xffffff, 2.5, 25);
+    light.position.set(pos[0], pos[1], pos[2]);
+    emeraldScene!.add(light);
+  });
 
   // Sparkly emerald material with flat shading to show facets
   const emeraldMaterial = new THREE.MeshPhongMaterial({
