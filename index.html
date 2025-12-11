@@ -328,6 +328,15 @@
     }
 
     function updateFaviconAndTitle(program) {
+      let favicon = document.getElementById('dynamic-favicon');
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.id = 'dynamic-favicon';
+        favicon.rel = 'icon';
+        favicon.type = 'image/png';
+        document.head.appendChild(favicon);
+      }
+      
       if (program) {
         document.title = 'QQQLANG - ' + program;
         
@@ -341,21 +350,10 @@
         const faviconCtx = faviconCanvas.getContext('2d');
         faviconCtx.drawImage(canvas, x, y, size, size, 0, 0, 32, 32);
         
-        let favicon = document.getElementById('dynamic-favicon');
-        if (!favicon) {
-          favicon = document.createElement('link');
-          favicon.id = 'dynamic-favicon';
-          favicon.rel = 'icon';
-          favicon.type = 'image/png';
-          document.head.appendChild(favicon);
-        }
         favicon.href = faviconCanvas.toDataURL('image/png');
       } else {
         document.title = 'QQQLANG';
-        const favicon = document.getElementById('dynamic-favicon');
-        if (favicon) {
-          favicon.remove();
-        }
+        favicon.href = 'favicon-32.png';
       }
     }
 
