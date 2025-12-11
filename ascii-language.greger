@@ -14099,5 +14099,70 @@ Import getExpectedTypeAtPosition for cursor-aware upload
 ID: toolu_013UmvvX2VfvpwMsbmPS3tXj
 
 <tool.toolu_013UmvvX2VfvpwMsbmPS3tXj>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Import getExpectedTypeAtPosition for cursor-aware upload
 </tool.toolu_013UmvvX2VfvpwMsbmPS3tXj>
+
+# ASSISTANT
+
+Now let me update the upload button state function to track cursor position:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01FyzZTyrLcV6mKgtThEPDEX
+
+## path
+
+<tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
+index.html
+</tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
+
+## git-commit-message
+
+<tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
+Track cursor position for upload button state
+</tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
+
+## diff
+
+<tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
+     function updateUploadButtonState() {
+-      const expectedType = getExpectedNextType(input.value);
++      const cursorPos = input.selectionStart ?? input.value.length;
++      const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
+       const btnText = uploadButton.querySelector('.btn-text .btn-indicator');
+       const btnIcon = uploadButton.querySelector('.btn-icon');
+       
+       if (expectedType === 'initial' || expectedType === 'index') {
+         uploadButton.disabled = false;
+         btnText.className = 'btn-indicator';
+         btnText.textContent = 'Upload';
+         btnIcon.textContent = '📷';
+       } else if (expectedType === 'function') {
+         uploadButton.disabled = true;
+         btnText.className = 'btn-indicator';
+         btnText.textContent = '𝑓𝑛';
+         btnIcon.textContent = '𝑓';
+       } else if (expectedType === 'int') {
+         uploadButton.disabled = true;
+         btnText.className = 'btn-indicator';
+         btnText.textContent = '𝑥';
+         btnIcon.textContent = '𝑥';
+       } else if (expectedType === 'color') {
+         uploadButton.disabled = true;
+         btnText.className = 'btn-indicator btn-rainbow';
+         btnText.textContent = '■';
+         btnIcon.textContent = '🌈';
+       }
+     }
+\ No newline at end of file
+
+</tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
+
+# TOOL RESULT
+
+ID: toolu_01FyzZTyrLcV6mKgtThEPDEX
+
+<tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
+
+</tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
