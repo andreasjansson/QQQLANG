@@ -2330,9 +2330,9 @@ function fnU(ctx: FnContext, n: number): Image {
   const w = ctx.width;
   const h = ctx.height;
   
-  const hueAmount = 60 + n * 20;
-  const satAmount = 0.3 + n * 0.05;
-  const lightAmount = 0.15 + n * 0.03;
+  const hueAmount = 40 + (n % 16) * 8;
+  const satAmount = 0.2 + (n % 10) * 0.03;
+  const lightAmount = 0.08 + (n % 8) * 0.01;
   
   const baseAngle = n * 0.5;
   const angleH = baseAngle;
@@ -2355,7 +2355,7 @@ function fnU(ctx: FnContext, n: number): Image {
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const [origR, origG, origB] = getPixel(prev, x, y);
-      let [h, s, l] = rgbToHsl(origR, origG, origB);
+      let [oh, os, ol] = rgbToHsl(origR, origG, origB);
       
       const rx = x - cx;
       const ry = y - cy;
@@ -2365,15 +2365,16 @@ function fnU(ctx: FnContext, n: number): Image {
       const tL = (rx * dirLX + ry * dirLY) / maxDist;
       
       const hueShift = tH * hueAmount;
-      h = (h + hueShift + 360) % 360;
+      let nh = (oh + hueShift + 360) % 360;
       
       const satMod = 1 + tS * satAmount;
-      s = Math.max(0, Math.min(1, s * satMod));
+      let ns = Math.max(0, Math.min(1, os * satMod));
       
-      const lightShift = tL * lightAmount;
-      l = Math.max(0, Math.min(1, l + lightShift * (1 - Math.abs(l - 0.5) * 2)));
+      const midtoneFactor = 1 - Math.pow(Math.abs(ol - 0.5) * 2, 2);
+      const lightShift = tL * lightAmount * midtoneFactor;
+      let nl = Math.max(0.05, Math.min(0.95, ol + lightShift));
       
-      const [r, g, b] = hslToRgb(h, s, l);
+      const [r, g, b] = hslToRgb(nh, ns, nl);
       setPixel(out, x, y, r, g, b);
     }
   }
