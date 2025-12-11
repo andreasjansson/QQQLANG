@@ -4997,7 +4997,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "undertone",
-    documentation: "Shifts R/G/B channels independently along three directions 120° apart; n controls rotation and intensity; creates color gradients across the image"
+    documentation: "HSL color shift with three gradient directions 120° apart: hue rotation, saturation multiply, lightness adjust (midtone-weighted); n controls angle and intensity"
   },
   
   'V': {

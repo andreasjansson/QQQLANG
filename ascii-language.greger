@@ -11129,5 +11129,61 @@ Make undertone use nonlinear HSL-based color shifting
 ID: toolu_013MfY1LoHFBLmU3RXdEmdFS
 
 <tool.toolu_013MfY1LoHFBLmU3RXdEmdFS>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make undertone use nonlinear HSL-based color shifting
 </tool.toolu_013MfY1LoHFBLmU3RXdEmdFS>
+
+# ASSISTANT
+
+Now the function works in HSL space with nonlinear effects:
+
+1. **Hue rotation** - shifts hue based on one gradient direction (wraps around 360°)
+2. **Saturation modulation** - multiplies saturation based on another gradient direction (nonlinear)
+3. **Lightness shift** - adds to lightness but with a falloff near black/white to prevent clipping (nonlinear - affects midtones more than extremes)
+
+Each of the three effects has its own direction, 120° apart, and `n` controls:
+- Base rotation of all three directions
+- Intensity of each effect
+
+Let me update the documentation:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011rRdjyVzPjZJSyhCxmeshz
+
+## path
+
+<tool.toolu_011rRdjyVzPjZJSyhCxmeshz>
+character-defs.ts
+</tool.toolu_011rRdjyVzPjZJSyhCxmeshz>
+
+## git-commit-message
+
+<tool.toolu_011rRdjyVzPjZJSyhCxmeshz>
+Update undertone documentation
+</tool.toolu_011rRdjyVzPjZJSyhCxmeshz>
+
+## diff
+
+<tool.toolu_011rRdjyVzPjZJSyhCxmeshz>
+   'U': {
+     color: '#DDA0DD',
+     number: 21,
+     fn: fnU,
+     arity: 1,
+     argTypes: ['int'],
+     functionName: "undertone",
+-    documentation: "Shifts R/G/B channels independently along three directions 120° apart; n controls rotation and intensity; creates color gradients across the image"
++    documentation: "HSL color shift with three gradient directions 120° apart: hue rotation, saturation multiply, lightness adjust (midtone-weighted); n controls angle and intensity"
+   },
+\ No newline at end of file
+
+</tool.toolu_011rRdjyVzPjZJSyhCxmeshz>
+
+# TOOL RESULT
+
+ID: toolu_011rRdjyVzPjZJSyhCxmeshz
+
+<tool.toolu_011rRdjyVzPjZJSyhCxmeshz>
+
+</tool.toolu_011rRdjyVzPjZJSyhCxmeshz>
