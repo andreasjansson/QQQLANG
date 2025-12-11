@@ -394,66 +394,6 @@ function fn5(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnE(ctx: FnContext, j: number): Image {
-  const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const scale = Math.min(ctx.width, ctx.height);
-  const sunRadius = scale * 0.25;
-  const moonRadius = scale * 0.24;
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
-      
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      
-      if (distFromCenter < moonRadius) {
-        const [or, og, ob] = getPixel(old, x, y);
-        setPixel(out, x, y, or, og, ob);
-      } else {
-        const coronaDist = distFromCenter - sunRadius;
-        
-        let intensity = 0;
-        if (coronaDist > 0) {
-          const coronaFalloff = Math.exp(-coronaDist / (scale * 0.25));
-          const innerCorona = Math.exp(-coronaDist / (scale * 0.08)) * 3;
-          
-          const angle = Math.atan2(dy, dx);
-          const rays = 0.5 + 0.5 * Math.sin(angle * 12) * Math.sin(angle * 5);
-          const rayIntensity = rays * Math.exp(-coronaDist / (scale * 0.5)) * 2;
-          
-          intensity = innerCorona + coronaFalloff * 1.5 + rayIntensity;
-        } else {
-          intensity = 4.0;
-        }
-        
-        if (distFromCenter < moonRadius + 8 && distFromCenter >= moonRadius) {
-          const edgeGlow = 1 - (distFromCenter - moonRadius) / 8;
-          intensity += edgeGlow * 5;
-        }
-        
-        const tr = Math.min(1, (pr / 255) * intensity + intensity * 0.1);
-        const tg = Math.min(1, (pg / 255) * intensity + intensity * 0.05);
-        const tb = Math.min(1, (pb / 255) * intensity);
-        
-        setPixel(out, x, y,
-          Math.floor(tr * 255),
-          Math.floor(tg * 255),
-          Math.floor(tb * 255)
-        );
-      }
-    }
-  }
-  
-  return out;
-}
-
 function fnF(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
