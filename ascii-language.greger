@@ -8391,5 +8391,232 @@ Revert to MeshPhysicalMaterial and add bloom for sparkle
 ID: toolu_01R8jSmpsvAR2rmbY5j871yv
 
 <tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Revert to MeshPhysicalMaterial and add bloom for sparkle
 </tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
+
+# ASSISTANT
+
+Now let me add bloom post-processing to make the highlights sparkle. First let me check where the renderer is and add the effect composer:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_015g1uUv6U33cLQqU4ACr7od
+
+## pattern
+
+<tool.toolu_015g1uUv6U33cLQqU4ACr7od>
+emeraldRenderer.render
+</tool.toolu_015g1uUv6U33cLQqU4ACr7od>
+
+## path
+
+<tool.toolu_015g1uUv6U33cLQqU4ACr7od>
+character-defs.ts
+</tool.toolu_015g1uUv6U33cLQqU4ACr7od>
+
+## context-lines
+
+<tool.toolu_015g1uUv6U33cLQqU4ACr7od>
+10
+</tool.toolu_015g1uUv6U33cLQqU4ACr7od>
+
+# TOOL RESULT
+
+ID: toolu_015g1uUv6U33cLQqU4ACr7od
+
+<tool.toolu_015g1uUv6U33cLQqU4ACr7od>
+No matches found
+</tool.toolu_015g1uUv6U33cLQqU4ACr7od>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01G3thbWbvECmziWTHq1vZ7U
+
+## pattern
+
+<tool.toolu_01G3thbWbvECmziWTHq1vZ7U>
+emeraldRenderer"
+</tool.toolu_01G3thbWbvECmziWTHq1vZ7U>
+
+## path
+
+<tool.toolu_01G3thbWbvECmziWTHq1vZ7U>
+character-defs.ts
+</tool.toolu_01G3thbWbvECmziWTHq1vZ7U>
+
+## context-lines
+
+<tool.toolu_01G3thbWbvECmziWTHq1vZ7U>
+5
+</tool.toolu_01G3thbWbvECmziWTHq1vZ7U>
+
+# TOOL RESULT
+
+ID: toolu_01G3thbWbvECmziWTHq1vZ7U
+
+<tool.toolu_01G3thbWbvECmziWTHq1vZ7U>
+Pattern ends with trailing double quote. This is likely an error. If you really want to search for patterns ending with a double quote, set allow-trailing-double-quote to true
+</tool.toolu_01G3thbWbvECmziWTHq1vZ7U>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01BdqDbdpRqiNinoT2b5tq3H
+
+## pattern
+
+<tool.toolu_01BdqDbdpRqiNinoT2b5tq3H>
+emeraldRenderer
+</tool.toolu_01BdqDbdpRqiNinoT2b5tq3H>
+
+## path
+
+<tool.toolu_01BdqDbdpRqiNinoT2b5tq3H>
+character-defs.ts
+</tool.toolu_01BdqDbdpRqiNinoT2b5tq3H>
+
+## context-lines
+
+<tool.toolu_01BdqDbdpRqiNinoT2b5tq3H>
+5
+</tool.toolu_01BdqDbdpRqiNinoT2b5tq3H>
+
+# TOOL RESULT
+
+ID: toolu_01BdqDbdpRqiNinoT2b5tq3H
+
+<tool.toolu_01BdqDbdpRqiNinoT2b5tq3H>
+1236-  
+1237-  return out;
+1238-}
+1239-
+1240-let emeraldScene: THREE.Scene | null = null;
+1241:let emeraldRenderer: THREE.WebGLRenderer | null = null;
+1242-let emeraldCamera: THREE.PerspectiveCamera | null = null;
+1243-let emeraldModel: THREE.Group | null = null;
+1244-let emeraldModelLoaded = false;
+1245-let emeraldLoadPromise: Promise<void> | null = null;
+1246-
+1247-function initEmeraldScene(width: number, height: number) {
+1248:  if (!emeraldRenderer || emeraldRenderer.domElement.width !== width || emeraldRenderer.domElement.height !== height) {
+1249:    if (emeraldRenderer) {
+1250:      emeraldRenderer.dispose();
+1251-    }
+1252-    
+1253:    emeraldRenderer = new THREE.WebGLRenderer({ 
+1254-      alpha: true, 
+1255-      antialias: true,
+1256-      premultipliedAlpha: false,
+1257-      preserveDrawingBuffer: true,
+1258-      powerPreference: 'high-performance',
+1259-    });
+1260:    emeraldRenderer.setSize(width, height);
+1261:    emeraldRenderer.setPixelRatio(1);
+1262:    emeraldRenderer.setClearColor(0x000000, 0);
+1263:    emeraldRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+1264:    emeraldRenderer.toneMappingExposure = 1.0;
+1265:    emeraldRenderer.outputColorSpace = THREE.SRGBColorSpace;
+1266-  }
+1267-  
+1268-  if (!emeraldScene) {
+1269-    emeraldScene = new THREE.Scene();
+1270-  }
+--
+1340-  bgTexture.needsUpdate = true;
+1341-  bgTexture.flipY = true;
+1342-  emeraldScene!.background = bgTexture;
+1343-
+1344-  // Create environment map for reflections
+1345:  const pmremGenerator = new THREE.PMREMGenerator(emeraldRenderer!);
+1346-  pmremGenerator.compileEquirectangularShader();
+1347-  const envRT = pmremGenerator.fromEquirectangular(bgTexture);
+1348-  emeraldScene!.environment = envRT.texture;
+1349-
+1350-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+--
+1436-  addEmerald(-1.5, -1.2, 0.35);
+1437-  addEmerald(1.5, -1.2, 0.35);
+1438-  
+1439-  // Render multiple times - transmission samples from previous frame
+1440-  for (let i = 0; i < 3; i++) {
+1441:    emeraldRenderer!.render(emeraldScene!, emeraldCamera!);
+1442-  }
+1443-  
+1444:  const glContext = emeraldRenderer!.getContext();
+1445-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+1446-  glContext.readPixels(0, 0, ctx.width, ctx.height, glContext.RGBA, glContext.UNSIGNED_BYTE, pixels);
+1447-  
+1448-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+1449-  for (let y = 0; y < ctx.height; y++) {
+
+</tool.toolu_01BdqDbdpRqiNinoT2b5tq3H>
+
+# ASSISTANT
+
+Let me add bloom using THREE's EffectComposer. First, let me check what imports we have:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01VqC6ZFPgZUu7Jpzx2vcNS5
+
+## pattern
+
+<tool.toolu_01VqC6ZFPgZUu7Jpzx2vcNS5>
+import.*THREE
+</tool.toolu_01VqC6ZFPgZUu7Jpzx2vcNS5>
+
+## path
+
+<tool.toolu_01VqC6ZFPgZUu7Jpzx2vcNS5>
+character-defs.ts
+</tool.toolu_01VqC6ZFPgZUu7Jpzx2vcNS5>
+
+# TOOL RESULT
+
+ID: toolu_01VqC6ZFPgZUu7Jpzx2vcNS5
+
+<tool.toolu_01VqC6ZFPgZUu7Jpzx2vcNS5>
+1:import * as THREE from 'three';
+
+</tool.toolu_01VqC6ZFPgZUu7Jpzx2vcNS5>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01GjwSJWDq2ULWUFUeGuSnXF
+
+## path
+
+<tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
+character-defs.ts
+</tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
+
+## git-commit-message
+
+<tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
+Add bloom post-processing imports for sparkle effect
+</tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
+
+## diff
+
+<tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
+-import * as THREE from 'three';
+\ No newline at end of file
++import * as THREE from 'three';
++import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
++import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
++import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+\ No newline at end of file
+
+</tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
+
+# TOOL RESULT
+
+ID: toolu_01GjwSJWDq2ULWUFUeGuSnXF
+
+<tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
+
+</tool.toolu_01GjwSJWDq2ULWUFUeGuSnXF>
