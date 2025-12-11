@@ -5346,10 +5346,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#708090',
     number: 52,
     fn: fnMinus,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 0,
+    argTypes: [],
     functionName: "scanlines",
-    documentation: "Every nth row darkened 50%, every (n*2)th row samples from n pixels above"
+    documentation: "CRT scanline effect: every 2nd row darkened 50%, every 4th row samples from 2 pixels above"
   },
   
   '.': {
