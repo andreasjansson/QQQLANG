@@ -1327,7 +1327,7 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.remove(emeraldScene!.children[0]);
   }
   
-  // Create background from prev image
+  // Create background texture
   const bgTexture = new THREE.DataTexture(
     prev.data,
     prev.width,
@@ -1338,65 +1338,63 @@ function fnE(ctx: FnContext): Image {
   bgTexture.flipY = true;
   emeraldScene!.background = bgTexture;
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+  // Create environment map for reflections
+  const pmremGenerator = new THREE.PMREMGenerator(emeraldRenderer!);
+  pmremGenerator.compileEquirectangularShader();
+  const envRT = pmremGenerator.fromEquirectangular(bgTexture);
+  emeraldScene!.environment = envRT.texture;
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   emeraldScene!.add(ambientLight);
   
   // Key light - bright white from top-right-front
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
   keyLight.position.set(5, 8, 10);
   emeraldScene!.add(keyLight);
   
   // Fill light with slight green tint
-  const fillLight = new THREE.DirectionalLight(0xeeffee, 1.2);
+  const fillLight = new THREE.DirectionalLight(0xeeffee, 1.5);
   fillLight.position.set(-5, 3, 8);
   emeraldScene!.add(fillLight);
   
   // Back rim light for edge highlights
-  const backLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  const backLight = new THREE.DirectionalLight(0xffffff, 1.2);
   backLight.position.set(0, 5, -5);
   emeraldScene!.add(backLight);
   
-  // Multiple point lights for sparkle highlights on different facets
+  // Multiple point lights for sparkle highlights
   const sparklePositions = [
     [3, 4, 8], [-3, 3, 7], [0, 6, 6], [4, 2, 5], [-4, 5, 5],
     [2, 7, 4], [-2, 4, 9], [5, 3, 6], [-5, 6, 4], [0, 3, 10]
   ];
   
-  sparklePositions.forEach((pos, i) => {
-    const light = new THREE.PointLight(0xffffff, 2.5, 25);
+  sparklePositions.forEach((pos) => {
+    const light = new THREE.PointLight(0xffffff, 3.0, 25);
     light.position.set(pos[0], pos[1], pos[2]);
     emeraldScene!.add(light);
   });
 
-  // Glass-like emerald using MeshStandardMaterial
-  const emeraldMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0.05, 0.5, 0.2),
-    emissive: new THREE.Color(0.02, 0.18, 0.07),
-    metalness: 0.1,
-    roughness: 0.05,
-    transparent: true,
-    opacity: 0.75,
-    side: THREE.FrontSide,
-    depthWrite: false,
-    flatShading: true,
-  });
-  
-  // Create a second pass material for back faces to simulate depth
-  const emeraldBackMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0.02, 0.3, 0.1),
-    emissive: new THREE.Color(0.01, 0.1, 0.04),
+  // Realistic glass emerald with transmission
+  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color(0.0, 0.4, 0.15),
     metalness: 0.0,
-    roughness: 0.1,
+    roughness: 0.0,
+    transmission: 0.95,
+    thickness: 2.0,
+    ior: 1.57,
+    envMapIntensity: 1.0,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.0,
     transparent: true,
-    opacity: 0.5,
-    side: THREE.BackSide,
-    depthWrite: false,
+    opacity: 1.0,
+    side: THREE.DoubleSide,
     flatShading: true,
+    attenuationColor: new THREE.Color(0.0, 0.3, 0.1),
+    attenuationDistance: 1.0,
   });
 
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
-    const meshesToAdd: THREE.Mesh[] = [];
     
     gem.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -1404,17 +1402,8 @@ function fnE(ctx: FnContext): Image {
         geom.computeVertexNormals();
         child.geometry = geom;
         child.material = emeraldMaterial;
-        child.renderOrder = 1;
-        
-        // Create back-face mesh but don't add during traverse
-        const backMesh = new THREE.Mesh(geom, emeraldBackMaterial);
-        backMesh.renderOrder = 0;
-        meshesToAdd.push(backMesh);
       }
     });
-    
-    // Add back meshes after traversal
-    meshesToAdd.forEach(mesh => gem.add(mesh));
     
     gem.scale.setScalar(scale * 3.0);
     gem.position.set(x, y, 0);
