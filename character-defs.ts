@@ -4099,8 +4099,8 @@ function fnHoles(ctx: FnContext, j: number): Image {
       const [pr, pg, pb] = getPixel(prev, x, y);
       const [h, s, l] = rgbToHsl(pr, pg, pb);
       
-      const midSat = s >= 0.2 && s <= 0.8;
-      const midVal = l >= 0.2 && l <= 0.8;
+      const midSat = s >= 0.35 && s <= 0.65;
+      const midVal = l >= 0.35 && l <= 0.65;
       
       if (midSat || midVal) {
         const [or, og, ob] = getPixel(old, x, y);
