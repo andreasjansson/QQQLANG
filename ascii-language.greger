@@ -10126,5 +10126,49 @@ Fix setUploadedBlob to expand array if needed
 ID: toolu_011htTK86cdMAMpacMQtW8J7
 
 <tool.toolu_011htTK86cdMAMpacMQtW8J7>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Fix setUploadedBlob to expand array if needed
 </tool.toolu_011htTK86cdMAMpacMQtW8J7>
+
+# ASSISTANT
+
+Also need to invalidate the image cache when an uploaded image changes:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TCqDDUtwYmux126KCHdidr
+
+## path
+
+<tool.toolu_01TCqDDUtwYmux126KCHdidr>
+runtime.ts
+</tool.toolu_01TCqDDUtwYmux126KCHdidr>
+
+## git-commit-message
+
+<tool.toolu_01TCqDDUtwYmux126KCHdidr>
+Clear image cache when uploaded blob changes
+</tool.toolu_01TCqDDUtwYmux126KCHdidr>
+
+## diff
+
+<tool.toolu_01TCqDDUtwYmux126KCHdidr>
+ export function setUploadedBlob(index: number, blob: Blob): void {
+   while (uploadedSources.length <= index) {
+     uploadedSources.push({ blob: new Blob() });
+   }
+   uploadedSources[index] = { blob };
+   uploadedImagesCache[index] = null as any;
++  imageCache.clear();
+ }
+\ No newline at end of file
+
+</tool.toolu_01TCqDDUtwYmux126KCHdidr>
+
+# TOOL RESULT
+
+ID: toolu_01TCqDDUtwYmux126KCHdidr
+
+<tool.toolu_01TCqDDUtwYmux126KCHdidr>
+
+</tool.toolu_01TCqDDUtwYmux126KCHdidr>
