@@ -2461,88 +2461,16 @@ function fnD(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fn6(ctx: FnContext, n: number): Image {
+function fn6(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const out = cloneImage(prev);
   
-  const hexRadius = Math.max(3, n * 2 + 3);
-  const hexWidth = hexRadius * 2;
-  const hexHeight = hexRadius * Math.sqrt(3);
+  const levels = 4;
   
-  const pixelToHex = (px: number, py: number): [number, number] => {
-    const q = (2 / 3 * px) / hexRadius;
-    const r = (-1 / 3 * px + Math.sqrt(3) / 3 * py) / hexRadius;
-    return [q, r];
-  };
-  
-  const hexRound = (q: number, r: number): [number, number] => {
-    const s = -q - r;
-    let rq = Math.round(q);
-    let rr = Math.round(r);
-    let rs = Math.round(s);
-    
-    const qDiff = Math.abs(rq - q);
-    const rDiff = Math.abs(rr - r);
-    const sDiff = Math.abs(rs - s);
-    
-    if (qDiff > rDiff && qDiff > sDiff) {
-      rq = -rr - rs;
-    } else if (rDiff > sDiff) {
-      rr = -rq - rs;
-    }
-    
-    return [rq, rr];
-  };
-  
-  const hexToPixel = (q: number, r: number): [number, number] => {
-    const x = hexRadius * (3 / 2 * q);
-    const y = hexRadius * (Math.sqrt(3) / 2 * q + Math.sqrt(3) * r);
-    return [x, y];
-  };
-  
-  const hexAverages = new Map<string, [number, number, number, number]>();
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [q, r] = pixelToHex(x, y);
-      const [hq, hr] = hexRound(q, r);
-      const key = `${hq},${hr}`;
-      
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      
-      if (!hexAverages.has(key)) {
-        hexAverages.set(key, [0, 0, 0, 0]);
-      }
-      const avg = hexAverages.get(key)!;
-      avg[0] += pr;
-      avg[1] += pg;
-      avg[2] += pb;
-      avg[3]++;
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [q, r] = pixelToHex(x, y);
-      const [hq, hr] = hexRound(q, r);
-      const key = `${hq},${hr}`;
-      
-      const [centerX, centerY] = hexToPixel(hq, hr);
-      const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-      
-      const avg = hexAverages.get(key);
-      if (avg && avg[3] > 0) {
-        const ar = Math.round(avg[0] / avg[3]);
-        const ag = Math.round(avg[1] / avg[3]);
-        const ab = Math.round(avg[2] / avg[3]);
-        
-        if (dist > hexRadius - 1.5) {
-          setPixel(out, x, y, Math.max(0, ar - 30), Math.max(0, ag - 30), Math.max(0, ab - 30));
-        } else {
-          setPixel(out, x, y, ar, ag, ab);
-        }
-      }
-    }
+  for (let i = 0; i < out.data.length; i += 4) {
+    out.data[i] = Math.floor(out.data[i] / 256 * levels) * (255 / (levels - 1));
+    out.data[i + 1] = Math.floor(out.data[i + 1] / 256 * levels) * (255 / (levels - 1));
+    out.data[i + 2] = Math.floor(out.data[i + 2] / 256 * levels) * (255 / (levels - 1));
   }
   
   return out;
