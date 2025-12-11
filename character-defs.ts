@@ -4418,9 +4418,8 @@ function fnOpenBrace(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnPipe(ctx: FnContext, j: number): Image {
+function fnPipe(ctx: FnContext, old: Image): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const midX = Math.floor(ctx.width / 2);
