@@ -4076,9 +4076,8 @@ function fnCloseBracket(ctx: FnContext): Image {
   return out;
 }
 
-function fnUnderscore(ctx: FnContext, j: number): Image {
+function fnUnderscore(ctx: FnContext, old: Image): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const gl = initWebGL(ctx.width, ctx.height);
   
   const vertexShader = `
