@@ -3162,12 +3162,13 @@ function fnExclaim(ctx: FnContext, n: number): Image {
   const out = cloneImage(prev);
   
   const hash = (x: number, y: number, seed: number) => {
-    const n = Math.sin(x * 127.1 + y * 311.7 + seed * 113.3) * 43758.5453;
-    return n - Math.floor(n);
+    const v = Math.sin(x * 127.1 + y * 311.7 + seed * 113.3) * 43758.5453;
+    return v - Math.floor(v);
   };
   
-  const baseLen = 8 + n * 5;
-  const chaos = 0.5 + n * 0.15;
+  const effectiveN = n + 25;
+  const baseLen = 8 + effectiveN * 5;
+  const chaos = 0.5 + effectiveN * 0.15;
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   
