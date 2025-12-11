@@ -4262,8 +4262,8 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
         warp += warpEffect(noiseCoord + warp, fi, uSeed) * uWarpStrength;
       }
       
-      // Apply warp as UV offset (small displacement)
-      vec2 warpedUV = uv + warp * 0.1;
+      // Apply warp as UV offset
+      vec2 warpedUV = uv + warp * 0.15;
       warpedUV = clamp(warpedUV, 0.0, 1.0);
       
       // Sample texture at warped position
@@ -4275,7 +4275,7 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       float hy = fbm(noiseCoord + warp + vec2(0.0, 0.05), uSeed);
       
       // Fake normal from height field
-      vec3 normal = normalize(vec3((h - hx) * 5.0, (h - hy) * 5.0, 1.0));
+      vec3 normal = normalize(vec3((h - hx) * 8.0, (h - hy) * 8.0, 1.0));
       
       // Light from top-left
       vec3 lightDir = normalize(vec3(0.5, 0.6, 1.0));
@@ -4284,11 +4284,11 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       // Specular highlight
       vec3 viewDir = vec3(0.0, 0.0, 1.0);
       vec3 reflectDir = reflect(-lightDir, normal);
-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 24.0);
       
-      // Subtle lighting adjustment - mostly preserve original
-      float lighting = 0.9 + diffuse * 0.1;
-      float highlight = spec * 0.15;
+      // Lighting adjustment
+      float lighting = 0.85 + diffuse * 0.2;
+      float highlight = spec * 0.25;
       
       vec3 color = texColor * lighting + vec3(highlight);
       
