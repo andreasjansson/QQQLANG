@@ -8788,5 +8788,52 @@ Update emerald scene with proper dimensions and camera
 ID: toolu_01WEnSvQ5R5HHZSMEENQgWVk
 
 <tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update emerald scene with proper dimensions and camera
 </tool.toolu_01WEnSvQ5R5HHZSMEENQgWVk>
+
+# ASSISTANT
+
+Now let me also update the camera to view the emeralds better from slightly above:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QjaYhKq7BYb2uGdpuCmzzz
+
+## path
+
+<tool.toolu_01QjaYhKq7BYb2uGdpuCmzzz>
+character-defs.ts
+</tool.toolu_01QjaYhKq7BYb2uGdpuCmzzz>
+
+## git-commit-message
+
+<tool.toolu_01QjaYhKq7BYb2uGdpuCmzzz>
+Adjust camera angle for emerald view
+</tool.toolu_01QjaYhKq7BYb2uGdpuCmzzz>
+
+## diff
+
+<tool.toolu_01QjaYhKq7BYb2uGdpuCmzzz>
+-      // Camera looking straight at emeralds
+-      vec3 ro = vec3(0.0, 0.0, 4.0);
+-      vec3 rd = normalize(vec3(p.x, p.y, -1.5));
+\ No newline at end of file
++      // Camera looking at emeralds from slightly above
++      vec3 ro = vec3(0.0, 1.5, 4.0);
++      vec3 lookAt = vec3(0.0, 0.0, 0.0);
++      vec3 forward = normalize(lookAt - ro);
++      vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), forward));
++      vec3 up = cross(forward, right);
++      vec3 rd = normalize(forward * 1.8 + p.x * right + p.y * up);
+\ No newline at end of file
+
+</tool.toolu_01QjaYhKq7BYb2uGdpuCmzzz>
+
+# TOOL RESULT
+
+ID: toolu_01QjaYhKq7BYb2uGdpuCmzzz
+
+<tool.toolu_01QjaYhKq7BYb2uGdpuCmzzz>
+
+</tool.toolu_01QjaYhKq7BYb2uGdpuCmzzz>
