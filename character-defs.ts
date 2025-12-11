@@ -4092,67 +4092,21 @@ function fnTilde(ctx: FnContext, n: number): Image {
 function fnHoles(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
   const old = getOldImage(ctx, j);
-  const out = cloneImage(prev);
-  
-  const seed = ctx.images.length * 137.5;
-  const hash = (n: number): number => {
-    const x = Math.sin(n * 127.1 + seed) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  
-  const minDim = Math.min(ctx.width, ctx.height);
-  const minRadius = minDim * 0.015;
-  const maxRadius = minDim * 0.12;
-  
-  const circles: { x: number; y: number; r: number }[] = [];
-  
-  const numSizes = 5;
-  const sizeBuckets: number[] = [];
-  for (let i = 0; i < numSizes; i++) {
-    sizeBuckets.push(maxRadius - (i / (numSizes - 1)) * (maxRadius - minRadius));
-  }
-  
-  const gap = 3;
-  
-  for (let sizeIdx = 0; sizeIdx < numSizes; sizeIdx++) {
-    const radius = sizeBuckets[sizeIdx];
-    const attemptsPerSize = 150;
-    
-    for (let attempt = 0; attempt < attemptsPerSize; attempt++) {
-      const hashBase = sizeIdx * 1000 + attempt * 3;
-      const candidateX = radius + hash(hashBase) * (ctx.width - 2 * radius);
-      const candidateY = radius + hash(hashBase + 1) * (ctx.height - 2 * radius);
-      
-      let valid = true;
-      for (const c of circles) {
-        const dx = candidateX - c.x;
-        const dy = candidateY - c.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < candidateX + c.r + gap) {
-          if (dist < radius + c.r + gap) {
-            valid = false;
-            break;
-          }
-        }
-      }
-      
-      if (valid) {
-        circles.push({ x: candidateX, y: candidateY, r: radius });
-      }
-    }
-  }
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      for (const c of circles) {
-        const dx = x - c.x;
-        const dy = y - c.y;
-        const distSq = dx * dx + dy * dy;
-        if (distSq < c.r * c.r) {
-          const [or, og, ob] = getPixel(old, x, y);
-          setPixel(out, x, y, or, og, ob);
-          break;
-        }
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [h, s, l] = rgbToHsl(pr, pg, pb);
+      
+      const midSat = s >= 0.2 && s <= 0.8;
+      const midVal = l >= 0.2 && l <= 0.8;
+      
+      if (midSat || midVal) {
+        const [or, og, ob] = getPixel(old, x, y);
+        setPixel(out, x, y, or, og, ob);
+      } else {
+        setPixel(out, x, y, pr, pg, pb);
       }
     }
   }
