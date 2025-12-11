@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-123429111681>
+${greger-prompt-code-style<eval-result-123710925990>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-123429111681>}
+</eval-result-123710925990>}
 
 # USER
 
@@ -8228,5 +8228,168 @@ Clean up orphaned material code
 ID: toolu_01B8QC4dQW31bVNyPv2gH1rM
 
 <tool.toolu_01B8QC4dQW31bVNyPv2gH1rM>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Clean up orphaned material code
 </tool.toolu_01B8QC4dQW31bVNyPv2gH1rM>
+
+# ASSISTANT
+
+Try now - the emeralds now use a custom shader with:
+1. Hash-based glitter cells - only ~3% of cells sparkle
+2. Sparkle intensity depends on view angle alignment
+3. Multiple point lights for specular highlights
+4. Fresnel effect for glass-like rims
+
+# USER
+
+no, there are just some scattered dots on the top of the emeralds and the bottom is now a solid color pretty much
+
+# THINKING
+
+Signature: Er0HCkYIChgCKkBArX5a8A7gDXPpyCUuQ4jd0sTNSKwoZH6OOP9tNFR/accUIzzbbFqo9YwrRiRsxCJcB6PDHOZPtuxQB2r8lhFMEgxC9b/KcqM7AX4v4zwaDNH/YI3XtvYWLHgtzSIw/0Mh3p+RpNushkAddoD52Nz4oyywzrSRPQg1EPmiSK+7b8uSUsKI7UdfvYMZ8VcoKqQGePDNr1ypEh5zNfbr52BebooWOYcSIHrTXYR5rIycMRRb9byxWpRd1HfK3XEFzC72YoXC1tDoHxQinQV/JapRseuLt8v/jEN/+JbDe9w18VzYoBhRb48Gk61Qsid8sHqaga/uTwKutrvwMxSUbuNtT+JZTHdVArqlM0cYB1ixJ2cvKofXpzktMx2g23rLGdRoHEGbwwBenLdSVzM5kpeqJ5e0itMta/uzeMYZeclkI7HMQuA2JDEdy5tGe6QbdioxoiatK55BiMQZiyuYXrwI6nqt2/ZVbFPn4gJmy2cTPlZyjJX3DQMb6L08zrsQys9+grWwkRFuu3aA7sX+OMSlEIWxj2B5p1eO2buZ+/5djo46yD546S0GXPDTD9FUA6oSqBGNS0qhsKaZTz/T7xRb0fRM+mGyZyVeffcG4g8k7+YUVQBQgNlw/1MryIN+xuTF78MvCw3ToxAEWlIpkmAkUqEFikhRzQagKB2upaZ0dJmXU84+ZktHeVxlrhzH0SqvrP7ozv3nGDxQLHhlkiFgE+6xFgFma6QIRL8ukuLUMpV6Q8nXDC+D2xv/icuaTVSzA1mOmQ5zTcNa+2mnFhxnpHl4qEpCcTWM7FQWApypBGejsJafhdRfSutJSCeXJcrAbbOf8PoTHqgy9luR7YFEx0dLVPJJrzkiF9lrv8aseh210Uou480a/DZf/Es99zF9tj8rrGnfljVyc3yyxymUuEeQSt01/47KAhUGhHMQVYt3MoJhRY7YXYALZjvbZ/yXY4gcGoe+Egt8/eK1n7QV1jNT6JpMJQgQXzmHeclfSgw1f/nmtnDYvCTBplOuneVZZ6dMWQv/oCg1ZspBaiajxn7Q+g5Pz+0EtRS/zv2EzrRvmVNzGAhnUzWIY8T2ylSWPo2yea0KecXMUM5iiDDcLTSQObw5uJo3gTg9oRA//lvWTc7wMCpSYYEqNFMmpCvYfwgWaDV55ZWDlagXVbTpI8k2VIV5chZ41H/79xd+SzqE4ybzY5NAAZyYXW3cxEfE3cgE58K3RY5DMKA5FJB5aVjwL9dSlsTSCmGpX4B6/AgMYetxGAE=
+
+The shader isn't working well. The issue is:
+1. The glitter is only showing on some parts
+2. The bottom is solid because the normal is facing away from the camera
+
+Let me go back to the MeshPhysicalMaterial which was working better visually, and think about a different approach for sparkle.
+
+Actually, maybe the best approach is to use the MeshPhysicalMaterial for the nice glass/gem look, and then add a post-processing bloom effect, or render a second pass with just specular highlights.
+
+Or I could try using the `onBeforeCompile` callback to inject glitter code into the existing MeshPhysicalMaterial shader.
+
+Let me revert to the physical material and try a different approach - maybe adding bloom post-processing which would make the specular highlights glow and look more like sparkles.
+
+# ASSISTANT
+
+Let me revert to the MeshPhysicalMaterial which looked good, and add bloom post-processing for the sparkle effect:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01R8jSmpsvAR2rmbY5j871yv
+
+## path
+
+<tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
+character-defs.ts
+</tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
+
+## git-commit-message
+
+<tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
+Revert to MeshPhysicalMaterial and add bloom for sparkle
+</tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
+
+## diff
+
+<tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
+-  // Custom shader material with glitter sparkle effect
+-  const emeraldMaterial = new THREE.ShaderMaterial({
+-    uniforms: {
+-      uColor: { value: new THREE.Color(0.0, 0.8, 0.28) },
+-      uGlitterDensity: { value: 150.0 },
+-    },
+-    vertexShader: `
+-      varying vec3 vNormal;
+-      varying vec3 vWorldPos;
+-      varying vec3 vLocalPos;
+-      
+-      void main() {
+-        vNormal = normalize(normalMatrix * normal);
+-        vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+-        vLocalPos = position;
+-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+-      }
+-    `,
+-    fragmentShader: `
+-      uniform vec3 uColor;
+-      uniform float uGlitterDensity;
+-      
+-      varying vec3 vNormal;
+-      varying vec3 vWorldPos;
+-      varying vec3 vLocalPos;
+-      
+-      // High quality hash
+-      float hash(vec3 p) {
+-        p = fract(p * vec3(443.897, 441.423, 437.195));
+-        p += dot(p, p.yxz + 19.19);
+-        return fract((p.x + p.y) * p.z);
+-      }
+-      
+-      void main() {
+-        vec3 normal = normalize(vNormal);
+-        vec3 viewDir = normalize(cameraPosition - vWorldPos);
+-        
+-        // Fresnel for glass-like rim
+-        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
+-        
+-        // Base emerald color
+-        vec3 baseColor = uColor * (0.5 + fresnel * 0.5);
+-        
+-        // Multiple lights for specular
+-        vec3 lights[3];
+-        lights[0] = vec3(3.0, 3.0, 5.0);
+-        lights[1] = vec3(-2.0, 4.0, 3.0);
+-        lights[2] = vec3(0.0, -2.0, 4.0);
+-        
+-        float totalSpec = 0.0;
+-        for (int i = 0; i < 3; i++) {
+-          vec3 lightDir = normalize(lights[i] - vWorldPos);
+-          vec3 halfDir = normalize(lightDir + viewDir);
+-          float spec = pow(max(dot(normal, halfDir), 0.0), 128.0);
+-          totalSpec += spec * (i == 0 ? 1.0 : 0.6);
+-        }
+-        
+-        // Glitter sparkles - hash based on local position for stability
+-        vec3 glitterCell = floor(vLocalPos * uGlitterDensity);
+-        float glitterRand = hash(glitterCell);
+-        
+-        // Only some cells sparkle (top 3%)
+-        float sparkle = 0.0;
+-        if (glitterRand > 0.97) {
+-          // Sparkle intensity depends on alignment with view
+-          float alignment = max(dot(normal, viewDir), 0.0);
+-          // Make sparkle pop only when well-aligned
+-          sparkle = smoothstep(0.97, 1.0, glitterRand) * pow(alignment, 2.0) * 5.0;
+-        }
+-        
+-        // Combine
+-        vec3 color = baseColor;
+-        color += vec3(1.0) * totalSpec * 0.5;
+-        color += vec3(1.0, 1.0, 0.95) * sparkle;
+-        color += uColor * fresnel * 0.4;
+-        
+-        gl_FragColor = vec4(color, 0.88 + fresnel * 0.12);
+-      }
+-    `,
++  // Glass emerald material
++  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
++    color: new THREE.Color(0.0, 0.8, 0.28),
++    metalness: 0.0,
++    roughness: 0.0,
++    transmission: 0.92,
++    thickness: 0.6,
++    ior: 1.65,
++    envMapIntensity: 0.35,
++    clearcoat: 1.0,
++    clearcoatRoughness: 0.0,
+     transparent: true,
++    opacity: 1.0,
+     side: THREE.DoubleSide,
++    flatShading: true,
++    attenuationColor: new THREE.Color(0.0, 0.5, 0.15),
++    attenuationDistance: 0.4,
++    specularIntensity: 1.5,
++    specularColor: new THREE.Color(1, 1, 1),
+   });
+\ No newline at end of file
+
+</tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
+
+# TOOL RESULT
+
+ID: toolu_01R8jSmpsvAR2rmbY5j871yv
+
+<tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
+
+</tool.toolu_01R8jSmpsvAR2rmbY5j871yv>
