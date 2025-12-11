@@ -245,8 +245,9 @@
     }
 
     function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const container = document.getElementById('canvas-container');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
       render();
     }
 

@@ -13767,5 +13767,49 @@ Wrap canvas in container div for flexbox layout
 ID: toolu_01Eoy3sBNh1oX25DSuj92htF
 
 <tool.toolu_01Eoy3sBNh1oX25DSuj92htF>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Wrap canvas in container div for flexbox layout
 </tool.toolu_01Eoy3sBNh1oX25DSuj92htF>
+
+# ASSISTANT
+
+Now I need to update the resize function to use the container size instead of the window size:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_013tFFt9Zi1isM8SKu2xgR7u
+
+## path
+
+<tool.toolu_013tFFt9Zi1isM8SKu2xgR7u>
+index.html
+</tool.toolu_013tFFt9Zi1isM8SKu2xgR7u>
+
+## git-commit-message
+
+<tool.toolu_013tFFt9Zi1isM8SKu2xgR7u>
+Update resize function to use canvas container dimensions
+</tool.toolu_013tFFt9Zi1isM8SKu2xgR7u>
+
+## diff
+
+<tool.toolu_013tFFt9Zi1isM8SKu2xgR7u>
+     function resize() {
+-      canvas.width = window.innerWidth;
+-      canvas.height = window.innerHeight;
++      const container = document.getElementById('canvas-container');
++      canvas.width = container.clientWidth;
++      canvas.height = container.clientHeight;
+       render();
+     }
+\ No newline at end of file
+
+</tool.toolu_013tFFt9Zi1isM8SKu2xgR7u>
+
+# TOOL RESULT
+
+ID: toolu_013tFFt9Zi1isM8SKu2xgR7u
+
+<tool.toolu_013tFFt9Zi1isM8SKu2xgR7u>
+
+</tool.toolu_013tFFt9Zi1isM8SKu2xgR7u>
