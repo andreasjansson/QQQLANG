@@ -4221,11 +4221,11 @@ export const characterDefs: Record<string, CharDef> = {
   'S': {
     color: '#87CEEB',
     number: 19,
-    fn: fnS,
-    arity: 0,
-    argTypes: [],
-    functionName: "skew",
-    documentation: "Skews image 20 degrees with wraparound"
+    fn: fnTornLeft,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "split-left",
+    documentation: "Left third shows old_image at index j, right two-thirds show prev, torn-paper edge using sin waves"
   },
   
   'T': {
