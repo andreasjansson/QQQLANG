@@ -372,7 +372,8 @@
     }
     
     function updateUploadButtonState() {
-      const expectedType = getExpectedNextType(input.value);
+      const cursorPos = input.selectionStart ?? input.value.length;
+      const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
       const btnText = uploadButton.querySelector('.btn-text .btn-indicator');
       const btnIcon = uploadButton.querySelector('.btn-icon');
       
