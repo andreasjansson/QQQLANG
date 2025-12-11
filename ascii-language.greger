@@ -14164,5 +14164,76 @@ Track cursor position for upload button state
 ID: toolu_01FyzZTyrLcV6mKgtThEPDEX
 
 <tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Track cursor position for upload button state
 </tool.toolu_01FyzZTyrLcV6mKgtThEPDEX>
+
+# ASSISTANT
+
+Now let's update the click handler to also use cursor position, and fix the cursor position after emoji insertion:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Y1oHyQLawtP7FKKMmrbtBi
+
+## path
+
+<tool.toolu_01Y1oHyQLawtP7FKKMmrbtBi>
+index.html
+</tool.toolu_01Y1oHyQLawtP7FKKMmrbtBi>
+
+## git-commit-message
+
+<tool.toolu_01Y1oHyQLawtP7FKKMmrbtBi>
+Fix upload: use cursor position for validation, fix emoji cursor offset
+</tool.toolu_01Y1oHyQLawtP7FKKMmrbtBi>
+
+## diff
+
+<tool.toolu_01Y1oHyQLawtP7FKKMmrbtBi>
+     uploadButton.addEventListener('click', () => {
+-      const expectedType = getExpectedNextType(input.value);
++      const cursorPos = input.selectionStart ?? input.value.length;
++      const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
+       if (expectedType === 'initial' || expectedType === 'index') {
+         pendingUploadIndex = null;
+         fileInput.click();
+       }
+     });
+     
+     fileInput.addEventListener('change', async (e) => {
+       const file = e.target.files[0];
+       if (!file) return;
+       
+       const img = await loadImageFromFile(file);
+       
+       if (pendingUploadIndex !== null) {
+         setUploadedImage(pendingUploadIndex, img);
+         pendingUploadIndex = null;
+       } else {
+         const uploadIndex = addUploadedImage(img);
+         
+         const start = input.selectionStart;
+         const before = input.value.substring(0, start);
+         const after = input.value.substring(input.selectionEnd);
+         input.value = before + UPLOAD_CHAR + after;
+-        input.selectionStart = input.selectionEnd = start + 1;
++        input.selectionStart = input.selectionEnd = start + UPLOAD_CHAR.length;
+       }
+       
+       fileInput.value = '';
+       updateURL(input.value);
+       render();
+       input.focus();
+     });
+\ No newline at end of file
+
+</tool.toolu_01Y1oHyQLawtP7FKKMmrbtBi>
+
+# TOOL RESULT
+
+ID: toolu_01Y1oHyQLawtP7FKKMmrbtBi
+
+<tool.toolu_01Y1oHyQLawtP7FKKMmrbtBi>
+
+</tool.toolu_01Y1oHyQLawtP7FKKMmrbtBi>

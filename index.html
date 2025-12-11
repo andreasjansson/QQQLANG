@@ -445,7 +445,8 @@
     }
     
     uploadButton.addEventListener('click', () => {
-      const expectedType = getExpectedNextType(input.value);
+      const cursorPos = input.selectionStart ?? input.value.length;
+      const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
       if (expectedType === 'initial' || expectedType === 'index') {
         pendingUploadIndex = null;
         fileInput.click();
@@ -468,7 +469,7 @@
         const before = input.value.substring(0, start);
         const after = input.value.substring(input.selectionEnd);
         input.value = before + UPLOAD_CHAR + after;
-        input.selectionStart = input.selectionEnd = start + 1;
+        input.selectionStart = input.selectionEnd = start + UPLOAD_CHAR.length;
       }
       
       fileInput.value = '';
