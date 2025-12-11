@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-123334764620>
+${greger-prompt-code-style<eval-result-123429111681>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-123334764620>}
+</eval-result-123429111681>}
 
 # USER
 
@@ -6384,5 +6384,1213 @@ Fix sprite material blending
 ID: toolu_0184jpq2nRao7Vqfirb6HzNX
 
 <tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix sprite material blending
 </tool.toolu_0184jpq2nRao7Vqfirb6HzNX>
+
+# ASSISTANT
+
+Try now - much heavier blur (multiple passes up to 12px), larger canvas for more detail, and better sprite blending with reduced opacity and disabled depth test.
+
+# USER
+
+no this is never gonna work. delete those fake sparkles and search the web for how to make things sparkle in three.js/webgl
+
+# THINKING
+
+Signature: EpwCCkYIChgCKkCLRrljhhFF/ZPvL+QX5uM//1D6QkRxXFyh3s80utulrFfM2RYyITKHTyz0ghJHPjEPLAlCxFT1f+n+vXlNYydGEgwK0ktoP8mbM7mP3vwaDBC2V4vrjoQm+Bx9WiIwHJN3aP3QNX6JT6Dtl0fBCnpyjW0UKVfvjezgQd25MR2DzeDdThns46+k6Fy1xi3DKoMBndqoayEfE47kHWVdavXw7IaqvERHPwqOgT15t4D/vosocTiuDGkmFlNdS+hZ88Ru01jE/ZRh860BbZgmhqpdmRNpaSYEpyPbdvnfctME7WL3vi+Hp7Sj/nVlGnZLNvghA/B91PcdxETQi+9Iz2vGWuMH40pWz5B7ziMhJakweaLmxKsYAQ==
+
+The user wants me to remove the fake sparkle approach and search for a proper way to do sparkles in three.js/webgl.
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_015NXikE9SKPRfcBJvxWUh6X
+
+## query
+
+<tool.srvtoolu_015NXikE9SKPRfcBJvxWUh6X>
+three.js gem diamond sparkle effect shader
+</tool.srvtoolu_015NXikE9SKPRfcBJvxWUh6X>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_015NXikE9SKPRfcBJvxWUh6X
+
+<tool.srvtoolu_015NXikE9SKPRfcBJvxWUh6X>
+[
+  {
+    "type": "web_search_result",
+    "title": "How to Create Custom Shaders for a diamond in Three Js - Auriga IT",
+    "url": "https://aurigait.com/blog/how-to-create-custom-shaders-for-a-diamond-in-three-js/",
+    "encrypted_content": "ErQcCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDL+mxKwoFia+jLzJVxoM3bJsvTJpGyxbAX5EIjAriRJA7SUTH2Ks44lhyZmDWf6+/BdbFzbvbUs4SlTAWakvNA89FALAljKGF031ix8qtxtu+v/Vv/i5jYWwa9QQYJ4jP7z/5DnIY9UhNbvQs0ggTN9jw/RF+JD8FIE0irdcDY99JJ4C7n3AG9rgEMAQ+LHXk16v+kQepXSGX9wvks9oAzF073j0/uh3XUA7G5NyGGpVhrPcEugl8s/gOPBt++8VOXmf7Wp2DdNFSuHyBttn2yQJ2ZBixsbKURfRlDaNWmkXV5RgYaLQiWDVk/QhqsY3WB918p3Qr+kDpWfh6OYnOn+om9V+BfGM6/j+3PGtBhHIDcs5KyBRj2Tp1iS32t4MMtBtDmIG2leai2TVsORMVsEW1dx+0/6biQqwHKILyQbnr2dr1GwtwjzbopnUFHyA+6w9pIbZjOIYvxcv/llGz31Tbh53jk5XDLhxm1oavZA///XroMT7becdDC/5S8TlNEDk129dnAf5/xHiJQ59LoScUYqPB3OmL4VG5bsKDHPyVIZiZrx6FM/7RLq8k4pHz2Ydza07pZUSOeGEo1BCjn0IqPZB4pq/AvJZX0ekGioNbXRBzziKsGuwldZ3eacluCt8xpbjbqx0lpRC7IPpvwOPDJ7YJ2JOj33Uo6QUFbvoVS5T0F2o+2v7s+Sz5ONGOHvqt/y4dTYYi7z0Z+YDf8rCHH0vWgFBH1l+1AmGgHXF33ata9Sg5hG3XqowBHD0i54ayzE32vYAIRDuvkodr7vkly5T4FJ+s/pi8+DMBr+ot4DyZYQcO6yXd28iPwqoo0JmnxczPvEYmYO3UYjJfXVVb/s8yimtpJfnOXQ3TguIVGHXFo3OUIajL/S14/zelB42QiPl0QcRCiY5ITpzmYZspU9nsdlYn2D+SR3sPU6Yr+qXwfB3BBSn4H0kFPaFmdH1BJaF5DKABqtGzrhbtlN5m+OIgpfbPQM5PYEZMRtmOwqqlhkdpRisp7iVaN+jFW4hLo+qoQnqdSgm7yePg77TrhyjRrt0itNp0CkWAsJ9L39z7//WZKmcbYpChIeADXfqJRjGGkJaVELUIjBC1rr7uTxfS+1llGiKTAxgqTx2xU5/2dZPE7VP0I/ln0LwFNsO9ir3fDTSZmR2FSaWzqQzBxMfWyxpY6RA0rVa5E64N2dhaYqRPV+h06kfJkdjwwA2UJOOetAsojfdTzQQvrhqkS0at/J6e5PGD/TcwWZb8AuKR1Erce0TqaLHKQy+J+1ML1EGa0QCsI0gbjcQVxTHAKI9YDT8JiLJANwaLWo/G6wbtA+SHgh9IhQqSsv9lAVbaUQhc4SJhW6mhJrK7kiz2tHAVvlDka0FIEzvoIFdYTRTS92US3jUTKBzGuruwTAZfXmOWdu739rTy8f9M/8uFdfC3zl7V83m3JkWUKXY01I9ww77IyU1MdfH7uS4LVxvhBRhZdrJt0P3sjRaYBp5ZldfmN3fKNa6KY1MQ2+eFbt20CAfMQBHL1KukOMcPR/4+5mI1kZzAh4CQThQ+e7xOZLZbbMCWeBW5StGT9cqzMFozOIQPOHPDnJxia1bRYK650PRiajwOuRfjy1uH58EU2/O4uq7Ggha4VJVau4+3mj1pGVVV0GrjjoVqxaMUN1vpRAOL0yHNE5PSBs1q7xMFsp4q2fTOo7OgQWk9w2Z9z/1uNltsyuuExQGIRkk64JoLFIWCHAagCr7yZ1JDLNIjKrAqPF6/T+4BxPitrar+MINLg3ltYzttKZwjHCLJGEv8Kuw3TgwRYejhrVg6p5PqdosFGn1TxyMh5Yn+i/y32HyLrJMkXPzEftWKT6umK3sJRp6gOq+6vMBm0Xi4BJ9vLtbenpefSZQECvoJaAb096rpJDLhpJfNWC6DF+FIthZ29xwCCXKhI2NtRyG1cuwD8H/gn7xPMAZ/2AZPzDmxefpzl2+SzzTt39OK8cvqQTIiIK3tPJhLSpVeFptmg8bIc+B/AQKVYgYpadXbTmI9Jd0Au3IZRUS2ZqtVIX5Sw5cObk/yUSRYkZ14Fzmngg1/TAgzlxIaJFe3SlqHAIUUEpujCCma4TGaNbyNke5tyam7aEczDER+Cl1xP+QNt4/rqopWheGuRyB11mcG7472cTJY4p21E75s370Y33JjVS0UueMzIxZkU6G7MgqEIhJE397h4dI8ifHNG32UG3AWpAOtPMI7oN6tX0JhLBe5Zo4zY5BXgqSv/3Ji5KHLEHBYLHGHKYyMYDXPBprQVP23CkEkLBVwhtoXOTisLe1Rg+oMy9L8C8EOWHlUCpmVNyEZxPFb2dBxL4LjFfb1ytocU+lhBb+QaavqIhj/wnDu7BcU6/XP9i7jHXLDsh3zfe3oDPTsIZfwV0mQClUfUYMV/shIv3pMCPTfXdwmkCyQWy9qcyTbR8rfQ5E6N8G2WOfBHpE4swwWdYSzj6VGn0xb1FIJp2+W89w+psuYUYHqfVu4iN7DDf1HhPzWdF3LfGVyhHlx0suvos1fzVNHjs0VVhRDNrbYMQyt/9ge20RjR7l/hdhQwATIMx5W+8B0i9aG9ZSvqjEGJCsHaZY0i5a0N8tg7626uBGdbR16hCaMEg40NbQZEmZLZiFRb4o21xYE6UnCWkzLetLRq6jP20JwSRYiWEtpB5gXnNgWQA3d1Q5W76nGX+rI6/U5pqCduwMT11N6WkLCXC7dmFa5qQH2J3n2CJgwDazbkTEStjqz2T18gytRqLkYWkScfaKVyBuf5d/bCKx+s9Ic36DLtBh3H77LdYBOHEXAir2Wj+/UkwYGYGqte/+1e2nwvc20ymFlix/ag/5+fXWd1kcZFzZVUZalf0rj8qfHlwYRWuo20xIeP13rRQMhwdJHmx+S+wlqp+UhoJ/hfk5rTqMPfpw3FaxKu82fxkk1XuoQh2H7Z8y1A1WLvRhQkjGsuEIX3yjylKW3cgJp+yYV2zxKITvFFTWuM9zGkPp5nItfXzXCm3Y8oyxQZ4PVDrP+OcsdNySFNwfFlhmeDemErcgc+ZFaiClSr/jFWCTxAEaSYOoOqSKfLgz+qCZRlNdlk28ErCpegt7Hm9gpd1P9XjuGpwwgZqT40/Uh1rfZWt1IvkvhexTYf+nlzyAXrhqbBl08hLNwp/IDXBU/XXvAw815aVpJd7hGHJOCD2mVvzW0UT3X9Krmza9FXWtxqI+/yP6j52VNQ+1TYsmwC/F3O8nEnugtMoUzHUSqPs4n3uWikIprt05Jabr4K+mGYQxzbSYbsFXWNaWjG+507dKz3wCKpcq1TLgL/3EMzN3iA/h7Tq3WjKtY33ZdS2Crx/PsF5LuVkD8zXu8JGphypsv3VLuJS6zlCA82dXIgCNri6cP6VAImV+jatc8V65ld5V90Wx8OERPgRQmF4FgCVomX81l3kJnLVzzS8C5S+ioQtlQxOrPE2SgALCThXbuV12/r3knPY+7bSdaem+kRd0upjDxZfufq3C2jVQVx0hewgoEIMmkbFsp4egcJdJOrawngBXus9Hi2fHRH5HcOldaGOXG6qABLKecolFTwIqlzVV/szydnCsbGjqVrxs9PCei4uTpsiMlWR3hotIOxPEI2xHUUlDOS+QsMZn2F2pHyTqmHQH/RRG+MSxLUqyZzt63+BbhewoASTMEt0I0gYXYw3gWa+kq5nNkpmi/fj3NrpXC1YziUTOEAq/mhjwh0smQdGUKdzVGi/l5Nkmt/JBnZbkB3IheddJ93upbeHmBeNxIacguVJhvkKXin5Z2HT40xLk3N8M4koo24dmSBqYR6AD4AnMiMT6HoV99lZwvOv9Q6miX3dN3/MToHNmzA5T3ch1MpVl2T6DOPvffIxNueTyfxb/lHyoRrVczbCwxXBHixYbdwTX8/IVEUcpUuM20xRbZ+wOETBforXwK1KGFH50zWXBxRbPps3SYshJOjvCAitmJE+3vDq8V3TKDacakQo5HTS19IkCznVxmzh4gJJ1TV8NWEzAIeptuWZkg+GiN1Z8AsW+Xtm09oVvK18/Kw/m7lo5SmJz4fup4nJNJHvSRXGgKFYNoyPyk7zxq3R3WIoIvGmim4FkxLzIL9JW1pA2pAelL9D78tU74QJTd6hK/PnLwASzxxxjX8MIPLKhitknjrba16v410geMd7SWKc6YS3kksDV7goR/2SoeDbrYv1Rh/lhzBw/gtnklKbd9d+GkWAVd4yOWka1DkP1NvvvIhVH6iuQyPQh+/JgfQs27dqvGqk8oBphwpsRY4RJFQurZ3aFTkL3M8f1s2fd/8vmGgl5dnNAc7rmO2k8Abm5o8y8/RdCwtBJXmqdRRQuUA3Arjy5oP8dEzqrbEfEvc37DPXGgGi+S+KJ/wgb2RaayhvNAJkpMTnTNbRcYSSyby+48HriYtBIPyTAaEzv59pJAYiwXPbhW0KCwVGM3Okr+cFjWDOGFmGKYlARpUcKFtcWtYHJTOvSK1v7TxpSWKmod6lkJ30XgOO0JBNiSOoBhJ00S2LnMQUGsB2CDD9oOYHhoFICyh91Mwq3McUdn360X+iOvO+Kc1SjGjkZcKu/ZSCKi9zF5bhrj22a8UnfCoG+VkO2r3u0ZdSgb55U6Dw7IaARcBXbcv92LfvxUCpaTvj/ymfkvyDX+1trMVwXqckB3dSsIA/7s74isWETb7i7BNV7r1C0LAogbYp4ncAyh0mqY+exSNZ+/+lQYeTZ2f63maAI0NjRf5+gstUChx9ZhVmhmEfJ30+UPHpoIaYt/DlR5/x8GOh3GAM=",
+    "page_age": "September 16, 2024"
+  },
+  {
+    "type": "web_search_result",
+    "title": "Real Time Diamond Rendering - Showcase - three.js forum",
+    "url": "https://discourse.threejs.org/t/real-time-diamond-rendering/4284",
+    "encrypted_content": "Ev4BCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDDM7mmqv9k64aooIUxoM0KcB6tvZ5mXKFmreIjCAj+nH6S1Ru+isSBMJHeASwAOQyIp6kJ33ftCcLfhnKpU0JN6Ts8j8iWEjdec8ulYqgQHCX02RTEaUsK9hOzLHZ8gh0j2uPKdiCKIWJPhSBlp07oxIz4K2akNLdDTcqy4cfPBw8i2Xg+Efn+IiOtqpDBY5hnBsya9fqVM/U1KFATVJbzsBM5qTf9RQisBfa+RJYkw8ZgiBCubKqdEgj0Oaj5lRVQFxAY5zKRLy/NJA5p+lY5QYAw==",
+    "page_age": "September 29, 2018"
+  },
+  {
+    "type": "web_search_result",
+    "title": "ThreeJS diamond reflection and refraction - Questions - three.js forum",
+    "url": "https://discourse.threejs.org/t/threejs-diamond-reflection-and-refraction/13005",
+    "encrypted_content": "EucGCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDOuTVDUrDFMJJqr3TBoMTERUOktaRFj3+5f4IjBGBeEf/iKu5iSoNVb/9M9JAkdQPN3s51llEhsaPHOVzifrKb9+zpY6xzlNJRGFU2Iq6gUjiMDf3pQybrkZy26+quygewMnxXdxFo5EW9ExnNLouRRZ7610nNpe+FHELtvAImxz0hYZlG0WShyS0tvHFak+jRxUmKHj/1N93jOmqotlPCWkmbBUiZe5eT4CwIH4PqzLp/f+vO4psnVmYP0EUrcZr2YMoFGz4t9uzzGpf9AhyOCdZ5TxFz7VimMx1CGVRTiECHA5TVXioWwSKrNan2B6wBuIwSDSV0QVHBJKkIyrEGlETG132z6L2E5L+q/XEpOdzEP4sVn/MdOIWBROlFKSLr1OzquAzI+zbBaapVJ0dGh0B+FKikewy5IPO3Nw+ZMZjAQx+XpdCO4h9pDWsQKljQn8YmlzPaFAl7RjdiW8IT5NNAeZ0MPDFNvYj9evWc4K9nlL2qLSMwp6kc3JsnvOb/14zd4MTzOAShAMeYxkhTFiPwW9/KssvLQ2W29c5yljZ1T5MQ4FDhI1LenTobQ2XgRWBLvA2nKXPS9o6folkdm8B4P8kcOvlyFToMNTMTgTzvnPR2HyKAOsYGOHCjprGbP/qA3Tx6xLcsYi9AGLyzgR10gwxDb5G9jOfDzyIdsVAJ4JW9H9Wr5PbU2I8j1l9j8Iktwe+gOkQ5BzIttSX+LPEPEMI1BAHrc60pKw6X/1w/UUBhm0XXRdePWbMV97DTwOOjZXH6RJXDshb2YWhktYiTTT/LDEdCBVVQGxAOG+n5/zsfpbYOHJPR6V+brskgkntrcNuBEkIVPWY/28wmMFKDLBgvfs2xunPqQvakYIZS5zmeqM/JGIhSMSTsnik4q1HywwTWdsbDfddg93fh/bdjKCjUSZDLIurvD9MZSwmAk4/MnTWAh2DKEgQXMPAFJfLSQGj9qZ11KvdDQYke3xA37P8TStbDU8PogsuFoVr75NOAfAULBkk8xQ7/kcci+q2anZYZ8IhVH0U3gx+9P7EFfibIvP/AHxd067u2uXS/FT+POo63HbjtYcWfQO4dLC2NhfMPNrjRgD",
+    "page_age": "February 24, 2020"
+  },
+  {
+    "type": "web_search_result",
+    "title": "How to make diamond looks real? - Questions - three.js forum",
+    "url": "https://discourse.threejs.org/t/how-to-make-diamond-looks-real/42095",
+    "encrypted_content": "EuoCCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDBX7X3trDZY6P1oSCBoMczbbSr6Pk17OThfCIjCim8LMr36Uj2v9wGbtZjSCd65FTt2gW51fWzXGYI6YcLEerGRTlsK7v7rxGWhsLl8q7QErpM+rIOBcq+dFMzwtKk20G38hUmYh9TneOiOGRs7RPptgOQEkYnSw07es3jBLF4yK368Uy63SuglXW5wb3HwxLN42HzWCIjJhQtEcqQGlBpSoiQa52fx3EfT85zYWZ6z+510fyKJNktfzvElNiBWpUrFmvNbSeqkkA9SsA7C3IvH94zi1lTfD/rx6YswoHLs7heECRr4fyCKB+1VO/mMj2F5IJ8RiKxbTk8EvPqPFo3qtVty1Il6TA06FN0cqcgp3P75L70k+EwGWReJBJS5LKnnSNvGCRkWrx+U16+XGyXVU82dTNusrAUjqkPAYAw==",
+    "page_age": "September 1, 2022"
+  },
+  {
+    "type": "web_search_result",
+    "title": "Gems rendering service - Showcase - three.js forum",
+    "url": "https://discourse.threejs.org/t/gems-rendering-service/76484",
+    "encrypted_content": "ErYCCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDH1r6nyot1KHeUbboRoM10g+ur+fvSCvD505IjDmB+Ju1Tv0l9X0BXGdYRnUCfJBQltK114gArHVsdUqr3mxL9qRe0D5ZbZ3Gc3/Li8quQHB9xky3xfZGecgytHdywAM3KVqdRu1k7qStvAR7Fei8dQfiDIgKIJjGXEzwislJs9zWGAEKS43SVbXDCUXciqU1QAH/4EmjY3bO9gsFK+lVlqXjVSPSu4XwEfe7QCCrgoW8XKQ+fducqEZ5JLV89nSjLBFvYzJhf7IdqgFm1U8BEGc5+hLoukMqEUm154R4oMjpgyQ7GsFLU90a4M49WjOtNNspce/LU5WoM2IFhCW3Z8onF3CY4we5RgD",
+    "page_age": "January 15, 2025"
+  },
+  {
+    "type": "web_search_result",
+    "title": "Create a Sparkle effect (with threeshod) - Questions - three.js forum",
+    "url": "https://discourse.threejs.org/t/create-a-sparkle-effect-with-threeshod/24874",
+    "encrypted_content": "EssCCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDEuphABPi74nTN5qLxoMCue159Nsfbw3OXECIjAOb4bgclpzULEtK4YhF2v0C8Uvuxwzfj2MV+URAPnleixAQqRbkVKvM5iHlveIljYqzgFkZY4aYXVO8nJ3cmw7tp7GRyKboL5yOFbgHRm+j/+RwOiMdkVMMWSsc+KyJnkUc3bIumbgbEJGknRqMNxTgWlS6cugkKT3vSeuKu8MX8bW/kuTGTLpSvniaxlq8G/IsIU94ir+kTp13ndJkPW1wd+hdk9WzC8tU95Fk1dbOilWUj9SurXZzkXlfdo8H7OeyXG61VyOrvxeXnn9mNFx6OzGFbUxGcWSnBcxjTnOOyHA3sLzCIoaZVixW1tyZJ+ARO27tYKDrC2it7qjMyTLqBgD",
+    "page_age": "March 29, 2021"
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub - leannepepper/three-glitter-material: An extension of three.js PhongMaterial that gives a glitter-like effect.",
+    "url": "https://github.com/leannepepper/three-glitter-material",
+    "encrypted_content": "Ev0BCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDA5LEXpAwaecwwzIBRoMLoTy+6nFqi7MfyzsIjCUACFvxSKrl1I2kvDtCyHvz86x3xXXMpPfuvViO+2beUmQcMQMrbVs8AbpmeLbVnYqgAGlCTwR20iwL1lrvnhvfbnE878Nmu8zVKWmvRqbhxYqS/X9tPMvX8PSEFRTVyg6vqE6Zqjk26BzoYrM3MCmAzhSE4zzHNWBfUaHj45iXX03Eb+wZuLy0TYOgUneFpJ50iB2ZCPdt8DG8BbGfpOTeh8PeibXwZay7CPYKja2QFVlIRgD",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Shader - Glow (Three.js)",
+    "url": "https://stemkoski.github.io/Three.js/Shader-Glow.html",
+    "encrypted_content": "Es8DCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDJsEHZG/6HJFp0Nf8hoMl9XvMlf45eulnC45IjA/lXOx76LJtT4iY3vfRwzQrK/M068MDHTFG6NsOv1JlDwej5zMReHYYiXmYo6dYwEq0gLYLPskPGCNZPEhybqmOGtcHd3McVAEulyEz/Agjl1uG8z+S+JJ00QqM3LVtxPjbFLJx8a3gq0GoV4Nm7p3jvJdDSLO7uzqFpy6GjPsPbV/MZCK+B1qoIxEZqmlGTjy/ctDd1A++RHeTHuWmOmisVs4g0wGGvWZyHf54oYTgVwLq2SPoYOrkw9isAhs21EReZPgdcmzDKHXxFz9RfSnylJUENY5rosilkwUgsMt8XnkdsLUm8Yliwn8ZzWZePSoX9FPUQdlcs/V5jPgC64n0pF+m3azT3biC/ZpYSpgMyChaPaO3HAA0Eq5sOMriUIuFgsVhbNk4y8gX4BrstURcASaosm3ng9yLS6Qt5CpmAisy0O7XZrCl4X3361aXD2Vcz8j0IpF4Zh78EWfq4t3VrzvVn2ML0LOJPLaRVLB4n+Uld/bNFFlZoMYCDG+uI87xA76+hgD",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "How to render a diamond properly with three js - Questions - three.js forum",
+    "url": "https://discourse.threejs.org/t/how-to-render-a-diamond-properly-with-three-js/7900",
+    "encrypted_content": "Eu8CCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDJi7WupE/KL7BiCr5hoMDj3RHkpjahALbX+CIjA96Fgw+Rm81DvIq/j2eClDGVcvKU0n8Sw4RHZKg+X27AygB5USav/rJxDs8a1P7PAq8gHJg14GC2AMcy1EH5dK1uBkL0nTW+7N9j1znQZjSq4p0xyHzVod+jLUd9oEOU82QMwKHSZX9v+flBcKr+kgzk9ui21gWBNMSg1vuBxtYEZCIBFZLEFQnRtDJ2BhDTLqdD/3iwOc5XkXft7Ogijes8KZcghv2O0kdvwST/cTVaf6/hez8MZSePjvgH3KjXLkiP621JrqKrROhRAcGG8pwOhK4CVburpOk01BzhuhYDJHCpRXyTnSI4odHHqM+kjhyxcFq7z1kAaSMh5n6LOKBHGt257E90bPHF7XvfPNEnnOr6z0FqzolAw6s5KaMafCj0V2whgD",
+    "page_age": "June 3, 2019"
+  },
+  {
+    "type": "web_search_result",
+    "title": "WebGL (three.js) Diamond reflections and refractions — polycount",
+    "url": "https://polycount.com/discussion/149908/webgl-three-js-diamond-reflections-and-refractions",
+    "encrypted_content": "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",
+    "page_age": "March 8, 2015"
+  }
+]
+</tool.srvtoolu_015NXikE9SKPRfcBJvxWUh6X>
+
+# TOOL USE
+
+Name: read-webpage
+ID: toolu_01CeN2nNzLwziE4yfcW7UK5u
+
+## url
+
+<tool.toolu_01CeN2nNzLwziE4yfcW7UK5u>
+https://github.com/leannepepper/three-glitter-material
+</tool.toolu_01CeN2nNzLwziE4yfcW7UK5u>
+
+## extract-text
+
+<tool.toolu_01CeN2nNzLwziE4yfcW7UK5u>
+true
+</tool.toolu_01CeN2nNzLwziE4yfcW7UK5u>
+
+# TOOL RESULT
+
+ID: toolu_01CeN2nNzLwziE4yfcW7UK5u
+
+<tool.toolu_01CeN2nNzLwziE4yfcW7UK5u>
+   
+   Skip to content         
+     Navigation Menu
+   Toggle navigation        
+  
+  
+   
+      
+            Sign in
+               Appearance settings    
+ 
+ 
+ 
+       Platform  AI CODE CREATION   GitHub Copilot Write better code with AI
+
+  GitHub Spark Build and deploy intelligent apps
+
+  GitHub Models Manage and compare prompts
+
+   MCP Registry New Integrate external tools
+
+
+
+
+ DEVELOPER WORKFLOWS  Actions Automate any workflow
+
+   Codespaces Instant dev environments
+
+  Issues Plan and track work
+
+  Code Review Manage code changes
+
+
+
+
+ APPLICATION SECURITY   GitHub Advanced Security Find and fix vulnerabilities
+
+   Code security Secure your code as you build
+
+  Secret protection Stop leaks before they start
+
+
+
+
+ EXPLORE Why GitHub
+ Documentation 
+ Blog 
+ Changelog 
+ Marketplace
+
+
+
+
+ View all features 
+
+
+
+ Solutions  BY COMPANY SIZE Enterprises
+ Small and medium teams
+ Startups
+ Nonprofits
+
+
+
+ BY USE CASE App Modernization
+ DevSecOps
+ DevOps
+ CI/CD
+ View all use cases 
+
+
+
+ BY INDUSTRY Healthcare
+ Financial services
+ Manufacturing
+ Government
+ View all industries 
+
+
+
+
+ View all solutions 
+
+
+
+ Resources  EXPLORE BY TOPIC AI
+ Software Development
+ DevOps
+ Security
+ View all topics 
+
+
+
+ EXPLORE BY TYPE Customer stories
+ Events & webinars
+ Ebooks & reports
+ Business insights
+ GitHub Skills 
+
+
+
+ SUPPORT & SERVICES Documentation 
+ Customer support 
+ Community forum
+ Trust center
+ Partners
+
+
+
+
+
+
+
+ Open Source  COMMUNITY  GitHub Sponsors Fund open source developers
+
+
+
+
+ PROGRAMS Security Lab 
+ Maintainer Community 
+ Accelerator
+ Archive Program 
+
+
+
+ REPOSITORIES Topics
+ Trending
+ Collections
+
+
+
+
+
+
+
+ Enterprise  ENTERPRISE SOLUTIONS    Enterprise platform AI-powered developer platform
+
+
+
+
+ AVAILABLE ADD-ONS   GitHub Advanced Security Enterprise-grade security features
+
+   Copilot for Business Enterprise-grade AI features
+
+   Premium Support Enterprise-grade 24/7 support
+
+
+
+
+
+
+
+
+ Pricing
+
+ 
+      
+  Search or jump to...    
+     Search code, repositories, users, issues, pull requests...
+      '"`   </textarea></xmp>    
+        Search
+             
+   
+  
+ 
+  Clear    
+                                         
+
+       
+ 
+  
+    Search syntax tips  
+ 
+ 
+ 
+ 
+ 
+ 
+  
+      
+        Provide feedback
+      
+ 
+    
+ 
+ 
+    '"`   </textarea></xmp>   We read every piece of feedback, and take your input very seriously.
+    Include my email address so I can be contacted 
+       Cancel
+      Submit feedback
+ 
+     
+        Saved searches
+      
+  Use saved searches to filter your results more quickly
+ 
+    
+ 
+ 
+   
+    '"`   </textarea></xmp>   
+    Name   
+   Query  
+  
+            To see all available qualifiers, see our  documentation .
+          
+  
+   
+ 
+ 
+       Cancel
+      Create saved search
+ 
+ 
+   
+                Sign in
+               
+  
+                Sign up
+                   Appearance settings    
+ 
+  Resetting focus 
+ 
+ 
+ 
+    You signed in with another tab or window.  Reload  to refresh your session.  You signed out in another tab or window.  Reload  to refresh your session.  You switched accounts on another tab or window.  Reload  to refresh your session.    Dismiss alert
+ 
+  
+         {{ message }}
+ 
+ 
+ 
+ 
+          
+        leannepepper
+   /   three-glitter-material    Public 
+ 
+      Notifications
+  You must be signed in to change notification settings
+     Fork
+     0  
+      
+          Star
+  15 
+ 
+ 
+
+ 
+    
+        An extension of three.js PhongMaterial that gives a glitter-like effect.
+      
+     glitter-material.vercel.app/  
+     15 
+          stars
+    0 
+          forks
+    Branches     Tags     Activity  
+       
+          Star
+ 
+ 
+     Notifications
+  You must be signed in to change notification settings
+   
+ 
+ 
+     Code   
+      Issues  1 
+     Pull requests  0 
+     Actions   
+     Projects  0 
+     Security              Uh oh!
+
+  
+ There was an error while loading.  Please reload this page .
+ 
+ 
+ 
+ 
+ 
+     Insights   
+ 
+    Additional navigation options         
+          Code
+  
+        
+          Issues
+  
+       
+          Pull requests
+  
+       
+          Actions
+  
+       
+          Projects
+  
+       
+          Security
+  
+       
+          Insights
+  
+ 
+
+
+ 
+
+ 
+   leannepepper/three-glitter-material
+              
+ 
+    main
+
+  
+  Branches  Tags
+  
+
+ $   
+ /$
+ Go to file
+
+  Code   Open more actions menu
+
+
+   Folders and files
+ Name Name Last commit message
+ Last commit date
+ Latest commit
+  
+ 
+ History
+  46 Commits 
+ 
+
+
+
+  packages
+
+
+
+  packages
+
+
+
+  
+  
+  .gitignore
+
+
+
+  .gitignore
+
+
+
+  
+  
+  package.json
+
+
+
+  package.json
+
+
+
+  
+  
+  readme.md
+
+
+
+  readme.md
+
+
+
+  
+  
+  yarn.lock
+
+
+
+  yarn.lock
+
+
+
+  
+  
+ View all files
+
+ Repository files navigation
+  README
+
+ 
+ three-glitter-material
+ 
+  A threejs material that extends PhongMaterial to give a glitter-like effect.
+  Usage
+ 
+  npm install three-glitter-material
+
+  import  {  GlitterMaterial  }  from  'three-glitter-material'  const  customUniforms  =  {  uGlitterSize :  {  value :  30.0  } ,  uGlitterDensity :  {  value :  1.0  } ,  color :  {  value :  '#a007f2'  }  }  const  glitterMaterial  =  new  GlitterMaterial ( customUniforms ,  {  color :  customUniforms . color . value  } )  const  geometry  =  new  THREE . Sphere ( 3 ,  32 ,  32 )  mesh  =  new  THREE . Mesh ( geometry ,  glitterMaterial )  scene . add ( mesh )
+
+  Supported uniforms
+ 
+   uniform  float  uGlitterSize;  //  size of individual glitter flakes  uniform  float  uGlitterDensity;  //  controls color intensity of glitter flakes to give the appearance of higher or lower density 
+
+  Credits
+ 
+  Glsl noise and hash functions created by Inigo Quilez
+ 
+
+
+
+
+      
+  
+       About
+  
+        An extension of three.js PhongMaterial that gives a glitter-like effect.
+      
+     glitter-material.vercel.app/  
+  Resources
+     
+        Readme
+ 
+              Uh oh!
+
+  
+ There was an error while loading.  Please reload this page .
+ 
+ 
+ 
+ 
+    Activity 
+  Stars
+    15 
+        stars 
+  Watchers
+    1 
+        watching 
+  Forks
+    0 
+        forks 
+   
+          Report repository
+ 
+ 
+ 
+ 
+     Releases
+  No releases published
+ 
+ 
+     Packages
+       0
+  
+        No packages published  
+
+ 
+ 
+                Uh oh!
+
+  
+ There was an error while loading.  Please reload this page .
+ 
+ 
+ 
+ 
+ 
+ 
+    Languages
+           
+     JavaScript  40.8%  
+     TypeScript  26.7%  
+     HTML  26.6%  
+     CSS  5.9%  
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+        
+    You can’t perform that action at this time.
+  
+    
+ 
+     
+     
+ 
+  
+  
+ 
+</tool.toolu_01CeN2nNzLwziE4yfcW7UK5u>
+
+# ASSISTANT
+
+Let me look at the actual glitter shader code:
+
+# TOOL USE
+
+Name: read-webpage
+ID: toolu_01CXEHsfuquBGQqDMkbzGuEh
+
+## url
+
+<tool.toolu_01CXEHsfuquBGQqDMkbzGuEh>
+https://github.com/leannepepper/three-glitter-material/blob/main/packages/glitter-material/glitterMaterial.ts
+</tool.toolu_01CXEHsfuquBGQqDMkbzGuEh>
+
+## extract-text
+
+<tool.toolu_01CXEHsfuquBGQqDMkbzGuEh>
+true
+</tool.toolu_01CXEHsfuquBGQqDMkbzGuEh>
+
+# TOOL RESULT
+
+ID: toolu_01CXEHsfuquBGQqDMkbzGuEh
+
+<tool.toolu_01CXEHsfuquBGQqDMkbzGuEh>
+   
+   Skip to content         
+     Navigation Menu
+   Toggle navigation        
+  
+  
+   
+      
+            Sign in
+               Appearance settings    
+ 
+ 
+ 
+       Platform  AI CODE CREATION   GitHub Copilot Write better code with AI
+
+  GitHub Spark Build and deploy intelligent apps
+
+  GitHub Models Manage and compare prompts
+
+   MCP Registry New Integrate external tools
+
+
+
+
+ DEVELOPER WORKFLOWS  Actions Automate any workflow
+
+   Codespaces Instant dev environments
+
+  Issues Plan and track work
+
+  Code Review Manage code changes
+
+
+
+
+ APPLICATION SECURITY   GitHub Advanced Security Find and fix vulnerabilities
+
+   Code security Secure your code as you build
+
+  Secret protection Stop leaks before they start
+
+
+
+
+ EXPLORE Why GitHub
+ Documentation 
+ Blog 
+ Changelog 
+ Marketplace
+
+
+
+
+ View all features 
+
+
+
+ Solutions  BY COMPANY SIZE Enterprises
+ Small and medium teams
+ Startups
+ Nonprofits
+
+
+
+ BY USE CASE App Modernization
+ DevSecOps
+ DevOps
+ CI/CD
+ View all use cases 
+
+
+
+ BY INDUSTRY Healthcare
+ Financial services
+ Manufacturing
+ Government
+ View all industries 
+
+
+
+
+ View all solutions 
+
+
+
+ Resources  EXPLORE BY TOPIC AI
+ Software Development
+ DevOps
+ Security
+ View all topics 
+
+
+
+ EXPLORE BY TYPE Customer stories
+ Events & webinars
+ Ebooks & reports
+ Business insights
+ GitHub Skills 
+
+
+
+ SUPPORT & SERVICES Documentation 
+ Customer support 
+ Community forum
+ Trust center
+ Partners
+
+
+
+
+
+
+
+ Open Source  COMMUNITY  GitHub Sponsors Fund open source developers
+
+
+
+
+ PROGRAMS Security Lab 
+ Maintainer Community 
+ Accelerator
+ Archive Program 
+
+
+
+ REPOSITORIES Topics
+ Trending
+ Collections
+
+
+
+
+
+
+
+ Enterprise  ENTERPRISE SOLUTIONS    Enterprise platform AI-powered developer platform
+
+
+
+
+ AVAILABLE ADD-ONS   GitHub Advanced Security Enterprise-grade security features
+
+   Copilot for Business Enterprise-grade AI features
+
+   Premium Support Enterprise-grade 24/7 support
+
+
+
+
+
+
+
+
+ Pricing
+
+ 
+      
+  Search or jump to...    
+     Search code, repositories, users, issues, pull requests...
+      '"`   </textarea></xmp>    
+        Search
+             
+   
+  
+ 
+  Clear    
+                                         
+
+       
+ 
+  
+    Search syntax tips  
+ 
+ 
+ 
+ 
+ 
+ 
+  
+      
+        Provide feedback
+      
+ 
+    
+ 
+ 
+    '"`   </textarea></xmp>   We read every piece of feedback, and take your input very seriously.
+    Include my email address so I can be contacted 
+       Cancel
+      Submit feedback
+ 
+     
+        Saved searches
+      
+  Use saved searches to filter your results more quickly
+ 
+    
+ 
+ 
+   
+    '"`   </textarea></xmp>   
+    Name   
+   Query  
+  
+            To see all available qualifiers, see our  documentation .
+          
+  
+   
+ 
+ 
+       Cancel
+      Create saved search
+ 
+ 
+   
+                Sign in
+                                      Sign in to GitHub
+
+   '"`   </textarea></xmp>    
+      Username or email address
+        
+      Password
+       Forgot password?             
+      or continue with other methods   
+ 
+
+ 
+  
+                Sign up
+                   Appearance settings    
+ 
+  Resetting focus 
+ 
+ 
+ 
+    You signed in with another tab or window.  Reload  to refresh your session.  You signed out in another tab or window.  Reload  to refresh your session.  You switched accounts on another tab or window.  Reload  to refresh your session.    Dismiss alert
+ 
+  
+         {{ message }}
+ 
+ 
+ 
+ 
+          
+        leannepepper
+   /   three-glitter-material    Public 
+ 
+      Notifications
+  You must be signed in to change notification settings
+     Fork
+     0  
+      
+          Star
+  15 
+ 
+ 
+
+ 
+  
+     Code   
+      Issues  1 
+     Pull requests  0 
+     Actions   
+     Projects  0 
+     Security              Uh oh!
+
+  
+ There was an error while loading.  Please reload this page .
+ 
+ 
+ 
+ 
+ 
+     Insights   
+ 
+    Additional navigation options         
+          Code
+  
+        
+          Issues
+  
+       
+          Pull requests
+  
+       
+          Actions
+  
+       
+          Projects
+  
+       
+          Security
+  
+       
+          Insights
+  
+ 
+
+
+ 
+
+ 
+    
+ 
+ 
+ 
+        
+    You can’t perform that action at this time.
+  
+    
+ 
+     
+     
+ 
+  
+  
+ 
+</tool.toolu_01CXEHsfuquBGQqDMkbzGuEh>
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_01QZeG6NzgFv6y9Q2sGUTexN
+
+## query
+
+<tool.srvtoolu_01QZeG6NzgFv6y9Q2sGUTexN>
+glsl sparkle shader specular noise facet gem
+</tool.srvtoolu_01QZeG6NzgFv6y9Q2sGUTexN>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_01QZeG6NzgFv6y9Q2sGUTexN
+
+<tool.srvtoolu_01QZeG6NzgFv6y9Q2sGUTexN>
+[
+  {
+    "type": "web_search_result",
+    "title": "Sand Sparkling Irregular in Sun",
+    "url": "https://www.shadertoy.com/view/llSXzc",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GLSL Programming/Blender/Specular Highlights - Wikibooks, open books for an open world",
+    "url": "https://en.wikibooks.org/wiki/GLSL_Programming/Blender/Specular_Highlights",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GLSL Programming/GLUT/Specular Highlights - Wikibooks, open books for an open world",
+    "url": "https://en.wikibooks.org/wiki/GLSL_Programming/GLUT/Specular_Highlights",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "sparkle/three/shaders/fragment.glsl at master · arcanis/sparkle",
+    "url": "https://github.com/arcanis/sparkle/blob/master/three/shaders/fragment.glsl",
+    "encrypted_content": "EvABCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDMPbNJemKE7Vb2S5MhoMhsngypxOuKKu+eF1IjA8nQtgwANgAzP7iEN8RTMpMs8SKd57OTGftQQxKh2xwNTCw5zWfDRYzXsRVtYecJgqdA1Y9AG5BOJGYgnpj6xuyudxLQ5Nk+xuoLNXSaDmbX5iIR02o7gD9FbF97sHJhp70SGSPaXLaNVIeaN+9zTdDoFPnjJpt13+HKWurcul6N66AJyqdslxybMHuglRTrBeYgwfGKjrrAmKRcmuVFIy7QUFhOqbGAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Sparkle shader - Unity Engine - Unity Discussions",
+    "url": "https://forum.unity.com/threads/sparkle-shader.162770/",
+    "encrypted_content": "EvECCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDLYIzngb5aOIaLWHUhoMFqz20dm2JMyJ6QcoIjB3iAVxSMsMf3T6mB4BpdTA4ithNZSFyhQMO5qc9M8WdP4coJj6/PAC4Coto6v9bjMq9AEP3m+EW5I4K9yLsGinlQHxvDUaxPTr7gx1pWHwvCf/mbzibZDRMpx1q76Ka3sBOYgIDcC26fNsOiJerr1h9rOF9iMm9Z92qQe8a57kPop65Afu9bUjZ7C0KJL9ZDPvIANp6VhkxkpIIbY0gFerA/Zvl3ZvB6ID+O7VYZ6crv9GphU9tIrEIZLza6xJ4C6H2rAjVbo1pUFy0wtBOOtHajXK9kIXeAV1+JltQ07OQQVRenjxHuTBuKf6BMl0we9YLmLn368kg+LOQL8xN8EMybXSW/vPeTjJ/cjPUP28FzTk+0OGYgFdr33S+QYRtdnxpLYTnepMGAM=",
+    "page_age": "December 16, 2012"
+  },
+  {
+    "type": "web_search_result",
+    "title": "SPARKLE",
+    "url": "https://www.shadertoy.com/view/3d33zM",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "sparkle/three/shaders/vertex.glsl at master · arcanis/sparkle",
+    "url": "https://github.com/arcanis/sparkle/blob/master/three/shaders/vertex.glsl",
+    "encrypted_content": "EvABCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDPIP7XDQlLCsTFqsYRoMvYwM5BhI8AVhJm6eIjAnX9Ms36ul3n6Sq5tTYoVOO1Bpdz/OJZfpax16yBp3+3ZzMy4R8TTd1eaMA/ozylkqdLp5PW8xBljnhkPeJSevjRCAsPeoLjPfuVo4UwmJAVnRTEYn1/Bs3P3MSUxsoFqEk+PrmagTetzXd0OKgtZuNhmIKMKmNfGy6v7RBLh10zBaorU3z6bofIjYcpGY2WOTe42GxY2GFo+YhjMGpJevTu0pT86YGAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Tutorial 10: Specular Lighting",
+    "url": "https://www.rastertek.com/gl4linuxtut10.html",
+    "encrypted_content": "EtMCCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDAQRZMkuwWa2zm2jYBoMnmHGnYtwtGpRLG87IjBtrIuWajlm3ISD3G49KYbHCIqpdvN2HcFhxbQZNWuhsAiEC4QMsg+TW/mLPkL/09sq1gHq4qkrElpT3vf8wA8ez5daz+cij0TZzGpV70VEPfTWgtdc+oWpc5xVSFMYGOqcnYF4xgnestpwQfFz9TSAaISmWutrAHj76+jTa0O46RwkJk9iMqwtCnOeXmO+9S/kXOUpeSOQX98vzcRbsI2zpTjoMUe4MbG/KcAJ4ZQIasBvNq4pfuBDlp+zzlBYn3bd9GfChECcd0Yj45wi6OMKEVa/6glK2xNQT7+pFzACiFu5OReEjCtYrK3VUSrigv+O2cHL0qSLZBbploGH1ONH4OuYPpE+VeYpGAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GLSL specular lighting - OpenGL: Basic Coding - Khronos Forums",
+    "url": "https://community.khronos.org/t/glsl-specular-lighting/54116",
+    "encrypted_content": "Et0GCioIChgCIiQ5ODY2MTIzNC03NmUwLTRlMGQtYTgyMS1iZThmOGMzNDc0ZDYSDB/wJ9IwV0XHoq2QthoMmPozxKsemWE0oDfvIjCqo3kgoLESWyt7OmRqIc1WgzZDNQNuNg5Yjq+mkaSKqBPjprN5CIw804iM0dojTqoq4AVk29GTCOpk6qQL/gcKJ/cbkj8DZFNojzre6lIvzB/Q3TdaLqTLSdBeL5hDcsMYARR1F1quLvypqVhzznAM8IIuREqxolzJlcy9dIMRRIw8a456zpgNqW6PXwkzJVC4B3Xwu/yJdbxmqaG4Ikri8DjgnwcZ2+RVDQgwJLFSjSxujRCWBYCDPwP0CD4rUd7sSBMPkkUNf9FG3nXPpedFdH2fV7Srk85CcVJgEfZvWuAZyTVZZfp2YKnqk50lvTtvMvq8wAVo5RObX9mDdNc+b3w89AaGCdzOu+uyDgxAGBA7KCmt3DlXsFvMV+k21qjccaBCN/PZYIOBv/br6NFf38ZkzJDxKbAikWtmHM14hDykyJrvY5GrRUHRo0SuxoJ8NgwVbU4ZoPIpcUJC1NTZ1ixuImu9LhJvcreCvZ3soesd/nszfHiARA2hduBVJXBmaHiVlVhWekFAsxZ5A4N3TYCUfiLI+mHFNAd8l+nOlOD4/pRn0GNgsqhsBF9MENfyd3QcQzjEkHf7iK64l5n0j0T7CqyxT9Ev3oOLylhKjQuTwNHAYZViDZebCCDeBngIBM0H0cV+lm2sEfs4kl3pqy/60w99Q+WkqFiWKETcc731xZfipNcU2hxadmCD/flTX8P/DBGI8PLoDiCUkGPUZy9w04nE0p6wOs3EjvulgtmOpk7ObDwgpVNwHo55tfvYywqTxzYs/5GVs0/pmxMkAshMIhyi9pE7ZQUsDgo7aH+c8bR2sXqrpw+4gGqrZBgeuiRWCepHxh8cAItnq6tV0Amk/4oCVxOfWPQQtUIpdbWj41RwWeASJsLu2vlAgnA/hcPT1iqSBOONTeO7yVBibnXRNXxCYIgXfduMPFpaNc4qGVkOhIwV/6S7+8rCAPg06gyJL7+1fBIz4RkNEh6Ss2lFrw3ahrAHi0UNy7kbnQ7UVZ809B0RlJtKQ1sazpZ45cYiWBeZ5icudJO8XcmoYW7mGAM=",
+    "page_age": "February 24, 2008"
+  },
+  {
+    "type": "web_search_result",
+    "title": "Modern OpenGL 07 – More Lighting: Ambient, Specular, Attenuation, Gamma",
+    "url": "https://www.tomdalling.com/blog/modern-opengl/07-more-lighting-ambient-specular-attenuation-gamma/",
+    "encrypted_content": "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",
+    "page_age": null
+  }
+]
+</tool.srvtoolu_01QZeG6NzgFv6y9Q2sGUTexN>
+
+# ASSISTANT
+
+Now let me remove the fake sparkles and implement a proper glitter/sparkle effect using noise-based specular in the shader itself:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01PbMHDSnPACLoZkw9HT1Dtc
+
+## path
+
+<tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
+character-defs.ts
+</tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
+
+## git-commit-message
+
+<tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
+Remove fake sparkle sprites, implement glitter effect in shader
+</tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
+
+## diff
+
+<tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
+-  // Create sparkle with heavy blur
+-  const sparkleCanvas = document.createElement('canvas');
+-  sparkleCanvas.width = 256;
+-  sparkleCanvas.height = 256;
+-  const sctx = sparkleCanvas.getContext('2d')!;
+-  
+-  const cx = 128, cy = 128;
+-  
+-  // Draw thin lines
+-  sctx.strokeStyle = 'white';
+-  sctx.lineWidth = 1.5;
+-  sctx.lineCap = 'round';
+-  
+-  const rays = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4];
+-  rays.forEach(angle => {
+-    sctx.beginPath();
+-    sctx.moveTo(cx - Math.cos(angle) * 90, cy - Math.sin(angle) * 90);
+-    sctx.lineTo(cx + Math.cos(angle) * 90, cy + Math.sin(angle) * 90);
+-    sctx.stroke();
+-  });
+-  
+-  // Center dot
+-  sctx.fillStyle = 'white';
+-  sctx.beginPath();
+-  sctx.arc(cx, cy, 4, 0, Math.PI * 2);
+-  sctx.fill();
+-  
+-  // Heavy blur - multiple passes
+-  sctx.filter = 'blur(12px)';
+-  sctx.drawImage(sparkleCanvas, 0, 0);
+-  sctx.filter = 'blur(8px)';
+-  sctx.drawImage(sparkleCanvas, 0, 0);
+-  sctx.filter = 'blur(5px)';
+-  sctx.drawImage(sparkleCanvas, 0, 0);
+-  sctx.filter = 'blur(3px)';
+-  sctx.drawImage(sparkleCanvas, 0, 0);
+-  sctx.filter = 'none';
+-  
+-  // Tiny bright core
+-  sctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+-  sctx.beginPath();
+-  sctx.arc(cx, cy, 2, 0, Math.PI * 2);
+-  sctx.fill();
+-  
+-  const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
+-  sparkleTexture.premultiplyAlpha = true;
+-  
+-  const sparkleSpriteMaterial = new THREE.SpriteMaterial({
+-    map: sparkleTexture,
+-    color: 0xffffff,
+-    transparent: true,
+-    opacity: 0.6,
+-    blending: THREE.AdditiveBlending,
+-    depthTest: false,
+-    depthWrite: false,
+-  });
+-  
+   const addEmerald = (x: number, y: number, scale: number) => {
+     const gem = emeraldModel!.clone();
+-    const sparkleVertices: THREE.Vector3[] = [];
+     
+     gem.traverse((child) => {
+       if (child instanceof THREE.Mesh) {
+         const geom = child.geometry.clone();
+         geom.computeVertexNormals();
+         child.geometry = geom;
+         child.material = emeraldMaterial;
+-        
+-        // Collect vertices for sparkle placement
+-        const positions = geom.attributes.position;
+-        const normals = geom.attributes.normal;
+-        
+-        for (let i = 0; i < positions.count; i++) {
+-          const nz = normals.getZ(i);
+-          const ny = normals.getY(i);
+-          // Only vertices facing camera-ish direction
+-          if (nz > 0.2 || ny > 0.3) {
+-            sparkleVertices.push(new THREE.Vector3(
+-              positions.getX(i),
+-              positions.getY(i),
+-              positions.getZ(i)
+-            ));
+-          }
+-        }
+       }
+     });
+     
+     gem.scale.setScalar(scale * 3.0);
+     gem.position.set(x, y, 0);
+     emeraldScene!.add(gem);
+-    
+-    // Add sparkle sprites at selected vertices
+-    const numSparkles = Math.min(Math.floor(6 + scale * 8), sparkleVertices.length);
+-    const step = Math.max(1, Math.floor(sparkleVertices.length / numSparkles));
+-    
+-    for (let i = 0; i < numSparkles; i++) {
+-      const idx = (i * step) % sparkleVertices.length;
+-      const v = sparkleVertices[idx];
+-      
+-      const sprite = new THREE.Sprite(sparkleSpriteMaterial.clone());
+-      const spriteScale = 0.08 + (((i * 7) % 5) / 5) * 0.06;
+-      sprite.scale.set(spriteScale * scale * 3, spriteScale * scale * 3, 1);
+-      sprite.position.set(
+-        x + v.x * scale * 3.0,
+-        y + v.y * scale * 3.0,
+-        v.z * scale * 3.0 + 0.02
+-      );
+-      sprite.renderOrder = 10;
+-      emeraldScene!.add(sprite);
+-    }
+   };
+\ No newline at end of file
+
+</tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
+
+# TOOL RESULT
+
+ID: toolu_01PbMHDSnPACLoZkw9HT1Dtc
+
+<tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
+
+</tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
