@@ -2063,6 +2063,7 @@ function fnT(ctx: FnContext, n: number): Image {
   
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 0.0);
   
   const posBuf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
