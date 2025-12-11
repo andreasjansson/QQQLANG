@@ -10170,5 +10170,47 @@ Clear image cache when uploaded blob changes
 ID: toolu_01TCqDDUtwYmux126KCHdidr
 
 <tool.toolu_01TCqDDUtwYmux126KCHdidr>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Clear image cache when uploaded blob changes
 </tool.toolu_01TCqDDUtwYmux126KCHdidr>
+
+# ASSISTANT
+
+Now let me also make sure `addUploadedBlob` clears the cache too since it changes the upload count:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01FPFQDZBSby8zbeT4MEPn98
+
+## path
+
+<tool.toolu_01FPFQDZBSby8zbeT4MEPn98>
+runtime.ts
+</tool.toolu_01FPFQDZBSby8zbeT4MEPn98>
+
+## git-commit-message
+
+<tool.toolu_01FPFQDZBSby8zbeT4MEPn98>
+Clear image cache when adding new uploaded blob
+</tool.toolu_01FPFQDZBSby8zbeT4MEPn98>
+
+## diff
+
+<tool.toolu_01FPFQDZBSby8zbeT4MEPn98>
+ export function addUploadedBlob(blob: Blob): number {
+   const index = uploadedSources.length;
+   uploadedSources.push({ blob });
++  imageCache.clear();
+   return index;
+ }
+\ No newline at end of file
+
+</tool.toolu_01FPFQDZBSby8zbeT4MEPn98>
+
+# TOOL RESULT
+
+ID: toolu_01FPFQDZBSby8zbeT4MEPn98
+
+<tool.toolu_01FPFQDZBSby8zbeT4MEPn98>
+
+</tool.toolu_01FPFQDZBSby8zbeT4MEPn98>
