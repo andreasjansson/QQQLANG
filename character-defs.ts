@@ -302,9 +302,8 @@ function fnA(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnB(ctx: FnContext, j: number): Image {
+function fnB(ctx: FnContext, old: Image): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const seeds: [number, number][] = [];
