@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-160427445447>
+${greger-prompt-code-style<eval-result-165324063576>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-160427445447>}
+</eval-result-165324063576>}
 
 # USER
 
@@ -14722,3 +14722,110 @@ Done!
 
 # USER
 
+If there is a program that's non-empty, dynamically set the favicon to a square cutout in the current image, and set the title to QQQLANG - <program string> (without the angle brackets)
+
+# THINKING
+
+Signature: ErkFCkYIChgCKkAWzsBYM2cQ4P9kXM7MRw0fikbEbbtn9uw01m7tRq89EQ9FjFcpkqpxFuOYmlnWI1AZvbVXDvkKZAXcNSxFNRT4EgyeJz+guGjfYYxUiUQaDNP3iZqrJz1FPR966CIwLeALedcNQfxqDpO98zqEsLP5B9iX297IHSRfs5emY9XMCKqy71T4GSMXOyR/BgFBKqAE4O13Vwu3DpZrkT2kYkruBgulhqb7TYbxqv4kWRO/BIaDKXPiQxDyUFRYodyOPjNjvEymPMlM3BMBek2GoZnDbKtR7cRWT5OiYivmtd5lGWSN3UONg4JQq3z3OAFvy9yFWww+2xeHsHR+yaQLDCdj31jgMy7NBdlM4TY6u/9OWphjt1JR4b240stxGh/IhIX6O0u+Jqf8dvptwkgN6Mf83wtaDQkgJv5uXJ2DuY/Bbvv1Xcv4mU7SLOnFtnnZ/IaCDVUGS6A3HQadS0oHNs1Xg2DDNiTGZu3vC8pePc7dJRX/obagbPBfApXKW5VB6EJe7z1gZvG0hSuPMYbFgEGK/Im6KqlBhdwi3jgzwj1xlzaU628GnjdBxQe59WXTaDUTdUhmEvgv8cRaA/iOlpOPOupgmply4A4dEuup2tnDtBwzDG/hSmKQe4UttpCtIkzS9x6+XCMLr+GckJlTRjNaLoTY1fSiUyNSnvVsUo9IOwcRccRTpVGe718kfcWYjCnlVgg2Td5ulmgTW9pfBVBjfRgYutcaeIcgANp4mxAP7azuCeLxjXGs6DMMfHjuKcSzGS0w0bONWC3KpfOUVzktUWfzgNEve/nPNp01dRzbNvfd2KkA4HXiwKz4d7+TSzWXWdzHqGH017zTTH/vR9MN9cuBhyOgnYMRUMMif73QrKHLmsExVuicA/T3tLN/GWtU8mZK00Cb/sWnFjROdeIj0hgB
+
+The user wants me to:
+1. Dynamically set the favicon to a square cutout from the current rendered image when there's a non-empty program
+2. Set the title to "QQQLANG - <program string>" when there's a program
+
+I need to modify the JavaScript in index.html to:
+1. After rendering, extract a square portion of the canvas
+2. Convert it to a data URL
+3. Update the favicon link element
+4. Update the document title
+
+For the square cutout, I should probably take the center of the image and make it square based on the smaller dimension.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XA8at47sFz8SbuNt9wyBpZ
+
+## path
+
+<tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+index.html
+</tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+
+## git-commit-message
+
+<tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+Dynamic favicon and title based on current program
+</tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+
+## original-content
+
+<tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+    function render() {
+      const program = input.value || '';
+      const images = runProgram(program, canvas.width, canvas.height);
+      const finalImage = images[images.length - 1];
+      
+      const imageData = new ImageData(finalImage.data, finalImage.width, finalImage.height);
+      ctx.putImageData(imageData, 0, 0);
+      
+      updateDebugPane(program);
+      updateInputColors(program);
+    }
+</tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+
+## new-content
+
+<tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+    function updateFaviconAndTitle(program) {
+      if (program) {
+        document.title = 'QQQLANG - ' + program;
+        
+        const size = Math.min(canvas.width, canvas.height);
+        const x = Math.floor((canvas.width - size) / 2);
+        const y = Math.floor((canvas.height - size) / 2);
+        
+        const faviconCanvas = document.createElement('canvas');
+        faviconCanvas.width = 32;
+        faviconCanvas.height = 32;
+        const faviconCtx = faviconCanvas.getContext('2d');
+        faviconCtx.drawImage(canvas, x, y, size, size, 0, 0, 32, 32);
+        
+        let favicon = document.getElementById('dynamic-favicon');
+        if (!favicon) {
+          favicon = document.createElement('link');
+          favicon.id = 'dynamic-favicon';
+          favicon.rel = 'icon';
+          favicon.type = 'image/png';
+          document.head.appendChild(favicon);
+        }
+        favicon.href = faviconCanvas.toDataURL('image/png');
+      } else {
+        document.title = 'QQQLANG';
+        const favicon = document.getElementById('dynamic-favicon');
+        if (favicon) {
+          favicon.remove();
+        }
+      }
+    }
+
+    function render() {
+      const program = input.value || '';
+      const images = runProgram(program, canvas.width, canvas.height);
+      const finalImage = images[images.length - 1];
+      
+      const imageData = new ImageData(finalImage.data, finalImage.width, finalImage.height);
+      ctx.putImageData(imageData, 0, 0);
+      
+      updateDebugPane(program);
+      updateInputColors(program);
+      updateFaviconAndTitle(program);
+    }
+</tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+
+# TOOL RESULT
+
+ID: toolu_01XA8at47sFz8SbuNt9wyBpZ
+
+<tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
+
+</tool.toolu_01XA8at47sFz8SbuNt9wyBpZ>
