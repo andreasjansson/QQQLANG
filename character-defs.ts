@@ -1434,8 +1434,6 @@ function fnE(ctx: FnContext): Image {
       }
     `,
     fragmentShader: `
-      #extension GL_OES_standard_derivatives : enable
-      
       varying vec3 vNormal;
       varying vec3 vWorldPos;
       varying vec3 vViewNormal;
@@ -1481,9 +1479,6 @@ function fnE(ctx: FnContext): Image {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.FrontSide,
-    extensions: {
-      derivatives: true,
-    },
   });
 
   const addEmerald = (x: number, y: number, scale: number, logGeometry: boolean = false) => {
