@@ -5040,8 +5040,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnUnderscore,
     arity: 1,
     argTypes: ['int'],
-    functionName: "blur-softlight",
-    documentation: "Soft light blend: prev's structure and shading applied over heavily blurred old image j"
+    functionName: "blur-luminosity",
+    documentation: "Luminosity blend: colors from heavily blurred old image j, luminance/structure from prev"
   },
   
   '`': {
