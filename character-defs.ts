@@ -5011,8 +5011,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnA,
     arity: 0,
     argTypes: [],
-    functionName: "sphere-overlay",
-    documentation: "Renders prev as texture on two 3D spheres with lighting in top-right and bottom-left quadrants"
+    functionName: "flip-and-sphere",
+    documentation: "Flips prev horizontally, then renders as texture on two 3D spheres with lighting in top-right and bottom-left quadrants"
   },
   
   'B': {
