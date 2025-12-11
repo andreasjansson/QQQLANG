@@ -1264,8 +1264,7 @@ function initEmeraldScene(width: number, height: number) {
     emeraldRenderer.setSize(width, height);
     emeraldRenderer.setPixelRatio(1);
     emeraldRenderer.setClearColor(0x000000, 0);
-    emeraldRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    emeraldRenderer.toneMappingExposure = 1.0;
+    emeraldRenderer.toneMapping = THREE.NoToneMapping;
     emeraldRenderer.outputColorSpace = THREE.SRGBColorSpace;
     
     // Setup bloom for sparkle effect
