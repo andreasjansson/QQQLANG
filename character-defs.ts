@@ -1336,47 +1336,77 @@ function fnE(ctx: FnContext): Image {
   );
   bgTexture.needsUpdate = true;
   bgTexture.flipY = true;
+  bgTexture.colorSpace = THREE.SRGBColorSpace;
   emeraldScene!.background = bgTexture;
   
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+  // Create environment map for reflections - required for transmission to work
+  const pmremGenerator = new THREE.PMREMGenerator(emeraldRenderer!);
+  pmremGenerator.compileEquirectangularShader();
+  const envMap = pmremGenerator.fromEquirectangular(bgTexture).texture;
+  emeraldScene!.environment = envMap;
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   emeraldScene!.add(ambientLight);
   
   // Key light - main dramatic light from top-right
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
   keyLight.position.set(5, 10, 8);
   emeraldScene!.add(keyLight);
   
   // Fill light with green tint
-  const fillLight = new THREE.DirectionalLight(0xccffcc, 1.2);
+  const fillLight = new THREE.DirectionalLight(0xccffcc, 1.5);
   fillLight.position.set(-6, 4, 4);
   emeraldScene!.add(fillLight);
   
   // Back rim light
-  const backLight = new THREE.DirectionalLight(0xffffff, 1.8);
+  const backLight = new THREE.DirectionalLight(0xffffff, 2.0);
   backLight.position.set(0, 8, -6);
   emeraldScene!.add(backLight);
   
   // Front fill
-  const frontLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  const frontLight = new THREE.DirectionalLight(0xffffff, 2.0);
   frontLight.position.set(0, 3, 10);
   emeraldScene!.add(frontLight);
   
   // Specular highlight lights
-  const specLight1 = new THREE.PointLight(0xffffff, 3.0, 25);
+  const specLight1 = new THREE.PointLight(0xffffff, 4.0, 30);
   specLight1.position.set(4, 5, 6);
   emeraldScene!.add(specLight1);
   
-  const specLight2 = new THREE.PointLight(0xffffff, 2.5, 25);
+  const specLight2 = new THREE.PointLight(0xffffff, 3.5, 30);
   specLight2.position.set(-4, 4, 5);
   emeraldScene!.add(specLight2);
   
-  const specLight3 = new THREE.PointLight(0xaaffaa, 2.0, 20);
+  const specLight3 = new THREE.PointLight(0xaaffaa, 2.5, 25);
   specLight3.position.set(0, 6, 4);
   emeraldScene!.add(specLight3);
-  
+
+  // Glass-like emerald material with transmission
+  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color(0.0, 0.5, 0.2),
+    metalness: 0.0,
+    roughness: 0.0,
+    transmission: 1.0,
+    thickness: 1.5,
+    ior: 1.57,  // Index of refraction for emerald
+    transparent: true,
+    opacity: 1.0,
+    envMap: envMap,
+    envMapIntensity: 1.0,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.0,
+    attenuationColor: new THREE.Color(0.0, 0.4, 0.15),
+    attenuationDistance: 0.5,
+    side: THREE.DoubleSide,
+  });
+
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
-    // Don't replace material - use original from GLB
+    gem.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.material = emeraldMaterial;
+      }
+    });
     gem.scale.setScalar(scale * 3.0);
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
