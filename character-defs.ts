@@ -2440,12 +2440,19 @@ function fnU(ctx: FnContext, n: number): Image {
   interface RegionData {
     minLum: number;
     maxLum: number;
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
     minColor: [number, number, number];
     maxColor: [number, number, number];
+    darkCentroidX: number;
+    darkCentroidY: number;
+    darkCount: number;
+    lightCentroidX: number;
+    lightCentroidY: number;
+    lightCount: number;
+    boundMinX: number;
+    boundMinY: number;
+    boundMaxX: number;
+    boundMaxY: number;
+    pixels: number[];
   }
   
   const regions = new Map<number, RegionData>();
@@ -2461,29 +2468,32 @@ function fnU(ctx: FnContext, n: number): Image {
       if (!regions.has(label)) {
         regions.set(label, {
           minLum: lum, maxLum: lum,
-          minX: x, minY: y, maxX: x, maxY: y,
-          minColor: [r, g, b], maxColor: [r, g, b]
+          minColor: [r, g, b], maxColor: [r, g, b],
+          darkCentroidX: 0, darkCentroidY: 0, darkCount: 0,
+          lightCentroidX: 0, lightCentroidY: 0, lightCount: 0,
+          boundMinX: x, boundMinY: y, boundMaxX: x, boundMaxY: y,
+          pixels: []
         });
       }
       
       const data = regions.get(label)!;
+      data.pixels.push(idx);
+      
+      data.boundMinX = Math.min(data.boundMinX, x);
+      data.boundMinY = Math.min(data.boundMinY, y);
+      data.boundMaxX = Math.max(data.boundMaxX, x);
+      data.boundMaxY = Math.max(data.boundMaxY, y);
       
       if (lum < data.minLum) {
         data.minLum = lum;
-        data.minX = x;
-        data.minY = y;
         data.minColor = [r, g, b];
       }
       if (lum > data.maxLum) {
         data.maxLum = lum;
-        data.maxX = x;
-        data.maxY = y;
         data.maxColor = [r, g, b];
       }
     }
   }
-  
-  const out = createSolidImage(w, h, '#000000');
   
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -2491,40 +2501,94 @@ function fnU(ctx: FnContext, n: number): Image {
       const label = labels[idx];
       const data = regions.get(label)!;
       
-      const vecX = data.maxX - data.minX;
-      const vecY = data.maxY - data.minY;
-      const dist = Math.sqrt(vecX * vecX + vecY * vecY);
+      const [r, g, b] = getPixel(prev, x, y);
+      const lum = r * 0.299 + g * 0.587 + b * 0.114;
       
-      const lumRange = data.maxLum - data.minLum;
-      const isSolid = lumRange < 10 || dist < 10;
+      const midLum = (data.minLum + data.maxLum) / 2;
       
-      const minColor: [number, number, number] = [
-        Math.max(0, data.minColor[0] - k),
-        Math.max(0, data.minColor[1] - k),
-        Math.max(0, data.minColor[2] - k)
-      ];
-      const maxColor: [number, number, number] = [
-        Math.min(255, data.maxColor[0] + k),
-        Math.min(255, data.maxColor[1] + k),
-        Math.min(255, data.maxColor[2] + k)
-      ];
+      if (lum < midLum) {
+        data.darkCentroidX += x;
+        data.darkCentroidY += y;
+        data.darkCount++;
+      } else {
+        data.lightCentroidX += x;
+        data.lightCentroidY += y;
+        data.lightCount++;
+      }
+    }
+  }
+  
+  for (const [, data] of regions) {
+    if (data.darkCount > 0) {
+      data.darkCentroidX /= data.darkCount;
+      data.darkCentroidY /= data.darkCount;
+    }
+    if (data.lightCount > 0) {
+      data.lightCentroidX /= data.lightCount;
+      data.lightCentroidY /= data.lightCount;
+    }
+  }
+  
+  const out = createSolidImage(w, h, '#000000');
+  
+  for (const [label, data] of regions) {
+    let dirX = data.lightCentroidX - data.darkCentroidX;
+    let dirY = data.lightCentroidY - data.darkCentroidY;
+    let dirLen = Math.sqrt(dirX * dirX + dirY * dirY);
+    
+    const lumRange = data.maxLum - data.minLum;
+    const isSolid = lumRange < 10 || dirLen < 5;
+    
+    if (isSolid) {
+      dirX = 0;
+      dirY = 1;
+      dirLen = 1;
+    } else {
+      dirX /= dirLen;
+      dirY /= dirLen;
+    }
+    
+    const minColor: [number, number, number] = [
+      Math.max(0, data.minColor[0] - k),
+      Math.max(0, data.minColor[1] - k),
+      Math.max(0, data.minColor[2] - k)
+    ];
+    const maxColor: [number, number, number] = [
+      Math.min(255, data.maxColor[0] + k),
+      Math.min(255, data.maxColor[1] + k),
+      Math.min(255, data.maxColor[2] + k)
+    ];
+    
+    let minProj = Infinity, maxProj = -Infinity;
+    for (const idx of data.pixels) {
+      const px = idx % w;
+      const py = Math.floor(idx / w);
+      const proj = px * dirX + py * dirY;
+      minProj = Math.min(minProj, proj);
+      maxProj = Math.max(maxProj, proj);
+    }
+    
+    const projRange = maxProj - minProj;
+    
+    for (const idx of data.pixels) {
+      const px = idx % w;
+      const py = Math.floor(idx / w);
       
       let t: number;
-      if (isSolid) {
-        t = y / h;
+      if (isSolid || projRange < 1) {
+        t = (py - data.boundMinY) / Math.max(1, data.boundMaxY - data.boundMinY);
       } else {
-        const relX = x - data.minX;
-        const relY = y - data.minY;
-        const dot = relX * vecX + relY * vecY;
-        t = dot / (dist * dist);
-        t = Math.max(0, Math.min(1, t));
+        const proj = px * dirX + py * dirY;
+        t = (proj - minProj) / projRange;
       }
+      
+      t = Math.max(0, Math.min(1, t));
       
       const r = Math.round(minColor[0] + t * (maxColor[0] - minColor[0]));
       const g = Math.round(minColor[1] + t * (maxColor[1] - minColor[1]));
       const b = Math.round(minColor[2] + t * (maxColor[2] - minColor[2]));
       
-      setPixel(out, x, y, r, g, b);
+      setPixel(out, px, py, r, g, b);
     }
   }
   
