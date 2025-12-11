@@ -8078,5 +8078,44 @@ Remove gloss calculation, just output warped texture
 ID: toolu_01JjEM26RhmfxXghFrkfFSxe
 
 <tool.toolu_01JjEM26RhmfxXghFrkfFSxe>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Remove gloss calculation, just output warped texture
 </tool.toolu_01JjEM26RhmfxXghFrkfFSxe>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01BGmThSGu4uVjt7jgVupRrG
+
+## path
+
+<tool.toolu_01BGmThSGu4uVjt7jgVupRrG>
+character-defs.ts
+</tool.toolu_01BGmThSGu4uVjt7jgVupRrG>
+
+## git-commit-message
+
+<tool.toolu_01BGmThSGu4uVjt7jgVupRrG>
+Remove gloss uniform setter
+</tool.toolu_01BGmThSGu4uVjt7jgVupRrG>
+
+## diff
+
+<tool.toolu_01BGmThSGu4uVjt7jgVupRrG>
+   gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+   gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
+   gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
+-  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
+-  gl.uniform1f(gl.getUniformLocation(program, 'uGlossStrength'), glossStrength);
+\ No newline at end of file
++  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
+\ No newline at end of file
+
+</tool.toolu_01BGmThSGu4uVjt7jgVupRrG>
+
+# TOOL RESULT
+
+ID: toolu_01BGmThSGu4uVjt7jgVupRrG
+
+<tool.toolu_01BGmThSGu4uVjt7jgVupRrG>
+
+</tool.toolu_01BGmThSGu4uVjt7jgVupRrG>
