@@ -349,7 +349,7 @@ function fnD(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   
-  const cellSize = Math.max(10, n * 2);
+  const cellSize = Math.max(20, n * 4);
   const cols = Math.max(2, Math.floor(ctx.width / cellSize));
   const rows = Math.max(2, Math.floor(ctx.height / cellSize));
   const totalTriangles = cols * rows * 2;
