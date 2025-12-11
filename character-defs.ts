@@ -3740,55 +3740,26 @@ function fnSlash(ctx: FnContext, c: string): Image {
   return out;
 }
 
-function fnColon(ctx: FnContext, n: number): Image {
+function fnColon(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
+  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const numCircles = Math.max(1, Math.min(n, 10));
-  const circleRadius = Math.min(ctx.width / (numCircles * 3), ctx.height / 4);
-  const blurRadius = 5;
-  
-  const blurred = createSolidImage(ctx.width, ctx.height, '#000000');
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      let sr = 0, sg = 0, sb = 0, count = 0;
-      for (let ky = -blurRadius; ky <= blurRadius; ky++) {
-        for (let kx = -blurRadius; kx <= blurRadius; kx++) {
-          const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
-          sr += pr;
-          sg += pg;
-          sb += pb;
-          count++;
-        }
-      }
-      setPixel(blurred, x, y, Math.round(sr / count), Math.round(sg / count), Math.round(sb / count));
-    }
-  }
-  
-  const circleCenters: [number, number][] = [];
-  for (let i = 0; i < numCircles; i++) {
-    const cx = Math.floor((i + 0.5) * ctx.width / numCircles);
-    const cy = Math.floor(ctx.height / 2);
-    circleCenters.push([cx, cy]);
-  }
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
+  const radius = Math.min(cx, cy) * 0.9;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      let inCircle = false;
-      for (const [cx, cy] of circleCenters) {
-        const dx = x - cx;
-        const dy = y - cy;
-        if (dx * dx + dy * dy < circleRadius * circleRadius) {
-          const srcX = cx + dx * 0.5;
-          const srcY = cy + dy * 0.5;
-          const [r, g, b] = getPixel(prev, Math.floor(srcX), Math.floor(srcY));
-          setPixel(out, x, y, r, g, b);
-          inCircle = true;
-          break;
-        }
-      }
-      if (!inCircle) {
-        const [r, g, b] = getPixel(blurred, x, y);
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < radius) {
+        const [r, g, b] = getPixel(old, x, y);
+        setPixel(out, x, y, r, g, b);
+      } else {
+        const [r, g, b] = getPixel(prev, x, y);
         setPixel(out, x, y, r, g, b);
       }
     }
