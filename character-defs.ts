@@ -4187,11 +4187,11 @@ export const characterDefs: Record<string, CharDef> = {
   'S': {
     color: '#87CEEB',
     number: 19,
-    fn: fnTornLeft,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "split-left",
-    documentation: "Left third shows old_image at index j, right two-thirds show prev, torn-paper edge using sin waves"
+    fn: fnFlipHorizontal,
+    arity: 0,
+    argTypes: [],
+    functionName: "flip-horizontal",
+    documentation: "Flips the image horizontally (mirrors left-right)"
   },
   
   'T': {
