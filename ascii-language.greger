@@ -11570,5 +11570,53 @@ Add fnHelp function for rendering help text pages
 ID: toolu_01HSmRCDvw88nw2TVniyNv2z
 
 <tool.toolu_01HSmRCDvw88nw2TVniyNv2z>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add fnHelp function for rendering help text pages
 </tool.toolu_01HSmRCDvw88nw2TVniyNv2z>
+
+# ASSISTANT
+
+Now I need to update the `?` character definition to use `fnHelp`:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DQPJC4U62NwyW7djfL1M81
+
+## path
+
+<tool.toolu_01DQPJC4U62NwyW7djfL1M81>
+character-defs.ts
+</tool.toolu_01DQPJC4U62NwyW7djfL1M81>
+
+## git-commit-message
+
+<tool.toolu_01DQPJC4U62NwyW7djfL1M81>
+Update ? character to use fnHelp for displaying help pages
+</tool.toolu_01DQPJC4U62NwyW7djfL1M81>
+
+## diff
+
+<tool.toolu_01DQPJC4U62NwyW7djfL1M81>
+   '?': {
+     color: '#D2691E',
+     number: 58,
+-    fn: fnHash,
++    fn: fnHelp,
+     arity: 1,
+     argTypes: ['int'],
+-    functionName: "hue-sort-tiles",
+-    documentation: "Divides image into tiles and sorts them left-to-right, top-to-bottom by average hue, grid size = n+2 (min 2)"
++    functionName: "help",
++    documentation: "Displays help text; ?? or ?A shows intro, ?B/?C/etc show character reference pages, invalid pages show index"
+   },
+\ No newline at end of file
+
+</tool.toolu_01DQPJC4U62NwyW7djfL1M81>
+
+# TOOL RESULT
+
+ID: toolu_01DQPJC4U62NwyW7djfL1M81
+
+<tool.toolu_01DQPJC4U62NwyW7djfL1M81>
+
+</tool.toolu_01DQPJC4U62NwyW7djfL1M81>
