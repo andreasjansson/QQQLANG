@@ -7592,5 +7592,341 @@ Remove fake sparkle sprites, implement glitter effect in shader
 ID: toolu_01PbMHDSnPACLoZkw9HT1Dtc
 
 <tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Remove fake sparkle sprites, implement glitter effect in shader
 </tool.toolu_01PbMHDSnPACLoZkw9HT1Dtc>
+
+# ASSISTANT
+
+Now let me update the emerald material to use a custom shader with noise-based glitter/sparkle:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TpkVq3DT7rkVnVQyQegNdt
+
+## path
+
+<tool.toolu_01TpkVq3DT7rkVnVQyQegNdt>
+character-defs.ts
+</tool.toolu_01TpkVq3DT7rkVnVQyQegNdt>
+
+## git-commit-message
+
+<tool.toolu_01TpkVq3DT7rkVnVQyQegNdt>
+Add glitter sparkle effect via shader with noise-based specular
+</tool.toolu_01TpkVq3DT7rkVnVQyQegNdt>
+
+## diff
+
+<tool.toolu_01TpkVq3DT7rkVnVQyQegNdt>
+-  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+-    color: new THREE.Color(0.05, 0.6, 0.2),
+-    metalness: 0.0,
+-    roughness: 0.0,
+-    transmission: 0.92,
+-    thickness: 1.5,
+-    ior: 1.57,
+-    envMapIntensity: 2.0,
+-    clearcoat: 1.0,
+-    clearcoatRoughness: 0.0,
++  // Custom shader material with glitter effect
++  const emeraldMaterial = new THREE.ShaderMaterial({
++    uniforms: {
++      uColor: { value: new THREE.Color(0.05, 0.6, 0.2) },
++      uLightPos1: { value: new THREE.Vector3(3, 3, 5) },
++      uLightPos2: { value: new THREE.Vector3(-2, 4, 3) },
++      uLightPos3: { value: new THREE.Vector3(0, -2, 4) },
++      uCameraPos: { value: new THREE.Vector3(0, 0, 5) },
++      uGlitterDensity: { value: 80.0 },
++      uGlitterThreshold: { value: 0.97 },
++    },
++    vertexShader: `
++      varying vec3 vNormal;
++      varying vec3 vWorldPos;
++      varying vec3 vViewPos;
++      
++      void main() {
++        vNormal = normalize(normalMatrix * normal);
++        vec4 worldPos = modelMatrix * vec4(position, 1.0);
++        vWorldPos = worldPos.xyz;
++        vViewPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
++        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
++      }
++    `,
++    fragmentShader: `
++      uniform vec3 uColor;
++      uniform vec3 uLightPos1;
++      uniform vec3 uLightPos2;
++      uniform vec3 uLightPos3;
++      uniform vec3 uCameraPos;
++      uniform float uGlitterDensity;
++      uniform float uGlitterThreshold;
++      
++      varying vec3 vNormal;
++      varying vec3 vWorldPos;
++      varying vec3 vViewPos;
++      
++      // Hash function for glitter
++      float hash(vec3 p) {
++        p = fract(p * vec3(443.897, 441.423, 437.195));
++        p += dot(p, p.yxz + 19.19);
++        return fract((p.x + p.y) * p.z);
++      }
++      
++      // 3D noise
++      float noise(vec3 p) {
++        vec3 i = floor(p);
++        vec3 f = fract(p);
++        f = f * f * (3.0 - 2.0 * f);
++        
++        return mix(
++          mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
++              mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
++          mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
++              mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y),
++          f.z
++        );
++      }
++      
++      float calcSpecular(vec3 lightPos, vec3 normal, vec3 viewDir, float shininess) {
++        vec3 lightDir = normalize(lightPos - vWorldPos);
++        vec3 halfDir = normalize(lightDir + viewDir);
++        float spec = pow(max(dot(normal, halfDir), 0.0), shininess);
++        float diff = max(dot(normal, lightDir), 0.0);
++        return spec * 0.8 + diff * 0.3;
++      }
++      
++      void main() {
++        vec3 normal = normalize(vNormal);
++        vec3 viewDir = normalize(uCameraPos - vWorldPos);
++        
++        // Base gem color with transmission-like effect
++        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
++        vec3 baseColor = uColor * (0.4 + fresnel * 0.6);
++        
++        // Specular from multiple lights
++        float spec1 = calcSpecular(uLightPos1, normal, viewDir, 64.0);
++        float spec2 = calcSpecular(uLightPos2, normal, viewDir, 64.0);
++        float spec3 = calcSpecular(uLightPos3, normal, viewDir, 64.0);
++        float totalSpec = spec1 + spec2 * 0.7 + spec3 * 0.5;
++        
++        // Glitter effect - use world position for stable sparkles
++        vec3 glitterPos = vWorldPos * uGlitterDensity;
++        float glitterNoise = hash(floor(glitterPos));
++        
++        // Sparkle based on view angle and noise
++        float sparkleAngle = dot(normal, viewDir);
++        float sparkle = 0.0;
++        
++        if (glitterNoise > uGlitterThreshold) {
++          // This facet sparkles - intensity based on view angle
++          float intensity = pow(glitterNoise, 20.0) * (0.5 + sparkleAngle * 0.5);
++          sparkle = intensity * 3.0;
++        }
++        
++        // Combine everything
++        vec3 color = baseColor;
++        color += vec3(1.0) * totalSpec * 0.4;  // White specular
++        color += vec3(1.0) * sparkle;  // Bright white sparkles
++        color += uColor * fresnel * 0.3;  // Rim lighting
++        
++        gl_FragColor = vec4(color, 0.85);
++      }
++    `,
++    transparent: true,
+     side: THREE.DoubleSide,
+-    flatShading: true,
+   });
+\ No newline at end of file
+
+</tool.toolu_01TpkVq3DT7rkVnVQyQegNdt>
+
+# TOOL RESULT
+
+ID: toolu_01TpkVq3DT7rkVnVQyQegNdt
+
+<tool.toolu_01TpkVq3DT7rkVnVQyQegNdt>
+Original content not found in file: /Users/ajansson/projects/ascii-language/character-defs.ts -- Try again!
+</tool.toolu_01TpkVq3DT7rkVnVQyQegNdt>
+
+# ASSISTANT
+
+Let me check the current state of the emerald material:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01NAkX9YQdS58FQKCFpUjyx1
+
+## pattern
+
+<tool.toolu_01NAkX9YQdS58FQKCFpUjyx1>
+emeraldMaterial
+</tool.toolu_01NAkX9YQdS58FQKCFpUjyx1>
+
+## path
+
+<tool.toolu_01NAkX9YQdS58FQKCFpUjyx1>
+character-defs.ts
+</tool.toolu_01NAkX9YQdS58FQKCFpUjyx1>
+
+## context-lines
+
+<tool.toolu_01NAkX9YQdS58FQKCFpUjyx1>
+5
+</tool.toolu_01NAkX9YQdS58FQKCFpUjyx1>
+
+# TOOL RESULT
+
+ID: toolu_01NAkX9YQdS58FQKCFpUjyx1
+
+<tool.toolu_01NAkX9YQdS58FQKCFpUjyx1>
+1389-    light.position.set(pos[0], pos[1], pos[2]);
+1390-    emeraldScene!.add(light);
+1391-  });
+1392-
+1393-  // Sparkling glass emerald with transmission
+1394:  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+1395-    color: new THREE.Color(0.0, 0.8, 0.28),
+1396-    metalness: 0.0,
+1397-    roughness: 0.0,
+1398-    transmission: 0.92,
+1399-    thickness: 0.6,
+--
+1423-    gem.traverse((child) => {
+1424-      if (child instanceof THREE.Mesh) {
+1425-        const geom = child.geometry.clone();
+1426-        geom.computeVertexNormals();
+1427-        child.geometry = geom;
+1428:        child.material = emeraldMaterial;
+1429-      }
+1430-    });
+1431-    
+1432-    gem.scale.setScalar(scale * 3.0);
+1433-    gem.position.set(x, y, 0);
+
+</tool.toolu_01NAkX9YQdS58FQKCFpUjyx1>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011rYBMSQ34rybFKxDVdW147
+
+## path
+
+<tool.toolu_011rYBMSQ34rybFKxDVdW147>
+character-defs.ts
+</tool.toolu_011rYBMSQ34rybFKxDVdW147>
+
+## git-commit-message
+
+<tool.toolu_011rYBMSQ34rybFKxDVdW147>
+Add glitter sparkle effect via custom shader
+</tool.toolu_011rYBMSQ34rybFKxDVdW147>
+
+## diff
+
+<tool.toolu_011rYBMSQ34rybFKxDVdW147>
+-  // Sparkling glass emerald with transmission
+-  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
++  // Custom shader material with glitter sparkle effect
++  const emeraldMaterial = new THREE.ShaderMaterial({
++    uniforms: {
++      uColor: { value: new THREE.Color(0.0, 0.8, 0.28) },
++      uGlitterDensity: { value: 150.0 },
++    },
++    vertexShader: `
++      varying vec3 vNormal;
++      varying vec3 vWorldPos;
++      varying vec3 vLocalPos;
++      
++      void main() {
++        vNormal = normalize(normalMatrix * normal);
++        vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
++        vLocalPos = position;
++        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
++      }
++    `,
++    fragmentShader: `
++      uniform vec3 uColor;
++      uniform float uGlitterDensity;
++      
++      varying vec3 vNormal;
++      varying vec3 vWorldPos;
++      varying vec3 vLocalPos;
++      
++      // High quality hash
++      float hash(vec3 p) {
++        p = fract(p * vec3(443.897, 441.423, 437.195));
++        p += dot(p, p.yxz + 19.19);
++        return fract((p.x + p.y) * p.z);
++      }
++      
++      void main() {
++        vec3 normal = normalize(vNormal);
++        vec3 viewDir = normalize(cameraPosition - vWorldPos);
++        
++        // Fresnel for glass-like rim
++        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
++        
++        // Base emerald color
++        vec3 baseColor = uColor * (0.5 + fresnel * 0.5);
++        
++        // Multiple lights for specular
++        vec3 lights[3];
++        lights[0] = vec3(3.0, 3.0, 5.0);
++        lights[1] = vec3(-2.0, 4.0, 3.0);
++        lights[2] = vec3(0.0, -2.0, 4.0);
++        
++        float totalSpec = 0.0;
++        for (int i = 0; i < 3; i++) {
++          vec3 lightDir = normalize(lights[i] - vWorldPos);
++          vec3 halfDir = normalize(lightDir + viewDir);
++          float spec = pow(max(dot(normal, halfDir), 0.0), 128.0);
++          totalSpec += spec * (i == 0 ? 1.0 : 0.6);
++        }
++        
++        // Glitter sparkles - hash based on local position for stability
++        vec3 glitterCell = floor(vLocalPos * uGlitterDensity);
++        float glitterRand = hash(glitterCell);
++        
++        // Only some cells sparkle (top 3%)
++        float sparkle = 0.0;
++        if (glitterRand > 0.97) {
++          // Sparkle intensity depends on alignment with view
++          float alignment = max(dot(normal, viewDir), 0.0);
++          // Make sparkle pop only when well-aligned
++          sparkle = smoothstep(0.97, 1.0, glitterRand) * pow(alignment, 2.0) * 5.0;
++        }
++        
++        // Combine
++        vec3 color = baseColor;
++        color += vec3(1.0) * totalSpec * 0.5;
++        color += vec3(1.0, 1.0, 0.95) * sparkle;
++        color += uColor * fresnel * 0.4;
++        
++        gl_FragColor = vec4(color, 0.88 + fresnel * 0.12);
++      }
++    `,
++    transparent: true,
++    side: THREE.DoubleSide,
++  });
++  
++  // Keep reference for compatibility but use shader
++  const _unusedPhysicalMaterial = new THREE.MeshPhysicalMaterial({
+     color: new THREE.Color(0.0, 0.8, 0.28),
+     metalness: 0.0,
+     roughness: 0.0,
+     transmission: 0.92,
+     thickness: 0.6,
+\ No newline at end of file
+
+</tool.toolu_011rYBMSQ34rybFKxDVdW147>
+
+# TOOL RESULT
+
+ID: toolu_011rYBMSQ34rybFKxDVdW147
+
+<tool.toolu_011rYBMSQ34rybFKxDVdW147>
+
+</tool.toolu_011rYBMSQ34rybFKxDVdW147>
