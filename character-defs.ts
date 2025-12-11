@@ -349,8 +349,39 @@ function fnD(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   
-  const divisions = Math.max(1, Math.min(n + 1, 10));
-  const totalTriangles = divisions * divisions * 2;
+  const divisions = Math.max(2, Math.min(n + 2, 10));
+  
+  const applyEffect = (r: number, g: number, b: number, effect: number): [number, number, number] => {
+    const [h, s, l] = rgbToHsl(r, g, b);
+    switch (effect % 8) {
+      case 0: // posterize
+        const levels = 4;
+        return [
+          Math.floor(r / 256 * levels) * (255 / (levels - 1)),
+          Math.floor(g / 256 * levels) * (255 / (levels - 1)),
+          Math.floor(b / 256 * levels) * (255 / (levels - 1))
+        ];
+      case 1: // saturate
+        return hslToRgb(h, Math.min(1, s * 1.8), l);
+      case 2: // hue shift
+        return hslToRgb((h + 120) % 360, s, l);
+      case 3: // invert
+        return [255 - r, 255 - g, 255 - b];
+      case 4: // desaturate + brighten
+        return hslToRgb(h, s * 0.3, Math.min(1, l * 1.3));
+      case 5: // warm tint
+        return [Math.min(255, r + 40), g, Math.max(0, b - 30)];
+      case 6: // cool tint
+        return [Math.max(0, r - 30), g, Math.min(255, b + 40)];
+      case 7: // high contrast
+        const mid = 0.5;
+        const contrast = 1.5;
+        const nl = Math.max(0, Math.min(1, (l - mid) * contrast + mid));
+        return hslToRgb(h, Math.min(1, s * 1.2), nl);
+      default:
+        return [r, g, b];
+    }
+  };
   
   for (let row = 0; row < divisions; row++) {
     for (let col = 0; col < divisions; col++) {
@@ -360,14 +391,8 @@ function fnD(ctx: FnContext, n: number): Image {
       const y1 = Math.floor(((row + 1) / divisions) * ctx.height);
       
       const triIndex = (row * divisions + col) * 2;
-      const hue1 = ((triIndex * 137.5) % 360);
-      const hue2 = (((triIndex + 1) * 137.5) % 360);
-      
-      const sat1 = 0.6 + (triIndex % 3) * 0.15;
-      const sat2 = 0.6 + ((triIndex + 1) % 3) * 0.15;
-      
-      const light1 = 0.4 + (triIndex % 5) * 0.1;
-      const light2 = 0.4 + ((triIndex + 1) % 5) * 0.1;
+      const effect1 = triIndex;
+      const effect2 = triIndex + 1;
       
       for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
@@ -375,18 +400,11 @@ function fnD(ctx: FnContext, n: number): Image {
           const localY = (y - y0) / (y1 - y0);
           
           const [r, g, b] = getPixel(prev, x, y);
-          const [h, s, l] = rgbToHsl(r, g, b);
-          
           const isUpperTriangle = localX + localY < 1;
-          const hue = isUpperTriangle ? hue1 : hue2;
-          const sat = isUpperTriangle ? sat1 : sat2;
-          const light = isUpperTriangle ? light1 : light2;
+          const effect = isUpperTriangle ? effect1 : effect2;
           
-          const avgLuminance = l;
-          const finalLight = light * 0.7 + avgLuminance * 0.3;
-          
-          const [nr, ng, nb] = hslToRgb(hue, sat, finalLight);
-          setPixel(out, x, y, nr, ng, nb);
+          const [nr, ng, nb] = applyEffect(r, g, b, effect);
+          setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
         }
       }
     }
