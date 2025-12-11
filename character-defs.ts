@@ -1382,26 +1382,30 @@ function fnE(ctx: FnContext): Image {
   emeraldScene!.environment = envMap;
   emeraldScene!.background = bgTexture;
   
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
   emeraldScene!.add(ambientLight);
   
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
   keyLight.position.set(5, 8, 5);
   emeraldScene!.add(keyLight);
   
-  const fillLight = new THREE.DirectionalLight(0xaaffaa, 1.0);
+  const fillLight = new THREE.DirectionalLight(0xaaffaa, 1.5);
   fillLight.position.set(-5, 3, 3);
   emeraldScene!.add(fillLight);
   
-  const backLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  const backLight = new THREE.DirectionalLight(0xffffff, 2.0);
   backLight.position.set(0, 5, -5);
   emeraldScene!.add(backLight);
   
-  const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 20);
+  const frontLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  frontLight.position.set(0, 2, 8);
+  emeraldScene!.add(frontLight);
+  
+  const pointLight1 = new THREE.PointLight(0xffffff, 2.0, 30);
   pointLight1.position.set(3, 2, 3);
   emeraldScene!.add(pointLight1);
   
-  const pointLight2 = new THREE.PointLight(0x88ffaa, 0.8, 20);
+  const pointLight2 = new THREE.PointLight(0x88ffaa, 1.5, 30);
   pointLight2.position.set(-3, 2, 3);
   emeraldScene!.add(pointLight2);
   
