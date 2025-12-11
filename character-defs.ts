@@ -4304,7 +4304,6 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
   gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
   gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
   gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
-  gl.uniform1f(gl.getUniformLocation(program, 'uGlossStrength'), glossStrength);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
