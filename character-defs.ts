@@ -1317,17 +1317,11 @@ export const emeraldReady = loadEmeraldModel();
 function fnE(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   
+  if (!emeraldModelLoaded || !emeraldModel) {
+    throw new Error('Emerald model not loaded - await emeraldReady before rendering');
+  }
+  
   initEmeraldScene(ctx.width, ctx.height);
-  
-  if (!emeraldModelLoaded) {
-    loadEmeraldModel();
-    // Return prev image while loading - user needs to trigger re-render after load completes
-    return cloneImage(prev);
-  }
-  
-  if (!emeraldModel) {
-    return cloneImage(prev);
-  }
   
   while (emeraldScene!.children.length > 0) {
     emeraldScene!.remove(emeraldScene!.children[0]);

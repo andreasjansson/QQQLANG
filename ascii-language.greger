@@ -9573,5 +9573,55 @@ Simplify emerald loading - load once, store in global
 ID: toolu_01BVRR1HF8X4q8wfoiD82KUA
 
 <tool.toolu_01BVRR1HF8X4q8wfoiD82KUA>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Simplify emerald loading - load once, store in global
 </tool.toolu_01BVRR1HF8X4q8wfoiD82KUA>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01WRHuG7jM2KU3hLXtYxu5H7
+
+## path
+
+<tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
+character-defs.ts
+</tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
+
+## git-commit-message
+
+<tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
+fnE now assumes model is loaded (will be awaited by index.html)
+</tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
+
+## diff
+
+<tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
+ function fnE(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   
+-  initEmeraldScene(ctx.width, ctx.height);
+-  
+-  if (!emeraldModelLoaded) {
+-    loadEmeraldModel();
+-    // Return prev image while loading - user needs to trigger re-render after load completes
+-    return cloneImage(prev);
++  if (!emeraldModelLoaded || !emeraldModel) {
++    throw new Error('Emerald model not loaded - await emeraldReady before rendering');
+   }
+   
+-  if (!emeraldModel) {
+-    return cloneImage(prev);
+-  }
+\ No newline at end of file
++  initEmeraldScene(ctx.width, ctx.height);
+\ No newline at end of file
+
+</tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
+
+# TOOL RESULT
+
+ID: toolu_01WRHuG7jM2KU3hLXtYxu5H7
+
+<tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
+
+</tool.toolu_01WRHuG7jM2KU3hLXtYxu5H7>
