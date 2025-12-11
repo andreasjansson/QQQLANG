@@ -3411,21 +3411,43 @@ function fnPercent(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnAmpersand(ctx: FnContext, j: number): Image {
+function fnAmpersand(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const bayer8x8 = [
+    [ 0, 32,  8, 40,  2, 34, 10, 42],
+    [48, 16, 56, 24, 50, 18, 58, 26],
+    [12, 44,  4, 36, 14, 46,  6, 38],
+    [60, 28, 52, 20, 62, 30, 54, 22],
+    [ 3, 35, 11, 43,  1, 33,  9, 41],
+    [51, 19, 59, 27, 49, 17, 57, 25],
+    [15, 47,  7, 39, 13, 45,  5, 37],
+    [63, 31, 55, 23, 61, 29, 53, 21]
+  ];
+  
+  const levels = Math.max(2, 5 - Math.floor(n / 15));
+  const spread = 80 + n * 5;
+  
+  const rOffset = (n * 3) % 8;
+  const gOffset = (n * 5 + 2) % 8;
+  const bOffset = (n * 7 + 4) % 8;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const [or, og, ob] = getPixel(old, x, y);
+      const [r, g, b] = getPixel(prev, x, y);
       
-      const luminance = pr * 0.299 + pg * 0.587 + pb * 0.114;
-      const [oh, os, ol] = rgbToHsl(or, og, ob);
-      const [nr, ng, nb] = hslToRgb(oh, os, luminance / 255);
+      const tr = (bayer8x8[(y + rOffset) % 8][(x + rOffset) % 8] / 64.0 - 0.5) * spread;
+      const tg = (bayer8x8[(y + gOffset) % 8][(x + gOffset) % 8] / 64.0 - 0.5) * spread;
+      const tb = (bayer8x8[(y + bOffset) % 8][(x + bOffset) % 8] / 64.0 - 0.5) * spread;
       
-      setPixel(out, x, y, nr, ng, nb);
+      const quantize = (v: number, threshold: number) => {
+        const adjusted = v + threshold;
+        const step = 255 / (levels - 1);
+        return Math.max(0, Math.min(255, Math.round(adjusted / step) * step));
+      };
+      
+      setPixel(out, x, y, quantize(r, tr), quantize(g, tg), quantize(b, tb));
     }
   }
   
