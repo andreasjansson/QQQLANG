@@ -345,7 +345,7 @@ function fnC(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnD(ctx: FnContext, n: number): Image {
+function fn5(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   
