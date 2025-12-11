@@ -1458,12 +1458,22 @@ function fnE(ctx: FnContext): Image {
   
   // Debug: check if we got any non-zero pixels
   let nonZeroCount = 0;
+  let maxR = 0, maxG = 0, maxB = 0, maxA = 0;
   for (let i = 0; i < pixels.length; i += 4) {
     if (pixels[i] > 0 || pixels[i+1] > 0 || pixels[i+2] > 0) {
       nonZeroCount++;
     }
+    maxR = Math.max(maxR, pixels[i]);
+    maxG = Math.max(maxG, pixels[i+1]);
+    maxB = Math.max(maxB, pixels[i+2]);
+    maxA = Math.max(maxA, pixels[i+3]);
   }
   console.log('Non-zero pixels:', nonZeroCount, 'out of', ctx.width * ctx.height);
+  console.log('Max RGBA values:', maxR, maxG, maxB, maxA);
+  
+  // Sample some pixel values from the center
+  const centerIdx = (Math.floor(ctx.height/2) * ctx.width + Math.floor(ctx.width/2)) * 4;
+  console.log('Center pixel before flip:', pixels[centerIdx], pixels[centerIdx+1], pixels[centerIdx+2], pixels[centerIdx+3]);
   
   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
