@@ -1379,23 +1379,24 @@ function fnE(ctx: FnContext): Image {
 
   // Realistic glass emerald with transmission
   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.2, 0.8, 0.4),
+    color: new THREE.Color(0.0, 0.9, 0.35),
     metalness: 0.0,
     roughness: 0.0,
-    transmission: 1.0,
-    thickness: 0.2,
+    transmission: 0.85,
+    thickness: 1.0,
     ior: 1.57,
-    envMapIntensity: 0.5,
-    clearcoat: 1.0,
+    envMapIntensity: 0.15,
+    clearcoat: 0.5,
     clearcoatRoughness: 0.0,
     transparent: true,
     opacity: 1.0,
     side: THREE.DoubleSide,
     flatShading: true,
-    attenuationColor: new THREE.Color(0.1, 0.7, 0.3),
-    attenuationDistance: 0.1,
-    specularIntensity: 1.0,
-    specularColor: new THREE.Color(1, 1, 1),
+    attenuationColor: new THREE.Color(0.0, 0.6, 0.2),
+    attenuationDistance: 0.4,
+    specularIntensity: 0.8,
+    specularColor: new THREE.Color(0.9, 1, 0.9),
+    reflectivity: 0.3,
   });
 
   const addEmerald = (x: number, y: number, scale: number) => {
