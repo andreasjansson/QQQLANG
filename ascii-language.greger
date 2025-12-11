@@ -8643,5 +8643,58 @@ Debug: use simple solid material to test if emeralds are visible
 ID: toolu_01NbHo7yvXvGnv95NuoctHm8
 
 <tool.toolu_01NbHo7yvXvGnv95NuoctHm8>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Debug: use simple solid material to test if emeralds are visible
 </tool.toolu_01NbHo7yvXvGnv95NuoctHm8>
+
+# ASSISTANT
+
+Also, let me check if the model scaling during load is causing issues - let's log the actual scale applied:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01PhAZxWuayfwNoPMgARv4hV
+
+## path
+
+<tool.toolu_01PhAZxWuayfwNoPMgARv4hV>
+character-defs.ts
+</tool.toolu_01PhAZxWuayfwNoPMgARv4hV>
+
+## git-commit-message
+
+<tool.toolu_01PhAZxWuayfwNoPMgARv4hV>
+Log model scale and position
+</tool.toolu_01PhAZxWuayfwNoPMgARv4hV>
+
+## diff
+
+<tool.toolu_01PhAZxWuayfwNoPMgARv4hV>
+         const box = new THREE.Box3().setFromObject(emeraldModel);
+         const center = box.getCenter(new THREE.Vector3());
+         const size = box.getSize(new THREE.Vector3());
+-        console.log('Model bounds:', { center, size });
++        console.log('Model bounds - center:', center.x, center.y, center.z);
++        console.log('Model bounds - size:', size.x, size.y, size.z);
+         const maxDim = Math.max(size.x, size.y, size.z);
+         const scale = 2.0 / maxDim;
++        console.log('Applying scale:', scale);
+         
+-        emeraldModel.position.sub(center);
+-        emeraldModel.scale.setScalar(scale);
+\ No newline at end of file
++        emeraldModel.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
++        emeraldModel.scale.setScalar(scale);
++        console.log('Model position after centering:', emeraldModel.position.x, emeraldModel.position.y, emeraldModel.position.z);
++        console.log('Model scale:', emeraldModel.scale.x);
+\ No newline at end of file
+
+</tool.toolu_01PhAZxWuayfwNoPMgARv4hV>
+
+# TOOL RESULT
+
+ID: toolu_01PhAZxWuayfwNoPMgARv4hV
+
+<tool.toolu_01PhAZxWuayfwNoPMgARv4hV>
+
+</tool.toolu_01PhAZxWuayfwNoPMgARv4hV>

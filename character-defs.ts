@@ -1321,12 +1321,16 @@ function loadEmeraldModel(): Promise<void> {
         const box = new THREE.Box3().setFromObject(emeraldModel);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
-        console.log('Model bounds:', { center, size });
+        console.log('Model bounds - center:', center.x, center.y, center.z);
+        console.log('Model bounds - size:', size.x, size.y, size.z);
         const maxDim = Math.max(size.x, size.y, size.z);
         const scale = 2.0 / maxDim;
+        console.log('Applying scale:', scale);
         
-        emeraldModel.position.sub(center);
+        emeraldModel.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
         emeraldModel.scale.setScalar(scale);
+        console.log('Model position after centering:', emeraldModel.position.x, emeraldModel.position.y, emeraldModel.position.z);
+        console.log('Model scale:', emeraldModel.scale.x);
         
         emeraldModelLoaded = true;
         emeraldModelLoading = false;
