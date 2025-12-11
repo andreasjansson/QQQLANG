@@ -1365,14 +1365,15 @@ function fnE(ctx: FnContext): Image {
   pointLight2.position.set(-3, 2, 3);
   emeraldScene!.add(pointLight2);
   
-  const emeraldMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0.1, 0.65, 0.3),
-    emissive: new THREE.Color(0.02, 0.12, 0.04),
-    metalness: 0.1,
-    roughness: 0.15,
+  const emeraldMaterial = new THREE.MeshPhongMaterial({
+    color: new THREE.Color(0.05, 0.55, 0.25),
+    emissive: new THREE.Color(0.01, 0.08, 0.03),
+    specular: new THREE.Color(0.8, 1.0, 0.8),
+    shininess: 100,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.88,
     side: THREE.DoubleSide,
+    reflectivity: 1.0,
   });
   
   const addEmerald = (x: number, y: number, scale: number) => {
@@ -1382,19 +1383,18 @@ function fnE(ctx: FnContext): Image {
         child.material = emeraldMaterial;
       }
     });
-    gem.scale.setScalar(scale);
+    gem.scale.setScalar(scale * 3.0);
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
-    console.log('Added emerald at', x, y, 'scale', scale);
   };
   
   addEmerald(0, 0, 1.0);
-  addEmerald(-2.0, 0, 0.6);
-  addEmerald(2.0, 0, 0.6);
-  addEmerald(-1.2, 0.8, 0.4);
-  addEmerald(1.2, 0.8, 0.4);
-  addEmerald(-1.2, -0.8, 0.4);
-  addEmerald(1.2, -0.8, 0.4);
+  addEmerald(-2.5, 0, 0.5);
+  addEmerald(2.5, 0, 0.5);
+  addEmerald(-1.5, 1.2, 0.35);
+  addEmerald(1.5, 1.2, 0.35);
+  addEmerald(-1.5, -1.2, 0.35);
+  addEmerald(1.5, -1.2, 0.35);
   
   console.log('Scene children count:', emeraldScene!.children.length);
   console.log('Camera position:', emeraldCamera!.position);
