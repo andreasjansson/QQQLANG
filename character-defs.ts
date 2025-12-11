@@ -1908,19 +1908,28 @@ function fnX(ctx: FnContext, k: number, c: string): Image {
   
   const maskData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
   
+  let avgR = 0, avgG = 0, avgB = 0;
+  for (let i = 0; i < prev.data.length; i += 4) {
+    avgR += prev.data[i];
+    avgG += prev.data[i + 1];
+    avgB += prev.data[i + 2];
+  }
+  const numPixels = prev.data.length / 4;
+  avgR = Math.round(avgR / numPixels);
+  avgG = Math.round(avgG / numPixels);
+  avgB = Math.round(avgB / numPixels);
+  
   for (let y = 0; y < ctx.height; y++) {
     const t = y / ctx.height;
+    
+    const gr = Math.round(cr * (1 - t) + avgR * t);
+    const gg = Math.round(cg * (1 - t) + avgG * t);
+    const gb = Math.round(cb * (1 - t) + avgB * t);
     
     for (let x = 0; x < ctx.width; x++) {
       const maskIdx = (y * ctx.width + x) * 4;
       if (maskData.data[maskIdx] > 128) {
-        const [pr, pg, pb] = getPixel(prev, x, y);
-        
-        const nr = Math.round(cr * (1 - t) + pr * t);
-        const ng = Math.round(cg * (1 - t) + pg * t);
-        const nb = Math.round(cb * (1 - t) + pb * t);
-        
-        setPixel(out, x, y, nr, ng, nb);
+        setPixel(out, x, y, gr, gg, gb);
       }
     }
   }
