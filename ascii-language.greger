@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-225434549540>
+${greger-prompt-code-style<eval-result-225731701664>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-225434549540>}
+</eval-result-225731701664>}
 
 # IMPORTANT
 
@@ -8075,5 +8075,290 @@ Fix asterisk god rays - reduce intensity to prevent white-out
 ID: toolu_01MTfVbpPJGBSVek9UZYe7a6
 
 <tool.toolu_01MTfVbpPJGBSVek9UZYe7a6>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix asterisk god rays - reduce intensity to prevent white-out
 </tool.toolu_01MTfVbpPJGBSVek9UZYe7a6>
+
+# ASSISTANT
+
+I've reduced the intensity significantly:
+- Lowered `uExposure` from 0.3 to 0.12
+- Lowered `uWeight` from 0.5 to 0.4
+- Lowered `uDecay` from 0.975 to 0.96 (faster falloff)
+- Lowered `uDensity` from 0.9 to 0.8
+- Made the occlusion pattern less intense (rays fade with distance, smaller center glow)
+- Changed from additive blend to screen blend which avoids harsh clipping
+
+Try it now - the effect should be much more subtle with visible rays emanating from the center without washing out the image.
+
+# USER
+
+remove the argument. and make the default 80, and increase the effect
+
+# THINKING
+
+Signature: EowDCkYIChgCKkAmc7anlWLRuIVKf/2pEb8t88+ptU/NfwY6hj4i+pNFTLlZmhRzt29K4RlexauJBZyxVCdrmmM/JOWaa2w0Qhe2Egy8+StnU0z6NeiuQK0aDOAQJv09mzZB1Tv30CIwo/ltVJO70fY05my0GPcP5eSft2dq1sJfZQHm1wyvxjWnTDijwi4r0FeAjWOUQB0UKvMBdQ1f2rx+GZSXHU31PWQYEZuIdWDhPm5B9TUKhAXTs4jpdGiTcRIHq06EFVActTNQwaCzx+Q9XkCAHGU0PjMrUKjraxyxXuN7q02Rlg4e4IzptCr6WgSSLiCaLU3qhp0h9E35gziTTZe3EmnptYKL1lv4eQTOroMqQ6KeEVdo54MCN39oPrvWtCgytddDww7qUoZ0rBQmamY5IyKAcEfjXpOaVc7g+7/Y7JOP6CCLvkRrLjSPyWcBoFUc3K3StbNMQEualnkr0W2UXWeeplE7hdzhQsDoSo5xzU6Kef0cV6ygCOeBZt02m1BDcBN7y+CaoAM1GAE=
+
+The user wants me to:
+1. Remove the argument from fnAsterisk (make it arity 0)
+2. Set the default number of rays to 80
+3. Increase the effect intensity
+
+Let me update the function and also update the character definition for '*'.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01YJ52ierrqeXDEdoZcnQ8b6
+
+## path
+
+<tool.toolu_01YJ52ierrqeXDEdoZcnQ8b6>
+character-defs.ts
+</tool.toolu_01YJ52ierrqeXDEdoZcnQ8b6>
+
+## git-commit-message
+
+<tool.toolu_01YJ52ierrqeXDEdoZcnQ8b6>
+Make asterisk god rays arity 0 with 80 rays and stronger effect
+</tool.toolu_01YJ52ierrqeXDEdoZcnQ8b6>
+
+## diff
+
+<tool.toolu_01YJ52ierrqeXDEdoZcnQ8b6>
+-function fnAsterisk(ctx: FnContext, n: number): Image {
++function fnAsterisk(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
+-  const numRays = Math.max(4, n * 2);
++  const numRays = 80;
+   
+   const vertexShader = `
+     attribute vec2 position;
+     varying vec2 vUV;
+     void main() {
+       vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+       gl_Position = vec4(position, 0.0, 1.0);
+     }
+   `;
+   
+   const occlusionFragShader = `
+     precision highp float;
+     uniform sampler2D uTexture;
+     uniform vec2 uLightPos;
+     uniform float uLightRadius;
+-    uniform int uNumRays;
+     varying vec2 vUV;
+     
+     #define PI 3.14159265359
++    #define NUM_RAYS 80
+     
+     void main() {
+       vec3 texColor = texture2D(uTexture, vUV).rgb;
+-      float brightness = dot(texColor, vec3(0.299, 0.587, 0.114));
+       
+       vec2 diff = vUV - uLightPos;
+       float dist = length(diff);
+       float angle = atan(diff.y, diff.x);
+       
+       // Create star/ray pattern from center
+-      float rayAngle = PI * 2.0 / float(uNumRays);
++      float rayAngle = PI * 2.0 / float(NUM_RAYS);
+       float nearestRay = floor(angle / rayAngle + 0.5) * rayAngle;
+       float angleDiff = abs(angle - nearestRay);
+       
+-      // Ray intensity - thin rays that fade with distance
+-      float rayWidth = 0.04;
+-      float rayIntensity = smoothstep(rayWidth, 0.0, angleDiff) * (1.0 - smoothstep(0.0, 0.7, dist));
++      // Ray intensity - thin rays that extend outward
++      float rayWidth = 0.025;
++      float rayIntensity = smoothstep(rayWidth, 0.0, angleDiff) * (1.0 - smoothstep(0.0, 0.9, dist));
+       
+-      // Small central glow
+-      float centerGlow = exp(-dist * dist / (uLightRadius * uLightRadius * 0.5)) * 0.8;
++      // Central glow
++      float centerGlow = exp(-dist * dist / (uLightRadius * uLightRadius));
+       
+-      // Only render the light source pattern (black elsewhere for proper occlusion)
+-      float combinedIntensity = max(centerGlow, rayIntensity * 0.6);
++      // Combine for light source pattern
++      float combinedIntensity = centerGlow + rayIntensity * 0.8;
+       
+-      // Tint by average of scene color for colored rays
+-      vec3 avgColor = texColor * 0.5 + vec3(0.5);
+-      vec3 result = combinedIntensity * avgColor;
++      // Tint rays by scene color
++      vec3 lightColor = mix(vec3(1.0, 0.98, 0.9), texColor, 0.4);
++      vec3 result = combinedIntensity * lightColor;
+       
+       gl_FragColor = vec4(result, 1.0);
+     }
+   `;
+   
+   const godrayFragShader = `
+     precision highp float;
+     uniform sampler2D uOcclusionTexture;
+     uniform sampler2D uSceneTexture;
+     uniform vec2 uLightPos;
+-    uniform float uExposure;
+-    uniform float uDecay;
+-    uniform float uDensity;
+-    uniform float uWeight;
+     varying vec2 vUV;
+     
+-    #define NUM_SAMPLES 80
++    #define NUM_SAMPLES 100
+     
+     void main() {
++      float exposure = 0.22;
++      float decay = 0.97;
++      float density = 0.95;
++      float weight = 0.5;
++      
+       vec2 texCoord = vUV;
+       vec2 deltaTexCoord = (texCoord - uLightPos);
+-      deltaTexCoord *= 1.0 / float(NUM_SAMPLES) * uDensity;
++      deltaTexCoord *= 1.0 / float(NUM_SAMPLES) * density;
+       
+       float illuminationDecay = 1.0;
+       vec3 godrayColor = vec3(0.0);
+       
+       vec2 sampleCoord = texCoord;
+       
+       for (int i = 0; i < NUM_SAMPLES; i++) {
+         sampleCoord -= deltaTexCoord;
+         vec3 sampleColor = texture2D(uOcclusionTexture, sampleCoord).rgb;
+-        sampleColor *= illuminationDecay * uWeight;
++        sampleColor *= illuminationDecay * weight;
+         godrayColor += sampleColor;
+-        illuminationDecay *= uDecay;
++        illuminationDecay *= decay;
+       }
+       
+-      godrayColor *= uExposure;
++      godrayColor *= exposure;
+       
+       // Get original scene
+       vec3 sceneColor = texture2D(uSceneTexture, vUV).rgb;
+       
+-      // Screen blend for more natural look (avoids harsh clipping)
+-      vec3 finalColor = 1.0 - (1.0 - sceneColor) * (1.0 - godrayColor * 0.6);
++      // Screen blend for natural look
++      vec3 finalColor = 1.0 - (1.0 - sceneColor) * (1.0 - godrayColor);
+       
+       gl_FragColor = vec4(finalColor, 1.0);
+     }
+   `;
+   
+   const occlusionProgram = createShaderProgram(gl, vertexShader, occlusionFragShader);
+   const godrayProgram = createShaderProgram(gl, vertexShader, godrayFragShader);
+   
+   const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+   const buffer = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+   
+   const sceneTexture = gl.createTexture();
+   gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   
+   const occlusionTexture = gl.createTexture();
+   gl.bindTexture(gl.TEXTURE_2D, occlusionTexture);
+   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   
+   const framebuffer = gl.createFramebuffer();
+   
+   const lightX = 0.5;
+   const lightY = 0.5;
+-  const lightRadius = 0.08;
++  const lightRadius = 0.1;
+   
+   // Pass 1: Render occlusion texture with star pattern
+   gl.useProgram(occlusionProgram);
+   
+   const occPosLoc = gl.getAttribLocation(occlusionProgram, 'position');
+   gl.enableVertexAttribArray(occPosLoc);
+   gl.vertexAttribPointer(occPosLoc, 2, gl.FLOAT, false, 0, 0);
+   
+   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, occlusionTexture, 0);
+   gl.viewport(0, 0, ctx.width, ctx.height);
+   
+   gl.activeTexture(gl.TEXTURE0);
+   gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+   gl.uniform1i(gl.getUniformLocation(occlusionProgram, 'uTexture'), 0);
+   gl.uniform2f(gl.getUniformLocation(occlusionProgram, 'uLightPos'), lightX, lightY);
+   gl.uniform1f(gl.getUniformLocation(occlusionProgram, 'uLightRadius'), lightRadius);
+-  gl.uniform1i(gl.getUniformLocation(occlusionProgram, 'uNumRays'), numRays);
+   
+   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+   
+   // Pass 2: Apply god rays and combine with scene
+   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+   gl.viewport(0, 0, ctx.width, ctx.height);
+   
+   gl.useProgram(godrayProgram);
+   
+   const grPosLoc = gl.getAttribLocation(godrayProgram, 'position');
+   gl.enableVertexAttribArray(grPosLoc);
+   gl.vertexAttribPointer(grPosLoc, 2, gl.FLOAT, false, 0, 0);
+   
+   gl.activeTexture(gl.TEXTURE0);
+   gl.bindTexture(gl.TEXTURE_2D, occlusionTexture);
+   gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uOcclusionTexture'), 0);
+   
+   gl.activeTexture(gl.TEXTURE1);
+   gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+   gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uSceneTexture'), 1);
+   
+   gl.uniform2f(gl.getUniformLocation(godrayProgram, 'uLightPos'), lightX, lightY);
+-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uExposure'), 0.12);
+-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDecay'), 0.96);
+-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDensity'), 0.8);
+-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uWeight'), 0.4);
+   
+   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+   
+   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+   
+   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+       const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+       const dstIdx = (y * ctx.width + x) * 4;
+       flipped[dstIdx] = pixels[srcIdx];
+       flipped[dstIdx + 1] = pixels[srcIdx + 1];
+       flipped[dstIdx + 2] = pixels[srcIdx + 2];
+       flipped[dstIdx + 3] = pixels[srcIdx + 3];
+     }
+   }
+   
+   gl.deleteTexture(sceneTexture);
+   gl.deleteTexture(occlusionTexture);
+   gl.deleteFramebuffer(framebuffer);
+   gl.deleteBuffer(buffer);
+   gl.deleteProgram(occlusionProgram);
+   gl.deleteProgram(godrayProgram);
+   
+   return { width: ctx.width, height: ctx.height, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_01YJ52ierrqeXDEdoZcnQ8b6>
+
+# TOOL RESULT
+
+ID: toolu_01YJ52ierrqeXDEdoZcnQ8b6
+
+<tool.toolu_01YJ52ierrqeXDEdoZcnQ8b6>
+
+</tool.toolu_01YJ52ierrqeXDEdoZcnQ8b6>
