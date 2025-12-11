@@ -6656,5 +6656,44 @@ Use iridescence strength uniform for blending
 ID: toolu_011GiMrM6qBQR1CXsRkQ5EoZ
 
 <tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Use iridescence strength uniform for blending
 </tool.toolu_011GiMrM6qBQR1CXsRkQ5EoZ>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015piYaKbbTyEyZe1An9j288
+
+## path
+
+<tool.toolu_015piYaKbbTyEyZe1An9j288>
+character-defs.ts
+</tool.toolu_015piYaKbbTyEyZe1An9j288>
+
+## git-commit-message
+
+<tool.toolu_015piYaKbbTyEyZe1An9j288>
+Set warp and iridescence strength uniforms
+</tool.toolu_015piYaKbbTyEyZe1An9j288>
+
+## diff
+
+<tool.toolu_015piYaKbbTyEyZe1An9j288>
+   gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+   gl.uniform1f(gl.getUniformLocation(program, 'uResolutionScale'), resolution);
+-  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
+\ No newline at end of file
++  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
++  gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
++  gl.uniform1f(gl.getUniformLocation(program, 'uIridescenceStrength'), iridescenceStrength);
+\ No newline at end of file
+
+</tool.toolu_015piYaKbbTyEyZe1An9j288>
+
+# TOOL RESULT
+
+ID: toolu_015piYaKbbTyEyZe1An9j288
+
+<tool.toolu_015piYaKbbTyEyZe1An9j288>
+
+</tool.toolu_015piYaKbbTyEyZe1An9j288>
