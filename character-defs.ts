@@ -2553,12 +2553,12 @@ function fnLessThan(ctx: FnContext): Image {
 function fnGreaterThan(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  const shift = Math.floor(ctx.width / 3);
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const srcX = ((x - shift) % ctx.width + ctx.width) % ctx.width;
-      const [r, g, b] = getPixel(prev, srcX, y);
+      const sx = y * prev.width / ctx.height;
+      const sy = (ctx.width - 1 - x) * prev.height / ctx.width;
+      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
       setPixel(out, x, y, r, g, b);
     }
   }
