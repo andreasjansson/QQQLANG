@@ -1378,6 +1378,13 @@ function fnE(ctx: FnContext): Image {
   
   console.log('Adding emerald models to scene');
   
+  // DEBUG: Add a simple test box to verify rendering
+  const testGeo = new THREE.BoxGeometry(1, 1, 1);
+  const testMesh = new THREE.Mesh(testGeo, emeraldMaterial);
+  testMesh.position.set(0, 0, 0);
+  emeraldScene!.add(testMesh);
+  console.log('Added test box');
+  
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
     gem.traverse((child) => {
