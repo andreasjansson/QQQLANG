@@ -5228,8 +5228,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnExclaim,
     arity: 1,
     argTypes: ['int'],
-    functionName: "pixel-storm",
-    documentation: "Chaotic streaks: base direction from hue, with turbulence, swirl, and wobble; n controls streak length and chaos amount"
+    functionName: "fur",
+    documentation: "Fur/hair effect: strands grow from each pixel with direction based on hue plus turbulence and swirl; n controls strand length and chaos"
   },
   
   '"': {
