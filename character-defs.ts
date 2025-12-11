@@ -214,7 +214,7 @@ function fnA(ctx: FnContext): Image {
     
     void main() {
       vec2 uv = gl_FragCoord.xy / resolution;
-      vec3 bg = texture2D(texture, uv).rgb;
+      vec3 bg = texture2D(texture, vec2(uv.x, 1.0 - uv.y)).rgb;
       
       vec2 topRight = vec2(0.75, 0.75);
       vec2 bottomLeft = vec2(0.25, 0.25);
