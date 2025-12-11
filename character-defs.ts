@@ -4289,11 +4289,11 @@ export const characterDefs: Record<string, CharDef> = {
   'F': {
     color: '#FFD700',
     number: 6,
-    fn: fnJ,
+    fn: fnO,
     arity: 1,
     argTypes: ['int'],
-    functionName: "variable-checkerboard",
-    documentation: "Checkerboard blend where square size increases from top-left (2px) to bottom-right (52px)"
+    functionName: "fft-overflow",
+    documentation: "2D FFT with magnitude overflow/wrap and per-channel phase shifts - creates banded halos and chromatic frequency ghosts"
   },
   
   'G': {
