@@ -1365,16 +1365,17 @@ function fnE(ctx: FnContext): Image {
   specLight2.position.set(-3, 3, 7);
   emeraldScene!.add(specLight2);
 
-  // Shiny emerald material using Phong for reliable specular highlights
+  // Sparkly emerald material with flat shading to show facets
   const emeraldMaterial = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(0.0, 0.5, 0.2),
-    emissive: new THREE.Color(0.0, 0.1, 0.04),
-    specular: new THREE.Color(1.0, 1.0, 0.9),
-    shininess: 200,
+    color: new THREE.Color(0.0, 0.55, 0.22),
+    emissive: new THREE.Color(0.0, 0.15, 0.05),
+    specular: new THREE.Color(1.0, 1.0, 1.0),
+    shininess: 300,
     transparent: true,
-    opacity: 0.7,
+    opacity: 0.6,
     side: THREE.DoubleSide,
     depthWrite: false,
+    flatShading: true,
     reflectivity: 1.0,
   });
 
