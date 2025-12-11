@@ -2482,9 +2482,9 @@ function fn7(ctx: FnContext): Image {
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [r] = getPixel(prev, x - 3, y);
+      const [r] = getPixel(prev, x - 4, y);
       const [, g] = getPixel(prev, x, y);
-      const [, , b] = getPixel(prev, x + 3, y);
+      const [, , b] = getPixel(prev, x + 4, y);
       setPixel(out, x, y, r, g, b);
     }
   }
