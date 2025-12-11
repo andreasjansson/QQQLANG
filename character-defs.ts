@@ -1294,36 +1294,217 @@ function fnP(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnExcise(ctx: FnContext, j: number): Image {
+function fnE(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const luminances: number[] = [];
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      luminances.push(r * 0.299 + g * 0.587 + b * 0.114);
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = position * 0.5 + 0.5;
+      gl_Position = vec4(position, 0.0, 1.0);
     }
-  }
-  luminances.sort((a, b) => a - b);
-  const threshold = luminances[Math.floor(luminances.length * 0.6)];
+  `;
   
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const lum = pr * 0.299 + pg * 0.587 + pb * 0.114;
+  const fragmentShader = `
+    precision highp float;
+    uniform vec2 uResolution;
+    uniform sampler2D uTexture;
+    varying vec2 vUV;
+    
+    #define MAX_STEPS 64
+    #define MAX_DIST 20.0
+    #define SURF_DIST 0.001
+    
+    mat2 rot2D(float a) {
+      float c = cos(a), s = sin(a);
+      return mat2(c, -s, s, c);
+    }
+    
+    float sdBox(vec3 p, vec3 b) {
+      vec3 q = abs(p) - b;
+      return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+    }
+    
+    float sdEmeraldCut(vec3 p, float size) {
+      float octagon = sdBox(p, vec3(size * 0.7, size * 0.3, size * 0.7));
+      vec3 p45 = p;
+      p45.xz = rot2D(0.785398) * p45.xz;
+      float octagon2 = sdBox(p45, vec3(size * 0.7, size * 0.3, size * 0.7));
+      float base = max(octagon, octagon2);
       
-      if (lum > threshold) {
-        const [or, og, ob] = getPixel(old, x, y);
-        setPixel(out, x, y, or, og, ob);
-      } else {
-        setPixel(out, x, y, pr, pg, pb);
+      float topCut = p.y - size * 0.2 + length(p.xz) * 0.3;
+      float bottomCut = -p.y - size * 0.2 + length(p.xz) * 0.3;
+      
+      vec3 tp = p - vec3(0.0, size * 0.15, 0.0);
+      float table = sdBox(tp, vec3(size * 0.4, size * 0.05, size * 0.4));
+      vec3 tp45 = tp;
+      tp45.xz = rot2D(0.785398) * tp45.xz;
+      float table2 = sdBox(tp45, vec3(size * 0.4, size * 0.05, size * 0.4));
+      float tableTop = max(table, table2);
+      
+      float gem = max(base, max(topCut, bottomCut));
+      gem = min(gem, tableTop + size * 0.1);
+      
+      return gem;
+    }
+    
+    float sceneSDF(vec3 p) {
+      float d = MAX_DIST;
+      
+      d = min(d, sdEmeraldCut(p, 0.8));
+      d = min(d, sdEmeraldCut(p - vec3(-1.8, 0.0, 0.0), 0.45));
+      d = min(d, sdEmeraldCut(p - vec3(1.8, 0.0, 0.0), 0.45));
+      d = min(d, sdEmeraldCut(p - vec3(-1.1, 0.0, -1.1), 0.35));
+      d = min(d, sdEmeraldCut(p - vec3(1.1, 0.0, -1.1), 0.35));
+      d = min(d, sdEmeraldCut(p - vec3(-1.1, 0.0, 1.1), 0.35));
+      d = min(d, sdEmeraldCut(p - vec3(1.1, 0.0, 1.1), 0.35));
+      d = min(d, sdEmeraldCut(p - vec3(0.0, 0.0, -1.8), 0.4));
+      d = min(d, sdEmeraldCut(p - vec3(0.0, 0.0, 1.8), 0.4));
+      
+      return d;
+    }
+    
+    vec3 getNormal(vec3 p) {
+      vec2 e = vec2(0.001, 0.0);
+      return normalize(vec3(
+        sceneSDF(p + e.xyy) - sceneSDF(p - e.xyy),
+        sceneSDF(p + e.yxy) - sceneSDF(p - e.yxy),
+        sceneSDF(p + e.yyx) - sceneSDF(p - e.yyx)
+      ));
+    }
+    
+    float rayMarch(vec3 ro, vec3 rd) {
+      float t = 0.0;
+      for (int i = 0; i < MAX_STEPS; i++) {
+        vec3 p = ro + rd * t;
+        float d = sceneSDF(p);
+        if (d < SURF_DIST) return t;
+        if (t > MAX_DIST) break;
+        t += d;
       }
+      return -1.0;
+    }
+    
+    void main() {
+      vec2 uv = vUV;
+      vec2 p = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
+      
+      vec3 ro = vec3(0.0, 3.5, 4.0);
+      vec3 lookAt = vec3(0.0, 0.0, 0.0);
+      
+      vec3 forward = normalize(lookAt - ro);
+      vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), forward));
+      vec3 up = cross(forward, right);
+      vec3 rd = normalize(forward + p.x * right + p.y * up);
+      
+      vec3 bgColor = texture2D(uTexture, uv).rgb * 0.3;
+      vec3 color = bgColor;
+      
+      float t = rayMarch(ro, rd);
+      
+      if (t > 0.0) {
+        vec3 pos = ro + rd * t;
+        vec3 normal = getNormal(pos);
+        
+        vec3 lightPos1 = vec3(3.0, 5.0, 4.0);
+        vec3 lightPos2 = vec3(-3.0, 4.0, 2.0);
+        vec3 lightPos3 = vec3(0.0, 3.0, -3.0);
+        
+        vec3 lightDir1 = normalize(lightPos1 - pos);
+        vec3 lightDir2 = normalize(lightPos2 - pos);
+        vec3 lightDir3 = normalize(lightPos3 - pos);
+        vec3 viewDir = normalize(ro - pos);
+        
+        vec3 emeraldColor = vec3(0.15, 0.75, 0.35);
+        vec3 emeraldDeep = vec3(0.05, 0.45, 0.2);
+        
+        float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
+        
+        float diff1 = max(dot(normal, lightDir1), 0.0);
+        float diff2 = max(dot(normal, lightDir2), 0.0);
+        float diff3 = max(dot(normal, lightDir3), 0.0);
+        float diffuse = diff1 * 0.5 + diff2 * 0.3 + diff3 * 0.2;
+        
+        vec3 halfDir1 = normalize(lightDir1 + viewDir);
+        vec3 halfDir2 = normalize(lightDir2 + viewDir);
+        vec3 halfDir3 = normalize(lightDir3 + viewDir);
+        float spec1 = pow(max(dot(normal, halfDir1), 0.0), 80.0);
+        float spec2 = pow(max(dot(normal, halfDir2), 0.0), 60.0);
+        float spec3 = pow(max(dot(normal, halfDir3), 0.0), 40.0);
+        float specular = spec1 * 1.0 + spec2 * 0.7 + spec3 * 0.5;
+        
+        float depth = 0.3 + 0.7 * (1.0 - abs(dot(normal, viewDir)));
+        vec3 gemColor = mix(emeraldColor, emeraldDeep, depth);
+        
+        float sparkle = pow(max(dot(reflect(-lightDir1, normal), viewDir), 0.0), 120.0);
+        sparkle += pow(max(dot(reflect(-lightDir2, normal), viewDir), 0.0), 100.0) * 0.5;
+        
+        vec3 reflectDir = reflect(-viewDir, normal);
+        vec2 reflectUV = uv + reflectDir.xz * 0.1;
+        vec3 envReflect = texture2D(uTexture, clamp(reflectUV, 0.0, 1.0)).rgb;
+        
+        float ambient = 0.3;
+        color = gemColor * (ambient + diffuse * 0.7);
+        color += vec3(1.0) * specular * 0.8;
+        color += vec3(1.0, 1.0, 0.95) * sparkle * 1.5;
+        color = mix(color, envReflect * emeraldColor + vec3(0.2), fresnel * 0.4);
+        color += emeraldColor * 0.1;
+        
+        color = pow(color, vec3(0.9));
+      }
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnR(ctx: FnContext): Image {
