@@ -7735,23 +7735,18 @@ character-defs.ts
 Change second arg to control gloss/lighting intensity
 </tool.toolu_01CRDgf9QyHomVC2pwpFS59o>
 
-## original-content
+## diff
 
 <tool.toolu_01CRDgf9QyHomVC2pwpFS59o>
-  const seed = ctx.images.length * 137.5 + warpN * 17.3;
-  const depth = 2 + Math.floor(warpN / 3);
-  const warpStrength = 0.1 + warpN * 0.08;
-  const patternScale = 0.5 + iridN * 0.2;
-</tool.toolu_01CRDgf9QyHomVC2pwpFS59o>
+   const seed = ctx.images.length * 137.5 + warpN * 17.3;
+   const depth = 2 + Math.floor(warpN / 3);
+   const warpStrength = 0.1 + warpN * 0.08;
+-  const patternScale = 0.5 + iridN * 0.2;
+\ No newline at end of file
++  const patternScale = 1.5;
++  const glossStrength = iridN * 0.08;
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01CRDgf9QyHomVC2pwpFS59o>
-  const seed = ctx.images.length * 137.5 + warpN * 17.3;
-  const depth = 2 + Math.floor(warpN / 3);
-  const warpStrength = 0.1 + warpN * 0.08;
-  const patternScale = 1.5;
-  const glossStrength = iridN * 0.08;
 </tool.toolu_01CRDgf9QyHomVC2pwpFS59o>
 
 # TOOL RESULT
@@ -7759,5 +7754,42 @@ Change second arg to control gloss/lighting intensity
 ID: toolu_01CRDgf9QyHomVC2pwpFS59o
 
 <tool.toolu_01CRDgf9QyHomVC2pwpFS59o>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Change second arg to control gloss/lighting intensity
 </tool.toolu_01CRDgf9QyHomVC2pwpFS59o>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01NLnix3rWMKmJnEBkKx7VWo
+
+## path
+
+<tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
+character-defs.ts
+</tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
+
+## git-commit-message
+
+<tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
+Add gloss strength uniform to shader
+</tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
+
+## diff
+
+<tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
+     uniform int uDepth;
+     uniform float uWarpStrength;
+     uniform float uPatternScale;
++    uniform float uGlossStrength;
+     varying vec2 vUV;
+\ No newline at end of file
+
+</tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
+
+# TOOL RESULT
+
+ID: toolu_01NLnix3rWMKmJnEBkKx7VWo
+
+<tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
+
+</tool.toolu_01NLnix3rWMKmJnEBkKx7VWo>
