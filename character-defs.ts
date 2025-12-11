@@ -3894,10 +3894,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#DC143C',
     number: 8,
     fn: fnH,
-    arity: 2,
-    argTypes: ['int', 'int'],
-    functionName: "hopf",
-    documentation: "Hopf fibration: interlocking circles textured with old_image over prev background, j=old image, rot=rotation"
+    arity: 0,
+    argTypes: [],
+    functionName: "hourglass",
+    documentation: "Hourglass gradient: NAND blend inside hourglass shape, XOR/add/diff blend outside, creates colors from gradients"
   },
   
   'I': {
