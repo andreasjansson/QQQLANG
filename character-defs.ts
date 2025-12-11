@@ -1846,7 +1846,7 @@ function fnR(ctx: FnContext): Image {
         if (hit.z > -roomDepth && hit.z < ro.z && abs(hit.x) < roomSize) {
           tMin = t;
           hitNormal = vec3(0.0, 1.0, 0.0);
-          texCoord = vec2(hit.x / roomSize * 0.5 + 0.5, (hit.z + roomDepth) / (ro.z + roomDepth));
+          texCoord = vec2(hit.x / roomSize * 0.5 + 0.5, 1.0 - (hit.z + roomDepth) / (ro.z + roomDepth));
         }
       }
       
@@ -1857,7 +1857,7 @@ function fnR(ctx: FnContext): Image {
         if (hit.z > -roomDepth && hit.z < ro.z && abs(hit.x) < roomSize) {
           tMin = t;
           hitNormal = vec3(0.0, -1.0, 0.0);
-          texCoord = vec2(hit.x / roomSize * 0.5 + 0.5, 1.0 - (hit.z + roomDepth) / (ro.z + roomDepth));
+          texCoord = vec2(hit.x / roomSize * 0.5 + 0.5, (hit.z + roomDepth) / (ro.z + roomDepth));
         }
       }
       
