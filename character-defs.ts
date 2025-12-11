@@ -5045,8 +5045,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnUnderscore,
     arity: 1,
     argTypes: ['int'],
-    functionName: "blur-multiply",
-    documentation: "Multiplies prev with heavily blurred old image j; creates shadowy color mixing effect"
+    functionName: "blur-softlight",
+    documentation: "Soft light blend: prev's structure and shading applied over heavily blurred old image j"
   },
   
   '`': {
