@@ -4744,11 +4744,11 @@ export const characterDefs: Record<string, CharDef> = {
   '@': {
     color: '#7B68EE',
     number: 59,
-    fn: fnA,
-    arity: 0,
-    argTypes: [],
-    functionName: "sphere-overlay-alt",
-    documentation: "Same as A: prev rendered on two 3D spheres with lighting in top-right and bottom-left quadrants"
+    fn: fnHoles,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "holes",
+    documentation: "Circle-packed holes revealing old image j; circles pseudo-randomly sized and positioned based on image count"
   },
   
   '[': {
