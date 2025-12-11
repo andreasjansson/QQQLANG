@@ -5493,8 +5493,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnBacktick,
     arity: 1,
     argTypes: ['int'],
-    functionName: "glitch",
-    documentation: "Glitch effect: horizontal strips shifted right with RGB separation of n pixels"
+    functionName: "gradient-smear",
+    documentation: "Iteratively smears pixels along image gradients; edges create directional streaks, n controls iterations and strength"
   },
   
   '{': {
