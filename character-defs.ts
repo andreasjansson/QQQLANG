@@ -2327,25 +2327,251 @@ function fnT(ctx: FnContext, n: number): Image {
 
 function fnU(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const w = ctx.width;
+  const h = ctx.height;
   
-  const amplitude = n * 5;
-  const frequency = Math.max(1, n);
+  const k = Math.max(15, n * 5);
+  const edgeThreshold = 25 + n * 2;
   
-  for (let y = 0; y < ctx.height; y++) {
-    let rowLuminance = 0;
-    for (let x = 0; x < ctx.width; x++) {
+  const gray = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
       const [r, g, b] = getPixel(prev, x, y);
-      rowLuminance += r * 0.299 + g * 0.587 + b * 0.114;
+      gray[y * w + x] = r * 0.299 + g * 0.587 + b * 0.114;
     }
-    rowLuminance /= ctx.width;
-    const phase = (rowLuminance / 255) * Math.PI * 2;
+  }
+  
+  const edges = new Uint8Array(w * h);
+  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+  
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      let gx = 0, gy = 0;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const g = gray[(y + ky) * w + (x + kx)];
+          const kidx = (ky + 1) * 3 + (kx + 1);
+          gx += g * sobelX[kidx];
+          gy += g * sobelY[kidx];
+        }
+      }
+      const mag = Math.sqrt(gx * gx + gy * gy);
+      edges[y * w + x] = mag > edgeThreshold ? 1 : 0;
+    }
+  }
+  
+  const smoothed = new Uint8Array(w * h);
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      let count = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          count += edges[(y + dy) * w + (x + dx)];
+        }
+      }
+      smoothed[y * w + x] = count >= 3 ? 1 : 0;
+    }
+  }
+  
+  const labels = new Int32Array(w * h);
+  labels.fill(-1);
+  let currentLabel = 0;
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      if (smoothed[idx] === 1 || labels[idx] !== -1) continue;
+      
+      const queue: number[] = [idx];
+      labels[idx] = currentLabel;
+      let head = 0;
+      
+      while (head < queue.length) {
+        const cidx = queue[head++];
+        const cx = cidx % w;
+        const cy = Math.floor(cidx / w);
+        
+        const neighbors = [
+          cy > 0 ? cidx - w : -1,
+          cy < h - 1 ? cidx + w : -1,
+          cx > 0 ? cidx - 1 : -1,
+          cx < w - 1 ? cidx + 1 : -1
+        ];
+        
+        for (const nidx of neighbors) {
+          if (nidx === -1) continue;
+          if (smoothed[nidx] === 1 || labels[nidx] !== -1) continue;
+          labels[nidx] = currentLabel;
+          queue.push(nidx);
+        }
+      }
+      currentLabel++;
+    }
+  }
+  
+  interface RegionData {
+    minLum: number;
+    maxLum: number;
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    minColor: [number, number, number];
+    maxColor: [number, number, number];
+    pixels: number[];
+  }
+  
+  const regions = new Map<number, RegionData>();
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      const label = labels[idx];
+      if (label === -1) continue;
+      
+      const [r, g, b] = getPixel(prev, x, y);
+      const lum = gray[idx];
+      
+      if (!regions.has(label)) {
+        regions.set(label, {
+          minLum: lum, maxLum: lum,
+          minX: x, minY: y, maxX: x, maxY: y,
+          minColor: [r, g, b], maxColor: [r, g, b],
+          pixels: []
+        });
+      }
+      
+      const data = regions.get(label)!;
+      data.pixels.push(idx);
+      
+      if (lum < data.minLum) {
+        data.minLum = lum;
+        data.minX = x;
+        data.minY = y;
+        data.minColor = [r, g, b];
+      }
+      if (lum > data.maxLum) {
+        data.maxLum = lum;
+        data.maxX = x;
+        data.maxY = y;
+        data.maxColor = [r, g, b];
+      }
+    }
+  }
+  
+  const out = createSolidImage(w, h, '#000000');
+  
+  for (const [, data] of regions) {
+    let dx = data.maxX - data.minX;
+    let dy = data.maxY - data.minY;
+    let dist = Math.sqrt(dx * dx + dy * dy);
     
-    for (let x = 0; x < ctx.width; x++) {
-      const wave = Math.sin((y / ctx.height) * Math.PI * 2 * frequency + phase) * amplitude;
-      const sx = ((x + wave) % ctx.width + ctx.width) % ctx.width;
-      const [r, g, b] = getPixel(prev, Math.floor(sx), y);
-      setPixel(out, x, y, r, g, b);
+    const isSolid = data.maxLum - data.minLum < 10;
+    
+    if (isSolid || dist < 10) {
+      dx = 0;
+      dy = 1;
+      dist = h;
+    } else {
+      dx /= dist;
+      dy /= dist;
+    }
+    
+    const minColor: [number, number, number] = [
+      Math.max(0, data.minColor[0] - k),
+      Math.max(0, data.minColor[1] - k),
+      Math.max(0, data.minColor[2] - k)
+    ];
+    const maxColor: [number, number, number] = [
+      Math.min(255, data.maxColor[0] + k),
+      Math.min(255, data.maxColor[1] + k),
+      Math.min(255, data.maxColor[2] + k)
+    ];
+    
+    for (const idx of data.pixels) {
+      const px = idx % w;
+      const py = Math.floor(idx / w);
+      
+      let t: number;
+      if (isSolid || dist < 10) {
+        t = py / h;
+      } else {
+        const relX = px - data.minX;
+        const relY = py - data.minY;
+        t = (relX * dx + relY * dy) / dist;
+        t = Math.max(0, Math.min(1, t));
+      }
+      
+      const r = Math.round(minColor[0] + t * (maxColor[0] - minColor[0]));
+      const g = Math.round(minColor[1] + t * (maxColor[1] - minColor[1]));
+      const b = Math.round(minColor[2] + t * (maxColor[2] - minColor[2]));
+      
+      setPixel(out, px, py, r, g, b);
+    }
+  }
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      if (smoothed[idx] === 1) {
+        let sr = 0, sg = 0, sb = 0, count = 0;
+        for (let dy = -2; dy <= 2; dy++) {
+          for (let dx = -2; dx <= 2; dx++) {
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+              const nidx = ny * w + nx;
+              if (smoothed[nidx] === 0) {
+                const [r, g, b] = getPixel(out, nx, ny);
+                sr += r; sg += g; sb += b; count++;
+              }
+            }
+          }
+        }
+        if (count > 0) {
+          setPixel(out, x, y, Math.round(sr / count), Math.round(sg / count), Math.round(sb / count));
+        }
+      }
+    }
+  }
+  
+  const glowRadius = 8;
+  const blurred = createSolidImage(w, h, '#000000');
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let sr = 0, sg = 0, sb = 0, weight = 0;
+      for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
+        for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
+          const nx = x + dx, ny = y + dy;
+          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+            const d = Math.sqrt(dx * dx + dy * dy);
+            const w_val = Math.exp(-d * d / (2 * glowRadius * glowRadius / 2));
+            const [r, g, b] = getPixel(out, nx, ny);
+            sr += r * w_val;
+            sg += g * w_val;
+            sb += b * w_val;
+            weight += w_val;
+          }
+        }
+      }
+      if (weight > 0) {
+        setPixel(blurred, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
+      }
+    }
+  }
+  
+  const glowIntensity = 0.4;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const [r1, g1, b1] = getPixel(out, x, y);
+      const [r2, g2, b2] = getPixel(blurred, x, y);
+      
+      const nr = Math.min(255, r1 + Math.round(r2 * glowIntensity));
+      const ng = Math.min(255, g1 + Math.round(g2 * glowIntensity));
+      const nb = Math.min(255, b1 + Math.round(b2 * glowIntensity));
+      
+      setPixel(out, x, y, nr, ng, nb);
     }
   }
   
