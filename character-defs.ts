@@ -3656,24 +3656,14 @@ function fnOpenBracket(ctx: FnContext): Image {
   return out;
 }
 
-function fnTornLeft(ctx: FnContext, j: number): Image {
+function fnFlipHorizontal(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const boundary = ctx.width / 3;
-  
   for (let y = 0; y < ctx.height; y++) {
-    const tear = boundary + Math.sin(y * 0.3) * 20 + Math.sin(y * 0.7) * 10;
-    
     for (let x = 0; x < ctx.width; x++) {
-      if (x < tear) {
-        const [r, g, b] = getPixel(old, x, y);
-        setPixel(out, x, y, r, g, b);
-      } else {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
-      }
+      const [r, g, b] = getPixel(prev, ctx.width - 1 - x, y);
+      setPixel(out, x, y, r, g, b);
     }
   }
   
