@@ -3873,7 +3873,7 @@ export const characterDefs: Record<string, CharDef> = {
   'D': {
     color: '#FF1493',
     number: 4,
-    fn: fn5,
+    fn: fnD,
     arity: 0,
     argTypes: [],
     functionName: "drip",
