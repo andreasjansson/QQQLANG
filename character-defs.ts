@@ -5317,11 +5317,11 @@ export const characterDefs: Record<string, CharDef> = {
   '?': {
     color: '#D2691E',
     number: 58,
-    fn: fnHash,
+    fn: fnHelp,
     arity: 1,
     argTypes: ['int'],
-    functionName: "hue-sort-tiles",
-    documentation: "Divides image into tiles and sorts them left-to-right, top-to-bottom by average hue, grid size = n+2 (min 2)"
+    functionName: "help",
+    documentation: "Displays help text; ?? or ?A shows intro, ?B/?C/etc show character reference pages, invalid pages show index"
   },
   
   '@': {
