@@ -2330,32 +2330,9 @@ function fnU(ctx: FnContext, n: number): Image {
   const w = ctx.width;
   const h = ctx.height;
   
-  const k = Math.max(30, n * 10);
+  const shiftAmount = 40 + n * 12;
   
-  let minR = 255, maxR = 0;
-  let minG = 255, maxG = 0;
-  let minB = 255, maxB = 0;
-  
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      minR = Math.min(minR, r);
-      maxR = Math.max(maxR, r);
-      minG = Math.min(minG, g);
-      maxG = Math.max(maxG, g);
-      minB = Math.min(minB, b);
-      maxB = Math.max(maxB, b);
-    }
-  }
-  
-  minR = Math.max(0, minR - k);
-  maxR = Math.min(255, maxR + k);
-  minG = Math.max(0, minG - k);
-  maxG = Math.min(255, maxG + k);
-  minB = Math.max(0, minB - k);
-  maxB = Math.min(255, maxB + k);
-  
-  const baseAngle = n * 0.3;
+  const baseAngle = n * 0.4;
   const angleR = baseAngle;
   const angleG = baseAngle + Math.PI * 2 / 3;
   const angleB = baseAngle + Math.PI * 4 / 3;
@@ -2375,72 +2352,20 @@ function fnU(ctx: FnContext, n: number): Image {
   
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
+      const [origR, origG, origB] = getPixel(prev, x, y);
+      
       const rx = x - cx;
       const ry = y - cy;
       
-      const tR = (rx * dirRX + ry * dirRY) / maxDist * 0.5 + 0.5;
-      const tG = (rx * dirGX + ry * dirGY) / maxDist * 0.5 + 0.5;
-      const tB = (rx * dirBX + ry * dirBY) / maxDist * 0.5 + 0.5;
+      const shiftR = (rx * dirRX + ry * dirRY) / maxDist;
+      const shiftG = (rx * dirGX + ry * dirGY) / maxDist;
+      const shiftB = (rx * dirBX + ry * dirBY) / maxDist;
       
-      const r = Math.round(minR + tR * (maxR - minR));
-      const g = Math.round(minG + tG * (maxG - minG));
-      const b = Math.round(minB + tB * (maxB - minB));
+      const r = Math.max(0, Math.min(255, Math.round(origR + shiftR * shiftAmount)));
+      const g = Math.max(0, Math.min(255, Math.round(origG + shiftG * shiftAmount)));
+      const b = Math.max(0, Math.min(255, Math.round(origB + shiftB * shiftAmount)));
       
       setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  const glowRadius = 8;
-  const blurredH = createSolidImage(w, h, '#000000');
-  
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      let sr = 0, sg = 0, sb = 0, weight = 0;
-      for (let dx = -glowRadius; dx <= glowRadius; dx++) {
-        const nx = x + dx;
-        if (nx >= 0 && nx < w) {
-          const wt = Math.exp(-(dx * dx) / (2 * (glowRadius / 2) ** 2));
-          const [r, g, b] = getPixel(out, nx, y);
-          sr += r * wt;
-          sg += g * wt;
-          sb += b * wt;
-          weight += wt;
-        }
-      }
-      setPixel(blurredH, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
-    }
-  }
-  
-  const blurred = createSolidImage(w, h, '#000000');
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      let sr = 0, sg = 0, sb = 0, weight = 0;
-      for (let dy = -glowRadius; dy <= glowRadius; dy++) {
-        const ny = y + dy;
-        if (ny >= 0 && ny < h) {
-          const wt = Math.exp(-(dy * dy) / (2 * (glowRadius / 2) ** 2));
-          const [r, g, b] = getPixel(blurredH, x, ny);
-          sr += r * wt;
-          sg += g * wt;
-          sb += b * wt;
-          weight += wt;
-        }
-      }
-      setPixel(blurred, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
-    }
-  }
-  
-  const glowIntensity = 0.35;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const [r1, g1, b1] = getPixel(out, x, y);
-      const [r2, g2, b2] = getPixel(blurred, x, y);
-      
-      const nr = Math.min(255, r1 + Math.round(r2 * glowIntensity));
-      const ng = Math.min(255, g1 + Math.round(g2 * glowIntensity));
-      const nb = Math.min(255, b1 + Math.round(b2 * glowIntensity));
-      
-      setPixel(out, x, y, nr, ng, nb);
     }
   }
   
