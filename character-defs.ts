@@ -4093,8 +4093,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fn7,
     arity: 0,
     argTypes: [],
-    functionName: "rgb-split",
-    documentation: "Chromatic aberration: R shifted left 3px, G centered, B shifted right 3px"
+    functionName: "chromatic",
+    documentation: "Chromatic aberration: R shifted left 4px, G centered, B shifted right 4px"
   },
   
   '8': {
