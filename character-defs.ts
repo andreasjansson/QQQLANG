@@ -4285,8 +4285,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnO,
     arity: 1,
     argTypes: ['int'],
-    functionName: "fisheye-morph",
-    documentation: "Fisheye distortion that brightens center and darkens edges with strength n"
+    functionName: "oscillate",
+    documentation: "Frequency-based displacement with chromatic scatter - edges explode with RGB separation, smooth areas wave gently"
   },
   
   'P': {
