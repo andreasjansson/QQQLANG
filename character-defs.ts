@@ -1417,14 +1417,21 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
-  // Sparkle point material - bright white emissive
-  const sparkleMaterial = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(1, 1, 1),
+  // Specular-only material for sparkle overlay (additive blending)
+  const sparkleMaterial = new THREE.MeshPhongMaterial({
+    color: new THREE.Color(0, 0, 0),
+    specular: new THREE.Color(1, 1, 1),
+    shininess: 500,
+    transparent: true,
+    opacity: 1.0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.FrontSide,
+    flatShading: true,
   });
   
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
-    const sparklePositions: THREE.Vector3[] = [];
     
     gem.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -1432,25 +1439,7 @@ function fnE(ctx: FnContext): Image {
         geom.computeVertexNormals();
         child.geometry = geom;
         child.material = emeraldMaterial;
-        
-        // Get vertex positions for sparkles
-        const positions = geom.attributes.position;
-        const normals = geom.attributes.normal;
-        
-        for (let i = 0; i < positions.count; i += 3) {
-          const nx = normals.getX(i);
-          const ny = normals.getY(i);
-          const nz = normals.getZ(i);
-          
-          // Only add sparkles on facets facing the camera (positive Z normal)
-          if (nz > 0.3 || ny > 0.5) {
-            sparklePositions.push(new THREE.Vector3(
-              positions.getX(i),
-              positions.getY(i),
-              positions.getZ(i)
-            ));
-          }
-        }
+        child.renderOrder = 1;
       }
     });
     
@@ -1458,25 +1447,20 @@ function fnE(ctx: FnContext): Image {
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
     
-    // Add sparkles at some vertex positions
-    const sparkleSize = 0.015 * scale;
-    const maxSparkles = Math.min(sparklePositions.length, 15);
-    
-    for (let i = 0; i < maxSparkles; i++) {
-      const idx = Math.floor((i * 17) % sparklePositions.length);
-      const pos = sparklePositions[idx];
-      
-      const sparkleGeo = new THREE.SphereGeometry(sparkleSize, 4, 4);
-      const sparkle = new THREE.Mesh(sparkleGeo, sparkleMaterial);
-      
-      sparkle.position.set(
-        x + pos.x * scale * 3.0,
-        y + pos.y * scale * 3.0,
-        pos.z * scale * 3.0 + 0.01
-      );
-      
-      emeraldScene!.add(sparkle);
-    }
+    // Add sparkle overlay with same geometry
+    const sparkleGem = emeraldModel!.clone();
+    sparkleGem.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const geom = child.geometry.clone();
+        geom.computeVertexNormals();
+        child.geometry = geom;
+        child.material = sparkleMaterial;
+        child.renderOrder = 2;
+      }
+    });
+    sparkleGem.scale.setScalar(scale * 3.0);
+    sparkleGem.position.set(x, y, 0);
+    emeraldScene!.add(sparkleGem);
   };
   
   addEmerald(0, 0, 1.0);
