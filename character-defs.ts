@@ -1374,24 +1374,9 @@ function fnE(ctx: FnContext): Image {
   specLight3.position.set(0, 6, 4);
   emeraldScene!.add(specLight3);
   
-  const emeraldMaterial = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(0.05, 0.55, 0.25),
-    emissive: new THREE.Color(0.01, 0.08, 0.03),
-    specular: new THREE.Color(0.8, 1.0, 0.8),
-    shininess: 100,
-    transparent: true,
-    opacity: 0.88,
-    side: THREE.DoubleSide,
-    reflectivity: 1.0,
-  });
-  
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
-    gem.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.material = emeraldMaterial;
-      }
-    });
+    // Don't replace material - use original from GLB
     gem.scale.setScalar(scale * 3.0);
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
