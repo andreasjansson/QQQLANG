@@ -3921,16 +3921,15 @@ function fnUnderscore(ctx: FnContext, j: number): Image {
   const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const blurRadius = 15;
+  const blurRadius = 20;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       const [pr, pg, pb] = getPixel(prev, x, y);
-      const luminance = (pr * 0.299 + pg * 0.587 + pb * 0.114) / 255;
       
       let br = 0, bg = 0, bb = 0, count = 0;
-      for (let dy = -blurRadius; dy <= blurRadius; dy += 2) {
-        for (let dx = -blurRadius; dx <= blurRadius; dx += 2) {
+      for (let dy = -blurRadius; dy <= blurRadius; dy += 3) {
+        for (let dx = -blurRadius; dx <= blurRadius; dx += 3) {
           const [or, og, ob] = getPixel(old, x + dx, y + dy);
           br += or;
           bg += og;
@@ -3942,10 +3941,9 @@ function fnUnderscore(ctx: FnContext, j: number): Image {
       bg /= count;
       bb /= count;
       
-      const blendFactor = 1 - luminance;
-      const nr = Math.round(pr * luminance + br * blendFactor);
-      const ng = Math.round(pg * luminance + bg * blendFactor);
-      const nb = Math.round(pb * luminance + bb * blendFactor);
+      const nr = Math.round((pr * br) / 255);
+      const ng = Math.round((pg * bg) / 255);
+      const nb = Math.round((pb * bb) / 255);
       
       setPixel(out, x, y, nr, ng, nb);
     }
