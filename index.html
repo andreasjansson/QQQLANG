@@ -543,7 +543,8 @@
             if (char === UPLOAD_CHAR) {
               const isInvalid = invalidUploads.has(uploadIdx);
               const invalidClass = isInvalid ? ' upload-invalid' : '';
-              html += `<span class="upload-char${invalidClass}" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
+              const displayChar = isInvalid ? '▢' : char;
+              html += `<span class="upload-char${invalidClass}" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
               uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
               uploadIdx++;
             } else {
