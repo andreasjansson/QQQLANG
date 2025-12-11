@@ -11352,5 +11352,81 @@ Make sparkles more subtle
 ID: toolu_01Y7hZf4YvybVoo3u7vtLv5A
 
 <tool.toolu_01Y7hZf4YvybVoo3u7vtLv5A>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make sparkles more subtle
 </tool.toolu_01Y7hZf4YvybVoo3u7vtLv5A>
+
+# ASSISTANT
+
+Also make the texture itself softer:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01KvmCZV7G3V15vEcZZGudig
+
+## path
+
+<tool.toolu_01KvmCZV7G3V15vEcZZGudig>
+character-defs.ts
+</tool.toolu_01KvmCZV7G3V15vEcZZGudig>
+
+## git-commit-message
+
+<tool.toolu_01KvmCZV7G3V15vEcZZGudig>
+Soften sparkle texture
+</tool.toolu_01KvmCZV7G3V15vEcZZGudig>
+
+## diff
+
+<tool.toolu_01KvmCZV7G3V15vEcZZGudig>
+-  // Soft glow with visible center
++  // Soft subtle glow
+   const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
+-  gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+-  gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.5)');
+-  gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.15)');
+-  gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.05)');
++  gradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
++  gradient.addColorStop(0.15, 'rgba(255, 255, 255, 0.3)');
++  gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.08)');
+   gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+   sctx.fillStyle = gradient;
+   sctx.fillRect(0, 0, 64, 64);
+   
+-  // Thin cross rays
++  // Very subtle cross rays
+   sctx.globalCompositeOperation = 'lighter';
+   const rayGradient = sctx.createLinearGradient(0, cy, 64, cy);
+   rayGradient.addColorStop(0, 'rgba(255,255,255,0)');
+-  rayGradient.addColorStop(0.3, 'rgba(255,255,255,0.15)');
+-  rayGradient.addColorStop(0.5, 'rgba(255,255,255,0.4)');
+-  rayGradient.addColorStop(0.7, 'rgba(255,255,255,0.15)');
++  rayGradient.addColorStop(0.35, 'rgba(255,255,255,0.08)');
++  rayGradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
++  rayGradient.addColorStop(0.65, 'rgba(255,255,255,0.08)');
+   rayGradient.addColorStop(1, 'rgba(255,255,255,0)');
+   sctx.fillStyle = rayGradient;
+   sctx.fillRect(0, cy-1, 64, 2);
+   
+   const rayGradientV = sctx.createLinearGradient(cx, 0, cx, 64);
+   rayGradientV.addColorStop(0, 'rgba(255,255,255,0)');
+-  rayGradientV.addColorStop(0.3, 'rgba(255,255,255,0.15)');
+-  rayGradientV.addColorStop(0.5, 'rgba(255,255,255,0.4)');
+-  rayGradientV.addColorStop(0.7, 'rgba(255,255,255,0.15)');
++  rayGradientV.addColorStop(0.35, 'rgba(255,255,255,0.08)');
++  rayGradientV.addColorStop(0.5, 'rgba(255,255,255,0.2)');
++  rayGradientV.addColorStop(0.65, 'rgba(255,255,255,0.08)');
+   rayGradientV.addColorStop(1, 'rgba(255,255,255,0)');
+   sctx.fillStyle = rayGradientV;
+   sctx.fillRect(cx-1, 0, 2, 64);
+\ No newline at end of file
+
+</tool.toolu_01KvmCZV7G3V15vEcZZGudig>
+
+# TOOL RESULT
+
+ID: toolu_01KvmCZV7G3V15vEcZZGudig
+
+<tool.toolu_01KvmCZV7G3V15vEcZZGudig>
+
+</tool.toolu_01KvmCZV7G3V15vEcZZGudig>
