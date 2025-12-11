@@ -2057,27 +2057,21 @@ function fnQ(ctx: FnContext): Image {
   return out;
 }
 
-function fn0(ctx: FnContext, n: number): Image {
+function fn0(ctx: FnContext, j: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
-  const opacity = Math.max(0.1, Math.min((n * 10) / 100, 1));
+  const old = getOldImage(ctx, j);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const gradient = 1 - (dist / maxR);
-      const gradientValue = gradient * 255;
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
       
-      const idx = (y * ctx.width + x) * 4;
-      out.data[idx] = Math.min(255, Math.round(out.data[idx] * (1 - opacity) + (out.data[idx] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
-      out.data[idx + 1] = Math.min(255, Math.round(out.data[idx + 1] * (1 - opacity) + (out.data[idx + 1] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
-      out.data[idx + 2] = Math.min(255, Math.round(out.data[idx + 2] * (1 - opacity) + (out.data[idx + 2] * gradientValue / 255) * opacity + gradientValue * opacity * 0.5));
+      const nr = pr < 128 ? (2 * pr * or) / 255 : 255 - (2 * (255 - pr) * (255 - or)) / 255;
+      const ng = pg < 128 ? (2 * pg * og) / 255 : 255 - (2 * (255 - pg) * (255 - og)) / 255;
+      const nb = pb < 128 ? (2 * pb * ob) / 255 : 255 - (2 * (255 - pb) * (255 - ob)) / 255;
+      
+      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
     }
   }
   
