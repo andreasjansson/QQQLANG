@@ -1417,21 +1417,46 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
-  // Specular-only material for sparkle overlay (additive blending)
-  const sparkleMaterial = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(0, 0, 0),
-    specular: new THREE.Color(1, 1, 1),
-    shininess: 500,
+  // Create a sparkle texture (star/cross pattern)
+  const sparkleCanvas = document.createElement('canvas');
+  sparkleCanvas.width = 64;
+  sparkleCanvas.height = 64;
+  const sctx = sparkleCanvas.getContext('2d')!;
+  
+  // Draw star sparkle pattern
+  const cx = 32, cy = 32;
+  const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
+  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.8)');
+  gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.2)');
+  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  
+  sctx.fillStyle = gradient;
+  sctx.fillRect(0, 0, 64, 64);
+  
+  // Add cross/star rays
+  sctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+  sctx.lineWidth = 2;
+  sctx.beginPath();
+  sctx.moveTo(cx, 0); sctx.lineTo(cx, 64);
+  sctx.moveTo(0, cy); sctx.lineTo(64, cy);
+  sctx.moveTo(8, 8); sctx.lineTo(56, 56);
+  sctx.moveTo(56, 8); sctx.lineTo(8, 56);
+  sctx.stroke();
+  
+  const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
+  
+  const sparkleSpriteMaterial = new THREE.SpriteMaterial({
+    map: sparkleTexture,
+    color: 0xffffff,
     transparent: true,
-    opacity: 1.0,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
-    side: THREE.FrontSide,
-    flatShading: true,
   });
   
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
+    const sparkleVertices: THREE.Vector3[] = [];
     
     gem.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -1439,7 +1464,23 @@ function fnE(ctx: FnContext): Image {
         geom.computeVertexNormals();
         child.geometry = geom;
         child.material = emeraldMaterial;
-        child.renderOrder = 1;
+        
+        // Collect vertices for sparkle placement
+        const positions = geom.attributes.position;
+        const normals = geom.attributes.normal;
+        
+        for (let i = 0; i < positions.count; i++) {
+          const nz = normals.getZ(i);
+          const ny = normals.getY(i);
+          // Only vertices facing camera-ish direction
+          if (nz > 0.2 || ny > 0.3) {
+            sparkleVertices.push(new THREE.Vector3(
+              positions.getX(i),
+              positions.getY(i),
+              positions.getZ(i)
+            ));
+          }
+        }
       }
     });
     
@@ -1447,20 +1488,25 @@ function fnE(ctx: FnContext): Image {
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
     
-    // Add sparkle overlay with same geometry
-    const sparkleGem = emeraldModel!.clone();
-    sparkleGem.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const geom = child.geometry.clone();
-        geom.computeVertexNormals();
-        child.geometry = geom;
-        child.material = sparkleMaterial;
-        child.renderOrder = 2;
-      }
-    });
-    sparkleGem.scale.setScalar(scale * 3.0);
-    sparkleGem.position.set(x, y, 0);
-    emeraldScene!.add(sparkleGem);
+    // Add sparkle sprites at selected vertices
+    const numSparkles = Math.min(Math.floor(6 + scale * 8), sparkleVertices.length);
+    const step = Math.max(1, Math.floor(sparkleVertices.length / numSparkles));
+    
+    for (let i = 0; i < numSparkles; i++) {
+      const idx = (i * step) % sparkleVertices.length;
+      const v = sparkleVertices[idx];
+      
+      const sprite = new THREE.Sprite(sparkleSpriteMaterial.clone());
+      const spriteScale = 0.08 + (((i * 7) % 5) / 5) * 0.06;
+      sprite.scale.set(spriteScale * scale * 3, spriteScale * scale * 3, 1);
+      sprite.position.set(
+        x + v.x * scale * 3.0,
+        y + v.y * scale * 3.0,
+        v.z * scale * 3.0 + 0.02
+      );
+      sprite.renderOrder = 10;
+      emeraldScene!.add(sprite);
+    }
   };
   
   addEmerald(0, 0, 1.0);
