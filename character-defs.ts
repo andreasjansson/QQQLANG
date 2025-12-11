@@ -3159,24 +3159,26 @@ function fnCaret(ctx: FnContext): Image {
 
 function fnExclaim(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const intensity = Math.max(1, n) * 0.12;
+  const intensity = Math.max(1, n) * 0.15;
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
-  const maxDist = Math.min(cx, cy) * 0.85;
+  const maxDist = Math.min(cx, cy) * 0.9;
   
-  const sampleStep = 2;
+  const sampleStep = 3;
+  
+  const accum = new Float32Array(ctx.width * ctx.height * 3);
+  const counts = new Float32Array(ctx.width * ctx.height);
   
   for (let y = 0; y < ctx.height; y += sampleStep) {
     for (let x = 0; x < ctx.width; x += sampleStep) {
       const [r, g, b] = getPixel(prev, x, y);
       const [h, s, l] = rgbToHsl(r, g, b);
       
-      if (l < 0.03 && s < 0.03) continue;
+      if (l < 0.02 && s < 0.02) continue;
       
       const angle = (h / 360) * Math.PI * 2;
-      const dist = maxDist * s * (0.2 + l * 0.8) * intensity;
+      const dist = maxDist * s * (0.3 + l * 0.7) * intensity;
       
       const targetX = cx + Math.cos(angle) * dist;
       const targetY = cy + Math.sin(angle) * dist;
@@ -3184,7 +3186,7 @@ function fnExclaim(ctx: FnContext, n: number): Image {
       const dx = targetX - x;
       const dy = targetY - y;
       const len = Math.sqrt(dx * dx + dy * dy);
-      const steps = Math.max(1, Math.floor(len));
+      const steps = Math.max(1, Math.floor(len / 2));
       
       for (let i = 0; i <= steps; i++) {
         const t = i / steps;
@@ -3192,14 +3194,25 @@ function fnExclaim(ctx: FnContext, n: number): Image {
         const py = Math.floor(y + dy * t);
         
         if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
-          const fade = 0.08 + 0.92 * t * t;
-          const idx = (py * ctx.width + px) * 4;
+          const weight = 0.1 + 0.9 * t * t;
+          const idx = py * ctx.width + px;
           
-          out.data[idx] = Math.min(255, out.data[idx] + Math.floor(r * fade * 0.6));
-          out.data[idx + 1] = Math.min(255, out.data[idx + 1] + Math.floor(g * fade * 0.6));
-          out.data[idx + 2] = Math.min(255, out.data[idx + 2] + Math.floor(b * fade * 0.6));
+          accum[idx * 3] += r * weight;
+          accum[idx * 3 + 1] += g * weight;
+          accum[idx * 3 + 2] += b * weight;
+          counts[idx] += weight;
         }
       }
+    }
+  }
+  
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  for (let i = 0; i < ctx.width * ctx.height; i++) {
+    if (counts[i] > 0) {
+      out.data[i * 4] = Math.min(255, Math.floor(accum[i * 3] / counts[i]));
+      out.data[i * 4 + 1] = Math.min(255, Math.floor(accum[i * 3 + 1] / counts[i]));
+      out.data[i * 4 + 2] = Math.min(255, Math.floor(accum[i * 3 + 2] / counts[i]));
     }
   }
   
