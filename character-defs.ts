@@ -4272,21 +4272,7 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       warpedUV = clamp(warpedUV, 0.0, 1.0);
       
       // Sample texture at warped position
-      vec3 texColor = texture2D(uTexture, warpedUV).rgb;
-      
-      // Calculate lighting from noise gradient - always computed on original UV for visibility
-      vec2 noiseP = (uv - 0.5) * 2.0 * 3.0;
-      noiseP.x *= aspect;
-      float h = fbm(noiseP, uSeed);
-      float hx = fbm(noiseP + vec2(0.01, 0.0), uSeed);
-      float hy = fbm(noiseP + vec2(0.0, 0.01), uSeed);
-      float gradX = (hx - h) / 0.01;
-      float gradY = (hy - h) / 0.01;
-      
-      float highlight = pow(max(0.0, gradX * 0.5 + gradY * 0.5), 2.0) * uGlossStrength;
-      float shadow = 1.0 - (1.0 - h) * uGlossStrength * 0.3;
-      
-      vec3 color = texColor * shadow + vec3(highlight);
+      vec3 color = texture2D(uTexture, warpedUV).rgb;
       
       gl_FragColor = vec4(color, 1.0);
     }
