@@ -1443,39 +1443,38 @@ function fnE(ctx: FnContext): Image {
     [0.15, 0.176, 0.0],      // right center
   ];
   
-  // Create sparkle sprite texture
+  // Create subtle sparkle sprite texture
   const sparkleCanvas = document.createElement('canvas');
   sparkleCanvas.width = 64;
   sparkleCanvas.height = 64;
   const sctx = sparkleCanvas.getContext('2d')!;
   const cx = 32, cy = 32;
   
-  // Soft radial glow with subtle rays
+  // Very soft, subtle glow
   const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
-  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-  gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.8)');
-  gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.3)');
-  gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.1)');
+  gradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+  gradient.addColorStop(0.15, 'rgba(255, 255, 255, 0.3)');
+  gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.08)');
   gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
   sctx.fillStyle = gradient;
   sctx.fillRect(0, 0, 64, 64);
   
-  // Add thin cross rays
+  // Very subtle thin cross rays
   sctx.globalCompositeOperation = 'lighter';
   const rayGradient = sctx.createLinearGradient(0, cy, 64, cy);
   rayGradient.addColorStop(0, 'rgba(255,255,255,0)');
-  rayGradient.addColorStop(0.4, 'rgba(255,255,255,0.4)');
-  rayGradient.addColorStop(0.5, 'rgba(255,255,255,0.8)');
-  rayGradient.addColorStop(0.6, 'rgba(255,255,255,0.4)');
+  rayGradient.addColorStop(0.35, 'rgba(255,255,255,0.1)');
+  rayGradient.addColorStop(0.5, 'rgba(255,255,255,0.25)');
+  rayGradient.addColorStop(0.65, 'rgba(255,255,255,0.1)');
   rayGradient.addColorStop(1, 'rgba(255,255,255,0)');
   sctx.fillStyle = rayGradient;
   sctx.fillRect(0, cy-1, 64, 2);
   
   const rayGradientV = sctx.createLinearGradient(cx, 0, cx, 64);
   rayGradientV.addColorStop(0, 'rgba(255,255,255,0)');
-  rayGradientV.addColorStop(0.4, 'rgba(255,255,255,0.4)');
-  rayGradientV.addColorStop(0.5, 'rgba(255,255,255,0.8)');
-  rayGradientV.addColorStop(0.6, 'rgba(255,255,255,0.4)');
+  rayGradientV.addColorStop(0.35, 'rgba(255,255,255,0.1)');
+  rayGradientV.addColorStop(0.5, 'rgba(255,255,255,0.25)');
+  rayGradientV.addColorStop(0.65, 'rgba(255,255,255,0.1)');
   rayGradientV.addColorStop(1, 'rgba(255,255,255,0)');
   sctx.fillStyle = rayGradientV;
   sctx.fillRect(cx-1, 0, 2, 64);
@@ -1486,6 +1485,7 @@ function fnE(ctx: FnContext): Image {
     map: sparkleTexture,
     color: 0xffffff,
     transparent: true,
+    opacity: 0.5,
     blending: THREE.AdditiveBlending,
     depthTest: false,
     depthWrite: false,
