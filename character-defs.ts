@@ -367,7 +367,7 @@ function fnD(ctx: FnContext, n: number): Image {
       const hueShift1 = (triIndex1 * 137.5) % 360;
       const hueShift2 = (triIndex2 * 137.5) % 360;
       const lightMod1 = (triIndex1 % 2 === 0) ? 0.15 : -0.15;
-      const lightMod2 = (triIndex2 % 2 === 0) ? 0.15 : -0.15;
+      const lightMod2 = (triIndex2 % 2 === 0) ? 0.15 : -0.05;
       
       for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
