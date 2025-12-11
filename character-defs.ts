@@ -1384,9 +1384,13 @@ function fnE(ctx: FnContext): Image {
       vec2 uv = vUV;
       vec2 p = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
       
-      // Camera looking straight at emeralds
-      vec3 ro = vec3(0.0, 0.0, 4.0);
-      vec3 rd = normalize(vec3(p.x, p.y, -1.5));
+      // Camera looking at emeralds from slightly above
+      vec3 ro = vec3(0.0, 1.5, 4.0);
+      vec3 lookAt = vec3(0.0, 0.0, 0.0);
+      vec3 forward = normalize(lookAt - ro);
+      vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), forward));
+      vec3 up = cross(forward, right);
+      vec3 rd = normalize(forward * 1.8 + p.x * right + p.y * up);
       
       // Background - full brightness
       vec3 bgColor = texture2D(uTexture, uv).rgb;
