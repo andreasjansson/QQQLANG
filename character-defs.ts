@@ -1282,12 +1282,14 @@ function loadEmeraldModel(): Promise<void> {
   }
   
   emeraldModelLoading = true;
+  console.log('Loading emerald model...');
   
   return new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
     loader.load(
-      '/emerald.glb',
+      './emerald.glb',
       (gltf) => {
+        console.log('Emerald model loaded successfully', gltf);
         emeraldModel = gltf.scene;
         
         const emeraldMaterial = new THREE.MeshPhysicalMaterial({
@@ -1312,12 +1314,14 @@ function loadEmeraldModel(): Promise<void> {
         emeraldModel.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.material = emeraldMaterial;
+            console.log('Applied material to mesh:', child.name);
           }
         });
         
         const box = new THREE.Box3().setFromObject(emeraldModel);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
+        console.log('Model bounds:', { center, size });
         const maxDim = Math.max(size.x, size.y, size.z);
         const scale = 2.0 / maxDim;
         
@@ -1326,9 +1330,12 @@ function loadEmeraldModel(): Promise<void> {
         
         emeraldModelLoaded = true;
         emeraldModelLoading = false;
+        console.log('Emerald model ready');
         resolve();
       },
-      undefined,
+      (progress) => {
+        console.log('Loading progress:', progress.loaded, '/', progress.total);
+      },
       (error) => {
         console.error('Error loading emerald model:', error);
         emeraldModelLoading = false;
