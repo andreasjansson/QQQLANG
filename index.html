@@ -253,10 +253,65 @@
     const helpButton = document.getElementById('help-button');
     const downloadButton = document.getElementById('download-button');
 
+    const introOverlay = document.getElementById('intro-overlay');
+    const introVideo = document.getElementById('intro-video');
+    const soundToggle = document.getElementById('sound-toggle');
+
     const isDebugMode = window.location.search.includes('debug');
     if (isDebugMode) {
       debugPane.classList.add('visible');
     }
+    
+    const INTRO_SEEN_KEY = 'qqqlang-intro-seen';
+    const INTRO_DURATION_MS = 4000;
+    const FADE_DURATION_MS = 1000;
+    
+    function shouldShowIntro() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('p')) return false;
+      if (localStorage.getItem(INTRO_SEEN_KEY)) return false;
+      return true;
+    }
+    
+    function showIntro() {
+      introOverlay.classList.remove('hidden');
+      soundToggle.classList.remove('hidden');
+      
+      introVideo.src = 'intro.mp4';
+      introVideo.muted = true;
+      introVideo.loop = true;
+      introVideo.play().catch(() => {});
+      
+      updateSoundToggle();
+      
+      setTimeout(() => {
+        introOverlay.classList.add('fading');
+        
+        setTimeout(() => {
+          introOverlay.classList.add('hidden');
+          soundToggle.classList.add('hidden');
+          introVideo.pause();
+          introVideo.src = '';
+          
+          localStorage.setItem(INTRO_SEEN_KEY, 'true');
+          
+          const program = '???';
+          input.value = program;
+          updateURL(program);
+          render();
+          input.focus();
+        }, FADE_DURATION_MS);
+      }, INTRO_DURATION_MS);
+    }
+    
+    function updateSoundToggle() {
+      soundToggle.textContent = introVideo.muted ? '🔇' : '🔊';
+    }
+    
+    soundToggle.addEventListener('click', () => {
+      introVideo.muted = !introVideo.muted;
+      updateSoundToggle();
+    });
     
     function visualBell() {
       inputContainer.classList.remove('bell');
