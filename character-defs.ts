@@ -4253,7 +4253,6 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
     
     // Thin-film interference for iridescent colors
     vec3 thinFilmInterference(float thickness) {
-      // Attempt to simulate thin-film interference colors
       float t = thickness * 6.28318;
       return vec3(
         0.5 + 0.5 * cos(t),
@@ -4281,9 +4280,6 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
         p += warpEffect(p, fi, uSeed) * uWarpStrength;
       }
       
-      // Calculate warp intensity for iridescence
-      float warpIntensity = length(p - originalP);
-      
       // Map warped coordinates back to UV space
       vec2 warpedUV = p / uResolutionScale;
       warpedUV.x /= aspect;
@@ -4295,9 +4291,6 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       // Sample texture at warped position
       vec3 texColor = texture2D(uTexture, warpedUV).rgb;
       
-      // Add thin-film iridescence based on warp intensity
-      vec3 iridescence = thinFilmInterference(warpIntensity * 0.5 + fbm(p * 2.0, uSeed) * 0.5);
-      
       // Calculate fake lighting from noise gradient
       float eps = 0.01;
       float h = fbm(p, uSeed);
@@ -4306,9 +4299,17 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
       float highlight = pow(max(0.0, (hx - h) * 0.7 + (hy - h) * 0.7), 2.0) * 0.5;
       float shadow = 0.85 + h * 0.15;
       
-      // Blend texture with iridescence
-      float iridescenceAmount = smoothstep(0.0, 2.0, warpIntensity) * uIridescenceStrength;
-      vec3 color = mix(texColor, iridescence, iridescenceAmount);
+      // Iridescence based on noise field - independent of warp amount
+      float iridField = fbm(originalP * 3.0, uSeed + 50.0);
+      float iridField2 = fbm(originalP * 1.5 + 10.0, uSeed + 150.0);
+      vec3 iridescence = thinFilmInterference(iridField * 2.0 + iridField2);
+      
+      // Boost saturation of iridescence
+      iridescence = pow(iridescence, vec3(0.7));
+      
+      // Blend texture with iridescence using noise-based mask
+      float iridMask = smoothstep(0.3, 0.7, iridField2);
+      vec3 color = mix(texColor, iridescence * (texColor + 0.3), iridMask * uIridescenceStrength);
       
       // Apply lighting
       color = color * shadow + vec3(highlight);
