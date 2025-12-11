@@ -1,4 +1,9 @@
-import { characterDefs, createSolidImage, Image, FnContext, CharDef } from './character-defs.js';
+import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR } from './character-defs.js';
+
+interface UploadedImageRef {
+  type: 'uploaded';
+  index: number;
+}
 
 interface ParsedSolidColor {
   type: 'solid';
@@ -6,14 +11,20 @@ interface ParsedSolidColor {
   color: string;
 }
 
+interface ParsedUploadedImage {
+  type: 'uploaded-image';
+  identifier: string;
+  uploadIndex: number;
+}
+
 interface ParsedFunction {
   type: 'function';
   identifier: string;
   fnDef: CharDef;
-  args: (number | string)[];
+  args: (number | string | UploadedImageRef)[];
 }
 
-type ParsedOp = ParsedSolidColor | ParsedFunction;
+type ParsedOp = ParsedSolidColor | ParsedUploadedImage | ParsedFunction;
 
 class LRUCache<K, V> {
   private cache = new Map<K, V>();
@@ -50,9 +61,37 @@ class LRUCache<K, V> {
   }
 }
 
+export const uploadedImages: Image[] = [];
+
+export function clearUploadedImages(): void {
+  uploadedImages.length = 0;
+}
+
+export function addUploadedImage(img: Image): number {
+  const index = uploadedImages.length;
+  uploadedImages.push(img);
+  return index;
+}
+
+export function setUploadedImage(index: number, img: Image): void {
+  uploadedImages[index] = img;
+}
+
+export function getUploadCount(program: string): number {
+  const chars = [...program];
+  return chars.filter(c => c === UPLOAD_CHAR).length;
+}
+
+function isUploadChar(char: string): boolean {
+  return char === UPLOAD_CHAR;
+}
+
 function parseProgram(program: string): ParsedOp[] {
   console.log(`\n=== PARSING: "${program}" ===`);
-  const chars = program.split('').filter(c => c.charCodeAt(0) > 32 && c.charCodeAt(0) < 127);
+  const chars = [...program].filter(c => {
+    const code = c.codePointAt(0)!;
+    return (code > 32 && code < 127) || c === UPLOAD_CHAR;
+  });
   console.log(`Filtered chars: "${chars.join('')}"`);
   
   if (chars.length === 0) {
@@ -61,21 +100,45 @@ function parseProgram(program: string): ParsedOp[] {
   }
 
   const ops: ParsedOp[] = [];
+  let uploadIndexCounter = 0;
   
   const firstChar = chars[0];
-  const firstDef = characterDefs[firstChar];
-  const firstColor = firstDef ? firstDef.color : '#000000';
   
-  console.log(`[0] First char '${firstChar}' -> solid color ${firstColor}`);
-  ops.push({
-    type: 'solid',
-    identifier: firstChar,
-    color: firstColor
-  });
+  if (isUploadChar(firstChar)) {
+    console.log(`[0] First char is upload -> uploaded image ${uploadIndexCounter}`);
+    ops.push({
+      type: 'uploaded-image',
+      identifier: firstChar,
+      uploadIndex: uploadIndexCounter++
+    });
+  } else {
+    const firstDef = characterDefs[firstChar];
+    const firstColor = firstDef ? firstDef.color : '#000000';
+    
+    console.log(`[0] First char '${firstChar}' -> solid color ${firstColor}`);
+    ops.push({
+      type: 'solid',
+      identifier: firstChar,
+      color: firstColor
+    });
+  }
 
   let i = 1;
   while (i < chars.length) {
     const char = chars[i];
+    
+    if (isUploadChar(char)) {
+      console.log(`[${i}] '${char}' is upload char -> uploaded image ${uploadIndexCounter}`);
+      const prevIdentifier = ops.length > 0 ? ops[ops.length - 1].identifier : '';
+      ops.push({
+        type: 'uploaded-image',
+        identifier: prevIdentifier + char,
+        uploadIndex: uploadIndexCounter++
+      });
+      i++;
+      continue;
+    }
+    
     const def = characterDefs[char];
     
     if (!def) {
@@ -84,7 +147,7 @@ function parseProgram(program: string): ParsedOp[] {
       continue;
     }
 
-    const args: (number | string)[] = [];
+    const args: (number | string | UploadedImageRef)[] = [];
     let argsConsumed = 0;
 
     console.log(`[${i}] '${char}' -> ${def.functionName}, arity ${def.arity}`);
@@ -95,28 +158,43 @@ function parseProgram(program: string): ParsedOp[] {
       
       if (nextCharIdx < chars.length) {
         const argChar = chars[nextCharIdx];
-        const argDef = characterDefs[argChar];
         
-        if (argDef) {
-          if (argType === 'int') {
-            args.push(argDef.number);
-            console.log(`  arg[${argIdx}] (${argType}): '${argChar}' -> ${argDef.number}`);
+        if (isUploadChar(argChar)) {
+          if (argType === 'index') {
+            args.push({ type: 'uploaded', index: uploadIndexCounter++ });
+            console.log(`  arg[${argIdx}] (${argType}): upload char -> uploaded image`);
+          } else if (argType === 'int') {
+            args.push(def.number);
+            console.log(`  arg[${argIdx}] (${argType}): upload char invalid for int, using default ${def.number}`);
           } else {
-            args.push(argDef.color);
-            console.log(`  arg[${argIdx}] (${argType}): '${argChar}' -> ${argDef.color}`);
+            args.push(def.color);
+            console.log(`  arg[${argIdx}] (${argType}): upload char invalid for color, using default ${def.color}`);
           }
           argsConsumed++;
         } else {
-          if (argType === 'int') {
-            args.push(def.number);
-            console.log(`  arg[${argIdx}] (${argType}): '${argChar}' undefined, using default ${def.number}`);
+          const argDef = characterDefs[argChar];
+          
+          if (argDef) {
+            if (argType === 'int' || argType === 'index') {
+              args.push(argDef.number);
+              console.log(`  arg[${argIdx}] (${argType}): '${argChar}' -> ${argDef.number}`);
+            } else {
+              args.push(argDef.color);
+              console.log(`  arg[${argIdx}] (${argType}): '${argChar}' -> ${argDef.color}`);
+            }
+            argsConsumed++;
           } else {
-            args.push(def.color);
-            console.log(`  arg[${argIdx}] (${argType}): '${argChar}' undefined, using default ${def.color}`);
+            if (argType === 'int' || argType === 'index') {
+              args.push(def.number);
+              console.log(`  arg[${argIdx}] (${argType}): '${argChar}' undefined, using default ${def.number}`);
+            } else {
+              args.push(def.color);
+              console.log(`  arg[${argIdx}] (${argType}): '${argChar}' undefined, using default ${def.color}`);
+            }
           }
         }
       } else {
-        if (argType === 'int') {
+        if (argType === 'int' || argType === 'index') {
           args.push(def.number);
           console.log(`  arg[${argIdx}] (${argType}): EOF, using default ${def.number}`);
         } else {
@@ -148,15 +226,19 @@ function parseProgram(program: string): ParsedOp[] {
 const imageCache = new LRUCache<string, Image>(100);
 let lastWidth = 0;
 let lastHeight = 0;
+let lastUploadCount = 0;
 
 export function runProgram(program: string, width: number, height: number): Image[] {
   console.log(`\n=== EXECUTION: ${width}x${height} ===`);
   
-  if (width !== lastWidth || height !== lastHeight) {
-    console.log(`Dimensions changed (${lastWidth}x${lastHeight} -> ${width}x${height}), clearing cache`);
+  const currentUploadCount = uploadedImages.length;
+  
+  if (width !== lastWidth || height !== lastHeight || currentUploadCount !== lastUploadCount) {
+    console.log(`Dimensions or uploads changed, clearing cache`);
     imageCache.clear();
     lastWidth = width;
     lastHeight = height;
+    lastUploadCount = currentUploadCount;
   }
 
   const ops = parseProgram(program);
@@ -190,6 +272,14 @@ export function runProgram(program: string, width: number, height: number): Imag
     if (op.type === 'solid') {
       console.log(`  Creating solid image: ${op.color}`);
       result = createSolidImage(width, height, op.color);
+    } else if (op.type === 'uploaded-image') {
+      console.log(`  Using uploaded image ${op.uploadIndex}`);
+      if (op.uploadIndex < uploadedImages.length) {
+        result = uploadedImages[op.uploadIndex];
+      } else {
+        console.log(`  Upload ${op.uploadIndex} not found, using placeholder`);
+        result = createPlaceholderImage(width, height);
+      }
     } else {
       console.log(`  Executing function: ${op.fnDef.functionName} with args:`, op.args);
       const ctx: FnContext = {
@@ -199,7 +289,23 @@ export function runProgram(program: string, width: number, height: number): Imag
         currentIndex: images.length,
       };
       
-      result = op.fnDef.fn(ctx, ...op.args);
+      const resolvedArgs = op.args.map((arg, idx) => {
+        const argType = op.fnDef.argTypes[idx];
+        if (argType === 'index') {
+          if (typeof arg === 'object' && arg.type === 'uploaded') {
+            if (arg.index < uploadedImages.length) {
+              return uploadedImages[arg.index];
+            } else {
+              return createPlaceholderImage(width, height);
+            }
+          } else if (typeof arg === 'number') {
+            return getOldImage(ctx, arg);
+          }
+        }
+        return arg;
+      });
+      
+      result = op.fnDef.fn(ctx, ...resolvedArgs);
     }
     
     images.push(result);
@@ -220,4 +326,36 @@ export function getFinalImage(program: string, width: number, height: number): I
 
 export function getParsedOperations(program: string): ParsedOp[] {
   return parseProgram(program);
+}
+
+export function getExpectedNextType(program: string): 'function' | 'int' | 'color' | 'index' | 'initial' {
+  if (!program || program.length === 0) {
+    return 'initial';
+  }
+  
+  const ops = parseProgram(program);
+  if (ops.length === 0) {
+    return 'initial';
+  }
+  
+  const lastOp = ops[ops.length - 1];
+  
+  if (lastOp.type === 'solid' || lastOp.type === 'uploaded-image') {
+    return 'function';
+  }
+  
+  if (lastOp.type === 'function') {
+    const def = lastOp.fnDef;
+    const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
+    const currentOpChars = [...lastOp.identifier.substring(prevIdentifier.length)];
+    const argsProvided = currentOpChars.length - 1;
+    
+    if (argsProvided < def.arity) {
+      return def.argTypes[argsProvided] as 'int' | 'color' | 'index';
+    }
+    
+    return 'function';
+  }
+  
+  return 'function';
 }
