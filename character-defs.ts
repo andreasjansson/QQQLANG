@@ -1417,66 +1417,8 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
-  // Create sparkle with heavy blur
-  const sparkleCanvas = document.createElement('canvas');
-  sparkleCanvas.width = 256;
-  sparkleCanvas.height = 256;
-  const sctx = sparkleCanvas.getContext('2d')!;
-  
-  const cx = 128, cy = 128;
-  
-  // Draw thin lines
-  sctx.strokeStyle = 'white';
-  sctx.lineWidth = 1.5;
-  sctx.lineCap = 'round';
-  
-  const rays = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4];
-  rays.forEach(angle => {
-    sctx.beginPath();
-    sctx.moveTo(cx - Math.cos(angle) * 90, cy - Math.sin(angle) * 90);
-    sctx.lineTo(cx + Math.cos(angle) * 90, cy + Math.sin(angle) * 90);
-    sctx.stroke();
-  });
-  
-  // Center dot
-  sctx.fillStyle = 'white';
-  sctx.beginPath();
-  sctx.arc(cx, cy, 4, 0, Math.PI * 2);
-  sctx.fill();
-  
-  // Heavy blur - multiple passes
-  sctx.filter = 'blur(12px)';
-  sctx.drawImage(sparkleCanvas, 0, 0);
-  sctx.filter = 'blur(8px)';
-  sctx.drawImage(sparkleCanvas, 0, 0);
-  sctx.filter = 'blur(5px)';
-  sctx.drawImage(sparkleCanvas, 0, 0);
-  sctx.filter = 'blur(3px)';
-  sctx.drawImage(sparkleCanvas, 0, 0);
-  sctx.filter = 'none';
-  
-  // Tiny bright core
-  sctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  sctx.beginPath();
-  sctx.arc(cx, cy, 2, 0, Math.PI * 2);
-  sctx.fill();
-  
-  const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
-  sparkleTexture.premultiplyAlpha = true;
-  
-  const sparkleSpriteMaterial = new THREE.SpriteMaterial({
-    map: sparkleTexture,
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.6,
-    blending: THREE.AdditiveBlending,
-    depthTest: false,
-    depthWrite: false,
-  });
-  
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
-    const sparkleVertices: THREE.Vector3[] = [];
     
     gem.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -1484,49 +1426,12 @@ function fnE(ctx: FnContext): Image {
         geom.computeVertexNormals();
         child.geometry = geom;
         child.material = emeraldMaterial;
-        
-        // Collect vertices for sparkle placement
-        const positions = geom.attributes.position;
-        const normals = geom.attributes.normal;
-        
-        for (let i = 0; i < positions.count; i++) {
-          const nz = normals.getZ(i);
-          const ny = normals.getY(i);
-          // Only vertices facing camera-ish direction
-          if (nz > 0.2 || ny > 0.3) {
-            sparkleVertices.push(new THREE.Vector3(
-              positions.getX(i),
-              positions.getY(i),
-              positions.getZ(i)
-            ));
-          }
-        }
       }
     });
     
     gem.scale.setScalar(scale * 3.0);
     gem.position.set(x, y, 0);
     emeraldScene!.add(gem);
-    
-    // Add sparkle sprites at selected vertices
-    const numSparkles = Math.min(Math.floor(6 + scale * 8), sparkleVertices.length);
-    const step = Math.max(1, Math.floor(sparkleVertices.length / numSparkles));
-    
-    for (let i = 0; i < numSparkles; i++) {
-      const idx = (i * step) % sparkleVertices.length;
-      const v = sparkleVertices[idx];
-      
-      const sprite = new THREE.Sprite(sparkleSpriteMaterial.clone());
-      const spriteScale = 0.08 + (((i * 7) % 5) / 5) * 0.06;
-      sprite.scale.set(spriteScale * scale * 3, spriteScale * scale * 3, 1);
-      sprite.position.set(
-        x + v.x * scale * 3.0,
-        y + v.y * scale * 3.0,
-        v.z * scale * 3.0 + 0.02
-      );
-      sprite.renderOrder = 10;
-      emeraldScene!.add(sprite);
-    }
   };
   
   addEmerald(0, 0, 1.0);
