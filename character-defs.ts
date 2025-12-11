@@ -5082,8 +5082,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnN,
     arity: 0,
     argTypes: [],
-    functionName: "neon",
-    documentation: "Neon glow effect - edges glow in their original hue, scattered light points add ambiance"
+    functionName: "godrays",
+    documentation: "Volumetric light scattering (god rays) effect - creates rays emanating from a light source at center, sampling bright areas from prev"
   },
   
   'O': {
