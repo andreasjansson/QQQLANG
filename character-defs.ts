@@ -653,9 +653,8 @@ function fnK(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnL(ctx: FnContext, j: number, rot: number): Image {
+function fnL(ctx: FnContext, old: Image, rot: number): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const gl = initWebGL(ctx.width, ctx.height);
   
   const rotation = rot * 0.3;
