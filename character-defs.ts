@@ -1417,22 +1417,42 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
-  // Create a simple soft circular glow
+  // Create sparkle with thin blurred star rays
   const sparkleCanvas = document.createElement('canvas');
-  sparkleCanvas.width = 64;
-  sparkleCanvas.height = 64;
+  sparkleCanvas.width = 128;
+  sparkleCanvas.height = 128;
   const sctx = sparkleCanvas.getContext('2d')!;
   
-  const cx = 32, cy = 32;
-  const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
-  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-  gradient.addColorStop(0.15, 'rgba(255, 255, 255, 0.7)');
-  gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.2)');
-  gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.05)');
-  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  const cx = 64, cy = 64;
   
+  // Draw 4 thin rays with gaussian-like blur (multiple passes, outer to inner)
+  const rays = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4];
+  
+  rays.forEach(angle => {
+    // Draw from widest/faintest to thinnest/brightest
+    for (let w = 12; w >= 0.5; w -= 1.5) {
+      const alpha = Math.pow(1 - w / 12, 2) * 0.4;
+      sctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+      sctx.lineWidth = w;
+      sctx.lineCap = 'round';
+      sctx.beginPath();
+      const len = 55 - w * 2;
+      sctx.moveTo(cx - Math.cos(angle) * len, cy - Math.sin(angle) * len);
+      sctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+      sctx.stroke();
+    }
+  });
+  
+  // Bright center glow
+  const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 15);
+  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.5)');
+  gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.15)');
+  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
   sctx.fillStyle = gradient;
-  sctx.fillRect(0, 0, 64, 64);
+  sctx.beginPath();
+  sctx.arc(cx, cy, 15, 0, Math.PI * 2);
+  sctx.fill();
   
   const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
   
