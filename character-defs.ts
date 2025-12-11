@@ -1421,9 +1421,10 @@ function fnE(ctx: FnContext): Image {
   addEmerald(-1.5, -1.2, 0.35);
   addEmerald(1.5, -1.2, 0.35);
   
-  // Render twice - transmission needs the background rendered first
-  emeraldRenderer!.render(emeraldScene!, emeraldCamera!);
-  emeraldRenderer!.render(emeraldScene!, emeraldCamera!);
+  // Render multiple times - transmission samples from previous frame
+  for (let i = 0; i < 3; i++) {
+    emeraldRenderer!.render(emeraldScene!, emeraldCamera!);
+  }
   
   const glContext = emeraldRenderer!.getContext();
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
