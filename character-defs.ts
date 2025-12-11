@@ -1485,7 +1485,7 @@ function fnE(ctx: FnContext): Image {
     map: sparkleTexture,
     color: 0xffffff,
     transparent: true,
-    opacity: 0.35,
+    opacity: 0.6,
     blending: THREE.AdditiveBlending,
     depthTest: false,
     depthWrite: false,
