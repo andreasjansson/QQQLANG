@@ -628,7 +628,7 @@
       const inputRect = input.getBoundingClientRect();
       const clickX = clientX - inputRect.left;
       
-      const spans = inputBackground.querySelectorAll('.upload-char');
+      const spans = inputBackground.querySelectorAll('.upload-char:not(.upload-invalid)');
       for (const span of spans) {
         const spanRect = span.getBoundingClientRect();
         const bgRect = inputBackground.getBoundingClientRect();
@@ -648,7 +648,7 @@
       const inputRect = input.getBoundingClientRect();
       const clickX = e.clientX - inputRect.left;
       
-      const spans = inputBackground.querySelectorAll('.upload-char');
+      const spans = inputBackground.querySelectorAll('.upload-char:not(.upload-invalid)');
       for (const span of spans) {
         const spanRect = span.getBoundingClientRect();
         const bgRect = inputBackground.getBoundingClientRect();

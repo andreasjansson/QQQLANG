@@ -15440,5 +15440,85 @@ Add CSS for invalid upload chars
 ID: toolu_01GSeq7hPsMnzVt9bTAkxBaB
 
 <tool.toolu_01GSeq7hPsMnzVt9bTAkxBaB>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Add CSS for invalid upload chars
 </tool.toolu_01GSeq7hPsMnzVt9bTAkxBaB>
+
+# ASSISTANT
+
+Now let me also update the click handler to not trigger upload for invalid positions (since clicking them wouldn't help):
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01ANELDNzhCJXmAv84BjU89N
+
+## path
+
+<tool.toolu_01ANELDNzhCJXmAv84BjU89N>
+index.html
+</tool.toolu_01ANELDNzhCJXmAv84BjU89N>
+
+## git-commit-message
+
+<tool.toolu_01ANELDNzhCJXmAv84BjU89N>
+Skip click handling for invalid upload chars
+</tool.toolu_01ANELDNzhCJXmAv84BjU89N>
+
+## diff
+
+<tool.toolu_01ANELDNzhCJXmAv84BjU89N>
+     function isOverUploadChar(clientX) {
+       if (uploadCharPositions.length === 0) return false;
+       
+       const inputRect = input.getBoundingClientRect();
+       const clickX = clientX - inputRect.left;
+       
+-      const spans = inputBackground.querySelectorAll('.upload-char');
++      const spans = inputBackground.querySelectorAll('.upload-char:not(.upload-invalid)');
+       for (const span of spans) {
+         const spanRect = span.getBoundingClientRect();
+         const bgRect = inputBackground.getBoundingClientRect();
+         const spanLeft = spanRect.left - bgRect.left;
+         const spanRight = spanLeft + spanRect.width;
+         
+         if (clickX >= spanLeft && clickX <= spanRight) {
+           return true;
+         }
+       }
+       return false;
+     }
+     
+     function handleInputClick(e) {
+       if (uploadCharPositions.length === 0) return;
+       
+       const inputRect = input.getBoundingClientRect();
+       const clickX = e.clientX - inputRect.left;
+       
+-      const spans = inputBackground.querySelectorAll('.upload-char');
++      const spans = inputBackground.querySelectorAll('.upload-char:not(.upload-invalid)');
+       for (const span of spans) {
+         const spanRect = span.getBoundingClientRect();
+         const bgRect = inputBackground.getBoundingClientRect();
+         const spanLeft = spanRect.left - bgRect.left;
+         const spanRight = spanLeft + spanRect.width;
+         
+         if (clickX >= spanLeft && clickX <= spanRight) {
+           const idx = parseInt(span.dataset.uploadIndex, 10);
+           pendingUploadIndex = idx;
+           fileInput.click();
+           e.preventDefault();
+           return;
+         }
+       }
+     }
+\ No newline at end of file
+
+</tool.toolu_01ANELDNzhCJXmAv84BjU89N>
+
+# TOOL RESULT
+
+ID: toolu_01ANELDNzhCJXmAv84BjU89N
+
+<tool.toolu_01ANELDNzhCJXmAv84BjU89N>
+
+</tool.toolu_01ANELDNzhCJXmAv84BjU89N>
