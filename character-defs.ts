@@ -351,6 +351,7 @@ function fnD(ctx: FnContext, n: number): Image {
   
   const divisions = Math.max(2, Math.min(n + 2, 10));
   const totalTriangles = divisions * divisions * 2;
+  const edgeThickness = 2;
   
   for (let row = 0; row < divisions; row++) {
     for (let col = 0; col < divisions; col++) {
@@ -358,6 +359,8 @@ function fnD(ctx: FnContext, n: number): Image {
       const y0 = Math.floor((row / divisions) * ctx.height);
       const x1 = Math.floor(((col + 1) / divisions) * ctx.width);
       const y1 = Math.floor(((row + 1) / divisions) * ctx.height);
+      const cellW = x1 - x0;
+      const cellH = y1 - y0;
       
       const triIndex = (row * divisions + col) * 2;
       const hueShift1 = (triIndex / totalTriangles) * 360;
@@ -365,16 +368,31 @@ function fnD(ctx: FnContext, n: number): Image {
       
       for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
-          const localX = (x - x0) / (x1 - x0);
-          const localY = (y - y0) / (y1 - y0);
+          const localX = (x - x0) / cellW;
+          const localY = (y - y0) / cellH;
+          
+          const distToDiag = Math.abs(localX + localY - 1) * Math.min(cellW, cellH) / Math.sqrt(2);
+          const distToLeft = x - x0;
+          const distToRight = x1 - 1 - x;
+          const distToTop = y - y0;
+          const distToBottom = y1 - 1 - y;
+          
+          const isEdge = distToDiag < edgeThickness || 
+                         distToLeft < edgeThickness || 
+                         distToTop < edgeThickness;
           
           const [r, g, b] = getPixel(prev, x, y);
-          const [h, s, l] = rgbToHsl(r, g, b);
-          const isUpperTriangle = localX + localY < 1;
-          const hueShift = isUpperTriangle ? hueShift1 : hueShift2;
           
-          const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
-          setPixel(out, x, y, nr, ng, nb);
+          if (isEdge) {
+            setPixel(out, x, y, 255 - r, 255 - g, 255 - b);
+          } else {
+            const [h, s, l] = rgbToHsl(r, g, b);
+            const isUpperTriangle = localX + localY < 1;
+            const hueShift = isUpperTriangle ? hueShift1 : hueShift2;
+            
+            const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, s, l);
+            setPixel(out, x, y, nr, ng, nb);
+          }
         }
       }
     }
