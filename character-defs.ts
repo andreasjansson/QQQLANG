@@ -1399,12 +1399,16 @@ function fnE(ctx: FnContext): Image {
     gem.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         // Clone the geometry to avoid modifying the original
-        child.geometry = child.geometry.clone();
-        // Compute normals for proper lighting
-        child.geometry.computeVertexNormals();
+        const geom = child.geometry.clone();
+        geom.computeVertexNormals();
+        child.geometry = geom;
         child.material = emeraldMaterial;
-        // Ensure the mesh updates
-        child.material.needsUpdate = true;
+        child.renderOrder = 1;
+        
+        // Add a back-face mesh for glass depth illusion
+        const backMesh = new THREE.Mesh(geom, emeraldBackMaterial);
+        backMesh.renderOrder = 0;
+        child.add(backMesh);
       }
     });
     gem.scale.setScalar(scale * 3.0);
