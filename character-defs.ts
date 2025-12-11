@@ -3735,20 +3735,6 @@ function fnOpenBracket(ctx: FnContext): Image {
   return out;
 }
 
-function fnFlipHorizontal(ctx: FnContext): Image {
-  const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, ctx.width - 1 - x, y);
-      setPixel(out, x, y, r, g, b);
-    }
-  }
-  
-  return out;
-}
-
 function fnBackslash(ctx: FnContext, c: string): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
