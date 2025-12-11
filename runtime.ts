@@ -86,7 +86,12 @@ function isUploadChar(char: string): boolean {
   return char === UPLOAD_CHAR;
 }
 
-function parseProgram(program: string): ParsedOp[] {
+interface ParseResult {
+  ops: ParsedOp[];
+  invalidUploadIndices: Set<number>;
+}
+
+function parseProgram(program: string): ParseResult {
   console.log(`\n=== PARSING: "${program}" ===`);
   const chars = [...program].filter(c => {
     const code = c.codePointAt(0)!;
@@ -96,10 +101,11 @@ function parseProgram(program: string): ParsedOp[] {
   
   if (chars.length === 0) {
     console.log('Empty program, returning []');
-    return [];
+    return { ops: [], invalidUploadIndices: new Set() };
   }
 
   const ops: ParsedOp[] = [];
+  const invalidUploadIndices = new Set<number>();
   let uploadIndexCounter = 0;
   
   const firstChar = chars[0];
@@ -128,13 +134,8 @@ function parseProgram(program: string): ParsedOp[] {
     const char = chars[i];
     
     if (isUploadChar(char)) {
-      console.log(`[${i}] '${char}' is upload char -> uploaded image ${uploadIndexCounter}`);
-      const prevIdentifier = ops.length > 0 ? ops[ops.length - 1].identifier : '';
-      ops.push({
-        type: 'uploaded-image',
-        identifier: prevIdentifier + char,
-        uploadIndex: uploadIndexCounter++
-      });
+      console.log(`[${i}] '${char}' is upload char in function position -> INVALID, skipping`);
+      invalidUploadIndices.add(uploadIndexCounter++);
       i++;
       continue;
     }
@@ -154,22 +155,23 @@ function parseProgram(program: string): ParsedOp[] {
 
     for (let argIdx = 0; argIdx < def.arity; argIdx++) {
       const argType = def.argTypes[argIdx];
-      const nextCharIdx = i + 1 + argIdx;
+      let nextCharIdx = i + 1 + argsConsumed;
+      
+      // Skip any upload chars in non-index positions
+      while (nextCharIdx < chars.length && isUploadChar(chars[nextCharIdx]) && argType !== 'index') {
+        console.log(`  arg[${argIdx}] (${argType}): upload char invalid here -> SKIPPING`);
+        invalidUploadIndices.add(uploadIndexCounter++);
+        argsConsumed++;
+        nextCharIdx = i + 1 + argsConsumed;
+      }
       
       if (nextCharIdx < chars.length) {
         const argChar = chars[nextCharIdx];
         
         if (isUploadChar(argChar)) {
-          if (argType === 'index') {
-            args.push({ type: 'uploaded', index: uploadIndexCounter++ });
-            console.log(`  arg[${argIdx}] (${argType}): upload char -> uploaded image`);
-          } else if (argType === 'int') {
-            args.push(def.number);
-            console.log(`  arg[${argIdx}] (${argType}): upload char invalid for int, using default ${def.number}`);
-          } else {
-            args.push(def.color);
-            console.log(`  arg[${argIdx}] (${argType}): upload char invalid for color, using default ${def.color}`);
-          }
+          // argType must be 'index' here (others were skipped above)
+          args.push({ type: 'uploaded', index: uploadIndexCounter++ });
+          console.log(`  arg[${argIdx}] (${argType}): upload char -> uploaded image`);
           argsConsumed++;
         } else {
           const argDef = characterDefs[argChar];
@@ -219,8 +221,8 @@ function parseProgram(program: string): ParsedOp[] {
     i += 1 + argsConsumed;
   }
 
-  console.log(`Parsed into ${ops.length} operations`);
-  return ops;
+  console.log(`Parsed into ${ops.length} operations, ${invalidUploadIndices.size} invalid uploads`);
+  return { ops, invalidUploadIndices };
 }
 
 const imageCache = new LRUCache<string, Image>(100);
