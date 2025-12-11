@@ -4987,8 +4987,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnU,
     arity: 1,
     argTypes: ['int'],
-    functionName: "underglow",
-    documentation: "Edge detection creates regions; each filled with gradient from darkest to brightest point (extended by n*5), direction follows color flow; additive glow overlay"
+    functionName: "undertone",
+    documentation: "Shifts R/G/B channels independently along three directions 120° apart; n controls rotation and intensity; creates color gradients across the image"
   },
   
   'V': {
