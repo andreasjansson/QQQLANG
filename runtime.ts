@@ -365,3 +365,8 @@ export function getExpectedNextType(program: string): 'function' | 'int' | 'colo
   
   return 'function';
 }
+
+export function getExpectedTypeAtPosition(program: string, cursorPosition: number): 'function' | 'int' | 'color' | 'index' | 'initial' {
+  const beforeCursor = program.substring(0, cursorPosition);
+  return getExpectedNextType(beforeCursor);
+}
