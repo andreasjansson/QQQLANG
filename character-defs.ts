@@ -4092,10 +4092,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#F1948A',
     number: 33,
     fn: fn6,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "hexagonal-pixelate",
-    documentation: "Hexagonal pixelation with cell radius n*5, filled with region's average color, edges 1px darker"
+    arity: 0,
+    argTypes: [],
+    functionName: "posterize",
+    documentation: "Posterizes prev to 4 levels per channel"
   },
   
   '7': {
