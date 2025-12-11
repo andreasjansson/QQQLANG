@@ -61,85 +61,97 @@ class LRUCache<K, V> {
   }
 }
 
-interface UploadedImageData {
+interface UploadedImageSource {
   blob: Blob;
-  cachedImage: Image | null;
-  cachedWidth: number;
-  cachedHeight: number;
 }
 
-const uploadedImageData: UploadedImageData[] = [];
+const uploadedSources: UploadedImageSource[] = [];
+const uploadedImagesCache: Image[] = [];
+let uploadedCacheWidth = 0;
+let uploadedCacheHeight = 0;
 
 export function clearUploadedImages(): void {
-  uploadedImageData.length = 0;
+  uploadedSources.length = 0;
+  uploadedImagesCache.length = 0;
+  uploadedCacheWidth = 0;
+  uploadedCacheHeight = 0;
 }
 
 export function addUploadedBlob(blob: Blob): number {
-  const index = uploadedImageData.length;
-  uploadedImageData.push({ blob, cachedImage: null, cachedWidth: 0, cachedHeight: 0 });
+  const index = uploadedSources.length;
+  uploadedSources.push({ blob });
   return index;
 }
 
 export function setUploadedBlob(index: number, blob: Blob): void {
-  if (index < uploadedImageData.length) {
-    uploadedImageData[index] = { blob, cachedImage: null, cachedWidth: 0, cachedHeight: 0 };
+  if (index < uploadedSources.length) {
+    uploadedSources[index] = { blob };
+    uploadedImagesCache[index] = null as any;
   }
 }
 
 export function getUploadedImageCount(): number {
-  return uploadedImageData.length;
+  return uploadedSources.length;
 }
 
-function loadBlobToImageSync(blob: Blob, width: number, height: number, callback: (img: Image) => void): void {
-  const img = new window.Image();
-  img.onload = () => {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = width;
-    tempCanvas.height = height;
-    const tempCtx = tempCanvas.getContext('2d')!;
-    tempCtx.drawImage(img, 0, 0, width, height);
-    const imageData = tempCtx.getImageData(0, 0, width, height);
-    URL.revokeObjectURL(img.src);
-    callback({
-      width,
-      height,
-      data: new Uint8ClampedArray(imageData.data)
-    });
-  };
-  img.onerror = () => {
-    URL.revokeObjectURL(img.src);
-    callback(createPlaceholderImage(width, height));
-  };
-  img.src = URL.createObjectURL(blob);
+function loadBlobToImage(blob: Blob, width: number, height: number): Promise<Image> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = width;
+      tempCanvas.height = height;
+      const tempCtx = tempCanvas.getContext('2d')!;
+      tempCtx.drawImage(img, 0, 0, width, height);
+      const imageData = tempCtx.getImageData(0, 0, width, height);
+      URL.revokeObjectURL(img.src);
+      resolve({
+        width,
+        height,
+        data: new Uint8ClampedArray(imageData.data)
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      resolve(createPlaceholderImage(width, height));
+    };
+    img.src = URL.createObjectURL(blob);
+  });
 }
 
 export async function preloadUploadedImages(width: number, height: number): Promise<void> {
-  const promises = uploadedImageData.map((data, index) => {
-    return new Promise<void>((resolve) => {
-      if (data.cachedImage && data.cachedWidth === width && data.cachedHeight === height) {
-        resolve();
-        return;
+  if (uploadedCacheWidth === width && uploadedCacheHeight === height) {
+    let allCached = true;
+    for (let i = 0; i < uploadedSources.length; i++) {
+      if (!uploadedImagesCache[i]) {
+        allCached = false;
+        break;
       }
-      loadBlobToImageSync(data.blob, width, height, (img) => {
-        data.cachedImage = img;
-        data.cachedWidth = width;
-        data.cachedHeight = height;
-        resolve();
-      });
-    });
+    }
+    if (allCached) return;
+  }
+  
+  if (uploadedCacheWidth !== width || uploadedCacheHeight !== height) {
+    uploadedImagesCache.length = 0;
+    uploadedCacheWidth = width;
+    uploadedCacheHeight = height;
+  }
+  
+  const promises = uploadedSources.map(async (source, index) => {
+    if (!uploadedImagesCache[index]) {
+      uploadedImagesCache[index] = await loadBlobToImage(source.blob, width, height);
+    }
   });
   await Promise.all(promises);
 }
 
 export function getUploadedImage(index: number, width: number, height: number): Image {
-  if (index >= uploadedImageData.length) {
+  if (index >= uploadedSources.length) {
     return createPlaceholderImage(width, height);
   }
   
-  const data = uploadedImageData[index];
-  
-  if (data.cachedImage && data.cachedWidth === width && data.cachedHeight === height) {
-    return data.cachedImage;
+  if (uploadedImagesCache[index] && uploadedCacheWidth === width && uploadedCacheHeight === height) {
+    return uploadedImagesCache[index];
   }
   
   return createPlaceholderImage(width, height);
