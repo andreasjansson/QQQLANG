@@ -4538,7 +4538,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 2,
     argTypes: ['int', 'int'],
     functionName: "oil-slick",
-    documentation: "Procedural oil slick with domain warping; first arg controls warp intensity, second controls iridescence"
+    documentation: "Domain warping effect; first arg controls warp intensity, second controls pattern scale"
   },
   
   'P': {
