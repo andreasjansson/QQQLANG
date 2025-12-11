@@ -6820,32 +6820,23 @@ character-defs.ts
 Make oil-slick take two arguments: warp intensity and iridescence
 </tool.toolu_01UeVSdiw1pxENNxR34BMkUo>
 
-## original-content
+## diff
 
 <tool.toolu_01UeVSdiw1pxENNxR34BMkUo>
-  'O': {
-    color: '#FF6347',
-    number: 15,
-    fn: fnOilSlick,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "oil-slick",
-    documentation: "Procedural oil slick with thin-film interference iridescence, domain-warped for organic swirling patterns; n controls scale"
-  },
-</tool.toolu_01UeVSdiw1pxENNxR34BMkUo>
+   'O': {
+     color: '#FF6347',
+     number: 15,
+     fn: fnOilSlick,
+-    arity: 1,
+-    argTypes: ['int'],
++    arity: 2,
++    argTypes: ['int', 'int'],
+     functionName: "oil-slick",
+-    documentation: "Procedural oil slick with thin-film interference iridescence, domain-warped for organic swirling patterns; n controls scale"
++    documentation: "Procedural oil slick with domain warping; first arg controls warp intensity, second controls iridescence"
+   },
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01UeVSdiw1pxENNxR34BMkUo>
-  'O': {
-    color: '#FF6347',
-    number: 15,
-    fn: fnOilSlick,
-    arity: 2,
-    argTypes: ['int', 'int'],
-    functionName: "oil-slick",
-    documentation: "Procedural oil slick with domain warping; first arg controls warp intensity, second controls iridescence"
-  },
 </tool.toolu_01UeVSdiw1pxENNxR34BMkUo>
 
 # TOOL RESULT
@@ -6853,5 +6844,53 @@ Make oil-slick take two arguments: warp intensity and iridescence
 ID: toolu_01UeVSdiw1pxENNxR34BMkUo
 
 <tool.toolu_01UeVSdiw1pxENNxR34BMkUo>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Make oil-slick take two arguments: warp intensity and iridescence
 </tool.toolu_01UeVSdiw1pxENNxR34BMkUo>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_018XmxxPMwEY9vEQ9VSXTENQ
+
+## path
+
+<tool.toolu_018XmxxPMwEY9vEQ9VSXTENQ>
+character-defs.ts
+</tool.toolu_018XmxxPMwEY9vEQ9VSXTENQ>
+
+## git-commit-message
+
+<tool.toolu_018XmxxPMwEY9vEQ9VSXTENQ>
+Update fnOilSlick to accept two arguments
+</tool.toolu_018XmxxPMwEY9vEQ9VSXTENQ>
+
+## diff
+
+<tool.toolu_018XmxxPMwEY9vEQ9VSXTENQ>
+-function fnOilSlick(ctx: FnContext, n: number): Image {
++function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
+-  const seed = ctx.images.length * 137.5 + n * 17.3;
+-  const depth = 2 + Math.floor(n / 3);
+-  const resolution = 0.5 + n * 0.15;
+-  const warpStrength = 0.1 + n * 0.08;
+-  const iridescenceStrength = 0.05 + n * 0.03;
+\ No newline at end of file
++  const seed = ctx.images.length * 137.5 + warpN * 17.3;
++  const depth = 2 + Math.floor(warpN / 3);
++  const resolution = 0.5 + warpN * 0.15;
++  const warpStrength = 0.1 + warpN * 0.08;
++  const iridescenceStrength = 0.05 + iridN * 0.03;
+\ No newline at end of file
+
+</tool.toolu_018XmxxPMwEY9vEQ9VSXTENQ>
+
+# TOOL RESULT
+
+ID: toolu_018XmxxPMwEY9vEQ9VSXTENQ
+
+<tool.toolu_018XmxxPMwEY9vEQ9VSXTENQ>
+
+</tool.toolu_018XmxxPMwEY9vEQ9VSXTENQ>
