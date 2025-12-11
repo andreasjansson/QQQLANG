@@ -4222,33 +4222,19 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
     return value / maxValue;
   };
   
-  const scale = 0.004 + n * 0.001;
-  const warpScale = scale * 0.4;
-  const warpStrength = 60 + n * 20;
+  const scale = 0.006 + n * 0.002;
+  const smudgeStrength = 40 + n * 15;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const warp1x = fbm(x * warpScale, y * warpScale, 4);
-      const warp1y = fbm(x * warpScale + 50, y * warpScale + 50, 4);
+      const dx = (fbm(x * scale, y * scale, 5) - 0.5) * smudgeStrength;
+      const dy = (fbm(x * scale + 100, y * scale + 100, 5) - 0.5) * smudgeStrength;
       
-      const wx1 = x + (warp1x - 0.5) * warpStrength;
-      const wy1 = y + (warp1y - 0.5) * warpStrength;
+      const sx = x + dx;
+      const sy = y + dy;
       
-      const warp2x = fbm(wx1 * warpScale * 0.6, wy1 * warpScale * 0.6, 3);
-      const warp2y = fbm(wx1 * warpScale * 0.6 + 100, wy1 * warpScale * 0.6 + 100, 3);
-      
-      const wx2 = wx1 + (warp2x - 0.5) * warpStrength * 0.4;
-      const wy2 = wy1 + (warp2y - 0.5) * warpStrength * 0.4;
-      
-      const thickness = fbm(wx2 * scale, wy2 * scale, 5);
-      
-      const hueShift = thickness * 360 * 2;
-      
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const [h, s, l] = rgbToHsl(pr, pg, pb);
-      const [nr, ng, nb] = hslToRgb((h + hueShift) % 360, Math.min(1, s + 0.2), l);
-      
-      setPixel(out, x, y, nr, ng, nb);
+      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      setPixel(out, x, y, r, g, b);
     }
   }
   
