@@ -5038,8 +5038,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnUnderscore,
     arity: 1,
     argTypes: ['int'],
-    functionName: "bottom-reflect",
-    documentation: "Bottom n*5% of image is reflected and overlaid with 50% opacity, with horizontal wave distortion"
+    functionName: "shadow-blend",
+    documentation: "Superimposes heavily blurred old image j behind the dark areas of prev; light areas show prev, dark areas reveal blurred old"
   },
   
   '`': {
