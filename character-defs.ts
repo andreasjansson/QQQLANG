@@ -1423,40 +1423,47 @@ function fnE(ctx: FnContext): Image {
     attenuationDistance: 0.5,
   });
   
-  if (emeraldModel) {
-    console.log('Adding emerald models to scene');
-    
-    const addEmerald = (x: number, y: number, scale: number) => {
-      const gem = emeraldModel!.clone();
-      gem.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.material = emeraldMaterial;
-        }
-      });
-      gem.scale.setScalar(scale);
-      gem.position.set(x, y, 0);
-      emeraldScene!.add(gem);
-    };
-    
-    addEmerald(0, 0, 1.0);
-    addEmerald(-2.0, 0, 0.6);
-    addEmerald(2.0, 0, 0.6);
-    addEmerald(-1.2, 0.8, 0.4);
-    addEmerald(1.2, 0.8, 0.4);
-    addEmerald(-1.2, -0.8, 0.4);
-    addEmerald(1.2, -0.8, 0.4);
-  } else {
-    console.log('No emerald model, adding test geometry');
-    const testGeo = new THREE.OctahedronGeometry(0.8, 0);
-    const testMesh = new THREE.Mesh(testGeo, emeraldMaterial);
-    emeraldScene!.add(testMesh);
-  }
+  console.log('Adding emerald models to scene');
+  
+  const addEmerald = (x: number, y: number, scale: number) => {
+    const gem = emeraldModel!.clone();
+    gem.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.material = emeraldMaterial;
+      }
+    });
+    gem.scale.setScalar(scale);
+    gem.position.set(x, y, 0);
+    emeraldScene!.add(gem);
+    console.log('Added emerald at', x, y, 'scale', scale);
+  };
+  
+  addEmerald(0, 0, 1.0);
+  addEmerald(-2.0, 0, 0.6);
+  addEmerald(2.0, 0, 0.6);
+  addEmerald(-1.2, 0.8, 0.4);
+  addEmerald(1.2, 0.8, 0.4);
+  addEmerald(-1.2, -0.8, 0.4);
+  addEmerald(1.2, -0.8, 0.4);
+  
+  console.log('Scene children count:', emeraldScene!.children.length);
+  console.log('Camera position:', emeraldCamera!.position);
+  console.log('Renderer size:', emeraldRenderer!.getSize(new THREE.Vector2()));
   
   emeraldRenderer!.render(emeraldScene!, emeraldCamera!);
   
   const glContext = emeraldRenderer!.getContext();
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   glContext.readPixels(0, 0, ctx.width, ctx.height, glContext.RGBA, glContext.UNSIGNED_BYTE, pixels);
+  
+  // Debug: check if we got any non-zero pixels
+  let nonZeroCount = 0;
+  for (let i = 0; i < pixels.length; i += 4) {
+    if (pixels[i] > 0 || pixels[i+1] > 0 || pixels[i+2] > 0) {
+      nonZeroCount++;
+    }
+  }
+  console.log('Non-zero pixels:', nonZeroCount, 'out of', ctx.width * ctx.height);
   
   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
