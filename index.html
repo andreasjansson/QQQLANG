@@ -327,6 +327,38 @@
       render();
     }
 
+    function updateFaviconAndTitle(program) {
+      if (program) {
+        document.title = 'QQQLANG - ' + program;
+        
+        const size = Math.min(canvas.width, canvas.height);
+        const x = Math.floor((canvas.width - size) / 2);
+        const y = Math.floor((canvas.height - size) / 2);
+        
+        const faviconCanvas = document.createElement('canvas');
+        faviconCanvas.width = 32;
+        faviconCanvas.height = 32;
+        const faviconCtx = faviconCanvas.getContext('2d');
+        faviconCtx.drawImage(canvas, x, y, size, size, 0, 0, 32, 32);
+        
+        let favicon = document.getElementById('dynamic-favicon');
+        if (!favicon) {
+          favicon = document.createElement('link');
+          favicon.id = 'dynamic-favicon';
+          favicon.rel = 'icon';
+          favicon.type = 'image/png';
+          document.head.appendChild(favicon);
+        }
+        favicon.href = faviconCanvas.toDataURL('image/png');
+      } else {
+        document.title = 'QQQLANG';
+        const favicon = document.getElementById('dynamic-favicon');
+        if (favicon) {
+          favicon.remove();
+        }
+      }
+    }
+
     function render() {
       const program = input.value || '';
       const images = runProgram(program, canvas.width, canvas.height);
@@ -337,6 +369,7 @@
       
       updateDebugPane(program);
       updateInputColors(program);
+      updateFaviconAndTitle(program);
     }
 
     function loadProgramFromURL() {
