@@ -1472,17 +1472,6 @@ function fnE(ctx: FnContext): Image {
     transparent: true,
     side: THREE.DoubleSide,
   });
-  
-
-    specularIntensity: 1.5,
-    specularColor: new THREE.Color(1, 1, 1),
-    reflectivity: 0.6,
-    sheen: 0.5,
-    sheenRoughness: 0.1,
-    sheenColor: new THREE.Color(0.6, 1, 0.7),
-    iridescence: 0.3,
-    iridescenceIOR: 1.3,
-  });
 
   const addEmerald = (x: number, y: number, scale: number) => {
     const gem = emeraldModel!.clone();
