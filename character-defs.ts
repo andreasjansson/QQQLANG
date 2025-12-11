@@ -1354,8 +1354,11 @@ function fnE(ctx: FnContext): Image {
   
   if (!emeraldModelLoaded) {
     loadEmeraldModel();
-    console.log('Model not loaded yet, returning prev image');
-    return cloneImage(prev);
+    throw new Error('Emerald model not loaded yet - please wait and try again');
+  }
+  
+  if (!emeraldModel) {
+    throw new Error('Emerald model is null');
   }
   
   console.log('Rendering emerald scene...');
