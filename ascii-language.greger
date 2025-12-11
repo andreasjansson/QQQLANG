@@ -15776,5 +15776,91 @@ Fix mobile button sizing
 ID: toolu_01SCgNmJRMiiULofdPfpkPmP
 
 <tool.toolu_01SCgNmJRMiiULofdPfpkPmP>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Fix mobile button sizing
 </tool.toolu_01SCgNmJRMiiULofdPfpkPmP>
+
+# ASSISTANT
+
+Let me also make sure the input shows a pointer cursor when hovering over an upload character. I'll need to track mouse position and update cursor style:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XQKrNA49kqTW6giPgn8ueE
+
+## path
+
+<tool.toolu_01XQKrNA49kqTW6giPgn8ueE>
+index.html
+</tool.toolu_01XQKrNA49kqTW6giPgn8ueE>
+
+## git-commit-message
+
+<tool.toolu_01XQKrNA49kqTW6giPgn8ueE>
+Add pointer cursor when hovering over upload chars in input
+</tool.toolu_01XQKrNA49kqTW6giPgn8ueE>
+
+## diff
+
+<tool.toolu_01XQKrNA49kqTW6giPgn8ueE>
++    function isOverUploadChar(clientX) {
++      if (uploadCharPositions.length === 0) return false;
++      
++      const inputRect = input.getBoundingClientRect();
++      const clickX = clientX - inputRect.left;
++      
++      const spans = inputBackground.querySelectorAll('.upload-char');
++      for (const span of spans) {
++        const spanRect = span.getBoundingClientRect();
++        const bgRect = inputBackground.getBoundingClientRect();
++        const spanLeft = spanRect.left - bgRect.left;
++        const spanRight = spanLeft + spanRect.width;
++        
++        if (clickX >= spanLeft && clickX <= spanRight) {
++          return true;
++        }
++      }
++      return false;
++    }
++    
+     function handleInputClick(e) {
+       if (uploadCharPositions.length === 0) return;
+       
+       const inputRect = input.getBoundingClientRect();
+       const clickX = e.clientX - inputRect.left;
+       
+       const spans = inputBackground.querySelectorAll('.upload-char');
+       for (const span of spans) {
+         const spanRect = span.getBoundingClientRect();
+         const bgRect = inputBackground.getBoundingClientRect();
+         const spanLeft = spanRect.left - bgRect.left;
+         const spanRight = spanLeft + spanRect.width;
+         
+         if (clickX >= spanLeft && clickX <= spanRight) {
+           const idx = parseInt(span.dataset.uploadIndex, 10);
+           pendingUploadIndex = idx;
+           fileInput.click();
+           e.preventDefault();
+           return;
+         }
+       }
++    }
++    
++    function handleInputMouseMove(e) {
++      if (isOverUploadChar(e.clientX)) {
++        input.style.cursor = 'pointer';
++      } else {
++        input.style.cursor = '';
++      }
+     }
+\ No newline at end of file
+
+</tool.toolu_01XQKrNA49kqTW6giPgn8ueE>
+
+# TOOL RESULT
+
+ID: toolu_01XQKrNA49kqTW6giPgn8ueE
+
+<tool.toolu_01XQKrNA49kqTW6giPgn8ueE>
+
+</tool.toolu_01XQKrNA49kqTW6giPgn8ueE>
