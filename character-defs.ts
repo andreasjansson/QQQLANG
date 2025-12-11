@@ -3933,13 +3933,13 @@ export const characterDefs: Record<string, CharDef> = {
   },
   
   'E': {
-    color: '#00CED1',
+    color: '#50C878',
     number: 5,
-    fn: fnExcise,
-    arity: 1,
-    argTypes: ['int'],
-    functionName: "excise",
-    documentation: "Cuts out bright regions (above 60th percentile luminance), old_image shows through the holes"
+    fn: fnE,
+    arity: 0,
+    argTypes: [],
+    functionName: "emerald",
+    documentation: "Renders bright reflective 3D emeralds in symmetric pattern with large center emerald"
   },
   
   'F': {
