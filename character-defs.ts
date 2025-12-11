@@ -4616,6 +4616,13 @@ function generateCharacterRefLines(char: string, def: CharDef, charsPerLine: num
   return lines;
 }
 
+function getPageChar(pageNum: number): string {
+  if (pageNum <= 0) return '?';
+  if (pageNum === 1) return '?';
+  if (pageNum <= 26) return String.fromCharCode('A'.charCodeAt(0) + pageNum - 1);
+  return '?';
+}
+
 function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: Record<string, CharDef>): string[][] {
   const pages: string[][] = [];
   
@@ -4623,9 +4630,7 @@ function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: 
   
   let introPage: string[] = [];
   for (let i = 0; i < introLines.length; i++) {
-    if (introPage.length >= linesPerPage - 1) {
-      introPage.push('');
-      introPage.push(`[Page ${pages.length + 1}] (continued on next page...)`);
+    if (introPage.length >= linesPerPage - 2) {
       pages.push(introPage);
       introPage = [];
     }
@@ -4647,8 +4652,6 @@ function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: 
     const charLines = generateCharacterRefLines(char, def, charsPerLine);
     
     if (linesUsed + charLines.length + 1 > linesPerPage - 2) {
-      currentPage.push('');
-      currentPage.push(`[Page ${pages.length + 1}]`);
       pages.push(currentPage);
       currentPage = [];
       currentPage.push('=== CHARACTER REFERENCE (continued) ===');
@@ -4662,8 +4665,19 @@ function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: 
   }
   
   if (currentPage.length > 2) {
-    currentPage.push(`[Page ${pages.length + 1}]`);
     pages.push(currentPage);
+  }
+  
+  const totalPages = pages.length;
+  for (let i = 0; i < pages.length; i++) {
+    const pageNum = i + 1;
+    const nextPageChar = getPageChar(pageNum + 1);
+    pages[i].push('');
+    if (pageNum < totalPages) {
+      pages[i].push(`[Page ${pageNum}/${totalPages}, type '?${nextPageChar}' for next page]`);
+    } else {
+      pages[i].push(`[Page ${pageNum}/${totalPages}]`);
+    }
   }
   
   return pages;
