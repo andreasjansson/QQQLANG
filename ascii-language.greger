@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-213144771703>
+${greger-prompt-code-style<eval-result-213544166396>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,11 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-213144771703>}
+</eval-result-213544166396>}
+
+# IMPORTANT
+
+Don't try to run the server or build things, I'm running it myself in the background
 
 # USER
 
@@ -7303,5 +7307,761 @@ Update U character definition to underglow
 ID: toolu_012xQgdZn1yfcPEgXPooFQS7
 
 <tool.toolu_012xQgdZn1yfcPEgXPooFQS7>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update U character definition to underglow
 </tool.toolu_012xQgdZn1yfcPEgXPooFQS7>
+
+# ASSISTANT
+
+Let me test this by running the dev server:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01WWRfFB6GYujrGsCCyekW8r
+
+## command
+
+<tool.toolu_01WWRfFB6GYujrGsCCyekW8r>
+cd /Users/ajansson/projects/ascii-language && npm run dev 2>&1 &
+sleep 3
+echo "Server should be running..."
+</tool.toolu_01WWRfFB6GYujrGsCCyekW8r>
+
+# TOOL RESULT
+
+ID: toolu_01WWRfFB6GYujrGsCCyekW8r
+
+<tool.toolu_01WWRfFB6GYujrGsCCyekW8r>
+Shell command execution cancelled by user
+</tool.toolu_01WWRfFB6GYujrGsCCyekW8r>
+
+# USER
+
+that was a pretty bad edge detection, lots of things it missed
+
+# THINKING
+
+Signature: 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
+
+The user is saying the edge detection is not good - it's missing a lot of edges. Let me think about how to improve this:
+
+1. The current Sobel edge detection with a fixed threshold might not be adaptive enough
+2. I could use a lower threshold
+3. I could use Canny edge detection which is more sophisticated (with hysteresis thresholding)
+4. I could use a different approach altogether - maybe color-based edge detection rather than just luminance
+
+Let me think about what would work better:
+
+1. **Multi-channel edge detection** - detect edges in R, G, B separately and combine them (OR)
+2. **Lower threshold** - the current threshold of 25 + n*2 might be too high
+3. **Canny-style hysteresis** - use two thresholds, a high and low, and only keep weak edges that connect to strong edges
+4. **Color distance edge detection** - compare color distances between neighboring pixels rather than just grayscale gradient
+
+I think the issue is:
+1. Using grayscale only misses color edges (like blue next to green with same luminance)
+2. The threshold might be too aggressive
+3. The morphological smoothing (requiring 3 neighbors) might be removing too many edges
+
+Let me rewrite with:
+1. Color-based edge detection (using color distance rather than just luminance)
+2. Lower, adaptive threshold
+3. Less aggressive smoothing or no smoothing
+4. Maybe use a different approach - like comparing each pixel to its neighbors and marking as edge if color distance exceeds threshold
+
+Actually, let me try a simpler and more robust approach:
+- Use color distance (Euclidean in RGB space) between adjacent pixels
+- Lower threshold
+- Skip the morphological smoothing or make it gentler
+
+# ASSISTANT
+
+You're right, let me improve the edge detection. The issues are:
+1. Using only grayscale misses color edges (e.g., blue next to green with same luminance)
+2. Threshold might be too high
+3. The morphological smoothing was removing too many edges
+
+Let me rewrite with color-based edge detection:
+
+# USER
+
+implement this in webgl for speed
+
+# THINKING
+
+Signature: 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
+
+The user wants me to rewrite the underglow function using WebGL for better performance. This is a good idea because:
+1. Edge detection can be done efficiently in a fragment shader
+2. The flood fill / connected components is trickier in WebGL, but we can use a different approach
+3. The blur/glow can definitely be done in WebGL
+
+Actually, connected component labeling is quite hard to do in WebGL since it requires iterative algorithms. Let me think about how to approach this...
+
+One option is to do a hybrid approach:
+1. Edge detection in WebGL (fast)
+2. Connected components / flood fill on CPU (necessary for labeling)
+3. Gradient fill and glow in WebGL (fast)
+
+Or I could use a different approach entirely - instead of true flood fill, I could use a distance-based approach or some kind of GPU-friendly region detection.
+
+Actually, there's a technique called Jump Flooding Algorithm (JFA) that can compute Voronoi diagrams / distance fields on the GPU efficiently. But it's complex.
+
+Let me think of another approach... What if instead of doing true connected components, I:
+1. Do edge detection in WebGL
+2. For each pixel, cast rays in multiple directions until hitting an edge, use those to determine the "region bounds"
+3. Sample min/max colors along those rays
+4. Compute gradient based on that
+
+Or simpler - just do the whole thing on GPU with a different algorithm:
+1. Edge detection shader
+2. For each non-edge pixel, sample in a local neighborhood to find min/max luminance pixels
+3. Interpolate gradient based on distance to those min/max points
+4. Add glow with blur shader
+
+This won't give true flood-fill regions but will give a similar visual effect.
+
+Actually, let me try a multi-pass approach:
+1. Pass 1: Edge detection (color-based Sobel)
+2. Pass 2-N: Iterative region growing / label propagation (jump flooding style)
+
+
+3. Pass N+1: Compute gradients per region
+4. Pass N+2: Gaussian blur for glow
+5. Pass N+3: Composite
+
+I'll explore an alternative region labeling technique using GPU-friendly iterations. The key is finding an efficient way to propagate region information across connected pixels without traditional flood fill methods. By carefully designing shader passes, I can potentially create a more parallel-friendly approach to connected component detection.
+
+The challenge lies in creating an algorithm that can efficiently label regions across the entire image using only GPU-parallel operations. This might require rethinking traditional connected component algorithms to fit the massively parallel nature of fragment shaders.
+
+My current strategy involves a multi-pass approach where pixels incrementally spread their region identifiers, respecting edge boundaries. Each iteration allows pixels to potentially update their region label based on neighboring information, converging toward a stable region mapping.
+
+The computational workflow will leverage GPU strengths: performing edge detection, smoothing, and initial region propagation in parallel, then potentially transferring minimal metadata to CPU for final processing. This hybrid approach balances computational efficiency with the specific constraints of GPU architecture.
+
+I'll focus on implementing a color-sensitive edge detection mechanism that enables precise region segmentation, ensuring smooth gradient computation and visual coherence across the image processing pipeline.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0198qH7X776U6qqNgzt38Yt5
+
+## path
+
+<tool.toolu_0198qH7X776U6qqNgzt38Yt5>
+character-defs.ts
+</tool.toolu_0198qH7X776U6qqNgzt38Yt5>
+
+## git-commit-message
+
+<tool.toolu_0198qH7X776U6qqNgzt38Yt5>
+Rewrite underglow function with WebGL - color-based edge detection, multi-pass region labeling, gradient fill with glow
+</tool.toolu_0198qH7X776U6qqNgzt38Yt5>
+
+## diff
+
+<tool.toolu_0198qH7X776U6qqNgzt38Yt5>
+ function fnU(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const w = ctx.width;
+   const h = ctx.height;
++  const gl = initWebGL(w, h);
+   
+-  const k = Math.max(15, n * 5);
+-  const edgeThreshold = 25 + n * 2;
++  const k = Math.max(20, n * 6);
++  const edgeThreshold = 0.08 + n * 0.01;
+   
+-  const gray = new Float32Array(w * h);
+-  for (let y = 0; y < h; y++) {
+-    for (let x = 0; x < w; x++) {
+-      const [r, g, b] = getPixel(prev, x, y);
+-      gray[y * w + x] = r * 0.299 + g * 0.587 + b * 0.114;
++  const vertShader = `
++    attribute vec2 position;
++    varying vec2 vUV;
++    void main() {
++      vUV = position * 0.5 + 0.5;
++      gl_Position = vec4(position, 0.0, 1.0);
+     }
+-  }
++  `;
+   
+-  const edges = new Uint8Array(w * h);
+-  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+-  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+-  
+-  for (let y = 1; y < h - 1; y++) {
+-    for (let x = 1; x < w - 1; x++) {
+-      let gx = 0, gy = 0;
+-      for (let ky = -1; ky <= 1; ky++) {
+-        for (let kx = -1; kx <= 1; kx++) {
+-          const g = gray[(y + ky) * w + (x + kx)];
+-          const kidx = (ky + 1) * 3 + (kx + 1);
+-          gx += g * sobelX[kidx];
+-          gy += g * sobelY[kidx];
+-        }
+-      }
+-      const mag = Math.sqrt(gx * gx + gy * gy);
+-      edges[y * w + x] = mag > edgeThreshold ? 1 : 0;
++  const edgeShader = `
++    precision highp float;
++    uniform sampler2D uTexture;
++    uniform vec2 uResolution;
++    uniform float uThreshold;
++    varying vec2 vUV;
++    
++    float colorDist(vec3 a, vec3 b) {
++      vec3 d = a - b;
++      return length(d);
+     }
+-  }
++    
++    void main() {
++      vec2 texel = 1.0 / uResolution;
++      vec3 c = texture2D(uTexture, vUV).rgb;
++      
++      vec3 n = texture2D(uTexture, vUV + vec2(0.0, -texel.y)).rgb;
++      vec3 s = texture2D(uTexture, vUV + vec2(0.0, texel.y)).rgb;
++      vec3 e = texture2D(uTexture, vUV + vec2(texel.x, 0.0)).rgb;
++      vec3 w = texture2D(uTexture, vUV + vec2(-texel.x, 0.0)).rgb;
++      vec3 ne = texture2D(uTexture, vUV + vec2(texel.x, -texel.y)).rgb;
++      vec3 nw = texture2D(uTexture, vUV + vec2(-texel.x, -texel.y)).rgb;
++      vec3 se = texture2D(uTexture, vUV + vec2(texel.x, texel.y)).rgb;
++      vec3 sw = texture2D(uTexture, vUV + vec2(-texel.x, texel.y)).rgb;
++      
++      float maxDist = 0.0;
++      maxDist = max(maxDist, colorDist(c, n));
++      maxDist = max(maxDist, colorDist(c, s));
++      maxDist = max(maxDist, colorDist(c, e));
++      maxDist = max(maxDist, colorDist(c, w));
++      maxDist = max(maxDist, colorDist(c, ne) * 0.707);
++      maxDist = max(maxDist, colorDist(c, nw) * 0.707);
++      maxDist = max(maxDist, colorDist(c, se) * 0.707);
++      maxDist = max(maxDist, colorDist(c, sw) * 0.707);
++      
++      vec3 gx = -nw - 2.0*w - sw + ne + 2.0*e + se;
++      vec3 gy = -nw - 2.0*n - ne + sw + 2.0*s + se;
++      float sobelMag = length(gx) + length(gy);
++      
++      float edge = max(maxDist, sobelMag * 0.5) > uThreshold ? 1.0 : 0.0;
++      
++      gl_FragColor = vec4(edge, edge, edge, 1.0);
++    }
++  `;
+   
+-  const smoothed = new Uint8Array(w * h);
+-  for (let y = 1; y < h - 1; y++) {
+-    for (let x = 1; x < w - 1; x++) {
+-      let count = 0;
+-      for (let dy = -1; dy <= 1; dy++) {
+-        for (let dx = -1; dx <= 1; dx++) {
+-          count += edges[(y + dy) * w + (x + dx)];
+-        }
++  const jfaInitShader = `
++    precision highp float;
++    uniform sampler2D uEdges;
++    uniform vec2 uResolution;
++    varying vec2 vUV;
++    
++    void main() {
++      float edge = texture2D(uEdges, vUV).r;
++      if (edge > 0.5) {
++        gl_FragColor = vec4(-1.0, -1.0, 0.0, 1.0);
++      } else {
++        gl_FragColor = vec4(vUV, 0.0, 1.0);
+       }
+-      smoothed[y * w + x] = count >= 3 ? 1 : 0;
+     }
+-  }
++  `;
+   
+-  const labels = new Int32Array(w * h);
+-  labels.fill(-1);
+-  let currentLabel = 0;
+-  
+-  for (let y = 0; y < h; y++) {
+-    for (let x = 0; x < w; x++) {
+-      const idx = y * w + x;
+-      if (smoothed[idx] === 1 || labels[idx] !== -1) continue;
++  const jfaStepShader = `
++    precision highp float;
++    uniform sampler2D uSeeds;
++    uniform sampler2D uEdges;
++    uniform vec2 uResolution;
++    uniform float uStepSize;
++    varying vec2 vUV;
++    
++    void main() {
++      vec2 texel = 1.0 / uResolution;
++      vec4 best = texture2D(uSeeds, vUV);
++      float edge = texture2D(uEdges, vUV).r;
+       
+-      const queue: number[] = [idx];
+-      labels[idx] = currentLabel;
+-      let head = 0;
++      if (edge > 0.5) {
++        gl_FragColor = vec4(-1.0, -1.0, 0.0, 1.0);
++        return;
++      }
+       
+-      while (head < queue.length) {
+-        const cidx = queue[head++];
+-        const cx = cidx % w;
+-        const cy = Math.floor(cidx / w);
+-        
+-        const neighbors = [
+-          cy > 0 ? cidx - w : -1,
+-          cy < h - 1 ? cidx + w : -1,
+-          cx > 0 ? cidx - 1 : -1,
+-          cx < w - 1 ? cidx + 1 : -1
+-        ];
+-        
+-        for (const nidx of neighbors) {
+-          if (nidx === -1) continue;
+-          if (smoothed[nidx] === 1 || labels[nidx] !== -1) continue;
+-          labels[nidx] = currentLabel;
+-          queue.push(nidx);
++      float bestDist = best.x < 0.0 ? 99999.0 : distance(vUV, best.xy);
++      
++      for (int dy = -1; dy <= 1; dy++) {
++        for (int dx = -1; dx <= 1; dx++) {
++          if (dx == 0 && dy == 0) continue;
++          
++          vec2 offset = vec2(float(dx), float(dy)) * uStepSize * texel;
++          vec2 sampleUV = vUV + offset;
++          
++          if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) continue;
++          
++          float sampleEdge = texture2D(uEdges, sampleUV).r;
++          if (sampleEdge > 0.5) continue;
++          
++          vec4 candidate = texture2D(uSeeds, sampleUV);
++          if (candidate.x < 0.0) continue;
++          
++          float dist = distance(vUV, candidate.xy);
++          if (dist < bestDist) {
++            bestDist = dist;
++            best = candidate;
++          }
+         }
+       }
+-      currentLabel++;
++      
++      gl_FragColor = best;
+     }
+-  }
++  `;
+   
+-  interface RegionData {
+-    minLum: number;
+-    maxLum: number;
+-    minX: number;
+-    minY: number;
+-    maxX: number;
+-    maxY: number;
+-    minColor: [number, number, number];
+-    maxColor: [number, number, number];
+-    pixels: number[];
+-  }
+-  
+-  const regions = new Map<number, RegionData>();
+-  
+-  for (let y = 0; y < h; y++) {
+-    for (let x = 0; x < w; x++) {
+-      const idx = y * w + x;
+-      const label = labels[idx];
+-      if (label === -1) continue;
++  const regionStatsShader = `
++    precision highp float;
++    uniform sampler2D uTexture;
++    uniform sampler2D uSeeds;
++    uniform vec2 uResolution;
++    uniform float uK;
++    varying vec2 vUV;
++    
++    void main() {
++      vec4 seed = texture2D(uSeeds, vUV);
+       
+-      const [r, g, b] = getPixel(prev, x, y);
+-      const lum = gray[idx];
++      if (seed.x < 0.0) {
++        vec3 c = texture2D(uTexture, vUV).rgb;
++        gl_FragColor = vec4(c, 1.0);
++        return;
++      }
+       
+-      if (!regions.has(label)) {
+-        regions.set(label, {
+-          minLum: lum, maxLum: lum,
+-          minX: x, minY: y, maxX: x, maxY: y,
+-          minColor: [r, g, b], maxColor: [r, g, b],
+-          pixels: []
+-        });
++      vec2 seedUV = seed.xy;
++      vec3 seedColor = texture2D(uTexture, seedUV).rgb;
++      vec3 myColor = texture2D(uTexture, vUV).rgb;
++      
++      float seedLum = dot(seedColor, vec3(0.299, 0.587, 0.114));
++      float myLum = dot(myColor, vec3(0.299, 0.587, 0.114));
++      
++      vec2 dir = vUV - seedUV;
++      float dist = length(dir);
++      
++      float t;
++      if (dist < 0.01) {
++        t = vUV.y;
++      } else {
++        t = dot(vUV - seedUV, normalize(dir)) / max(dist * 2.0, 0.1);
++        t = clamp(t, 0.0, 1.0);
+       }
+       
+-      const data = regions.get(label)!;
+-      data.pixels.push(idx);
++      float k = uK / 255.0;
++      vec3 darkColor = max(vec3(0.0), seedColor - k);
++      vec3 brightColor = min(vec3(1.0), seedColor + k);
+       
+-      if (lum < data.minLum) {
+-        data.minLum = lum;
+-        data.minX = x;
+-        data.minY = y;
+-        data.minColor = [r, g, b];
++      if (myLum > seedLum) {
++        brightColor = min(vec3(1.0), myColor + k * 0.5);
++      } else {
++        darkColor = max(vec3(0.0), myColor - k * 0.5);
+       }
+-      if (lum > data.maxLum) {
+-        data.maxLum = lum;
+-        data.maxX = x;
+-        data.maxY = y;
+-        data.maxColor = [r, g, b];
+-      }
++      
++      vec3 gradientColor = mix(darkColor, brightColor, t);
++      
++      gl_FragColor = vec4(gradientColor, 1.0);
+     }
+-  }
++  `;
+   
+-  const out = createSolidImage(w, h, '#000000');
+-  
+-  for (const [, data] of regions) {
+-    let dx = data.maxX - data.minX;
+-    let dy = data.maxY - data.minY;
+-    let dist = Math.sqrt(dx * dx + dy * dy);
++  const blurShader = `
++    precision highp float;
++    uniform sampler2D uTexture;
++    uniform vec2 uResolution;
++    uniform vec2 uDirection;
++    varying vec2 vUV;
+     
+-    const isSolid = data.maxLum - data.minLum < 10;
+-    
+-    if (isSolid || dist < 10) {
+-      dx = 0;
+-      dy = 1;
+-      dist = h;
+-    } else {
+-      dx /= dist;
+-      dy /= dist;
+-    }
+-    
+-    const minColor: [number, number, number] = [
+-      Math.max(0, data.minColor[0] - k),
+-      Math.max(0, data.minColor[1] - k),
+-      Math.max(0, data.minColor[2] - k)
+-    ];
+-    const maxColor: [number, number, number] = [
+-      Math.min(255, data.maxColor[0] + k),
+-      Math.min(255, data.maxColor[1] + k),
+-      Math.min(255, data.maxColor[2] + k)
+-    ];
+-    
+-    for (const idx of data.pixels) {
+-      const px = idx % w;
+-      const py = Math.floor(idx / w);
++    void main() {
++      vec2 texel = 1.0 / uResolution;
++      vec3 result = vec3(0.0);
++      
++      float weights[5];
++      weights[0] = 0.227027;
++      weights[1] = 0.1945946;
++      weights[2] = 0.1216216;
++      weights[3] = 0.054054;
++      weights[4] = 0.016216;
+       
+-      let t: number;
+-      if (isSolid || dist < 10) {
+-        t = py / h;
+-      } else {
+-        const relX = px - data.minX;
+-        const relY = py - data.minY;
+-        t = (relX * dx + relY * dy) / dist;
+-        t = Math.max(0, Math.min(1, t));
++      result += texture2D(uTexture, vUV).rgb * weights[0];
++      
++      for (int i = 1; i < 5; i++) {
++        vec2 offset = uDirection * texel * float(i) * 2.0;
++        result += texture2D(uTexture, vUV + offset).rgb * weights[i];
++        result += texture2D(uTexture, vUV - offset).rgb * weights[i];
+       }
+       
+-      const r = Math.round(minColor[0] + t * (maxColor[0] - minColor[0]));
+-      const g = Math.round(minColor[1] + t * (maxColor[1] - minColor[1]));
+-      const b = Math.round(minColor[2] + t * (maxColor[2] - minColor[2]));
+-      
+-      setPixel(out, px, py, r, g, b);
++      gl_FragColor = vec4(result, 1.0);
+     }
+-  }
++  `;
+   
+-  for (let y = 0; y < h; y++) {
+-    for (let x = 0; x < w; x++) {
+-      const idx = y * w + x;
+-      if (smoothed[idx] === 1) {
+-        let sr = 0, sg = 0, sb = 0, count = 0;
+-        for (let dy = -2; dy <= 2; dy++) {
+-          for (let dx = -2; dx <= 2; dx++) {
+-            const nx = x + dx, ny = y + dy;
+-            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+-              const nidx = ny * w + nx;
+-              if (smoothed[nidx] === 0) {
+-                const [r, g, b] = getPixel(out, nx, ny);
+-                sr += r; sg += g; sb += b; count++;
+-              }
+-            }
+-          }
+-        }
+-        if (count > 0) {
+-          setPixel(out, x, y, Math.round(sr / count), Math.round(sg / count), Math.round(sb / count));
+-        }
+-      }
++  const compositeShader = `
++    precision highp float;
++    uniform sampler2D uGradient;
++    uniform sampler2D uBlurred;
++    uniform float uGlowIntensity;
++    varying vec2 vUV;
++    
++    void main() {
++      vec3 gradient = texture2D(uGradient, vUV).rgb;
++      vec3 glow = texture2D(uBlurred, vUV).rgb;
++      
++      vec3 result = gradient + glow * uGlowIntensity;
++      result = min(result, vec3(1.0));
++      
++      gl_FragColor = vec4(result, 1.0);
+     }
+-  }
++  `;
+   
+-  const glowRadius = 8;
+-  const blurred = createSolidImage(w, h, '#000000');
++  const edgeProgram = createShaderProgram(gl, vertShader, edgeShader);
++  const jfaInitProgram = createShaderProgram(gl, vertShader, jfaInitShader);
++  const jfaStepProgram = createShaderProgram(gl, vertShader, jfaStepShader);
++  const regionStatsProgram = createShaderProgram(gl, vertShader, regionStatsShader);
++  const blurProgram = createShaderProgram(gl, vertShader, blurShader);
++  const compositeProgram = createShaderProgram(gl, vertShader, compositeShader);
+   
+-  for (let y = 0; y < h; y++) {
+-    for (let x = 0; x < w; x++) {
+-      let sr = 0, sg = 0, sb = 0, weight = 0;
+-      for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
+-        for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
+-          const nx = x + dx, ny = y + dy;
+-          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+-            const d = Math.sqrt(dx * dx + dy * dy);
+-            const w_val = Math.exp(-d * d / (2 * glowRadius * glowRadius / 2));
+-            const [r, g, b] = getPixel(out, nx, ny);
+-            sr += r * w_val;
+-            sg += g * w_val;
+-            sb += b * w_val;
+-            weight += w_val;
+-          }
+-        }
+-      }
+-      if (weight > 0) {
+-        setPixel(blurred, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
+-      }
++  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
++  const buffer = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
++  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
++  
++  const srcTexture = gl.createTexture();
++  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  
++  const createFBTexture = () => {
++    const tex = gl.createTexture();
++    gl.bindTexture(gl.TEXTURE_2D, tex);
++    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
++    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++    return tex;
++  };
++  
++  const edgeTexture = createFBTexture();
++  const jfaTexture1 = createFBTexture();
++  const jfaTexture2 = createFBTexture();
++  const gradientTexture = createFBTexture();
++  const blurTexture1 = createFBTexture();
++  const blurTexture2 = createFBTexture();
++  
++  const framebuffer = gl.createFramebuffer();
++  
++  const runPass = (program: WebGLProgram, outputTex: WebGLTexture | null) => {
++    gl.useProgram(program);
++    const posLoc = gl.getAttribLocation(program, 'position');
++    gl.enableVertexAttribArray(posLoc);
++    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
++    
++    if (outputTex) {
++      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
++      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outputTex, 0);
++    } else {
++      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+     }
++    
++    gl.viewport(0, 0, w, h);
++    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  };
++  
++  gl.useProgram(edgeProgram);
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
++  gl.uniform1i(gl.getUniformLocation(edgeProgram, 'uTexture'), 0);
++  gl.uniform2f(gl.getUniformLocation(edgeProgram, 'uResolution'), w, h);
++  gl.uniform1f(gl.getUniformLocation(edgeProgram, 'uThreshold'), edgeThreshold);
++  runPass(edgeProgram, edgeTexture);
++  
++  gl.useProgram(jfaInitProgram);
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, edgeTexture);
++  gl.uniform1i(gl.getUniformLocation(jfaInitProgram, 'uEdges'), 0);
++  gl.uniform2f(gl.getUniformLocation(jfaInitProgram, 'uResolution'), w, h);
++  runPass(jfaInitProgram, jfaTexture1);
++  
++  const maxDim = Math.max(w, h);
++  const numPasses = Math.ceil(Math.log2(maxDim));
++  let readTex = jfaTexture1;
++  let writeTex = jfaTexture2;
++  
++  for (let i = numPasses - 1; i >= 0; i--) {
++    const stepSize = Math.pow(2, i);
++    
++    gl.useProgram(jfaStepProgram);
++    gl.activeTexture(gl.TEXTURE0);
++    gl.bindTexture(gl.TEXTURE_2D, readTex);
++    gl.uniform1i(gl.getUniformLocation(jfaStepProgram, 'uSeeds'), 0);
++    gl.activeTexture(gl.TEXTURE1);
++    gl.bindTexture(gl.TEXTURE_2D, edgeTexture);
++    gl.uniform1i(gl.getUniformLocation(jfaStepProgram, 'uEdges'), 1);
++    gl.uniform2f(gl.getUniformLocation(jfaStepProgram, 'uResolution'), w, h);
++    gl.uniform1f(gl.getUniformLocation(jfaStepProgram, 'uStepSize'), stepSize);
++    runPass(jfaStepProgram, writeTex);
++    
++    const tmp = readTex;
++    readTex = writeTex;
++    writeTex = tmp;
+   }
+   
+-  const glowIntensity = 0.4;
++  gl.useProgram(regionStatsProgram);
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
++  gl.uniform1i(gl.getUniformLocation(regionStatsProgram, 'uTexture'), 0);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, readTex);
++  gl.uniform1i(gl.getUniformLocation(regionStatsProgram, 'uSeeds'), 1);
++  gl.uniform2f(gl.getUniformLocation(regionStatsProgram, 'uResolution'), w, h);
++  gl.uniform1f(gl.getUniformLocation(regionStatsProgram, 'uK'), k);
++  runPass(regionStatsProgram, gradientTexture);
++  
++  gl.useProgram(blurProgram);
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, gradientTexture);
++  gl.uniform1i(gl.getUniformLocation(blurProgram, 'uTexture'), 0);
++  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uResolution'), w, h);
++  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 1.0, 0.0);
++  runPass(blurProgram, blurTexture1);
++  
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, blurTexture1);
++  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 0.0, 1.0);
++  runPass(blurProgram, blurTexture2);
++  
++  gl.useProgram(compositeProgram);
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, gradientTexture);
++  gl.uniform1i(gl.getUniformLocation(compositeProgram, 'uGradient'), 0);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, blurTexture2);
++  gl.uniform1i(gl.getUniformLocation(compositeProgram, 'uBlurred'), 1);
++  gl.uniform1f(gl.getUniformLocation(compositeProgram, 'uGlowIntensity'), 0.5);
++  runPass(compositeProgram, null);
++  
++  const pixels = new Uint8ClampedArray(w * h * 4);
++  gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
++  
++  const flipped = new Uint8ClampedArray(w * h * 4);
+   for (let y = 0; y < h; y++) {
+     for (let x = 0; x < w; x++) {
+-      const [r1, g1, b1] = getPixel(out, x, y);
+-      const [r2, g2, b2] = getPixel(blurred, x, y);
+-      
+-      const nr = Math.min(255, r1 + Math.round(r2 * glowIntensity));
+-      const ng = Math.min(255, g1 + Math.round(g2 * glowIntensity));
+-      const nb = Math.min(255, b1 + Math.round(b2 * glowIntensity));
+-      
+-      setPixel(out, x, y, nr, ng, nb);
++      const srcIdx = ((h - 1 - y) * w + x) * 4;
++      const dstIdx = (y * w + x) * 4;
++      flipped[dstIdx] = pixels[srcIdx];
++      flipped[dstIdx + 1] = pixels[srcIdx + 1];
++      flipped[dstIdx + 2] = pixels[srcIdx + 2];
++      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+     }
+   }
+   
+-  return out;
++  gl.deleteTexture(srcTexture);
++  gl.deleteTexture(edgeTexture);
++  gl.deleteTexture(jfaTexture1);
++  gl.deleteTexture(jfaTexture2);
++  gl.deleteTexture(gradientTexture);
++  gl.deleteTexture(blurTexture1);
++  gl.deleteTexture(blurTexture2);
++  gl.deleteFramebuffer(framebuffer);
++  gl.deleteBuffer(buffer);
++  gl.deleteProgram(edgeProgram);
++  gl.deleteProgram(jfaInitProgram);
++  gl.deleteProgram(jfaStepProgram);
++  gl.deleteProgram(regionStatsProgram);
++  gl.deleteProgram(blurProgram);
++  gl.deleteProgram(compositeProgram);
++  
++  return { width: w, height: h, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_0198qH7X776U6qqNgzt38Yt5>
+
+# TOOL RESULT
+
+ID: toolu_0198qH7X776U6qqNgzt38Yt5
+
+<tool.toolu_0198qH7X776U6qqNgzt38Yt5>
+
+</tool.toolu_0198qH7X776U6qqNgzt38Yt5>

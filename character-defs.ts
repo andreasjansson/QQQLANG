@@ -2329,253 +2329,389 @@ function fnU(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const w = ctx.width;
   const h = ctx.height;
+  const gl = initWebGL(w, h);
   
-  const k = Math.max(15, n * 5);
-  const edgeThreshold = 25 + n * 2;
+  const k = Math.max(20, n * 6);
+  const edgeThreshold = 0.08 + n * 0.01;
   
-  const gray = new Float32Array(w * h);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      gray[y * w + x] = r * 0.299 + g * 0.587 + b * 0.114;
+  const vertShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = position * 0.5 + 0.5;
+      gl_Position = vec4(position, 0.0, 1.0);
     }
-  }
+  `;
   
-  const edges = new Uint8Array(w * h);
-  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
-  
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-      let gx = 0, gy = 0;
-      for (let ky = -1; ky <= 1; ky++) {
-        for (let kx = -1; kx <= 1; kx++) {
-          const g = gray[(y + ky) * w + (x + kx)];
-          const kidx = (ky + 1) * 3 + (kx + 1);
-          gx += g * sobelX[kidx];
-          gy += g * sobelY[kidx];
-        }
-      }
-      const mag = Math.sqrt(gx * gx + gy * gy);
-      edges[y * w + x] = mag > edgeThreshold ? 1 : 0;
-    }
-  }
-  
-  const smoothed = new Uint8Array(w * h);
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-      let count = 0;
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          count += edges[(y + dy) * w + (x + dx)];
-        }
-      }
-      smoothed[y * w + x] = count >= 3 ? 1 : 0;
-    }
-  }
-  
-  const labels = new Int32Array(w * h);
-  labels.fill(-1);
-  let currentLabel = 0;
-  
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y * w + x;
-      if (smoothed[idx] === 1 || labels[idx] !== -1) continue;
-      
-      const queue: number[] = [idx];
-      labels[idx] = currentLabel;
-      let head = 0;
-      
-      while (head < queue.length) {
-        const cidx = queue[head++];
-        const cx = cidx % w;
-        const cy = Math.floor(cidx / w);
-        
-        const neighbors = [
-          cy > 0 ? cidx - w : -1,
-          cy < h - 1 ? cidx + w : -1,
-          cx > 0 ? cidx - 1 : -1,
-          cx < w - 1 ? cidx + 1 : -1
-        ];
-        
-        for (const nidx of neighbors) {
-          if (nidx === -1) continue;
-          if (smoothed[nidx] === 1 || labels[nidx] !== -1) continue;
-          labels[nidx] = currentLabel;
-          queue.push(nidx);
-        }
-      }
-      currentLabel++;
-    }
-  }
-  
-  interface RegionData {
-    minLum: number;
-    maxLum: number;
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
-    minColor: [number, number, number];
-    maxColor: [number, number, number];
-    pixels: number[];
-  }
-  
-  const regions = new Map<number, RegionData>();
-  
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y * w + x;
-      const label = labels[idx];
-      if (label === -1) continue;
-      
-      const [r, g, b] = getPixel(prev, x, y);
-      const lum = gray[idx];
-      
-      if (!regions.has(label)) {
-        regions.set(label, {
-          minLum: lum, maxLum: lum,
-          minX: x, minY: y, maxX: x, maxY: y,
-          minColor: [r, g, b], maxColor: [r, g, b],
-          pixels: []
-        });
-      }
-      
-      const data = regions.get(label)!;
-      data.pixels.push(idx);
-      
-      if (lum < data.minLum) {
-        data.minLum = lum;
-        data.minX = x;
-        data.minY = y;
-        data.minColor = [r, g, b];
-      }
-      if (lum > data.maxLum) {
-        data.maxLum = lum;
-        data.maxX = x;
-        data.maxY = y;
-        data.maxColor = [r, g, b];
-      }
-    }
-  }
-  
-  const out = createSolidImage(w, h, '#000000');
-  
-  for (const [, data] of regions) {
-    let dx = data.maxX - data.minX;
-    let dy = data.maxY - data.minY;
-    let dist = Math.sqrt(dx * dx + dy * dy);
+  const edgeShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uThreshold;
+    varying vec2 vUV;
     
-    const isSolid = data.maxLum - data.minLum < 10;
-    
-    if (isSolid || dist < 10) {
-      dx = 0;
-      dy = 1;
-      dist = h;
-    } else {
-      dx /= dist;
-      dy /= dist;
+    float colorDist(vec3 a, vec3 b) {
+      vec3 d = a - b;
+      return length(d);
     }
     
-    const minColor: [number, number, number] = [
-      Math.max(0, data.minColor[0] - k),
-      Math.max(0, data.minColor[1] - k),
-      Math.max(0, data.minColor[2] - k)
-    ];
-    const maxColor: [number, number, number] = [
-      Math.min(255, data.maxColor[0] + k),
-      Math.min(255, data.maxColor[1] + k),
-      Math.min(255, data.maxColor[2] + k)
-    ];
-    
-    for (const idx of data.pixels) {
-      const px = idx % w;
-      const py = Math.floor(idx / w);
+    void main() {
+      vec2 texel = 1.0 / uResolution;
+      vec3 c = texture2D(uTexture, vUV).rgb;
       
-      let t: number;
-      if (isSolid || dist < 10) {
-        t = py / h;
+      vec3 n = texture2D(uTexture, vUV + vec2(0.0, -texel.y)).rgb;
+      vec3 s = texture2D(uTexture, vUV + vec2(0.0, texel.y)).rgb;
+      vec3 e = texture2D(uTexture, vUV + vec2(texel.x, 0.0)).rgb;
+      vec3 w = texture2D(uTexture, vUV + vec2(-texel.x, 0.0)).rgb;
+      vec3 ne = texture2D(uTexture, vUV + vec2(texel.x, -texel.y)).rgb;
+      vec3 nw = texture2D(uTexture, vUV + vec2(-texel.x, -texel.y)).rgb;
+      vec3 se = texture2D(uTexture, vUV + vec2(texel.x, texel.y)).rgb;
+      vec3 sw = texture2D(uTexture, vUV + vec2(-texel.x, texel.y)).rgb;
+      
+      float maxDist = 0.0;
+      maxDist = max(maxDist, colorDist(c, n));
+      maxDist = max(maxDist, colorDist(c, s));
+      maxDist = max(maxDist, colorDist(c, e));
+      maxDist = max(maxDist, colorDist(c, w));
+      maxDist = max(maxDist, colorDist(c, ne) * 0.707);
+      maxDist = max(maxDist, colorDist(c, nw) * 0.707);
+      maxDist = max(maxDist, colorDist(c, se) * 0.707);
+      maxDist = max(maxDist, colorDist(c, sw) * 0.707);
+      
+      vec3 gx = -nw - 2.0*w - sw + ne + 2.0*e + se;
+      vec3 gy = -nw - 2.0*n - ne + sw + 2.0*s + se;
+      float sobelMag = length(gx) + length(gy);
+      
+      float edge = max(maxDist, sobelMag * 0.5) > uThreshold ? 1.0 : 0.0;
+      
+      gl_FragColor = vec4(edge, edge, edge, 1.0);
+    }
+  `;
+  
+  const jfaInitShader = `
+    precision highp float;
+    uniform sampler2D uEdges;
+    uniform vec2 uResolution;
+    varying vec2 vUV;
+    
+    void main() {
+      float edge = texture2D(uEdges, vUV).r;
+      if (edge > 0.5) {
+        gl_FragColor = vec4(-1.0, -1.0, 0.0, 1.0);
       } else {
-        const relX = px - data.minX;
-        const relY = py - data.minY;
-        t = (relX * dx + relY * dy) / dist;
-        t = Math.max(0, Math.min(1, t));
-      }
-      
-      const r = Math.round(minColor[0] + t * (maxColor[0] - minColor[0]));
-      const g = Math.round(minColor[1] + t * (maxColor[1] - minColor[1]));
-      const b = Math.round(minColor[2] + t * (maxColor[2] - minColor[2]));
-      
-      setPixel(out, px, py, r, g, b);
-    }
-  }
-  
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y * w + x;
-      if (smoothed[idx] === 1) {
-        let sr = 0, sg = 0, sb = 0, count = 0;
-        for (let dy = -2; dy <= 2; dy++) {
-          for (let dx = -2; dx <= 2; dx++) {
-            const nx = x + dx, ny = y + dy;
-            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-              const nidx = ny * w + nx;
-              if (smoothed[nidx] === 0) {
-                const [r, g, b] = getPixel(out, nx, ny);
-                sr += r; sg += g; sb += b; count++;
-              }
-            }
-          }
-        }
-        if (count > 0) {
-          setPixel(out, x, y, Math.round(sr / count), Math.round(sg / count), Math.round(sb / count));
-        }
+        gl_FragColor = vec4(vUV, 0.0, 1.0);
       }
     }
-  }
+  `;
   
-  const glowRadius = 8;
-  const blurred = createSolidImage(w, h, '#000000');
-  
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      let sr = 0, sg = 0, sb = 0, weight = 0;
-      for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
-        for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
-          const nx = x + dx, ny = y + dy;
-          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-            const d = Math.sqrt(dx * dx + dy * dy);
-            const w_val = Math.exp(-d * d / (2 * glowRadius * glowRadius / 2));
-            const [r, g, b] = getPixel(out, nx, ny);
-            sr += r * w_val;
-            sg += g * w_val;
-            sb += b * w_val;
-            weight += w_val;
+  const jfaStepShader = `
+    precision highp float;
+    uniform sampler2D uSeeds;
+    uniform sampler2D uEdges;
+    uniform vec2 uResolution;
+    uniform float uStepSize;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 texel = 1.0 / uResolution;
+      vec4 best = texture2D(uSeeds, vUV);
+      float edge = texture2D(uEdges, vUV).r;
+      
+      if (edge > 0.5) {
+        gl_FragColor = vec4(-1.0, -1.0, 0.0, 1.0);
+        return;
+      }
+      
+      float bestDist = best.x < 0.0 ? 99999.0 : distance(vUV, best.xy);
+      
+      for (int dy = -1; dy <= 1; dy++) {
+        for (int dx = -1; dx <= 1; dx++) {
+          if (dx == 0 && dy == 0) continue;
+          
+          vec2 offset = vec2(float(dx), float(dy)) * uStepSize * texel;
+          vec2 sampleUV = vUV + offset;
+          
+          if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) continue;
+          
+          float sampleEdge = texture2D(uEdges, sampleUV).r;
+          if (sampleEdge > 0.5) continue;
+          
+          vec4 candidate = texture2D(uSeeds, sampleUV);
+          if (candidate.x < 0.0) continue;
+          
+          float dist = distance(vUV, candidate.xy);
+          if (dist < bestDist) {
+            bestDist = dist;
+            best = candidate;
           }
         }
       }
-      if (weight > 0) {
-        setPixel(blurred, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
-      }
+      
+      gl_FragColor = best;
     }
+  `;
+  
+  const regionStatsShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform sampler2D uSeeds;
+    uniform vec2 uResolution;
+    uniform float uK;
+    varying vec2 vUV;
+    
+    void main() {
+      vec4 seed = texture2D(uSeeds, vUV);
+      
+      if (seed.x < 0.0) {
+        vec3 c = texture2D(uTexture, vUV).rgb;
+        gl_FragColor = vec4(c, 1.0);
+        return;
+      }
+      
+      vec2 seedUV = seed.xy;
+      vec3 seedColor = texture2D(uTexture, seedUV).rgb;
+      vec3 myColor = texture2D(uTexture, vUV).rgb;
+      
+      float seedLum = dot(seedColor, vec3(0.299, 0.587, 0.114));
+      float myLum = dot(myColor, vec3(0.299, 0.587, 0.114));
+      
+      vec2 dir = vUV - seedUV;
+      float dist = length(dir);
+      
+      float t;
+      if (dist < 0.01) {
+        t = vUV.y;
+      } else {
+        t = dot(vUV - seedUV, normalize(dir)) / max(dist * 2.0, 0.1);
+        t = clamp(t, 0.0, 1.0);
+      }
+      
+      float k = uK / 255.0;
+      vec3 darkColor = max(vec3(0.0), seedColor - k);
+      vec3 brightColor = min(vec3(1.0), seedColor + k);
+      
+      if (myLum > seedLum) {
+        brightColor = min(vec3(1.0), myColor + k * 0.5);
+      } else {
+        darkColor = max(vec3(0.0), myColor - k * 0.5);
+      }
+      
+      vec3 gradientColor = mix(darkColor, brightColor, t);
+      
+      gl_FragColor = vec4(gradientColor, 1.0);
+    }
+  `;
+  
+  const blurShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform vec2 uDirection;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 texel = 1.0 / uResolution;
+      vec3 result = vec3(0.0);
+      
+      float weights[5];
+      weights[0] = 0.227027;
+      weights[1] = 0.1945946;
+      weights[2] = 0.1216216;
+      weights[3] = 0.054054;
+      weights[4] = 0.016216;
+      
+      result += texture2D(uTexture, vUV).rgb * weights[0];
+      
+      for (int i = 1; i < 5; i++) {
+        vec2 offset = uDirection * texel * float(i) * 2.0;
+        result += texture2D(uTexture, vUV + offset).rgb * weights[i];
+        result += texture2D(uTexture, vUV - offset).rgb * weights[i];
+      }
+      
+      gl_FragColor = vec4(result, 1.0);
+    }
+  `;
+  
+  const compositeShader = `
+    precision highp float;
+    uniform sampler2D uGradient;
+    uniform sampler2D uBlurred;
+    uniform float uGlowIntensity;
+    varying vec2 vUV;
+    
+    void main() {
+      vec3 gradient = texture2D(uGradient, vUV).rgb;
+      vec3 glow = texture2D(uBlurred, vUV).rgb;
+      
+      vec3 result = gradient + glow * uGlowIntensity;
+      result = min(result, vec3(1.0));
+      
+      gl_FragColor = vec4(result, 1.0);
+    }
+  `;
+  
+  const edgeProgram = createShaderProgram(gl, vertShader, edgeShader);
+  const jfaInitProgram = createShaderProgram(gl, vertShader, jfaInitShader);
+  const jfaStepProgram = createShaderProgram(gl, vertShader, jfaStepShader);
+  const regionStatsProgram = createShaderProgram(gl, vertShader, regionStatsShader);
+  const blurProgram = createShaderProgram(gl, vertShader, blurShader);
+  const compositeProgram = createShaderProgram(gl, vertShader, compositeShader);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const srcTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const createFBTexture = () => {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    return tex;
+  };
+  
+  const edgeTexture = createFBTexture();
+  const jfaTexture1 = createFBTexture();
+  const jfaTexture2 = createFBTexture();
+  const gradientTexture = createFBTexture();
+  const blurTexture1 = createFBTexture();
+  const blurTexture2 = createFBTexture();
+  
+  const framebuffer = gl.createFramebuffer();
+  
+  const runPass = (program: WebGLProgram, outputTex: WebGLTexture | null) => {
+    gl.useProgram(program);
+    const posLoc = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+    
+    if (outputTex) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outputTex, 0);
+    } else {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    
+    gl.viewport(0, 0, w, h);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  };
+  
+  gl.useProgram(edgeProgram);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
+  gl.uniform1i(gl.getUniformLocation(edgeProgram, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(edgeProgram, 'uResolution'), w, h);
+  gl.uniform1f(gl.getUniformLocation(edgeProgram, 'uThreshold'), edgeThreshold);
+  runPass(edgeProgram, edgeTexture);
+  
+  gl.useProgram(jfaInitProgram);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, edgeTexture);
+  gl.uniform1i(gl.getUniformLocation(jfaInitProgram, 'uEdges'), 0);
+  gl.uniform2f(gl.getUniformLocation(jfaInitProgram, 'uResolution'), w, h);
+  runPass(jfaInitProgram, jfaTexture1);
+  
+  const maxDim = Math.max(w, h);
+  const numPasses = Math.ceil(Math.log2(maxDim));
+  let readTex = jfaTexture1;
+  let writeTex = jfaTexture2;
+  
+  for (let i = numPasses - 1; i >= 0; i--) {
+    const stepSize = Math.pow(2, i);
+    
+    gl.useProgram(jfaStepProgram);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, readTex);
+    gl.uniform1i(gl.getUniformLocation(jfaStepProgram, 'uSeeds'), 0);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, edgeTexture);
+    gl.uniform1i(gl.getUniformLocation(jfaStepProgram, 'uEdges'), 1);
+    gl.uniform2f(gl.getUniformLocation(jfaStepProgram, 'uResolution'), w, h);
+    gl.uniform1f(gl.getUniformLocation(jfaStepProgram, 'uStepSize'), stepSize);
+    runPass(jfaStepProgram, writeTex);
+    
+    const tmp = readTex;
+    readTex = writeTex;
+    writeTex = tmp;
   }
   
-  const glowIntensity = 0.4;
+  gl.useProgram(regionStatsProgram);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
+  gl.uniform1i(gl.getUniformLocation(regionStatsProgram, 'uTexture'), 0);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, readTex);
+  gl.uniform1i(gl.getUniformLocation(regionStatsProgram, 'uSeeds'), 1);
+  gl.uniform2f(gl.getUniformLocation(regionStatsProgram, 'uResolution'), w, h);
+  gl.uniform1f(gl.getUniformLocation(regionStatsProgram, 'uK'), k);
+  runPass(regionStatsProgram, gradientTexture);
+  
+  gl.useProgram(blurProgram);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, gradientTexture);
+  gl.uniform1i(gl.getUniformLocation(blurProgram, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uResolution'), w, h);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 1.0, 0.0);
+  runPass(blurProgram, blurTexture1);
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, blurTexture1);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 0.0, 1.0);
+  runPass(blurProgram, blurTexture2);
+  
+  gl.useProgram(compositeProgram);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, gradientTexture);
+  gl.uniform1i(gl.getUniformLocation(compositeProgram, 'uGradient'), 0);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, blurTexture2);
+  gl.uniform1i(gl.getUniformLocation(compositeProgram, 'uBlurred'), 1);
+  gl.uniform1f(gl.getUniformLocation(compositeProgram, 'uGlowIntensity'), 0.5);
+  runPass(compositeProgram, null);
+  
+  const pixels = new Uint8ClampedArray(w * h * 4);
+  gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(w * h * 4);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const [r1, g1, b1] = getPixel(out, x, y);
-      const [r2, g2, b2] = getPixel(blurred, x, y);
-      
-      const nr = Math.min(255, r1 + Math.round(r2 * glowIntensity));
-      const ng = Math.min(255, g1 + Math.round(g2 * glowIntensity));
-      const nb = Math.min(255, b1 + Math.round(b2 * glowIntensity));
-      
-      setPixel(out, x, y, nr, ng, nb);
+      const srcIdx = ((h - 1 - y) * w + x) * 4;
+      const dstIdx = (y * w + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(srcTexture);
+  gl.deleteTexture(edgeTexture);
+  gl.deleteTexture(jfaTexture1);
+  gl.deleteTexture(jfaTexture2);
+  gl.deleteTexture(gradientTexture);
+  gl.deleteTexture(blurTexture1);
+  gl.deleteTexture(blurTexture2);
+  gl.deleteFramebuffer(framebuffer);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(edgeProgram);
+  gl.deleteProgram(jfaInitProgram);
+  gl.deleteProgram(jfaStepProgram);
+  gl.deleteProgram(regionStatsProgram);
+  gl.deleteProgram(blurProgram);
+  gl.deleteProgram(compositeProgram);
+  
+  return { width: w, height: h, data: flipped };
 }
 
 function fnV(ctx: FnContext, c: string): Image {
