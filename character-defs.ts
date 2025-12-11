@@ -1398,7 +1398,7 @@ function fnE(ctx: FnContext): Image {
     emeraldScene!.add(light);
   }
 
-  // Glass emerald material - dramatic with strong specular
+  // Glass emerald material - pronounced edges with sheen
   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
     color: new THREE.Color(0.3, 0.95, 0.5),
     metalness: 0.0,
@@ -1407,16 +1407,19 @@ function fnE(ctx: FnContext): Image {
     thickness: 0.4,
     ior: 1.3,
     envMapIntensity: 0.25,
-    clearcoat: 0.6,
+    clearcoat: 1.0,
     clearcoatRoughness: 0.0,
     transparent: true,
     side: THREE.DoubleSide,
     flatShading: true,
     attenuationColor: new THREE.Color(0.0, 0.75, 0.25),
     attenuationDistance: 0.4,
-    specularIntensity: 1.2,
+    specularIntensity: 1.5,
     specularColor: new THREE.Color(1, 1, 1),
-    reflectivity: 0.2,
+    reflectivity: 0.3,
+    sheen: 0.5,
+    sheenRoughness: 0.2,
+    sheenColor: new THREE.Color(0.8, 1.0, 0.9),
   });
   
   // Corner positions extracted from the emerald geometry
