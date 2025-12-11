@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-144522264980>
+${greger-prompt-code-style<eval-result-144634242173>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-144522264980>}
+</eval-result-144634242173>}
 
 # USER
 
@@ -8930,5 +8930,103 @@ Rewrite oil slick to preserve original content with subtle warp and overlay ligh
 ID: toolu_01PTmRSeFNTiHKk1Pebf8CSh
 
 <tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Rewrite oil slick to preserve original content with subtle warp and overlay lighting
 </tool.toolu_01PTmRSeFNTiHKk1Pebf8CSh>
+
+# ASSISTANT
+
+Now the effect:
+- Applies warp as a small UV displacement (multiplied by 0.1)
+- Preserves most of the original color (lighting is 0.9 + 0.1 * diffuse)
+- Adds subtle specular highlights (0.15 strength)
+
+The original image should be clearly visible with just a subtle oily sheen on top.
+
+# USER
+
+make the defaults a bit more aggressive at OOO
+
+# THINKING
+
+Signature: EpEFCkYIChgCKkA+VeLB9TMlD5P/7ZRD8Wm8MpiXe6XhfVubYLAasMDxbk+oLJgF2sq7E3O5+IEJyBtTAfuooi3ihTKBTUGb3MxDEgzPP/Fv8lmB/8WvoD0aDKXda6PWV4gaKRo59CIwSWwPCS2TgIHiFCDW9SaOaF9zH4jCKW/GUlWaUFsbDUyHjf97W5sw70TZtg3Zil19KvgD5//nYlIB6B2dS/TLlFjekLhF8Igxl1Qt0nREeT9Yh6hjbRr1x3XMDY9OH3VNzkaTwx0lhL2rsbky6YImx1VbR9md2s1HBB5VtDr8VmkN6PIn3kIe9Hi8pB0s2pK05PJeqQLgBlGYwq0uLVQsb3LztubFRDXz2dacGp2th9XHukbDiJaZhYnCh3prgQ42r4v+ovdNLE17HemSzGU9IvPCbe/W91LoWQ0jW21PrEtuKNqqXtKNU9Lzf7Eh47Q6FC3vquBfV/9mT+8viQqFxAjsDA/GHgR/rvw2s/b+Ebe2yAWM7WyG61EfzP4YIMqtP0pQ22dJ43cmPGy/s0xJEyicRxTEPsPkkGwg5ErBFOBIW+BwrBKVec/0apvMwV9Cmkk1CL9wrdYXRQszhHAV8UxEt9cRZbJhF+zlx8De5g7HVUbwdjuac9W0cyCee61o3zkgcaMtbVmB66ExEAGPsZloeTT0SqSVrvnV1AzxAq601rAY09QE+RguVvvF+v/jyuYE/H9ZLfkl4Wi8czhgmOetyooXrDKsK3imRxoSIJTCflj4keqRspqX/fFSa9Kq/PPqBBg/E6RuRTMw9FdvoRdx3j7r9UwInUcTECTQLhdLomCUv5Z0UTZUtXyEd56h6xGYI13OsK5UqDA6huHcTQ1KRlRtTIogA/rQGAE=
+
+The user wants OOO to be more aggressive/visible. O's number is 15, so both warpN and iridN would be 15.
+
+Currently:
+- depth = 1 + Math.floor(15 / 4) = 1 + 3 = 4
+- warpStrength = 0.05 + 15 * 0.025 = 0.05 + 0.375 = 0.425
+
+And in the shader the warp is multiplied by 0.1, so effective warp is 0.0425.
+
+The lighting is:
+- lighting = 0.9 + diffuse * 0.1
+- highlight = spec * 0.15
+
+I should increase these values so OOO shows more effect. Let me increase the warp multiplier and the lighting contrast.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DZu2CcWW9FWKupK4s2CobH
+
+## path
+
+<tool.toolu_01DZu2CcWW9FWKupK4s2CobH>
+character-defs.ts
+</tool.toolu_01DZu2CcWW9FWKupK4s2CobH>
+
+## git-commit-message
+
+<tool.toolu_01DZu2CcWW9FWKupK4s2CobH>
+Make oil slick more aggressive at default OOO values
+</tool.toolu_01DZu2CcWW9FWKupK4s2CobH>
+
+## diff
+
+<tool.toolu_01DZu2CcWW9FWKupK4s2CobH>
+-      // Apply warp as UV offset (small displacement)
+-      vec2 warpedUV = uv + warp * 0.1;
++      // Apply warp as UV offset
++      vec2 warpedUV = uv + warp * 0.15;
+       warpedUV = clamp(warpedUV, 0.0, 1.0);
+       
+       // Sample texture at warped position
+       vec3 texColor = texture2D(uTexture, warpedUV).rgb;
+       
+       // Oil slick lighting overlay based on noise
+       float h = fbm(noiseCoord + warp, uSeed);
+       float hx = fbm(noiseCoord + warp + vec2(0.05, 0.0), uSeed);
+       float hy = fbm(noiseCoord + warp + vec2(0.0, 0.05), uSeed);
+       
+       // Fake normal from height field
+-      vec3 normal = normalize(vec3((h - hx) * 5.0, (h - hy) * 5.0, 1.0));
++      vec3 normal = normalize(vec3((h - hx) * 8.0, (h - hy) * 8.0, 1.0));
+       
+       // Light from top-left
+       vec3 lightDir = normalize(vec3(0.5, 0.6, 1.0));
+       float diffuse = max(dot(normal, lightDir), 0.0);
+       
+       // Specular highlight
+       vec3 viewDir = vec3(0.0, 0.0, 1.0);
+       vec3 reflectDir = reflect(-lightDir, normal);
+-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
++      float spec = pow(max(dot(viewDir, reflectDir), 0.0), 24.0);
+       
+-      // Subtle lighting adjustment - mostly preserve original
+-      float lighting = 0.9 + diffuse * 0.1;
+-      float highlight = spec * 0.15;
+\ No newline at end of file
++      // Lighting adjustment
++      float lighting = 0.85 + diffuse * 0.2;
++      float highlight = spec * 0.25;
+\ No newline at end of file
+
+</tool.toolu_01DZu2CcWW9FWKupK4s2CobH>
+
+# TOOL RESULT
+
+ID: toolu_01DZu2CcWW9FWKupK4s2CobH
+
+<tool.toolu_01DZu2CcWW9FWKupK4s2CobH>
+
+</tool.toolu_01DZu2CcWW9FWKupK4s2CobH>
