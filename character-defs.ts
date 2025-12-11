@@ -1587,9 +1587,9 @@ function fnE(ctx: FnContext): Image {
   
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(ctx.width, ctx.height),
-    0.8,   // strength - intensity of bloom
-    0.3,   // radius - how far bloom spreads
-    0.85   // threshold - only bloom bright spots
+    0.4,   // strength - reduced intensity
+    0.2,   // radius - tighter spread
+    0.92   // threshold - only bloom very bright spots
   );
   emeraldComposer!.addPass(bloomPass);
   
