@@ -1354,21 +1354,22 @@ function fnE(ctx: FnContext): Image {
   const envRT = pmremGenerator.fromEquirectangular(bgTexture);
   emeraldScene!.environment = envRT.texture;
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  // Low ambient for more contrast
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
   emeraldScene!.add(ambientLight);
   
-  // Key light - bright white from top-right-front
-  const keyLight = new THREE.DirectionalLight(0xffffff, 4.0);
+  // Strong key light for highlights
+  const keyLight = new THREE.DirectionalLight(0xffffff, 5.0);
   keyLight.position.set(5, 8, 10);
   emeraldScene!.add(keyLight);
   
-  // Fill light with slight green tint
-  const fillLight = new THREE.DirectionalLight(0xeeffee, 2.0);
+  // Weak fill light - keeps shadows darker
+  const fillLight = new THREE.DirectionalLight(0xeeffee, 0.8);
   fillLight.position.set(-5, 3, 8);
   emeraldScene!.add(fillLight);
   
   // Rim light for edge highlights
-  const rimLight = new THREE.DirectionalLight(0xffffff, 3.0);
+  const rimLight = new THREE.DirectionalLight(0xffffff, 2.5);
   rimLight.position.set(0, -2, 8);
   emeraldScene!.add(rimLight);
   
