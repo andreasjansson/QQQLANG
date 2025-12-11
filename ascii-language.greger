@@ -6231,5 +6231,66 @@ Update '}' to use fnSkewRight
 ID: toolu_01E86QsA4ZdgrDo8XVUTKkZF
 
 <tool.toolu_01E86QsA4ZdgrDo8XVUTKkZF>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update '}' to use fnSkewRight
 </tool.toolu_01E86QsA4ZdgrDo8XVUTKkZF>
+
+# ASSISTANT
+
+Now we can remove fnTornRight since it's no longer used:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01NR65eyCDvNhY8pctxDgeHv
+
+## path
+
+<tool.toolu_01NR65eyCDvNhY8pctxDgeHv>
+character-defs.ts
+</tool.toolu_01NR65eyCDvNhY8pctxDgeHv>
+
+## git-commit-message
+
+<tool.toolu_01NR65eyCDvNhY8pctxDgeHv>
+Remove unused fnTornRight function
+</tool.toolu_01NR65eyCDvNhY8pctxDgeHv>
+
+## diff
+
+<tool.toolu_01NR65eyCDvNhY8pctxDgeHv>
+-function fnTornRight(ctx: FnContext, j: number): Image {
+-  const prev = getPrevImage(ctx);
+-  const old = getOldImage(ctx, j);
+-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+-  
+-  const boundary = ctx.width * 2 / 3;
+-  
+-  for (let y = 0; y < ctx.height; y++) {
+-    const tear = boundary + Math.sin(y * 0.3) * 20 + Math.sin(y * 0.7) * 10;
+-    
+-    for (let x = 0; x < ctx.width; x++) {
+-      if (x > tear) {
+-        const [r, g, b] = getPixel(old, x, y);
+-        setPixel(out, x, y, r, g, b);
+-      } else {
+-        const [r, g, b] = getPixel(prev, x, y);
+-        setPixel(out, x, y, r, g, b);
+-      }
+-    }
+-  }
+-  
+-  return out;
+-}
+-
+ function fnUnderscore
+\ No newline at end of file
+
+</tool.toolu_01NR65eyCDvNhY8pctxDgeHv>
+
+# TOOL RESULT
+
+ID: toolu_01NR65eyCDvNhY8pctxDgeHv
+
+<tool.toolu_01NR65eyCDvNhY8pctxDgeHv>
+
+</tool.toolu_01NR65eyCDvNhY8pctxDgeHv>
