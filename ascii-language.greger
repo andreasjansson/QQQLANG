@@ -7842,5 +7842,49 @@ Use gloss strength for lighting calculation in shader
 ID: toolu_01WTg5Z4qGs1KJzQskBCXfTE
 
 <tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Use gloss strength for lighting calculation in shader
 </tool.toolu_01WTg5Z4qGs1KJzQskBCXfTE>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01SjxnrN7XUWTYw19jDSGGG8
+
+## path
+
+<tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+character-defs.ts
+</tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+
+## git-commit-message
+
+<tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+Set gloss strength uniform
+</tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+
+## original-content
+
+<tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
+  gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
+  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
+</tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+
+## new-content
+
+<tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+  gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), depth);
+  gl.uniform1f(gl.getUniformLocation(program, 'uWarpStrength'), warpStrength);
+  gl.uniform1f(gl.getUniformLocation(program, 'uPatternScale'), patternScale);
+  gl.uniform1f(gl.getUniformLocation(program, 'uGlossStrength'), glossStrength);
+</tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+
+# TOOL RESULT
+
+ID: toolu_01SjxnrN7XUWTYw19jDSGGG8
+
+<tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
+
+</tool.toolu_01SjxnrN7XUWTYw19jDSGGG8>
