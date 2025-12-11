@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-001900073715>
+${greger-prompt-code-style<eval-result-002354222684>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-001900073715>}
+</eval-result-002354222684>}
 
 # IMPORTANT
 
@@ -14333,5 +14333,1002 @@ Update upload button state when cursor moves
 ID: toolu_011upWYxMyivMgw2Jn4pN7ja
 
 <tool.toolu_011upWYxMyivMgw2Jn4pN7ja>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Update upload button state when cursor moves
 </tool.toolu_011upWYxMyivMgw2Jn4pN7ja>
+
+# ASSISTANT
+
+Now let me also check if we're calling `updateUploadButtonState()` after rendering - this should update the button state whenever content changes:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01FghaLrBovAAGtpdXsuSmcT
+
+## pattern
+
+<tool.toolu_01FghaLrBovAAGtpdXsuSmcT>
+updateUploadButtonState\(\)"
+</tool.toolu_01FghaLrBovAAGtpdXsuSmcT>
+
+## path
+
+<tool.toolu_01FghaLrBovAAGtpdXsuSmcT>
+index.html
+</tool.toolu_01FghaLrBovAAGtpdXsuSmcT>
+
+# TOOL RESULT
+
+ID: toolu_01FghaLrBovAAGtpdXsuSmcT
+
+<tool.toolu_01FghaLrBovAAGtpdXsuSmcT>
+Pattern ends with trailing double quote. This is likely an error. If you really want to search for patterns ending with a double quote, set allow-trailing-double-quote to true
+</tool.toolu_01FghaLrBovAAGtpdXsuSmcT>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01NUzmFsVooWS9ZQ1fsxKmBH
+
+## pattern
+
+<tool.toolu_01NUzmFsVooWS9ZQ1fsxKmBH>
+updateUploadButtonState\(\)
+</tool.toolu_01NUzmFsVooWS9ZQ1fsxKmBH>
+
+## path
+
+<tool.toolu_01NUzmFsVooWS9ZQ1fsxKmBH>
+index.html
+</tool.toolu_01NUzmFsVooWS9ZQ1fsxKmBH>
+
+# TOOL RESULT
+
+ID: toolu_01NUzmFsVooWS9ZQ1fsxKmBH
+
+<tool.toolu_01NUzmFsVooWS9ZQ1fsxKmBH>
+374:    function updateUploadButtonState() {
+727:      updateUploadButtonState();
+
+</tool.toolu_01NUzmFsVooWS9ZQ1fsxKmBH>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01HjJQJ7ZreQNDUXoLrA2n8K
+
+## pattern
+
+<tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+updateUploadButtonState\(\)"
+</tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+
+## path
+
+<tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+index.html
+</tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+
+## context-lines
+
+<tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+3
+</tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+
+## allow-trailing-double-quote
+
+<tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+true
+</tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+
+# TOOL RESULT
+
+ID: toolu_01HjJQJ7ZreQNDUXoLrA2n8K
+
+<tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+No matches found
+</tool.toolu_01HjJQJ7ZreQNDUXoLrA2n8K>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01MEPyH9fVP8LQCf9fteb9uY
+
+## path
+
+<tool.toolu_01MEPyH9fVP8LQCf9fteb9uY>
+index.html
+</tool.toolu_01MEPyH9fVP8LQCf9fteb9uY>
+
+## start-line
+
+<tool.toolu_01MEPyH9fVP8LQCf9fteb9uY>
+724
+</tool.toolu_01MEPyH9fVP8LQCf9fteb9uY>
+
+## end-line
+
+<tool.toolu_01MEPyH9fVP8LQCf9fteb9uY>
+735
+</tool.toolu_01MEPyH9fVP8LQCf9fteb9uY>
+
+# TOOL RESULT
+
+ID: toolu_01MEPyH9fVP8LQCf9fteb9uY
+
+<tool.toolu_01MEPyH9fVP8LQCf9fteb9uY>
+      updateDebugPane(program);
+      updateInputColors(program);
+      updateFaviconAndTitle(program);
+      updateUploadButtonState();
+    }
+
+    function loadProgramFromURL() {
+      const program = getProgramFromURL();
+      input.value = program;
+      
+      clearUploadedImages();
+      
+</tool.toolu_01MEPyH9fVP8LQCf9fteb9uY>
+
+# ASSISTANT
+
+Good, `updateUploadButtonState()` is called at the end of `render()`. The fixes are in place. Let me summarize what was changed:
+
+1. **Cursor position tracking**: Changed from using `getExpectedNextType(input.value)` to `getExpectedTypeAtPosition(input.value, cursorPos)` which checks the expected type at the cursor position, not the end of the program.
+
+2. **Emoji cursor fix**: Changed `start + 1` to `start + UPLOAD_CHAR.length` since 🖼 is a surrogate pair (2 code units in JavaScript).
+
+3. **Disabled styling**: The CSS already had `.toolbar-button:disabled` with `opacity: 0.5` - this should make it visually obvious when disabled.
+
+4. **Selection change events**: Added event listeners for `keyup`, `mouseup`, and `focus` to update the button state when the cursor moves.
+
+# USER
+
+* when i click on the picture icon and select a new image, it doesn't actually change the image
+* the checkerboard needs to be the size of the canvas
+* when resizing the screen, the uploaded image doesn't change size. I think you'll need to locally keep track of the original uploaded image, and "re-compute" it when the state changes
+
+# THINKING
+
+Signature: EvIKCkYIChgCKkDJfXDgfbHbJ/32t7SI+zC4BLWca1VFD3dGhnglMMphU/cslAC/kZcu4W242PXzrmQpGB8i21R2jKDGfgJKT7yiEgxKXzPRVMjTv8yOo94aDEOduUg0AQ/Y40aBGiIwt2629hMMQrO/YeLDXDDwAvmM+RBSmfsyEF665z76skfUyEn4eL8UE7mh3mSc0YEnKtkJKv+0n5V7CPuBklFUzJ6DH0C8wot3Tt4d10P+XpL5mVbnPrX5CPSOEIVWWOb11pfrd5qbhj4zHXsDJfcIyopaQ4xM7ery+gFS6WsoVYTOPU0e3d8SWLUUjnw40xd5vsTMCATZeDK2FEzvEBfhdjsWY8HtSKMSyV2o44brt194tp2mIB2RbfZ3AFLfq4G8EeITSsuZyQJcPhbvUqX7zgzS5gbWDJq/vWqoeVSWsG89wxJcfcPUZt32HflKxIx6bDYc6MVhcH+FNrvSHV7RkhdQ1whsYBmC4afwzilT+7+gymHrdbuxQvpghkULzN/UvaGLWkFIfEaYX9u99ZZz5rYfwfSXXNJdIx0dJSHFtmYqjsdRK1GkcOdvsFXwcEvivn0X8QvyAlRfb9sAHEoFHG9sDop30oLfgLRzE9zP6/wW/AsYMe/rMFiSZyYasPsN7r8v0+zcqb56L13T97WLDeGTJ74Zy0B5HnzGSGpYDFMvpk1j4p3nNju2H7HD+HmUT59BdnY/o8W1AnZX3vZEYfBzsOcU9a0i8nS2ytOCfBMaiOtg+9mAvk6VBKjyUj0/xtfZGqalLoUQzbQQSNhl6kM3SjSYNCh/OdeYzPmwDwGUlHpZ08MfopN2gh6srZTXTE6l5dGMQdkOZY78vGfvdNdm2RxG0So3ruj7ZrLeDGiZom3jO5E9IsGRiMqWanWrs7hT1/U3vhY1YZ3xXX0exkDZLC6gwd7U58s6t2iKkKRCDctJwbYBcI2mppeW52H/6El+YpCtmpRNgP4Q0if2BAqup7wXp7pUapn+DmOUxisWUUxPGGtx2rBLGJc9fQqKiXfjKV+o6NQeeJog7DLfbrapMWshtsmvMLUwtSviaM5F+I7qSsRcb9Ti5zou9hP14uEXtagEgxrraF2Jr7FwUjMWuMhKfv3r3QlIrzryrqfeoNSm0/DejWBEC4AXkw7SwIZSS8vY+HBk+6EG7rVLlXfowUtx+p5ncNBzMwYKQJHqOrgUZKFnKPTTMjTSDySpjXrzAZsJvXjhsuMzl25nHIZkcr5ZnNCjTpYQEaNaM/KCG3iL9aM7IyanNoq0t5HC1tYEaBGEHKMZgLK7SAprKjvKF4lBW6AufRYj3ObaXvnQyooZVKKbjvxWZdjRfkjEnOoL4E+zMHE4dG7QIFsxXl325RC1e1WdWtq7eKA2DZaQobinqVBqOBxfiiDzxDYdmPgH/zRcTB46aIHya2ZuB0fceFs3DI5msjFA/Z9VxzZf1pfsP2zEzZkiHjVgNugjU9UL7so6UPkC1P3NfdZ1CBfkkPQlTeDC0wWZQt3ERfuvPBQzvBKfyBlvva8N145V4Ye84h8tWOsYTh0Y0kfGbgBT8aObqVh1yPAKEfjk5hiNKUFOUK2mUktKA1wdhu4IevPAC/lX9W18OeEn38q8q6j3DTEQ0MPCN8W40uZAwbMSWIJiqXjMWXQD2DwsTGuVPPWAP9IYwgbD3AN8LtpBlsYJSeiEyLKjnBRzVSjOtA2U7XWWj0LPM6FeYpfI4RzeBzIh2KLUKFbsUZrhmwI7/qJaka0AlgsYE+4hDH7wFzpWrtV27U4653Rg2ZMTa2MDQaF/v+jFADoADkbaC/A68TgHida5yPqADySXB9lu1CiVKWbDXVcuk9uii+sYAQ==
+
+The user has identified three issues:
+
+1. When clicking on the picture icon and selecting a new image, it doesn't change - this is the `pendingUploadIndex` flow. Let me check how that works.
+
+2. The checkerboard placeholder needs to be canvas-sized - currently `createPlaceholderImage` is in character-defs.ts but it doesn't have access to the canvas dimensions when called from the runtime.
+
+3. When resizing, uploaded images don't resize - we need to store the original image data (or file/blob) and re-compute scaled versions when dimensions change.
+
+Let me trace through the code:
+
+1. For clicking on picture icon - the `handleInputClick` function sets `pendingUploadIndex` and triggers file input. Then in `fileInput.addEventListener('change')`, if `pendingUploadIndex !== null`, it calls `setUploadedImage(pendingUploadIndex, img)`. Let me check if `setUploadedImage` is properly exported and working.
+
+2. For checkerboard size - when we call `createPlaceholderImage` in the runtime, we pass width/height. Let me check if this is being done correctly.
+
+3. For resize - we need to store the original image blobs/files and recompute them when canvas size changes. This is a bigger change.
+
+Let me look at the relevant code.
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01Lcgrf7hffNmF6WPTCyK6Wz
+
+## pattern
+
+<tool.toolu_01Lcgrf7hffNmF6WPTCyK6Wz>
+pendingUploadIndex
+</tool.toolu_01Lcgrf7hffNmF6WPTCyK6Wz>
+
+## path
+
+<tool.toolu_01Lcgrf7hffNmF6WPTCyK6Wz>
+index.html
+</tool.toolu_01Lcgrf7hffNmF6WPTCyK6Wz>
+
+## context-lines
+
+<tool.toolu_01Lcgrf7hffNmF6WPTCyK6Wz>
+3
+</tool.toolu_01Lcgrf7hffNmF6WPTCyK6Wz>
+
+# TOOL RESULT
+
+ID: toolu_01Lcgrf7hffNmF6WPTCyK6Wz
+
+<tool.toolu_01Lcgrf7hffNmF6WPTCyK6Wz>
+302-    const INTRO_DURATION_MS = 4000;
+303-    const FADE_DURATION_MS = 1000;
+304-    
+305:    let pendingUploadIndex = null;
+306-    
+307-    function shouldShowIntro() {
+308-      const params = new URLSearchParams(window.location.search);
+--
+448-      const cursorPos = input.selectionStart ?? input.value.length;
+449-      const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
+450-      if (expectedType === 'initial' || expectedType === 'index') {
+451:        pendingUploadIndex = null;
+452-        fileInput.click();
+453-      }
+454-    });
+--
+459-      
+460-      const img = await loadImageFromFile(file);
+461-      
+462:      if (pendingUploadIndex !== null) {
+463:        setUploadedImage(pendingUploadIndex, img);
+464:        pendingUploadIndex = null;
+465-      } else {
+466-        const uploadIndex = addUploadedImage(img);
+467-        
+--
+649-        
+650-        if (clickX >= spanLeft && clickX <= spanRight) {
+651-          const idx = parseInt(span.dataset.uploadIndex, 10);
+652:          pendingUploadIndex = idx;
+653-          fileInput.click();
+654-          e.preventDefault();
+655-          return;
+
+</tool.toolu_01Lcgrf7hffNmF6WPTCyK6Wz>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01Rbj3vxVkoE6wu6FLvo8zYV
+
+## pattern
+
+<tool.toolu_01Rbj3vxVkoE6wu6FLvo8zYV>
+setUploadedImage
+</tool.toolu_01Rbj3vxVkoE6wu6FLvo8zYV>
+
+## path
+
+<tool.toolu_01Rbj3vxVkoE6wu6FLvo8zYV>
+runtime.ts
+</tool.toolu_01Rbj3vxVkoE6wu6FLvo8zYV>
+
+## context-lines
+
+<tool.toolu_01Rbj3vxVkoE6wu6FLvo8zYV>
+5
+</tool.toolu_01Rbj3vxVkoE6wu6FLvo8zYV>
+
+# TOOL RESULT
+
+ID: toolu_01Rbj3vxVkoE6wu6FLvo8zYV
+
+<tool.toolu_01Rbj3vxVkoE6wu6FLvo8zYV>
+71-  const index = uploadedImages.length;
+72-  uploadedImages.push(img);
+73-  return index;
+74-}
+75-
+76:export function setUploadedImage(index: number, img: Image): void {
+77-  uploadedImages[index] = img;
+78-}
+79-
+80-export function getUploadCount(program: string): number {
+81-  const chars = [...program];
+
+</tool.toolu_01Rbj3vxVkoE6wu6FLvo8zYV>
+
+# ASSISTANT
+
+The `setUploadedImage` function exists. Let me check if the issue is that the render isn't being called after. Let me look at the fileInput change handler more closely and the handleInputClick:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01E7JZg9DwooyfeaHdKFcJPZ
+
+## path
+
+<tool.toolu_01E7JZg9DwooyfeaHdKFcJPZ>
+index.html
+</tool.toolu_01E7JZg9DwooyfeaHdKFcJPZ>
+
+## start-line
+
+<tool.toolu_01E7JZg9DwooyfeaHdKFcJPZ>
+640
+</tool.toolu_01E7JZg9DwooyfeaHdKFcJPZ>
+
+## end-line
+
+<tool.toolu_01E7JZg9DwooyfeaHdKFcJPZ>
+680
+</tool.toolu_01E7JZg9DwooyfeaHdKFcJPZ>
+
+# TOOL RESULT
+
+ID: toolu_01E7JZg9DwooyfeaHdKFcJPZ
+
+<tool.toolu_01E7JZg9DwooyfeaHdKFcJPZ>
+      const inputRect = input.getBoundingClientRect();
+      const clickX = e.clientX - inputRect.left;
+      
+      const spans = inputBackground.querySelectorAll('.upload-char:not(.upload-invalid)');
+      for (const span of spans) {
+        const spanRect = span.getBoundingClientRect();
+        const bgRect = inputBackground.getBoundingClientRect();
+        const spanLeft = spanRect.left - bgRect.left;
+        const spanRight = spanLeft + spanRect.width;
+        
+        if (clickX >= spanLeft && clickX <= spanRight) {
+          const idx = parseInt(span.dataset.uploadIndex, 10);
+          pendingUploadIndex = idx;
+          fileInput.click();
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+    
+    function handleInputMouseMove(e) {
+      if (isOverUploadChar(e.clientX)) {
+        input.style.cursor = 'pointer';
+      } else {
+        input.style.cursor = '';
+      }
+    }
+
+    function resize() {
+      const container = document.getElementById('canvas-container');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      render();
+    }
+
+    function updateFaviconAndTitle(program) {
+      let favicon = document.getElementById('dynamic-favicon');
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.id = 'dynamic-favicon';
+        favicon.rel = 'icon';
+</tool.toolu_01E7JZg9DwooyfeaHdKFcJPZ>
+
+# ASSISTANT
+
+I see the issue. When a new image is selected via clicking on the picture icon, `render()` is called at the end of the fileInput change handler, but the uploaded image might not be updating properly. Let me also check `createPlaceholderImage` and how it's called:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01GBcLFPxuoS5WZmHTKPA3EE
+
+## pattern
+
+<tool.toolu_01GBcLFPxuoS5WZmHTKPA3EE>
+createPlaceholderImage
+</tool.toolu_01GBcLFPxuoS5WZmHTKPA3EE>
+
+## path
+
+<tool.toolu_01GBcLFPxuoS5WZmHTKPA3EE>
+runtime.ts
+</tool.toolu_01GBcLFPxuoS5WZmHTKPA3EE>
+
+## context-lines
+
+<tool.toolu_01GBcLFPxuoS5WZmHTKPA3EE>
+5
+</tool.toolu_01GBcLFPxuoS5WZmHTKPA3EE>
+
+# TOOL RESULT
+
+ID: toolu_01GBcLFPxuoS5WZmHTKPA3EE
+
+<tool.toolu_01GBcLFPxuoS5WZmHTKPA3EE>
+1:import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR } from './character-defs.js';
+2-
+3-interface UploadedImageRef {
+4-  type: 'uploaded';
+5-  index: number;
+6-}
+--
+278-      console.log(`  Using uploaded image ${op.uploadIndex}`);
+279-      if (op.uploadIndex < uploadedImages.length) {
+280-        result = uploadedImages[op.uploadIndex];
+281-      } else {
+282-        console.log(`  Upload ${op.uploadIndex} not found, using placeholder`);
+283:        result = createPlaceholderImage(width, height);
+284-      }
+285-    } else {
+286-      console.log(`  Executing function: ${op.fnDef.functionName} with args:`, op.args);
+287-      const ctx: FnContext = {
+288-        width,
+--
+296-        if (argType === 'index') {
+297-          if (typeof arg === 'object' && arg.type === 'uploaded') {
+298-            if (arg.index < uploadedImages.length) {
+299-              return uploadedImages[arg.index];
+300-            } else {
+301:              return createPlaceholderImage(width, height);
+302-            }
+303-          } else if (typeof arg === 'number') {
+304-            return getOldImage(ctx, arg);
+305-          }
+306-        }
+
+</tool.toolu_01GBcLFPxuoS5WZmHTKPA3EE>
+
+# ASSISTANT
+
+Good, `createPlaceholderImage` is being called with width and height. Now let me look at the implementation:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01Ejub3qy5MKvJNnZBapnQG5
+
+## pattern
+
+<tool.toolu_01Ejub3qy5MKvJNnZBapnQG5>
+export function createPlaceholderImage
+</tool.toolu_01Ejub3qy5MKvJNnZBapnQG5>
+
+## path
+
+<tool.toolu_01Ejub3qy5MKvJNnZBapnQG5>
+character-defs.ts
+</tool.toolu_01Ejub3qy5MKvJNnZBapnQG5>
+
+## context-lines
+
+<tool.toolu_01Ejub3qy5MKvJNnZBapnQG5>
+15
+</tool.toolu_01Ejub3qy5MKvJNnZBapnQG5>
+
+# TOOL RESULT
+
+ID: toolu_01Ejub3qy5MKvJNnZBapnQG5
+
+<tool.toolu_01Ejub3qy5MKvJNnZBapnQG5>
+18-  currentIndex: number;
+19-}
+20-
+21-export interface CharDef {
+22-  color: string;
+23-  number: number;
+24-  fn: (ctx: FnContext, ...args: any[]) => Image;
+25-  arity: number;
+26-  argTypes: ('int' | 'color' | 'index')[];
+27-  functionName: string;
+28-  documentation: string;
+29-}
+30-
+31-export const UPLOAD_CHAR = '🖼';
+32-
+33:export function createPlaceholderImage(width: number, height: number): Image {
+34-  const data = new Uint8ClampedArray(width * height * 4);
+35-  const checkSize = 16;
+36-  for (let y = 0; y < height; y++) {
+37-    for (let x = 0; x < width; x++) {
+38-      const i = (y * width + x) * 4;
+39-      const isLight = (Math.floor(x / checkSize) + Math.floor(y / checkSize)) % 2 === 0;
+40-      const gray = isLight ? 128 : 96;
+41-      data[i] = gray;
+42-      data[i + 1] = gray;
+43-      data[i + 2] = gray;
+44-      data[i + 3] = 255;
+45-    }
+46-  }
+47-  return { width, height, data };
+48-}
+
+</tool.toolu_01Ejub3qy5MKvJNnZBapnQG5>
+
+# ASSISTANT
+
+The placeholder is correctly implemented. The issue is that we need to:
+
+1. Store the original uploaded files (not the resized images)
+2. Re-create the images at the correct size when dimensions change
+
+Let me redesign the upload storage to keep original blobs:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01MGa3mbQYVD3YQ8pG1BrhH2
+
+## path
+
+<tool.toolu_01MGa3mbQYVD3YQ8pG1BrhH2>
+runtime.ts
+</tool.toolu_01MGa3mbQYVD3YQ8pG1BrhH2>
+
+## git-commit-message
+
+<tool.toolu_01MGa3mbQYVD3YQ8pG1BrhH2>
+Store original upload blobs and recompute on resize
+</tool.toolu_01MGa3mbQYVD3YQ8pG1BrhH2>
+
+## diff
+
+<tool.toolu_01MGa3mbQYVD3YQ8pG1BrhH2>
+ import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR } from './character-defs.js';
+ 
+ interface UploadedImageRef {
+   type: 'uploaded';
+   index: number;
+ }
+ 
+ type ParsedArg = number | string | UploadedImageRef;
+ 
+ interface ParsedSolidColor {
+   type: 'solid';
+   identifier: string;
+   color: string;
+ }
+ 
+ interface ParsedUploadedImage {
+   type: 'uploaded-image';
+   identifier: string;
+   uploadIndex: number;
+ }
+ 
+ interface ParsedFunction {
+   type: 'function';
+   identifier: string;
+   fnDef: CharDef;
+   args: ParsedArg[];
+ }
+ 
+ type ParsedOp = ParsedSolidColor | ParsedUploadedImage | ParsedFunction;
+ 
+ class LRUCache<K, V> {
+   private cache = new Map<K, V>();
+   private maxSize: number;
+ 
+   constructor(maxSize: number = 100) {
+     this.maxSize = maxSize;
+   }
+ 
+   get(key: K): V | undefined {
+     const value = this.cache.get(key);
+     if (value !== undefined) {
+       this.cache.delete(key);
+       this.cache.set(key, value);
+     }
+     return value;
+   }
+ 
+   set(key: K, value: V): void {
+     if (this.cache.has(key)) {
+       this.cache.delete(key);
+     }
+     this.cache.set(key, value);
+     if (this.cache.size > this.maxSize) {
+       const firstKey = this.cache.keys().next().value;
+       if (firstKey !== undefined) {
+         this.cache.delete(firstKey);
+       }
+     }
+   }
+ 
+   clear(): void {
+     this.cache.clear();
+   }
+ }
+ 
+-export const uploadedImages: Image[] = [];
++interface UploadedImageData {
++  blob: Blob;
++  cachedImage: Image | null;
++  cachedWidth: number;
++  cachedHeight: number;
++}
+ 
++const uploadedImageData: UploadedImageData[] = [];
++
+ export function clearUploadedImages(): void {
+-  uploadedImages.length = 0;
++  uploadedImageData.length = 0;
+ }
+ 
+-export function addUploadedImage(img: Image): number {
+-  const index = uploadedImages.length;
+-  uploadedImages.push(img);
++export function addUploadedBlob(blob: Blob): number {
++  const index = uploadedImageData.length;
++  uploadedImageData.push({ blob, cachedImage: null, cachedWidth: 0, cachedHeight: 0 });
+   return index;
+ }
+ 
+-export function setUploadedImage(index: number, img: Image): void {
+-  uploadedImages[index] = img;
++export function setUploadedBlob(index: number, blob: Blob): void {
++  uploadedImageData[index] = { blob, cachedImage: null, cachedWidth: 0, cachedHeight: 0 };
++}
++
++export function getUploadedImageCount(): number {
++  return uploadedImageData.length;
++}
++
++async function loadBlobToImage(blob: Blob, width: number, height: number): Promise<Image> {
++  return new Promise((resolve, reject) => {
++    const img = new window.Image();
++    img.onload = () => {
++      const tempCanvas = document.createElement('canvas');
++      tempCanvas.width = width;
++      tempCanvas.height = height;
++      const tempCtx = tempCanvas.getContext('2d')!;
++      tempCtx.drawImage(img, 0, 0, width, height);
++      const imageData = tempCtx.getImageData(0, 0, width, height);
++      URL.revokeObjectURL(img.src);
++      resolve({
++        width,
++        height,
++        data: new Uint8ClampedArray(imageData.data)
++      });
++    };
++    img.onerror = () => {
++      URL.revokeObjectURL(img.src);
++      reject(new Error('Failed to load image'));
++    };
++    img.src = URL.createObjectURL(blob);
++  });
++}
++
++export async function getUploadedImage(index: number, width: number, height: number): Promise<Image> {
++  if (index >= uploadedImageData.length) {
++    return createPlaceholderImage(width, height);
++  }
++  
++  const data = uploadedImageData[index];
++  
++  if (data.cachedImage && data.cachedWidth === width && data.cachedHeight === height) {
++    return data.cachedImage;
++  }
++  
++  const img = await loadBlobToImage(data.blob, width, height);
++  data.cachedImage = img;
++  data.cachedWidth = width;
++  data.cachedHeight = height;
++  return img;
++}
++
++export function getUploadedImageSync(index: number, width: number, height: number): Image {
++  if (index >= uploadedImageData.length) {
++    return createPlaceholderImage(width, height);
++  }
++  
++  const data = uploadedImageData[index];
++  
++  if (data.cachedImage && data.cachedWidth === width && data.cachedHeight === height) {
++    return data.cachedImage;
++  }
++  
++  return createPlaceholderImage(width, height);
++}
++
++export async function preloadUploadedImages(width: number, height: number): Promise<void> {
++  await Promise.all(uploadedImageData.map((_, i) => getUploadedImage(i, width, height)));
+ }
+\ No newline at end of file
+
+</tool.toolu_01MGa3mbQYVD3YQ8pG1BrhH2>
+
+# TOOL RESULT
+
+ID: toolu_01MGa3mbQYVD3YQ8pG1BrhH2
+
+<tool.toolu_01MGa3mbQYVD3YQ8pG1BrhH2>
+Original content not found in file: /Users/ajansson/projects/ascii-language/runtime.ts -- Try again!
+</tool.toolu_01MGa3mbQYVD3YQ8pG1BrhH2>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01LjnUiiwsbwEfVVQm3sLSkX
+
+## path
+
+<tool.toolu_01LjnUiiwsbwEfVVQm3sLSkX>
+runtime.ts
+</tool.toolu_01LjnUiiwsbwEfVVQm3sLSkX>
+
+## start-line
+
+<tool.toolu_01LjnUiiwsbwEfVVQm3sLSkX>
+1
+</tool.toolu_01LjnUiiwsbwEfVVQm3sLSkX>
+
+## end-line
+
+<tool.toolu_01LjnUiiwsbwEfVVQm3sLSkX>
+90
+</tool.toolu_01LjnUiiwsbwEfVVQm3sLSkX>
+
+# TOOL RESULT
+
+ID: toolu_01LjnUiiwsbwEfVVQm3sLSkX
+
+<tool.toolu_01LjnUiiwsbwEfVVQm3sLSkX>
+import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR } from './character-defs.js';
+
+interface UploadedImageRef {
+  type: 'uploaded';
+  index: number;
+}
+
+interface ParsedSolidColor {
+  type: 'solid';
+  identifier: string;
+  color: string;
+}
+
+interface ParsedUploadedImage {
+  type: 'uploaded-image';
+  identifier: string;
+  uploadIndex: number;
+}
+
+interface ParsedFunction {
+  type: 'function';
+  identifier: string;
+  fnDef: CharDef;
+  args: (number | string | UploadedImageRef)[];
+}
+
+type ParsedOp = ParsedSolidColor | ParsedUploadedImage | ParsedFunction;
+
+class LRUCache<K, V> {
+  private cache = new Map<K, V>();
+  private maxSize: number;
+
+  constructor(maxSize: number = 100) {
+    this.maxSize = maxSize;
+  }
+
+  get(key: K): V | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      this.cache.delete(key);
+      this.cache.set(key, value);
+    }
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
+    this.cache.set(key, value);
+    if (this.cache.size > this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
+    }
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+export const uploadedImages: Image[] = [];
+
+export function clearUploadedImages(): void {
+  uploadedImages.length = 0;
+}
+
+export function addUploadedImage(img: Image): number {
+  const index = uploadedImages.length;
+  uploadedImages.push(img);
+  return index;
+}
+
+export function setUploadedImage(index: number, img: Image): void {
+  uploadedImages[index] = img;
+}
+
+export function getUploadCount(program: string): number {
+  const chars = [...program];
+  return chars.filter(c => c === UPLOAD_CHAR).length;
+}
+
+function isUploadChar(char: string): boolean {
+  return char === UPLOAD_CHAR;
+}
+
+interface ParseResult {
+  ops: ParsedOp[];
+</tool.toolu_01LjnUiiwsbwEfVVQm3sLSkX>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_018jC53Muq3Vd8B9b1ttJBdL
+
+## path
+
+<tool.toolu_018jC53Muq3Vd8B9b1ttJBdL>
+runtime.ts
+</tool.toolu_018jC53Muq3Vd8B9b1ttJBdL>
+
+## git-commit-message
+
+<tool.toolu_018jC53Muq3Vd8B9b1ttJBdL>
+Store original upload blobs and recompute on resize
+</tool.toolu_018jC53Muq3Vd8B9b1ttJBdL>
+
+## diff
+
+<tool.toolu_018jC53Muq3Vd8B9b1ttJBdL>
+ import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR } from './character-defs.js';
+ 
+ interface UploadedImageRef {
+   type: 'uploaded';
+   index: number;
+ }
+ 
+ interface ParsedSolidColor {
+   type: 'solid';
+   identifier: string;
+   color: string;
+ }
+ 
+ interface ParsedUploadedImage {
+   type: 'uploaded-image';
+   identifier: string;
+   uploadIndex: number;
+ }
+ 
+ interface ParsedFunction {
+   type: 'function';
+   identifier: string;
+   fnDef: CharDef;
+   args: (number | string | UploadedImageRef)[];
+ }
+ 
+ type ParsedOp = ParsedSolidColor | ParsedUploadedImage | ParsedFunction;
+ 
+ class LRUCache<K, V> {
+   private cache = new Map<K, V>();
+   private maxSize: number;
+ 
+   constructor(maxSize: number = 100) {
+     this.maxSize = maxSize;
+   }
+ 
+   get(key: K): V | undefined {
+     const value = this.cache.get(key);
+     if (value !== undefined) {
+       this.cache.delete(key);
+       this.cache.set(key, value);
+     }
+     return value;
+   }
+ 
+   set(key: K, value: V): void {
+     if (this.cache.has(key)) {
+       this.cache.delete(key);
+     }
+     this.cache.set(key, value);
+     if (this.cache.size > this.maxSize) {
+       const firstKey = this.cache.keys().next().value;
+       if (firstKey !== undefined) {
+         this.cache.delete(firstKey);
+       }
+     }
+   }
+ 
+   clear(): void {
+     this.cache.clear();
+   }
+ }
+ 
+-export const uploadedImages: Image[] = [];
++interface UploadedImageData {
++  blob: Blob;
++  cachedImage: Image | null;
++  cachedWidth: number;
++  cachedHeight: number;
++}
+ 
++const uploadedImageData: UploadedImageData[] = [];
++
+ export function clearUploadedImages(): void {
+-  uploadedImages.length = 0;
++  uploadedImageData.length = 0;
+ }
+ 
+-export function addUploadedImage(img: Image): number {
+-  const index = uploadedImages.length;
+-  uploadedImages.push(img);
++export function addUploadedBlob(blob: Blob): number {
++  const index = uploadedImageData.length;
++  uploadedImageData.push({ blob, cachedImage: null, cachedWidth: 0, cachedHeight: 0 });
+   return index;
+ }
+ 
+-export function setUploadedImage(index: number, img: Image): void {
+-  uploadedImages[index] = img;
++export function setUploadedBlob(index: number, blob: Blob): void {
++  if (index < uploadedImageData.length) {
++    uploadedImageData[index] = { blob, cachedImage: null, cachedWidth: 0, cachedHeight: 0 };
++  }
+ }
+ 
++export function getUploadedImageCount(): number {
++  return uploadedImageData.length;
++}
++
++function loadBlobToImageSync(blob: Blob, width: number, height: number, callback: (img: Image) => void): void {
++  const img = new window.Image();
++  img.onload = () => {
++    const tempCanvas = document.createElement('canvas');
++    tempCanvas.width = width;
++    tempCanvas.height = height;
++    const tempCtx = tempCanvas.getContext('2d')!;
++    tempCtx.drawImage(img, 0, 0, width, height);
++    const imageData = tempCtx.getImageData(0, 0, width, height);
++    URL.revokeObjectURL(img.src);
++    callback({
++      width,
++      height,
++      data: new Uint8ClampedArray(imageData.data)
++    });
++  };
++  img.onerror = () => {
++    URL.revokeObjectURL(img.src);
++    callback(createPlaceholderImage(width, height));
++  };
++  img.src = URL.createObjectURL(blob);
++}
++
++export async function preloadUploadedImages(width: number, height: number): Promise<void> {
++  const promises = uploadedImageData.map((data, index) => {
++    return new Promise<void>((resolve) => {
++      if (data.cachedImage && data.cachedWidth === width && data.cachedHeight === height) {
++        resolve();
++        return;
++      }
++      loadBlobToImageSync(data.blob, width, height, (img) => {
++        data.cachedImage = img;
++        data.cachedWidth = width;
++        data.cachedHeight = height;
++        resolve();
++      });
++    });
++  });
++  await Promise.all(promises);
++}
++
++export function getUploadedImage(index: number, width: number, height: number): Image {
++  if (index >= uploadedImageData.length) {
++    return createPlaceholderImage(width, height);
++  }
++  
++  const data = uploadedImageData[index];
++  
++  if (data.cachedImage && data.cachedWidth === width && data.cachedHeight === height) {
++    return data.cachedImage;
++  }
++  
++  return createPlaceholderImage(width, height);
++}
++
+ export function getUploadCount(program: string): number {
+   const chars = [...program];
+   return chars.filter(c => c === UPLOAD_CHAR).length;
+ }
+\ No newline at end of file
+
+</tool.toolu_018jC53Muq3Vd8B9b1ttJBdL>
+
+# TOOL RESULT
+
+ID: toolu_018jC53Muq3Vd8B9b1ttJBdL
+
+<tool.toolu_018jC53Muq3Vd8B9b1ttJBdL>
+
+</tool.toolu_018jC53Muq3Vd8B9b1ttJBdL>
