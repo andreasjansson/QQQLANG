@@ -1338,32 +1338,41 @@ function fnE(ctx: FnContext): Image {
   bgTexture.flipY = true;
   emeraldScene!.background = bgTexture;
   
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
   emeraldScene!.add(ambientLight);
   
-  const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
-  keyLight.position.set(5, 8, 5);
+  // Key light - main dramatic light from top-right
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  keyLight.position.set(5, 10, 8);
   emeraldScene!.add(keyLight);
   
-  const fillLight = new THREE.DirectionalLight(0xaaffaa, 1.5);
-  fillLight.position.set(-5, 3, 3);
+  // Fill light with green tint
+  const fillLight = new THREE.DirectionalLight(0xccffcc, 1.2);
+  fillLight.position.set(-6, 4, 4);
   emeraldScene!.add(fillLight);
   
-  const backLight = new THREE.DirectionalLight(0xffffff, 2.0);
-  backLight.position.set(0, 5, -5);
+  // Back rim light
+  const backLight = new THREE.DirectionalLight(0xffffff, 1.8);
+  backLight.position.set(0, 8, -6);
   emeraldScene!.add(backLight);
   
-  const frontLight = new THREE.DirectionalLight(0xffffff, 2.5);
-  frontLight.position.set(0, 2, 8);
+  // Front fill
+  const frontLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  frontLight.position.set(0, 3, 10);
   emeraldScene!.add(frontLight);
   
-  const pointLight1 = new THREE.PointLight(0xffffff, 2.0, 30);
-  pointLight1.position.set(3, 2, 3);
-  emeraldScene!.add(pointLight1);
+  // Specular highlight lights
+  const specLight1 = new THREE.PointLight(0xffffff, 3.0, 25);
+  specLight1.position.set(4, 5, 6);
+  emeraldScene!.add(specLight1);
   
-  const pointLight2 = new THREE.PointLight(0x88ffaa, 1.5, 30);
-  pointLight2.position.set(-3, 2, 3);
-  emeraldScene!.add(pointLight2);
+  const specLight2 = new THREE.PointLight(0xffffff, 2.5, 25);
+  specLight2.position.set(-4, 4, 5);
+  emeraldScene!.add(specLight2);
+  
+  const specLight3 = new THREE.PointLight(0xaaffaa, 2.0, 20);
+  specLight3.position.set(0, 6, 4);
+  emeraldScene!.add(specLight3);
   
   const emeraldMaterial = new THREE.MeshPhongMaterial({
     color: new THREE.Color(0.05, 0.55, 0.25),
