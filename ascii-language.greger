@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-213544166396>
+${greger-prompt-code-style<eval-result-214000936902>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-213544166396>}
+</eval-result-214000936902>}
 
 # IMPORTANT
 
@@ -8063,5 +8063,942 @@ Rewrite underglow function with WebGL - color-based edge detection, multi-pass r
 ID: toolu_0198qH7X776U6qqNgzt38Yt5
 
 <tool.toolu_0198qH7X776U6qqNgzt38Yt5>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Rewrite underglow function with WebGL - color-based edge detection, multi-pass region labeling, gradient fill with glow
 </tool.toolu_0198qH7X776U6qqNgzt38Yt5>
+
+# ASSISTANT
+
+I've rewritten the underglow function with WebGL. Here's what it does:
+
+1. **Edge Detection (GPU)**: Uses both color distance (comparing each pixel to all 8 neighbors) and Sobel gradient on the color channels. This catches edges based on color differences, not just luminance.
+
+2. **Jump Flooding Algorithm (GPU)**: Multi-pass region propagation that efficiently labels connected regions. Each non-edge pixel gets assigned to a "seed" (its initial position), and seeds propagate across non-edge regions in O(log n) passes.
+
+3. **Gradient Fill (GPU)**: Each pixel computes its gradient color based on:
+   - Its seed position (region identity)
+   - The direction from seed to current pixel
+   - Colors are extended by ±k to ensure solid regions still get gradients
+
+4. **Gaussian Blur + Glow (GPU)**: Two-pass separable blur, then additive composite for the glow effect.
+
+The edge detection should be much better now since it:
+- Uses color distance, not just grayscale
+- Combines max neighbor distance with Sobel magnitude
+- Has an adjustable threshold based on n parameter
+
+# USER
+
+no, that's not working. this should be the algorithm:
+
+* do edge detection with 5px edges (5px edges to avoid flood filling when there's a tiny overlap)
+* discover disconnected regions
+* fill each region (including it's edge) with a gradient from min(color) - k to max(color) +k, where min and max are in some domain that makes sense, maybe value or saturation or lightness?
+
+# THINKING
+
+Signature: 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
+
+The user wants a clearer algorithm:
+
+1. Edge detection with thick 5px edges - this is to ensure regions are properly separated even with small gaps
+2. Discover disconnected regions (flood fill / connected components)
+3. For each region (including its edges), fill with a gradient from min to max color (extended by k)
+
+The gradient direction should follow the position of min and max colors in the region. For solid colors, use a default direction (like straight down).
+
+The min/max should be in a sensible color space - probably luminance/lightness makes the most sense since we want dark-to-light gradients.
+
+Let me rewrite this more simply:
+
+1. Edge detection on CPU (color-based, with dilation to get 5px thick edges)
+2. Connected components on the NON-edge pixels
+3. For each region, find the pixel with min luminance and max luminance, record their positions and colors
+4. For each pixel in the region, compute gradient based on projection onto the min->max direction
+5. Fill edges by averaging nearby region colors
+6. Add glow
+
+I'll do this on CPU for correctness first, then we can optimize if needed. The key insight is that the edge detection needs to produce thick edges that reliably separate regions.
+
+Let me write this step by step:
+
+```typescript
+function fnU(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const w = ctx.width;
+  const h = ctx.height;
+  
+  const k = Math.max(20, n * 6);
+  const edgeThickness = 5;
+  
+  // Step 1: Edge detection (color-based)
+  const edges = new Uint8Array(w * h);
+  const threshold = 0.1; // color distance threshold
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      let maxDist = 0;
+      
+      // Compute color distances to neighboring pixels
+      const neighbors = [[x-1, y], [x+1, y], [x, y-1], [x, y+1]];
+      for (const [nx, ny] of neighbors) {
+        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+          const [nr, ng, nb] = getPixel(prev, nx, ny);
+          const dist = Math.sqrt((r-nr)**2 + (g-ng)**2 + (b-nb)**2);
+          maxDist = Math.max(maxDist, dist);
+        }
+      }
+      
+      // Mark edge if color difference exceeds threshold
+      if (maxDist > threshold) {
+        edges[y * w + x] = 1;
+      }
+    }
+  }
+  
+  // Expand edge pixels to create thicker edges
+  const dilated = new Uint8Array(w * h);
+  const radius = Math.floor(edgeThickness / 2);
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let foundEdge = false;
+      
+      // Check surrounding pixels within radius
+      for (let dy = -radius; dy <= radius && !foundEdge; dy++) {
+        for (let dx = -radius; dx <= radius && !foundEdge; dx++) {
+          const nx = x + dx, ny = y + dy;
+          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+            foundEdge = edges[ny * w + nx] === 1;
+          }
+        }
+      }
+      
+      dilated[y * w + x] = foundEdge ? 1 : 0;
+    }
+  }
+  
+  // Prepare for connected component labeling
+  const labels = new Int32Array(w * h);
+  labels.fill(-1);
+  let currentLabel = 0;
+  
+  // Begin component identification process
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      if (dilated[idx] === 1 || labels[idx] !== -1) continue;
+      
+      // Flood fill using breadth-first search
+      const queue = [idx];
+      labels[idx] = currentLabel;
+      let head = 0;
+      
+      while (head < queue.length) {
+        const cidx = queue[head++];
+        const cx = cidx % w;
+        const cy = Math.floor(cidx / w);
+        
+        // Check adjacent pixels
+        const neighbors = [
+          [cx-1, cy], [cx+1, cy], [cx, cy-1], [cx, cy+1]
+        ];
+        
+        for (const [nx, ny] of neighbors) {
+          if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+          const nidx = ny * w + nx;
+          if (dilated[nidx] === 1 || labels[nidx] !== -1) continue;
+          labels[nidx] = currentLabel;
+          queue.push(nidx);
+        }
+      }
+      
+      currentLabel++;
+    }
+  }
+  
+  // Analyze regions and their characteristics
+  interface RegionData {
+    minLum: number;
+    maxLum: number;
+    minX: number; minY: number;
+    maxX: number; maxY: number;
+    minColor: [number, number, number];
+    maxColor: [number, number, number];
+    pixels: number[];
+  }
+  
+  const regions = new Map<number, RegionData>();
+  
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const lum = r * 0.299 + g * 0.587 + b * 0.114;
+      
+      const label = labels[idx];
+      if (label === -1) continue;
+      
+      // Initialize or update region data
+      if (!regions.has(label)) {
+        regions.set(label, {
+          minLum: lum, maxLum: lum,
+          minX: x, minY: y, maxX: x, maxY: y,
+          minColor: [r, g, b], maxColor: [r, g, b],
+          pixels: []
+        });
+      }
+      
+      const data = regions.get(label)!;
+      data.pixels.push(idx);
+      
+      // Track minimum luminance pixel
+      if (lum < data.minLum) {
+        data.minLum = lum;
+        data.minX = x; data.minY = y;
+        data.minColor = [r, g, b];
+      }
+      
+      // Track maximum luminance pixel
+      if (lum > data.maxLum) {
+        data.maxLum = lum;
+        data.maxX = x; data.maxY = y;
+        data.maxColor = [r, g, b];
+      }
+    }
+  }
+  
+  // Prepare output image with gradient fill
+  const out = createSolidImage(w, h, '#000000');
+  
+  for (const [label, data] of regions) {
+    let dx = data.maxX - data.minX;
+    let dy = data.maxY - data.minY;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+    
+    // Determine gradient direction
+    const isSolid = data.maxLum - data.minLum < 5;
+    
+    if (isSolid || dist < 5) {
+      dx = 0;
+      dy = 1;
+      dist = h;
+    } else {
+      dx /= dist;
+      dy /= dist;
+    }
+    
+    // Extend color range
+    const minColor: [number, number, number] = [
+      Math.max(0, data.minColor[0] - k),
+      Math.max(0, data.minColor[1] - k),
+      Math.max(0, data.minColor[2] - k)
+    ];
+    const maxColor: [number, number, number] = [
+      Math.min(255, data.maxColor[0] + k),
+      Math.min(255, data.maxColor[1] + k),
+      Math.min(255, data.maxColor[2] + k)
+    ];
+    
+    // Fill pixels with gradient
+    for (const idx of data.pixels) {
+      const px = idx % w;
+      const py = Math.floor(idx / w);
+      
+      let t: number;
+      if (isSolid || dist < 5) {
+        t = py / h;
+      } else {
+        const relX = px - data.minX;
+        const relY = py - data.minY;
+        t = (relX * dx + relY * dy) / dist;
+        t = Math.max(0, Math.min(1, t));
+      }
+      
+      const r = Math.round(minColor[0] + t * (maxColor[0] - minColor[0]));
+      const g = Math.round(minColor[1] + t * (maxColor[1] - minColor[1]));
+      const b = Math.round(minColor[2] + t * (maxColor[2] - minColor[2]));
+      
+      setPixel(out, px, py, r, g, b);
+    }
+  }
+  
+  // Handle edge pixels by finding nearby non-edge colors
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      if (dilated[idx] !== 1) continue;
+      
+      // Average colors from surrounding non-edge pixels
+      let sr = 0, sg = 0, sb = 0, count = 0;
+      for (let dy = -edgeThickness; dy <= edgeThickness; dy++) {
+        for (let dx = -edgeThickness; dx <= edgeThickness; dx++) {
+          const nx = x + dx, ny = y + dy;
+          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+            const nidx = ny * w + nx;
+            if (dilated[nidx] === 0) {
+              const [r, g, b] = getPixel(out, nx, ny);
+              sr += r; sg += g; sb += b; count++;
+            }
+          }
+        }
+      }
+      
+      // Set pixel color if nearby non-edge pixels found
+      if (count > 0) {
+        setPixel(out, x, y, Math.round(sr/count), Math.round(sg/count), Math.round(sb/count));
+      }
+    }
+  }<$code-close/>
+
+# ASSISTANT
+
+You're right, let me simplify and do it correctly on CPU:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0131QSsPwBH544aueCtMJq8R
+
+## path
+
+<tool.toolu_0131QSsPwBH544aueCtMJq8R>
+character-defs.ts
+</tool.toolu_0131QSsPwBH544aueCtMJq8R>
+
+## git-commit-message
+
+<tool.toolu_0131QSsPwBH544aueCtMJq8R>
+Rewrite underglow with correct algorithm: 5px edge detection, connected components, gradient fill including edges
+</tool.toolu_0131QSsPwBH544aueCtMJq8R>
+
+## diff
+
+<tool.toolu_0131QSsPwBH544aueCtMJq8R>
+ function fnU(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const w = ctx.width;
+   const h = ctx.height;
+-  const gl = initWebGL(w, h);
+   
+-  const k = Math.max(20, n * 6);
+-  const edgeThreshold = 0.08 + n * 0.01;
++  const k = Math.max(25, n * 8);
++  const edgeThreshold = 25 + n * 3;
++  const edgeRadius = 2;
+   
+-  const vertShader = `
+-    attribute vec2 position;
+-    varying vec2 vUV;
+-    void main() {
+-      vUV = position * 0.5 + 0.5;
+-      gl_Position = vec4(position, 0.0, 1.0);
+-    }
+-  `;
++  const colorDist = (x1: number, y1: number, x2: number, y2: number): number => {
++    const [r1, g1, b1] = getPixel(prev, x1, y1);
++    const [r2, g2, b2] = getPixel(prev, x2, y2);
++    return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
++  };
+   
+-  const edgeShader = `
+-    precision highp float;
+-    uniform sampler2D uTexture;
+-    uniform vec2 uResolution;
+-    uniform float uThreshold;
+-    varying vec2 vUV;
+-    
+-    float colorDist(vec3 a, vec3 b) {
+-      vec3 d = a - b;
+-      return length(d);
++  const thinEdges = new Uint8Array(w * h);
++  for (let y = 1; y < h - 1; y++) {
++    for (let x = 1; x < w - 1; x++) {
++      let maxDist = 0;
++      maxDist = Math.max(maxDist, colorDist(x, y, x - 1, y));
++      maxDist = Math.max(maxDist, colorDist(x, y, x + 1, y));
++      maxDist = Math.max(maxDist, colorDist(x, y, x, y - 1));
++      maxDist = Math.max(maxDist, colorDist(x, y, x, y + 1));
++      maxDist = Math.max(maxDist, colorDist(x, y, x - 1, y - 1) * 0.7);
++      maxDist = Math.max(maxDist, colorDist(x, y, x + 1, y - 1) * 0.7);
++      maxDist = Math.max(maxDist, colorDist(x, y, x - 1, y + 1) * 0.7);
++      maxDist = Math.max(maxDist, colorDist(x, y, x + 1, y + 1) * 0.7);
++      thinEdges[y * w + x] = maxDist > edgeThreshold ? 1 : 0;
+     }
+-    
+-    void main() {
+-      vec2 texel = 1.0 / uResolution;
+-      vec3 c = texture2D(uTexture, vUV).rgb;
+-      
+-      vec3 n = texture2D(uTexture, vUV + vec2(0.0, -texel.y)).rgb;
+-      vec3 s = texture2D(uTexture, vUV + vec2(0.0, texel.y)).rgb;
+-      vec3 e = texture2D(uTexture, vUV + vec2(texel.x, 0.0)).rgb;
+-      vec3 w = texture2D(uTexture, vUV + vec2(-texel.x, 0.0)).rgb;
+-      vec3 ne = texture2D(uTexture, vUV + vec2(texel.x, -texel.y)).rgb;
+-      vec3 nw = texture2D(uTexture, vUV + vec2(-texel.x, -texel.y)).rgb;
+-      vec3 se = texture2D(uTexture, vUV + vec2(texel.x, texel.y)).rgb;
+-      vec3 sw = texture2D(uTexture, vUV + vec2(-texel.x, texel.y)).rgb;
+-      
+-      float maxDist = 0.0;
+-      maxDist = max(maxDist, colorDist(c, n));
+-      maxDist = max(maxDist, colorDist(c, s));
+-      maxDist = max(maxDist, colorDist(c, e));
+-      maxDist = max(maxDist, colorDist(c, w));
+-      maxDist = max(maxDist, colorDist(c, ne) * 0.707);
+-      maxDist = max(maxDist, colorDist(c, nw) * 0.707);
+-      maxDist = max(maxDist, colorDist(c, se) * 0.707);
+-      maxDist = max(maxDist, colorDist(c, sw) * 0.707);
+-      
+-      vec3 gx = -nw - 2.0*w - sw + ne + 2.0*e + se;
+-      vec3 gy = -nw - 2.0*n - ne + sw + 2.0*s + se;
+-      float sobelMag = length(gx) + length(gy);
+-      
+-      float edge = max(maxDist, sobelMag * 0.5) > uThreshold ? 1.0 : 0.0;
+-      
+-      gl_FragColor = vec4(edge, edge, edge, 1.0);
+-    }
+-  `;
++  }
+   
+-  const jfaInitShader = `
+-    precision highp float;
+-    uniform sampler2D uEdges;
+-    uniform vec2 uResolution;
+-    varying vec2 vUV;
+-    
+-    void main() {
+-      float edge = texture2D(uEdges, vUV).r;
+-      if (edge > 0.5) {
+-        gl_FragColor = vec4(-1.0, -1.0, 0.0, 1.0);
+-      } else {
+-        gl_FragColor = vec4(vUV, 0.0, 1.0);
++  const edges = new Uint8Array(w * h);
++  for (let y = 0; y < h; y++) {
++    for (let x = 0; x < w; x++) {
++      let isEdge = 0;
++      outer: for (let dy = -edgeRadius; dy <= edgeRadius; dy++) {
++        for (let dx = -edgeRadius; dx <= edgeRadius; dx++) {
++          const nx = x + dx, ny = y + dy;
++          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
++            if (thinEdges[ny * w + nx] === 1) {
++              isEdge = 1;
++              break outer;
++            }
++          }
++        }
+       }
++      edges[y * w + x] = isEdge;
+     }
+-  `;
++  }
+   
+-  const jfaStepShader = `
+-    precision highp float;
+-    uniform sampler2D uSeeds;
+-    uniform sampler2D uEdges;
+-    uniform vec2 uResolution;
+-    uniform float uStepSize;
+-    varying vec2 vUV;
+-    
+-    void main() {
+-      vec2 texel = 1.0 / uResolution;
+-      vec4 best = texture2D(uSeeds, vUV);
+-      float edge = texture2D(uEdges, vUV).r;
++  const labels = new Int32Array(w * h);
++  labels.fill(-1);
++  let currentLabel = 0;
++  
++  for (let y = 0; y < h; y++) {
++    for (let x = 0; x < w; x++) {
++      const idx = y * w + x;
++      if (edges[idx] === 1 || labels[idx] !== -1) continue;
+       
+-      if (edge > 0.5) {
+-        gl_FragColor = vec4(-1.0, -1.0, 0.0, 1.0);
+-        return;
+-      }
++      const queue = [idx];
++      labels[idx] = currentLabel;
++      let head = 0;
+       
+-      float bestDist = best.x < 0.0 ? 99999.0 : distance(vUV, best.xy);
+-      
+-      for (int dy = -1; dy <= 1; dy++) {
+-        for (int dx = -1; dx <= 1; dx++) {
+-          if (dx == 0 && dy == 0) continue;
+-          
+-          vec2 offset = vec2(float(dx), float(dy)) * uStepSize * texel;
+-          vec2 sampleUV = vUV + offset;
+-          
+-          if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) continue;
+-          
+-          float sampleEdge = texture2D(uEdges, sampleUV).r;
+-          if (sampleEdge > 0.5) continue;
+-          
+-          vec4 candidate = texture2D(uSeeds, sampleUV);
+-          if (candidate.x < 0.0) continue;
+-          
+-          float dist = distance(vUV, candidate.xy);
+-          if (dist < bestDist) {
+-            bestDist = dist;
+-            best = candidate;
++      while (head < queue.length) {
++        const cidx = queue[head++];
++        const cx = cidx % w;
++        const cy = Math.floor(cidx / w);
++        
++        for (let dy = -1; dy <= 1; dy++) {
++          for (let dx = -1; dx <= 1; dx++) {
++            if (dx === 0 && dy === 0) continue;
++            const nx = cx + dx, ny = cy + dy;
++            if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
++            const nidx = ny * w + nx;
++            if (edges[nidx] === 1 || labels[nidx] !== -1) continue;
++            labels[nidx] = currentLabel;
++            queue.push(nidx);
+           }
+         }
+       }
+-      
+-      gl_FragColor = best;
++      currentLabel++;
+     }
+-  `;
++  }
+   
+-  const regionStatsShader = `
+-    precision highp float;
+-    uniform sampler2D uTexture;
+-    uniform sampler2D uSeeds;
+-    uniform vec2 uResolution;
+-    uniform float uK;
+-    varying vec2 vUV;
+-    
+-    void main() {
+-      vec4 seed = texture2D(uSeeds, vUV);
++  for (let y = 0; y < h; y++) {
++    for (let x = 0; x < w; x++) {
++      const idx = y * w + x;
++      if (labels[idx] !== -1) continue;
+       
+-      if (seed.x < 0.0) {
+-        vec3 c = texture2D(uTexture, vUV).rgb;
+-        gl_FragColor = vec4(c, 1.0);
+-        return;
++      for (let r = 1; r <= edgeRadius + 2; r++) {
++        let found = false;
++        for (let dy = -r; dy <= r && !found; dy++) {
++          for (let dx = -r; dx <= r && !found; dx++) {
++            if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
++            const nx = x + dx, ny = y + dy;
++            if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
++            const nidx = ny * w + nx;
++            if (labels[nidx] !== -1) {
++              labels[idx] = labels[nidx];
++              found = true;
++            }
++          }
++        }
++        if (found) break;
+       }
+       
+-      vec2 seedUV = seed.xy;
+-      vec3 seedColor = texture2D(uTexture, seedUV).rgb;
+-      vec3 myColor = texture2D(uTexture, vUV).rgb;
+-      
+-      float seedLum = dot(seedColor, vec3(0.299, 0.587, 0.114));
+-      float myLum = dot(myColor, vec3(0.299, 0.587, 0.114));
+-      
+-      vec2 dir = vUV - seedUV;
+-      float dist = length(dir);
+-      
+-      float t;
+-      if (dist < 0.01) {
+-        t = vUV.y;
+-      } else {
+-        t = dot(vUV - seedUV, normalize(dir)) / max(dist * 2.0, 0.1);
+-        t = clamp(t, 0.0, 1.0);
++      if (labels[idx] === -1) {
++        labels[idx] = 0;
+       }
+-      
+-      float k = uK / 255.0;
+-      vec3 darkColor = max(vec3(0.0), seedColor - k);
+-      vec3 brightColor = min(vec3(1.0), seedColor + k);
+-      
+-      if (myLum > seedLum) {
+-        brightColor = min(vec3(1.0), myColor + k * 0.5);
+-      } else {
+-        darkColor = max(vec3(0.0), myColor - k * 0.5);
+-      }
+-      
+-      vec3 gradientColor = mix(darkColor, brightColor, t);
+-      
+-      gl_FragColor = vec4(gradientColor, 1.0);
+     }
+-  `;
++  }
+   
+-  const blurShader = `
+-    precision highp float;
+-    uniform sampler2D uTexture;
+-    uniform vec2 uResolution;
+-    uniform vec2 uDirection;
+-    varying vec2 vUV;
+-    
+-    void main() {
+-      vec2 texel = 1.0 / uResolution;
+-      vec3 result = vec3(0.0);
++  interface RegionData {
++    minLum: number;
++    maxLum: number;
++    minX: number;
++    minY: number;
++    maxX: number;
++    maxY: number;
++    minColor: [number, number, number];
++    maxColor: [number, number, number];
++    sumR: number;
++    sumG: number;
++    sumB: number;
++    count: number;
++  }
++  
++  const regions = new Map<number, RegionData>();
++  
++  for (let y = 0; y < h; y++) {
++    for (let x = 0; x < w; x++) {
++      const idx = y * w + x;
++      const label = labels[idx];
+       
+-      float weights[5];
+-      weights[0] = 0.227027;
+-      weights[1] = 0.1945946;
+-      weights[2] = 0.1216216;
+-      weights[3] = 0.054054;
+-      weights[4] = 0.016216;
++      const [r, g, b] = getPixel(prev, x, y);
++      const lum = r * 0.299 + g * 0.587 + b * 0.114;
+       
+-      result += texture2D(uTexture, vUV).rgb * weights[0];
+-      
+-      for (int i = 1; i < 5; i++) {
+-        vec2 offset = uDirection * texel * float(i) * 2.0;
+-        result += texture2D(uTexture, vUV + offset).rgb * weights[i];
+-        result += texture2D(uTexture, vUV - offset).rgb * weights[i];
++      if (!regions.has(label)) {
++        regions.set(label, {
++          minLum: lum, maxLum: lum,
++          minX: x, minY: y, maxX: x, maxY: y,
++          minColor: [r, g, b], maxColor: [r, g, b],
++          sumR: 0, sumG: 0, sumB: 0, count: 0
++        });
+       }
+       
+-      gl_FragColor = vec4(result, 1.0);
++      const data = regions.get(label)!;
++      data.sumR += r;
++      data.sumG += g;
++      data.sumB += b;
++      data.count++;
++      
++      if (lum < data.minLum) {
++        data.minLum = lum;
++        data.minX = x;
++        data.minY = y;
++        data.minColor = [r, g, b];
++      }
++      if (lum > data.maxLum) {
++        data.maxLum = lum;
++        data.maxX = x;
++        data.maxY = y;
++        data.maxColor = [r, g, b];
++      }
+     }
+-  `;
++  }
+   
+-  const compositeShader = `
+-    precision highp float;
+-    uniform sampler2D uGradient;
+-    uniform sampler2D uBlurred;
+-    uniform float uGlowIntensity;
+-    varying vec2 vUV;
+-    
+-    void main() {
+-      vec3 gradient = texture2D(uGradient, vUV).rgb;
+-      vec3 glow = texture2D(uBlurred, vUV).rgb;
++  const out = createSolidImage(w, h, '#000000');
++  
++  for (let y = 0; y < h; y++) {
++    for (let x = 0; x < w; x++) {
++      const idx = y * w + x;
++      const label = labels[idx];
++      const data = regions.get(label)!;
+       
+-      vec3 result = gradient + glow * uGlowIntensity;
+-      result = min(result, vec3(1.0));
++      let dx = data.maxX - data.minX;
++      let dy = data.maxY - data.minY;
++      let dist = Math.sqrt(dx * dx + dy * dy);
+       
+-      gl_FragColor = vec4(result, 1.0);
++      const lumRange = data.maxLum - data.minLum;
++      const isSolid = lumRange < 10;
++      
++      if (isSolid || dist < 10) {
++        dx = 0;
++        dy = 1;
++        dist = h;
++      }
++      
++      const minColor: [number, number, number] = [
++        Math.max(0, data.minColor[0] - k),
++        Math.max(0, data.minColor[1] - k),
++        Math.max(0, data.minColor[2] - k)
++      ];
++      const maxColor: [number, number, number] = [
++        Math.min(255, data.maxColor[0] + k),
++        Math.min(255, data.maxColor[1] + k),
++        Math.min(255, data.maxColor[2] + k)
++      ];
++      
++      let t: number;
++      if (isSolid || dist < 10) {
++        t = y / h;
++      } else {
++        const relX = x - data.minX;
++        const relY = y - data.minY;
++        const dirX = dx / dist;
++        const dirY = dy / dist;
++        t = (relX * dirX + relY * dirY) / dist;
++        t = Math.max(0, Math.min(1, t));
++      }
++      
++      const r = Math.round(minColor[0] + t * (maxColor[0] - minColor[0]));
++      const g = Math.round(minColor[1] + t * (maxColor[1] - minColor[1]));
++      const b = Math.round(minColor[2] + t * (maxColor[2] - minColor[2]));
++      
++      setPixel(out, x, y, r, g, b);
+     }
+-  `;
++  }
+   
+-  const edgeProgram = createShaderProgram(gl, vertShader, edgeShader);
+-  const jfaInitProgram = createShaderProgram(gl, vertShader, jfaInitShader);
+-  const jfaStepProgram = createShaderProgram(gl, vertShader, jfaStepShader);
+-  const regionStatsProgram = createShaderProgram(gl, vertShader, regionStatsShader);
+-  const blurProgram = createShaderProgram(gl, vertShader, blurShader);
+-  const compositeProgram = createShaderProgram(gl, vertShader, compositeShader);
++  const glowRadius = 6;
++  const blurredH = createSolidImage(w, h, '#000000');
+   
+-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+-  const buffer = gl.createBuffer();
+-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+-  
+-  const srcTexture = gl.createTexture();
+-  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
+-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+-  
+-  const createFBTexture = () => {
+-    const tex = gl.createTexture();
+-    gl.bindTexture(gl.TEXTURE_2D, tex);
+-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+-    return tex;
+-  };
+-  
+-  const edgeTexture = createFBTexture();
+-  const jfaTexture1 = createFBTexture();
+-  const jfaTexture2 = createFBTexture();
+-  const gradientTexture = createFBTexture();
+-  const blurTexture1 = createFBTexture();
+-  const blurTexture2 = createFBTexture();
+-  
+-  const framebuffer = gl.createFramebuffer();
+-  
+-  const runPass = (program: WebGLProgram, outputTex: WebGLTexture | null) => {
+-    gl.useProgram(program);
+-    const posLoc = gl.getAttribLocation(program, 'position');
+-    gl.enableVertexAttribArray(posLoc);
+-    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+-    
+-    if (outputTex) {
+-      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outputTex, 0);
+-    } else {
+-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
++  for (let y = 0; y < h; y++) {
++    for (let x = 0; x < w; x++) {
++      let sr = 0, sg = 0, sb = 0, weight = 0;
++      for (let dx = -glowRadius; dx <= glowRadius; dx++) {
++        const nx = x + dx;
++        if (nx >= 0 && nx < w) {
++          const wt = Math.exp(-(dx * dx) / (2 * (glowRadius / 2) ** 2));
++          const [r, g, b] = getPixel(out, nx, y);
++          sr += r * wt;
++          sg += g * wt;
++          sb += b * wt;
++          weight += wt;
++        }
++      }
++      setPixel(blurredH, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
+     }
+-    
+-    gl.viewport(0, 0, w, h);
+-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+-  };
++  }
+   
+-  gl.useProgram(edgeProgram);
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
+-  gl.uniform1i(gl.getUniformLocation(edgeProgram, 'uTexture'), 0);
+-  gl.uniform2f(gl.getUniformLocation(edgeProgram, 'uResolution'), w, h);
+-  gl.uniform1f(gl.getUniformLocation(edgeProgram, 'uThreshold'), edgeThreshold);
+-  runPass(edgeProgram, edgeTexture);
+-  
+-  gl.useProgram(jfaInitProgram);
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, edgeTexture);
+-  gl.uniform1i(gl.getUniformLocation(jfaInitProgram, 'uEdges'), 0);
+-  gl.uniform2f(gl.getUniformLocation(jfaInitProgram, 'uResolution'), w, h);
+-  runPass(jfaInitProgram, jfaTexture1);
+-  
+-  const maxDim = Math.max(w, h);
+-  const numPasses = Math.ceil(Math.log2(maxDim));
+-  let readTex = jfaTexture1;
+-  let writeTex = jfaTexture2;
+-  
+-  for (let i = numPasses - 1; i >= 0; i--) {
+-    const stepSize = Math.pow(2, i);
+-    
+-    gl.useProgram(jfaStepProgram);
+-    gl.activeTexture(gl.TEXTURE0);
+-    gl.bindTexture(gl.TEXTURE_2D, readTex);
+-    gl.uniform1i(gl.getUniformLocation(jfaStepProgram, 'uSeeds'), 0);
+-    gl.activeTexture(gl.TEXTURE1);
+-    gl.bindTexture(gl.TEXTURE_2D, edgeTexture);
+-    gl.uniform1i(gl.getUniformLocation(jfaStepProgram, 'uEdges'), 1);
+-    gl.uniform2f(gl.getUniformLocation(jfaStepProgram, 'uResolution'), w, h);
+-    gl.uniform1f(gl.getUniformLocation(jfaStepProgram, 'uStepSize'), stepSize);
+-    runPass(jfaStepProgram, writeTex);
+-    
+-    const tmp = readTex;
+-    readTex = writeTex;
+-    writeTex = tmp;
++  const blurred = createSolidImage(w, h, '#000000');
++  for (let y = 0; y < h; y++) {
++    for (let x = 0; x < w; x++) {
++      let sr = 0, sg = 0, sb = 0, weight = 0;
++      for (let dy = -glowRadius; dy <= glowRadius; dy++) {
++        const ny = y + dy;
++        if (ny >= 0 && ny < h) {
++          const wt = Math.exp(-(dy * dy) / (2 * (glowRadius / 2) ** 2));
++          const [r, g, b] = getPixel(blurredH, x, ny);
++          sr += r * wt;
++          sg += g * wt;
++          sb += b * wt;
++          weight += wt;
++        }
++      }
++      setPixel(blurred, x, y, Math.round(sr / weight), Math.round(sg / weight), Math.round(sb / weight));
++    }
+   }
+   
+-  gl.useProgram(regionStatsProgram);
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
+-  gl.uniform1i(gl.getUniformLocation(regionStatsProgram, 'uTexture'), 0);
+-  gl.activeTexture(gl.TEXTURE1);
+-  gl.bindTexture(gl.TEXTURE_2D, readTex);
+-  gl.uniform1i(gl.getUniformLocation(regionStatsProgram, 'uSeeds'), 1);
+-  gl.uniform2f(gl.getUniformLocation(regionStatsProgram, 'uResolution'), w, h);
+-  gl.uniform1f(gl.getUniformLocation(regionStatsProgram, 'uK'), k);
+-  runPass(regionStatsProgram, gradientTexture);
+-  
+-  gl.useProgram(blurProgram);
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, gradientTexture);
+-  gl.uniform1i(gl.getUniformLocation(blurProgram, 'uTexture'), 0);
+-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uResolution'), w, h);
+-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 1.0, 0.0);
+-  runPass(blurProgram, blurTexture1);
+-  
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, blurTexture1);
+-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 0.0, 1.0);
+-  runPass(blurProgram, blurTexture2);
+-  
+-  gl.useProgram(compositeProgram);
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, gradientTexture);
+-  gl.uniform1i(gl.getUniformLocation(compositeProgram, 'uGradient'), 0);
+-  gl.activeTexture(gl.TEXTURE1);
+-  gl.bindTexture(gl.TEXTURE_2D, blurTexture2);
+-  gl.uniform1i(gl.getUniformLocation(compositeProgram, 'uBlurred'), 1);
+-  gl.uniform1f(gl.getUniformLocation(compositeProgram, 'uGlowIntensity'), 0.5);
+-  runPass(compositeProgram, null);
+-  
+-  const pixels = new Uint8ClampedArray(w * h * 4);
+-  gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+-  
+-  const flipped = new Uint8ClampedArray(w * h * 4);
++  const glowIntensity = 0.4;
+   for (let y = 0; y < h; y++) {
+     for (let x = 0; x < w; x++) {
+-      const srcIdx = ((h - 1 - y) * w + x) * 4;
+-      const dstIdx = (y * w + x) * 4;
+-      flipped[dstIdx] = pixels[srcIdx];
+-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
++      const [r1, g1, b1] = getPixel(out, x, y);
++      const [r2, g2, b2] = getPixel(blurred, x, y);
++      
++      const nr = Math.min(255, r1 + Math.round(r2 * glowIntensity));
++      const ng = Math.min(255, g1 + Math.round(g2 * glowIntensity));
++      const nb = Math.min(255, b1 + Math.round(b2 * glowIntensity));
++      
++      setPixel(out, x, y, nr, ng, nb);
+     }
+   }
+   
+-  gl.deleteTexture(srcTexture);
+-  gl.deleteTexture(edgeTexture);
+-  gl.deleteTexture(jfaTexture1);
+-  gl.deleteTexture(jfaTexture2);
+-  gl.deleteTexture(gradientTexture);
+-  gl.deleteTexture(blurTexture1);
+-  gl.deleteTexture(blurTexture2);
+-  gl.deleteFramebuffer(framebuffer);
+-  gl.deleteBuffer(buffer);
+-  gl.deleteProgram(edgeProgram);
+-  gl.deleteProgram(jfaInitProgram);
+-  gl.deleteProgram(jfaStepProgram);
+-  gl.deleteProgram(regionStatsProgram);
+-  gl.deleteProgram(blurProgram);
+-  gl.deleteProgram(compositeProgram);
+-  
+-  return { width: w, height: h, data: flipped };
++  return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_0131QSsPwBH544aueCtMJq8R>
+
+# TOOL RESULT
+
+ID: toolu_0131QSsPwBH544aueCtMJq8R
+
+<tool.toolu_0131QSsPwBH544aueCtMJq8R>
+
+</tool.toolu_0131QSsPwBH544aueCtMJq8R>
