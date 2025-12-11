@@ -1404,23 +1404,11 @@ function fnE(ctx: FnContext): Image {
   pointLight2.position.set(-3, 2, 3);
   emeraldScene!.add(pointLight2);
   
-  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.1, 0.6, 0.3),
-    metalness: 0.0,
-    roughness: 0.05,
-    transmission: 0.92,
-    thickness: 1.5,
-    ior: 1.57,
-    transparent: true,
-    opacity: 0.95,
-    envMapIntensity: 1.5,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.05,
-    sheen: 0.5,
-    sheenRoughness: 0.2,
-    sheenColor: new THREE.Color(0.2, 0.8, 0.4),
-    attenuationColor: new THREE.Color(0.1, 0.5, 0.25),
-    attenuationDistance: 0.5,
+  // DEBUG: Simple solid green material to test visibility
+  const emeraldMaterial = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(0.0, 1.0, 0.0),
+    metalness: 0.3,
+    roughness: 0.2,
   });
   
   console.log('Adding emerald models to scene');
