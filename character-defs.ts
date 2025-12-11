@@ -4195,11 +4195,11 @@ export const characterDefs: Record<string, CharDef> = {
   'S': {
     color: '#87CEEB',
     number: 19,
-    fn: fnFlipHorizontal,
-    arity: 0,
-    argTypes: [],
-    functionName: "flip-horizontal",
-    documentation: "Flips the image horizontally (mirrors left-right)"
+    fn: fnS,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "sierpinski",
+    documentation: "Sierpiński fractal mask: interior shows old image j, outer shells apply hue shifts, invert, grayscale, saturate"
   },
   
   'T': {
