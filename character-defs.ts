@@ -1409,15 +1409,14 @@ function fnE(ctx: FnContext): Image {
   emeraldScene!.add(pointLight2);
   
   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.1, 0.7, 0.3),
-    metalness: 0.1,
-    roughness: 0.05,
+    color: new THREE.Color(0.15, 0.75, 0.35),
+    emissive: new THREE.Color(0.02, 0.15, 0.05),
+    metalness: 0.2,
+    roughness: 0.08,
     transparent: true,
-    opacity: 0.85,
-    envMap: envMap,
-    envMapIntensity: 1.5,
+    opacity: 0.9,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.03,
+    clearcoatRoughness: 0.05,
     reflectivity: 1.0,
     side: THREE.DoubleSide,
   });
