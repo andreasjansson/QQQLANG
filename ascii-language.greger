@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-122315681110>
+${greger-prompt-code-style<eval-result-122410083207>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-122315681110>}
+</eval-result-122410083207>}
 
 # USER
 
@@ -13435,5 +13435,136 @@ Add actual sparkle points as small bright emissive spheres
 ID: toolu_01BeuysnDrUzEEfghmKkP9R1
 
 <tool.toolu_01BeuysnDrUzEEfghmKkP9R1>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add actual sparkle points as small bright emissive spheres
 </tool.toolu_01BeuysnDrUzEEfghmKkP9R1>
+
+# ASSISTANT
+
+Try now - this adds small bright white spheres positioned around each emerald to create sparkle points.
+
+# USER
+
+lol no that's just a bunch of scattered dots around (not even on) the emeralds
+
+# THINKING
+
+Signature: EuQECkYIChgCKkDQ6nWysFNltTbgIINh9CDLgnqXeQ3JQ42UbKji4/14ERA7zxaJvFWBFMRITZSrEv3MiV4B8cLMNyqq8xWD7h6DEgy8EarMVg7n9n1m8cYaDCUAHG16uSfZ5J4xHCIw1crbg/8BJfxA1a2lSA6UNfYJU3hmRU2eGOX7aWL1e1WA7zA3GrfVkS1t/oPEsjMvKssDej1IU9ZpFBRx05oBU1g46Pq9N1eQL2paB0v+RmD9BXa3dGMWtxtjge7S2Aqq7hrLXYotRzVxipEoVSvBy5lwq8BOpixGOvdU3AUH5WtPgy30nxJW9JJMcm7kBu3snw+9nndXMfFEXzkFKOUAIc7HiKrg06NdiMz00/40Vb98HuUOGWKCBJnDk3BLRKJX9vFsqny2D+pl5g++euj31u0qc8ou8DyJtMNSmWBSA0oEGt5plX6P5xL4N7AKYMr+jwo1ruE4PlKNQkycVMfbL+Fi11oFnh8b9H+xfha0mgXThYmWGzr9VONatJM29OGuDrF2elhhV8lAziBHS+cNl0lxRKUmXf85pXZiJO7hxflIAieO3YEjN2ZMX0/kJRA2wIxZhnPDWj+sKgDcPGHWX5A2SHI18mZubPmclqPbXpRwe8b5Ysrc+sQiVYHstq47I8GQfc+K1RZF4jZGwLviuao+wFJtLWXpvtsYlHurYlZfYXyO/40hBa8a7NLn4HBdijLGOib5WfndwKgNEr30LI0Z0/AFSgdEvA3yao5lbP80SbzdGikXJ5EcM/hXfFNs6xmWP0/kgD3Uwex0geOC6v9JV3f+KPVZT1M0iLOLGAE=
+
+The user is right - I added dots around the emeralds but not on them. I need to place the sparkles on the actual facets of the emerald. To do this properly, I should:
+
+1. Get the geometry vertices from the emerald model
+2. Place sparkle points at some of those vertex positions
+3. Or sample positions from the geometry surface
+
+Let me remove the scattered dots approach and instead place sparkles at actual vertex positions on the emerald geometry.
+
+# ASSISTANT
+
+You're right, let me place the sparkles on the actual emerald vertices:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Grx5p7EhmwG48SrqrnRsz5
+
+## path
+
+<tool.toolu_01Grx5p7EhmwG48SrqrnRsz5>
+character-defs.ts
+</tool.toolu_01Grx5p7EhmwG48SrqrnRsz5>
+
+## git-commit-message
+
+<tool.toolu_01Grx5p7EhmwG48SrqrnRsz5>
+Place sparkles on actual emerald geometry vertices
+</tool.toolu_01Grx5p7EhmwG48SrqrnRsz5>
+
+## diff
+
+<tool.toolu_01Grx5p7EhmwG48SrqrnRsz5>
+   // Sparkle point material - bright white emissive
+   const sparkleMaterial = new THREE.MeshBasicMaterial({
+     color: new THREE.Color(1, 1, 1),
+-    transparent: true,
+-    opacity: 0.95,
+   });
+   
+   const addEmerald = (x: number, y: number, scale: number) => {
+     const gem = emeraldModel!.clone();
++    const sparklePositions: THREE.Vector3[] = [];
+     
+     gem.traverse((child) => {
+       if (child instanceof THREE.Mesh) {
+         const geom = child.geometry.clone();
+         geom.computeVertexNormals();
+         child.geometry = geom;
+         child.material = emeraldMaterial;
++        
++        // Get vertex positions for sparkles
++        const positions = geom.attributes.position;
++        const normals = geom.attributes.normal;
++        
++        for (let i = 0; i < positions.count; i += 3) {
++          const nx = normals.getX(i);
++          const ny = normals.getY(i);
++          const nz = normals.getZ(i);
++          
++          // Only add sparkles on facets facing the camera (positive Z normal)
++          if (nz > 0.3 || ny > 0.5) {
++            sparklePositions.push(new THREE.Vector3(
++              positions.getX(i),
++              positions.getY(i),
++              positions.getZ(i)
++            ));
++          }
++        }
+       }
+     });
+     
+     gem.scale.setScalar(scale * 3.0);
+     gem.position.set(x, y, 0);
+     emeraldScene!.add(gem);
+     
+-    // Add sparkle points on the emerald
+-    const sparkleCount = Math.floor(8 + scale * 10);
+-    const sparkleSize = 0.02 + scale * 0.015;
++    // Add sparkles at some vertex positions
++    const sparkleSize = 0.015 * scale;
++    const maxSparkles = Math.min(sparklePositions.length, 15);
+     
+-    for (let i = 0; i < sparkleCount; i++) {
++    for (let i = 0; i < maxSparkles; i++) {
++      const idx = Math.floor((i * 17) % sparklePositions.length);
++      const pos = sparklePositions[idx];
++      
+       const sparkleGeo = new THREE.SphereGeometry(sparkleSize, 4, 4);
+       const sparkle = new THREE.Mesh(sparkleGeo, sparkleMaterial);
+       
+-      // Deterministic positions based on i and scale
+-      const angle = (i / sparkleCount) * Math.PI * 2 + scale * 10;
+-      const radius = 0.15 + (i % 3) * 0.1;
+-      const height = 0.1 + ((i * 7) % 5) * 0.08 - 0.1;
+-      
+       sparkle.position.set(
+-        x + Math.cos(angle) * radius * scale * 3,
+-        y + height * scale * 3,
+-        Math.sin(angle) * radius * scale * 3 + 0.2
++        x + pos.x * scale * 3.0,
++        y + pos.y * scale * 3.0,
++        pos.z * scale * 3.0 + 0.01
+       );
+       
+       emeraldScene!.add(sparkle);
+     }
+   };
+\ No newline at end of file
+
+</tool.toolu_01Grx5p7EhmwG48SrqrnRsz5>
+
+# TOOL RESULT
+
+ID: toolu_01Grx5p7EhmwG48SrqrnRsz5
+
+<tool.toolu_01Grx5p7EhmwG48SrqrnRsz5>
+
+</tool.toolu_01Grx5p7EhmwG48SrqrnRsz5>
