@@ -1417,7 +1417,7 @@ function fnE(ctx: FnContext): Image {
     iridescenceIOR: 1.3,
   });
 
-  // Create subtle, heavily blurred sparkle
+  // Create sparkle with real blur filter
   const sparkleCanvas = document.createElement('canvas');
   sparkleCanvas.width = 128;
   sparkleCanvas.height = 128;
@@ -1425,33 +1425,38 @@ function fnE(ctx: FnContext): Image {
   
   const cx = 64, cy = 64;
   
-  // Draw 4 very soft rays with heavy blur
-  const rays = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4];
+  // Draw thin sharp lines first
+  sctx.strokeStyle = 'rgba(255, 255, 255, 1)';
+  sctx.lineWidth = 1;
+  sctx.lineCap = 'round';
   
+  const rays = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4];
   rays.forEach(angle => {
-    // Many passes for smooth gradient
-    for (let w = 20; w >= 1; w -= 0.8) {
-      const alpha = Math.pow(1 - w / 20, 3) * 0.15;
-      sctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-      sctx.lineWidth = w;
-      sctx.lineCap = 'round';
-      sctx.beginPath();
-      const len = 50 - w;
-      sctx.moveTo(cx - Math.cos(angle) * len, cy - Math.sin(angle) * len);
-      sctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
-      sctx.stroke();
-    }
+    sctx.beginPath();
+    sctx.moveTo(cx - Math.cos(angle) * 50, cy - Math.sin(angle) * 50);
+    sctx.lineTo(cx + Math.cos(angle) * 50, cy + Math.sin(angle) * 50);
+    sctx.stroke();
   });
   
-  // Soft center glow
-  const gradient = sctx.createRadialGradient(cx, cy, 0, cx, cy, 20);
-  gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-  gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.3)');
-  gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
-  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-  sctx.fillStyle = gradient;
+  // Bright center dot
+  sctx.fillStyle = 'white';
   sctx.beginPath();
-  sctx.arc(cx, cy, 20, 0, Math.PI * 2);
+  sctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  sctx.fill();
+  
+  // Apply real gaussian blur
+  sctx.filter = 'blur(6px)';
+  sctx.drawImage(sparkleCanvas, 0, 0);
+  sctx.filter = 'blur(4px)';
+  sctx.drawImage(sparkleCanvas, 0, 0);
+  sctx.filter = 'blur(2px)';
+  sctx.drawImage(sparkleCanvas, 0, 0);
+  sctx.filter = 'none';
+  
+  // Add a tiny bright core
+  sctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  sctx.beginPath();
+  sctx.arc(cx, cy, 2, 0, Math.PI * 2);
   sctx.fill();
   
   const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
