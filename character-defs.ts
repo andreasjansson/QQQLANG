@@ -4566,10 +4566,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#FF6347',
     number: 15,
     fn: fnOilSlick,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 2,
+    argTypes: ['int', 'int'],
     functionName: "oil-slick",
-    documentation: "Procedural oil slick with thin-film interference iridescence, domain-warped for organic swirling patterns; n controls scale"
+    documentation: "Procedural oil slick with domain warping; first arg controls warp intensity, second controls iridescence"
   },
   
   'P': {
