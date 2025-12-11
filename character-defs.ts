@@ -1262,93 +1262,79 @@ function fnE(ctx: FnContext): Image {
       return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
     }
     
-    // Emerald cut gem with step-cut facets
+    // Emerald cut gem - rectangular step cut
+    // w = half-width (x), h = half-height (y), d = half-depth (z)
+    // Crown is 1/3, pavilion is 2/3 of total height
     float sdEmerald(vec3 p, float w, float h, float d) {
       vec3 q = abs(p);
       
-      // Corner bevel amount
-      float bevel = 0.35 * min(w, d);
+      // Corner bevel - cuts the corners of the rectangle
+      float bevel = 0.3 * min(w, d);
       
-      // Height sections: crown (top), girdle (middle), pavilion (bottom)
-      float tableH = h * 0.15;      // flat top
-      float crownH = h * 0.20;      // crown step facets  
-      float girdleH = h * 0.10;     // thin middle band
-      float pavilionH = h * 0.55;   // pavilion step facets
+      // Girdle is at y=0, crown goes up, pavilion goes down
+      float crownH = h * 0.35;
+      float pavH = h * 0.65;
       
-      float tableY = h - tableH;
-      float crownY = tableY - crownH;
-      float girdleTopY = crownY;
-      float girdleBotY = -h + pavilionH;
-      
-      // Start with bounding box
+      // Start with infinity
       float gem = MAX_DIST;
       
-      // Table (flat top) - smaller rectangle
-      float tableW = w * 0.65;
-      float tableD = d * 0.65;
-      float table = max(max(q.x - tableW, q.z - tableD), p.y - h);
-      float tableBevel = q.x + q.z - (tableW + tableD - bevel * 0.5);
-      table = max(table, tableBevel);
-      
-      // Crown step 1 - angled facet from table edge
-      float c1w = w * 0.85;
-      float c1d = d * 0.85;
-      float c1top = tableY;
-      float c1bot = crownY + crownH * 0.5;
-      float crown1 = sdBox(p - vec3(0.0, (c1top + c1bot) * 0.5, 0.0), vec3(c1w, (c1top - c1bot) * 0.5, c1d));
-      float c1bevel = q.x + q.z - (c1w + c1d - bevel * 0.7);
-      crown1 = max(crown1, c1bevel);
-      // Angled top facet
-      float c1angle = (p.y - c1bot) * 0.4;
-      crown1 = max(crown1, q.x - c1w + c1angle);
-      crown1 = max(crown1, q.z - c1d + c1angle);
-      
-      // Crown step 2 - second angled facet
-      float c2w = w;
-      float c2d = d;
-      float c2top = crownY + crownH * 0.5;
-      float c2bot = crownY;
-      float crown2 = sdBox(p - vec3(0.0, (c2top + c2bot) * 0.5, 0.0), vec3(c2w, (c2top - c2bot) * 0.5, c2d));
-      float c2bevel = q.x + q.z - (c2w + c2d - bevel);
-      crown2 = max(crown2, c2bevel);
-      float c2angle = (p.y - c2bot) * 0.3;
-      crown2 = max(crown2, q.x - c2w + c2angle);
-      crown2 = max(crown2, q.z - c2d + c2angle);
-      
-      // Girdle - full width thin band
-      float girdle = sdBox(p - vec3(0.0, (girdleTopY + girdleBotY) * 0.5, 0.0), vec3(w, (girdleTopY - girdleBotY) * 0.5, d));
+      // === GIRDLE (thin band at y=0) ===
+      float girdleThick = h * 0.05;
+      float girdle = sdBox(p, vec3(w, girdleThick, d));
       float girdleBevel = q.x + q.z - (w + d - bevel);
       girdle = max(girdle, girdleBevel);
-      
-      // Pavilion step 1 - angled facet going down
-      float p1w = w * 0.85;
-      float p1d = d * 0.85;
-      float p1top = girdleBotY;
-      float p1bot = girdleBotY - pavilionH * 0.4;
-      float pav1 = sdBox(p - vec3(0.0, (p1top + p1bot) * 0.5, 0.0), vec3(p1w, (p1top - p1bot) * 0.5, p1d));
-      float p1bevel = q.x + q.z - (p1w + p1d - bevel * 0.7);
-      pav1 = max(pav1, p1bevel);
-      float p1angle = (p1top - p.y) * 0.35;
-      pav1 = max(pav1, q.x - p1w + p1angle);
-      pav1 = max(pav1, q.z - p1d + p1angle);
-      
-      // Pavilion step 2 - meets at keel (line along length)
-      float p2top = p1bot;
-      float p2bot = -h;
-      float keelW = w * 0.0;  // keel is a line, no width
-      float p2angle = (p2top - p.y) * 0.5;
-      float pav2 = max(q.z - d * 0.5 + p2angle, p.y - p2top);
-      pav2 = max(pav2, -p.y - h);
-      // Keel bevel at ends
-      float keelEndBevel = q.x - w * 0.6 + (p2top - p.y) * 0.4;
-      pav2 = max(pav2, keelEndBevel);
-      
-      // Combine all parts
-      gem = min(gem, table);
-      gem = min(gem, crown1);
-      gem = min(gem, crown2);
       gem = min(gem, girdle);
+      
+      // === CROWN (above girdle) ===
+      // Crown step 1 - outer step
+      float c1h = crownH * 0.5;
+      float c1shrink = 0.12;
+      float crown1Top = girdleThick + c1h;
+      vec3 c1center = vec3(0.0, girdleThick + c1h * 0.5, 0.0);
+      float crown1 = sdBox(p - c1center, vec3(w * (1.0 - c1shrink), c1h * 0.5, d * (1.0 - c1shrink)));
+      // Angled facets
+      float c1slope = (p.y - girdleThick) * 0.25;
+      crown1 = max(crown1, q.x - w + c1slope);
+      crown1 = max(crown1, q.z - d + c1slope);
+      float c1bevel = q.x + q.z - (w + d - bevel) + c1slope * 1.5;
+      crown1 = max(crown1, c1bevel);
+      gem = min(gem, crown1);
+      
+      // Crown step 2 / Table area
+      float c2h = crownH * 0.5;
+      vec3 c2center = vec3(0.0, crown1Top + c2h * 0.5, 0.0);
+      float tableW = w * 0.6;
+      float tableD = d * 0.6;
+      float crown2 = sdBox(p - c2center, vec3(tableW, c2h * 0.5, tableD));
+      float c2slope = (p.y - crown1Top) * 0.35;
+      crown2 = max(crown2, q.x - w * 0.88 + c2slope);
+      crown2 = max(crown2, q.z - d * 0.88 + c2slope);
+      float c2bevel = q.x + q.z - (w * 0.88 + d * 0.88 - bevel * 0.6) + c2slope * 1.5;
+      crown2 = max(crown2, c2bevel);
+      gem = min(gem, crown2);
+      
+      // === PAVILION (below girdle) ===
+      // Pavilion step 1
+      float p1h = pavH * 0.45;
+      vec3 p1center = vec3(0.0, -girdleThick - p1h * 0.5, 0.0);
+      float pav1 = sdBox(p - p1center, vec3(w * 0.85, p1h * 0.5, d * 0.85));
+      float p1slope = (-girdleThick - p.y) * 0.22;
+      pav1 = max(pav1, q.x - w + p1slope);
+      pav1 = max(pav1, q.z - d + p1slope);
+      float p1bevel = q.x + q.z - (w + d - bevel) + p1slope * 1.5;
+      pav1 = max(pav1, p1bevel);
       gem = min(gem, pav1);
+      
+      // Pavilion step 2 - steeper, going to keel
+      float p2top = -girdleThick - p1h;
+      float p2h = pavH * 0.55;
+      vec3 p2center = vec3(0.0, p2top - p2h * 0.5, 0.0);
+      float pav2 = sdBox(p - p2center, vec3(w * 0.5, p2h * 0.5, d * 0.5));
+      float p2slope = (p2top - p.y) * 0.45;
+      pav2 = max(pav2, q.x - w * 0.85 + p2slope);
+      pav2 = max(pav2, q.z - d * 0.85 + p2slope);
+      float p2bevel = q.x + q.z - (w * 0.85 + d * 0.85 - bevel * 0.5) + p2slope * 1.5;
+      pav2 = max(pav2, p2bevel);
       gem = min(gem, pav2);
       
       return gem;
