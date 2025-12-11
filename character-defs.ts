@@ -5455,8 +5455,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnAmpersand,
     arity: 1,
     argTypes: ['int'],
-    functionName: "hue-sat-transfer",
-    documentation: "Output has prev's luminance but hue/saturation from old_image at index j"
+    functionName: "dither",
+    documentation: "Aggressive ordered dither using 8x8 Bayer matrix with chromatic channel offsets; n controls quantization levels and spread"
   },
   
   "'": {
