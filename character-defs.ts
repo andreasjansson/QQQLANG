@@ -5449,10 +5449,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#4169E1',
     number: 45,
     fn: fnAmpersand,
-    arity: 1,
-    argTypes: ['int'],
+    arity: 0,
+    argTypes: [],
     functionName: "dither",
-    documentation: "Aggressive ordered dither using 8x8 Bayer matrix with chromatic channel offsets; n controls quantization levels and spread"
+    documentation: "Aggressive ordered dither using 8x8 Bayer matrix with chromatic channel offsets for RGB separation"
   },
   
   "'": {
