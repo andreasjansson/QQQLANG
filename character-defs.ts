@@ -5119,11 +5119,11 @@ export const characterDefs: Record<string, CharDef> = {
   '?': {
     color: '#D2691E',
     number: 58,
-    fn: fnQuestion,
-    arity: 0,
-    argTypes: [],
-    functionName: "corner-effect",
-    documentation: "Effect selected by (sum of corner pixel values) % 4: [solarize, emboss, edge-detect, posterize]"
+    fn: fnHash,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "hue-sort-tiles",
+    documentation: "Divides image into tiles and sorts them left-to-right, top-to-bottom by average hue, grid size = n+2 (min 2)"
   },
   
   '@': {
