@@ -2647,9 +2647,8 @@ function fnQ(ctx: FnContext): Image {
   return out;
 }
 
-function fn0(ctx: FnContext, j: number): Image {
+function fn0(ctx: FnContext, old: Image): Image {
   const prev = getPrevImage(ctx);
-  const old = getOldImage(ctx, j);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   for (let y = 0; y < ctx.height; y++) {
