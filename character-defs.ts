@@ -3397,73 +3397,14 @@ function fnPercent(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const cellSize = Math.max(1, n + 1);
-  const corners = [
-    getPixel(prev, 0, 0),
-    getPixel(prev, ctx.width - 1, 0),
-    getPixel(prev, 0, ctx.height - 1),
-    getPixel(prev, ctx.width - 1, ctx.height - 1)
-  ];
-  const palette = corners.map(([r, g, b]) => [r, g, b] as [number, number, number]);
+  const horizontal = n % 2 === 0;
   
-  const findClosest = (r: number, g: number, b: number): [number, number, number] => {
-    let minDist = Infinity;
-    let closest = palette[0];
-    for (const [pr, pg, pb] of palette) {
-      const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
-      if (dist < minDist) {
-        minDist = dist;
-        closest = [pr, pg, pb];
-      }
-    }
-    return closest;
-  };
-  
-  const tempData = new Float32Array(ctx.width * ctx.height * 3);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      const idx = (y * ctx.width + x) * 3;
-      tempData[idx] = r;
-      tempData[idx + 1] = g;
-      tempData[idx + 2] = b;
-    }
-  }
-  
-  for (let y = 0; y < ctx.height; y += cellSize) {
-    for (let x = 0; x < ctx.width; x += cellSize) {
-      const idx = (y * ctx.width + x) * 3;
-      const oldR = tempData[idx];
-      const oldG = tempData[idx + 1];
-      const oldB = tempData[idx + 2];
-      
-      const [newR, newG, newB] = findClosest(oldR, oldG, oldB);
-      
-      for (let cy = 0; cy < cellSize && y + cy < ctx.height; cy++) {
-        for (let cx = 0; cx < cellSize && x + cx < ctx.width; cx++) {
-          setPixel(out, x + cx, y + cy, newR, newG, newB);
-        }
-      }
-      
-      const errR = oldR - newR;
-      const errG = oldG - newG;
-      const errB = oldB - newB;
-      
-      const distribute = (dx: number, dy: number, factor: number) => {
-        const nx = x + dx * cellSize;
-        const ny = y + dy * cellSize;
-        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
-          const nidx = (ny * ctx.width + nx) * 3;
-          tempData[nidx] += errR * factor;
-          tempData[nidx + 1] += errG * factor;
-          tempData[nidx + 2] += errB * factor;
-        }
-      };
-      
-      distribute(1, 0, 7 / 16);
-      distribute(-1, 1, 3 / 16);
-      distribute(0, 1, 5 / 16);
-      distribute(1, 1, 1 / 16);
+      const srcX = horizontal ? ctx.width - 1 - x : x;
+      const srcY = horizontal ? y : ctx.height - 1 - y;
+      const [r, g, b] = getPixel(prev, srcX, srcY);
+      setPixel(out, x, y, r, g, b);
     }
   }
   
