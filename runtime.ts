@@ -89,6 +89,7 @@ export function setUploadedBlob(index: number, blob: Blob): void {
   }
   uploadedSources[index] = { blob };
   uploadedImagesCache[index] = null as any;
+  imageCache.clear();
 }
 
 export function getUploadedImageCount(): number {
