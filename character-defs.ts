@@ -4205,6 +4205,8 @@ function fnOilSlick(ctx: FnContext, n: number): Image {
     uniform float uSeed;
     uniform float uResolutionScale;
     uniform int uDepth;
+    uniform float uWarpStrength;
+    uniform float uIridescenceStrength;
     varying vec2 vUV;
     
     // Hash function for deterministic noise
