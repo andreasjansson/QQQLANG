@@ -3157,7 +3157,7 @@ function fnCaret(ctx: FnContext): Image {
   return out;
 }
 
-function fnExclaim(ctx: FnContext, n: number): Image {
+function fnExclaim(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   
@@ -3166,9 +3166,9 @@ function fnExclaim(ctx: FnContext, n: number): Image {
     return v - Math.floor(v);
   };
   
-  const effectiveN = n + 25;
-  const baseLen = 8 + effectiveN * 5;
-  const chaos = 0.5 + effectiveN * 0.15;
+  const n = 60;
+  const baseLen = 8 + n * 5;
+  const chaos = 0.5 + n * 0.15;
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   
