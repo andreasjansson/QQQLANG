@@ -1262,21 +1262,48 @@ function fnE(ctx: FnContext): Image {
       return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
     }
     
-    // Upright emerald cut gem - rectangular with beveled corners
+    // Upright emerald cut gem - rectangular with beveled corners and prism top/bottom
     float sdEmerald(vec3 p, float w, float h, float d) {
-      // Main rectangular body
-      float body = sdBox(p, vec3(w, h, d));
-      
-      // Bevel the vertical edges
-      float bevel = 0.15 * w;
       vec3 q = abs(p);
-      float corner1 = q.x + q.z - (w + d - bevel);
-      float corner2 = q.x + q.z - (w + d - bevel * 0.5);
-      body = max(body, corner1);
       
-      // Bevel top and bottom edges
-      float topBevel = (q.y - h + bevel * 0.8) + (q.x - w) * 0.3 + (q.z - d) * 0.3;
-      float botBevel = (-p.y - h + bevel * 0.8) + (q.x - w) * 0.3 + (q.z - d) * 0.3;
+      // Main rectangular body (shorter, middle section)
+      float bodyH = h * 0.5;
+      float body = sdBox(p, vec3(w, bodyH, d));
+      
+      // Large corner bevels on vertical edges
+      float bevel = 0.4 * min(w, d);
+      float corner = q.x + q.z - (w + d - bevel);
+      body = max(body, corner);
+      
+      // Top prism - slopes inward from all sides
+      float topStart = bodyH;
+      float topH = h - bodyH;
+      if (p.y > 0.0) {
+        float py = p.y - topStart;
+        float slope = 0.7;
+        float topPrism = max(
+          max(q.x - w + py * slope, q.z - d + py * slope),
+          py - topH
+        );
+        // Top corner bevels
+        float topCorner = q.x + q.z - (w + d - bevel) + py * slope * 1.4;
+        topPrism = max(topPrism, topCorner);
+        body = max(body, topPrism - topStart);
+      }
+      
+      // Bottom prism - slopes inward from all sides  
+      if (p.y < 0.0) {
+        float py = -p.y - topStart;
+        float slope = 0.7;
+        float botPrism = max(
+          max(q.x - w + py * slope, q.z - d + py * slope),
+          py - topH
+        );
+        // Bottom corner bevels
+        float botCorner = q.x + q.z - (w + d - bevel) + py * slope * 1.4;
+        botPrism = max(botPrism, botCorner);
+        body = max(body, botPrism - topStart);
+      }
       
       return body;
     }
