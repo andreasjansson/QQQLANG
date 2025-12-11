@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-224905199690>
+${greger-prompt-code-style<eval-result-225238688180>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-224905199690>}
+</eval-result-225238688180>}
 
 # IMPORTANT
 
@@ -7034,5 +7034,367 @@ Update N function documentation to reflect god rays effect
 ID: toolu_016tXrbaaUZHw1JmC2tN7Fsh
 
 <tool.toolu_016tXrbaaUZHw1JmC2tN7Fsh>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update N function documentation to reflect god rays effect
 </tool.toolu_016tXrbaaUZHw1JmC2tN7Fsh>
+
+# ASSISTANT
+
+The function has been rewritten to use WebGL with the classic volumetric light scattering (god rays) algorithm from GPU Gems 3. Here's what the new implementation does:
+
+1. **Two-pass rendering approach:**
+   - **Pass 1 (Occlusion):** Creates a texture with light sources - draws a bright glowing center at a deterministic position plus thresholds bright pixels from the input image as additional light sources
+   - **Pass 2 (God Rays):** Applies the radial blur/sampling algorithm that marches along rays from each pixel toward the light source, accumulating color with exponential decay
+
+2. **The god ray shader parameters:**
+   - `exposure`: Controls overall brightness of the rays (0.25)
+   - `decay`: How quickly rays fade out (0.97 - slower decay = longer rays)
+   - `density`: Spacing between samples (0.95)
+   - `weight`: Weight of each sample (0.6)
+   - `NUM_SAMPLES`: 80 samples along each ray for smooth results
+
+3. **Deterministic positioning:** The light source position is seeded by `ctx.images.length` so it's consistent but varies based on the image history
+
+4. **Additive blending:** The rays are blended additively with the original scene, creating the classic "rays of light" effect
+
+# USER
+
+No revert that, N is fine! I wanted you to update * (asterisk)
+
+# THINKING
+
+Signature: EosDCkYIChgCKkCCl6ia2pfus/5B3QgJW30NQOwdFI3pc1Uxx6Art2KZ8ne2VXnfwtkB768MZ+w14z8PDBrATE+zlR6iar94zxBxEgw+4qcTK4Nk2INbEt8aDPXSdm8fof1cb6ndsyIwkIS3XAUMzO+qS3ABHPnBFB7nm8t5/QuCwwk3M/sn9bM/H9Tr7W74YvRXVto8vso8KvIBL+rhUOSa32QUMVmRkUW1bvjgbeJ9DGDHq4Zgb8xE1grPm72LVNun30+OoxIusGNrXeODx/OUQHT61TlHvo+vb03IzX3xMMq2C86lptuHvc/hZPmKTHi4SlS5ISDcLn8gb9Fsh5EUk0Ui8iqh2Qi6Cq9+sSTfMAJZqZlqPmZZhdL7ujD2T1K0DGCUa7GBBafADrl5rd/hVXdf49KP0n6ueDwUjSwIA4yt9wVbbbfG/AbfsPpyddVGANkKjGgBW5Nq84D2VtgfVaQZ84OFlG4SfuGn7oY/KiIIjxBcQsbku8G6CNL0Ag9e1VV7G9e3dYjHpKkYAQ==
+
+The user wants me to revert the changes to fnN and instead update fnAsterisk (the '*' character function) to use WebGL with god rays. Let me first revert the changes to fnN, then look at fnAsterisk and update that one instead.
+
+# ASSISTANT
+
+Let me revert the changes to N and then update the asterisk function instead.
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01Kj61hQtNywmCa2WU2S2McC
+
+## command
+
+<tool.toolu_01Kj61hQtNywmCa2WU2S2McC>
+cd /Users/ajansson/projects/ascii-language && git log --oneline -4
+</tool.toolu_01Kj61hQtNywmCa2WU2S2McC>
+
+# TOOL RESULT
+
+ID: toolu_01Kj61hQtNywmCa2WU2S2McC
+
+<tool.toolu_01Kj61hQtNywmCa2WU2S2McC>
+Shell command execution cancelled by user
+</tool.toolu_01Kj61hQtNywmCa2WU2S2McC>
+
+# USER
+
+no don't use git, just code a revert commit, considering you might want to keep part of godrays for * (asterisk)
+
+# THINKING
+
+Signature: EqADCkYIChgCKkA/oqtLOg09IpLMe0KRGwKm6hTGMmwIcbL7B+V8vxay3QHihhAdA5l96B45Yws0WcB8u8NZeaLNQbI+h6Es5gOwEgyVvDLRB05U0hKPXp4aDC0J8NltxbNlOBa9kiIw/CunkXE6rygpCb7eGVM2h+FyHYA8JN+8PX4kP8cV4aknvhTYjS8fXoFgITubVwEwKocCPtDF2pdlklNJen2DpvgX6tSgBjEUaNTlAfqAEkJQHCBh750/9tOi5un277+PWJDLsAVialr8YsGVohs5mlOYUYnC6Db7C+Pawa11u4ljogGwBtZ3gMQvqH2PF6fqVAAiDG9hmOlOxdyP0+/eXCnVfCY0/95SHEVfi2/Xzti2ia/rj0yUqil7Luoqa1tL38E+vtx8AnaljE1R/pnT+d5e9t3s81FR+0vjr1I4FhLo6f4yhc4yDhl4BwjX9JeUtcz1/mutyLBALu1tuHsKoTlgAX7o/QeWeVQJ/QtYmXaMgkJiKy4PxkUuj3m4A19wo/uR7CXd7X36otlb73cDfcDDXBCkKrgpRQ4YAQ==
+
+The user wants me to:
+1. Revert the fnN function back to its original implementation
+2. Update fnAsterisk ('*') to use the god rays WebGL effect instead
+
+Let me first restore fnN to its original code, then update fnAsterisk with the god rays effect.
+
+# ASSISTANT
+
+Got it! Let me restore fnN to its original implementation and then update fnAsterisk with the god rays effect.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0136jhVnb5iM5tuH6DdPvjS1
+
+## path
+
+<tool.toolu_0136jhVnb5iM5tuH6DdPvjS1>
+character-defs.ts
+</tool.toolu_0136jhVnb5iM5tuH6DdPvjS1>
+
+## git-commit-message
+
+<tool.toolu_0136jhVnb5iM5tuH6DdPvjS1>
+Revert fnN to original neon implementation
+</tool.toolu_0136jhVnb5iM5tuH6DdPvjS1>
+
+## diff
+
+<tool.toolu_0136jhVnb5iM5tuH6DdPvjS1>
+ function fnN(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+-  const gl = initWebGL(ctx.width, ctx.height);
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+-  const seed = ctx.images.length * 137.5;
++  const scale = Math.min(ctx.width, ctx.height);
++  const numLights = 15;
+   
+-  const vertexShader = `
+-    attribute vec2 position;
+-    varying vec2 vUV;
+-    void main() {
+-      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+-      gl_Position = vec4(position, 0.0, 1.0);
+-    }
+-  `;
+-  
+-  const occlusionFragShader = `
+-    precision highp float;
+-    uniform sampler2D uTexture;
+-    uniform vec2 uLightPos;
+-    uniform float uLightRadius;
+-    varying vec2 vUV;
+-    
+-    void main() {
+-      vec3 texColor = texture2D(uTexture, vUV).rgb;
+-      float brightness = dot(texColor, vec3(0.299, 0.587, 0.114));
+-      
+-      // Distance from light center
+-      vec2 diff = vUV - uLightPos;
+-      float dist = length(diff);
+-      
+-      // Light source glow (bright center)
+-      float lightGlow = exp(-dist * dist / (uLightRadius * uLightRadius * 2.0));
+-      
+-      // Threshold bright areas as potential light sources
+-      float threshold = step(0.5, brightness);
+-      
+-      // Combine: light center + bright pixels from image
+-      vec3 lightColor = vec3(1.0, 0.95, 0.8); // warm white
+-      vec3 result = lightGlow * lightColor + threshold * texColor * 0.8;
+-      
+-      gl_FragColor = vec4(result, 1.0);
+-    }
+-  `;
+-  
+-  const godrayFragShader = `
+-    precision highp float;
+-    uniform sampler2D uOcclusionTexture;
+-    uniform sampler2D uSceneTexture;
+-    uniform vec2 uLightPos;
+-    uniform float uExposure;
+-    uniform float uDecay;
+-    uniform float uDensity;
+-    uniform float uWeight;
+-    varying vec2 vUV;
+-    
+-    #define NUM_SAMPLES 80
+-    
+-    void main() {
+-      vec2 texCoord = vUV;
+-      vec2 deltaTexCoord = (texCoord - uLightPos);
+-      deltaTexCoord *= 1.0 / float(NUM_SAMPLES) * uDensity;
+-      
+-      float illuminationDecay = 1.0;
+-      vec3 godrayColor = vec3(0.0);
+-      
+-      vec2 sampleCoord = texCoord;
+-      
+-      for (int i = 0; i < NUM_SAMPLES; i++) {
+-        sampleCoord -= deltaTexCoord;
+-        vec3 sampleColor = texture2D(uOcclusionTexture, sampleCoord).rgb;
+-        sampleColor *= illuminationDecay * uWeight;
+-        godrayColor += sampleColor;
+-        illuminationDecay *= uDecay;
+-      }
+-      
+-      godrayColor *= uExposure;
+-      
+-      // Get original scene
+-      vec3 sceneColor = texture2D(uSceneTexture, vUV).rgb;
+-      
+-      // Blend godrays additively with scene
+-      vec3 finalColor = sceneColor + godrayColor;
+-      
+-      gl_FragColor = vec4(finalColor, 1.0);
+-    }
+-  `;
+-  
+-  const occlusionProgram = createShaderProgram(gl, vertexShader, occlusionFragShader);
+-  const godrayProgram = createShaderProgram(gl, vertexShader, godrayFragShader);
+-  
+-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+-  const buffer = gl.createBuffer();
+-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+-  
+-  const sceneTexture = gl.createTexture();
+-  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+-  
+-  const occlusionTexture = gl.createTexture();
+-  gl.bindTexture(gl.TEXTURE_2D, occlusionTexture);
+-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+-  
+-  const framebuffer = gl.createFramebuffer();
+-  
+-  // Light position based on seed for determinism
++  const seed = ctx.images.length * 137.5;
+   const hash = (n: number) => {
+     const x = Math.sin(n + seed) * 43758.5453;
+     return x - Math.floor(x);
+   };
+-  const lightX = 0.3 + hash(1) * 0.4;
+-  const lightY = 0.3 + hash(2) * 0.4;
+-  const lightRadius = 0.08 + hash(3) * 0.06;
+   
+-  // Pass 1: Render occlusion texture (light sources)
+-  gl.useProgram(occlusionProgram);
++  const lights: { x: number; y: number; r: number; g: number; b: number; size: number }[] = [];
++  for (let i = 0; i < numLights; i++) {
++    const px = hash(i * 127.1) * ctx.width;
++    const py = hash(i * 311.7) * ctx.height;
++    const colorAngle = hash(i * 74.3) * Math.PI * 2;
++    const size = 0.03 + hash(i * 191.3) * 0.04;
++    lights.push({
++      x: px, y: py,
++      r: Math.cos(colorAngle) * 0.5 + 0.5,
++      g: Math.cos(colorAngle + Math.PI * 2 / 3) * 0.5 + 0.5,
++      b: Math.cos(colorAngle + Math.PI * 4 / 3) * 0.5 + 0.5,
++      size
++    });
++  }
+   
+-  const occPosLoc = gl.getAttribLocation(occlusionProgram, 'position');
+-  gl.enableVertexAttribArray(occPosLoc);
+-  gl.vertexAttribPointer(occPosLoc, 2, gl.FLOAT, false, 0, 0);
++  const glowRadius = 8;
+   
+-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, occlusionTexture, 0);
+-  gl.viewport(0, 0, ctx.width, ctx.height);
+-  
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+-  gl.uniform1i(gl.getUniformLocation(occlusionProgram, 'uTexture'), 0);
+-  gl.uniform2f(gl.getUniformLocation(occlusionProgram, 'uLightPos'), lightX, lightY);
+-  gl.uniform1f(gl.getUniformLocation(occlusionProgram, 'uLightRadius'), lightRadius);
+-  
+-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+-  
+-  // Pass 2: Apply god rays and combine with scene
+-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+-  gl.viewport(0, 0, ctx.width, ctx.height);
+-  
+-  gl.useProgram(godrayProgram);
+-  
+-  const grPosLoc = gl.getAttribLocation(godrayProgram, 'position');
+-  gl.enableVertexAttribArray(grPosLoc);
+-  gl.vertexAttribPointer(grPosLoc, 2, gl.FLOAT, false, 0, 0);
+-  
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, occlusionTexture);
+-  gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uOcclusionTexture'), 0);
+-  
+-  gl.activeTexture(gl.TEXTURE1);
+-  gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+-  gl.uniform1i(gl.getUniformLocation(godrayProgram, 'uSceneTexture'), 1);
+-  
+-  gl.uniform2f(gl.getUniformLocation(godrayProgram, 'uLightPos'), lightX, lightY);
+-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uExposure'), 0.25);
+-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDecay'), 0.97);
+-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uDensity'), 0.95);
+-  gl.uniform1f(gl.getUniformLocation(godrayProgram, 'uWeight'), 0.6);
+-  
+-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+-  
+-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+-  
+-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+-      const dstIdx = (y * ctx.width + x) * 4;
+-      flipped[dstIdx] = pixels[srcIdx];
+-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
++      const [pr, pg, pb] = getPixel(prev, x, y);
++      const brightness = (pr + pg + pb) / (255 * 3);
++      
++      let tr = (pr / 255) * 0.3;
++      let tg = (pg / 255) * 0.3;
++      let tb = (pb / 255) * 0.3;
++      
++      if (brightness > 0.3) {
++        let glowSum = 0;
++        let glowR = 0, glowG = 0, glowB = 0;
++        for (let dy = -glowRadius; dy <= glowRadius; dy += 2) {
++          for (let dx = -glowRadius; dx <= glowRadius; dx += 2) {
++            const sx = Math.max(0, Math.min(ctx.width - 1, x + dx));
++            const sy = Math.max(0, Math.min(ctx.height - 1, y + dy));
++            const [sr, sg, sb] = getPixel(prev, sx, sy);
++            const sBright = (sr + sg + sb) / (255 * 3);
++            if (sBright > 0.3) {
++              const dist = Math.sqrt(dx * dx + dy * dy);
++              const weight = Math.max(0, 1 - dist / glowRadius);
++              glowR += (sr / 255) * weight * sBright;
++              glowG += (sg / 255) * weight * sBright;
++              glowB += (sb / 255) * weight * sBright;
++              glowSum += weight;
++            }
++          }
++        }
++        if (glowSum > 0) {
++          tr += (glowR / glowSum) * brightness * 1.5;
++          tg += (glowG / glowSum) * brightness * 1.5;
++          tb += (glowB / glowSum) * brightness * 1.5;
++        }
++      }
++      
++      for (const light of lights) {
++        const dx = (x - light.x) / scale;
++        const dy = (y - light.y) / scale;
++        const distSq = dx * dx + dy * dy;
++        const glow = (light.size * light.size) / Math.max(0.0001, distSq);
++        const cappedGlow = Math.min(1, glow);
++        tr += cappedGlow * light.r;
++        tg += cappedGlow * light.g;
++        tb += cappedGlow * light.b;
++      }
++      
++      setPixel(out, x, y,
++        Math.min(255, Math.floor(tr * 255)),
++        Math.min(255, Math.floor(tg * 255)),
++        Math.min(255, Math.floor(tb * 255))
++      );
+     }
+   }
+   
+-  gl.deleteTexture(sceneTexture);
+-  gl.deleteTexture(occlusionTexture);
+-  gl.deleteFramebuffer(framebuffer);
+-  gl.deleteBuffer(buffer);
+-  gl.deleteProgram(occlusionProgram);
+-  gl.deleteProgram(godrayProgram);
+-  
+-  return { width: ctx.width, height: ctx.height, data: flipped };
++  return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_0136jhVnb5iM5tuH6DdPvjS1>
+
+# TOOL RESULT
+
+ID: toolu_0136jhVnb5iM5tuH6DdPvjS1
+
+<tool.toolu_0136jhVnb5iM5tuH6DdPvjS1>
+
+</tool.toolu_0136jhVnb5iM5tuH6DdPvjS1>
