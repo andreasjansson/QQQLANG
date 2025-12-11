@@ -5199,9 +5199,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 19,
     fn: fnS,
     arity: 2,
-    argTypes: ['int', 'int'],
+    argTypes: ['index', 'int'],
     functionName: "sierpinski",
-    documentation: "Sierpiński triangle fractal: j=old image for interior, size=detail level (1-68); outer shells get hue shifts, invert, grayscale"
+    documentation: "Sierpiński triangle fractal: first arg=old image for interior, second=detail level (1-68); outer shells get hue shifts, invert, grayscale"
   },
   
   'T': {
