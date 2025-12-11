@@ -1447,10 +1447,6 @@ function fnE(ctx: FnContext): Image {
   const flippedCenterIdx = (Math.floor(ctx.height/2) * ctx.width + Math.floor(ctx.width/2)) * 4;
   console.log('Flipped center pixel:', flipped[flippedCenterIdx], flipped[flippedCenterIdx+1], flipped[flippedCenterIdx+2], flipped[flippedCenterIdx+3]);
   
-  bgTexture.dispose();
-  envMap.dispose();
-  pmremGenerator.dispose();
-  
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
