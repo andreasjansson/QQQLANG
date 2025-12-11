@@ -1418,17 +1418,75 @@ function fnE(ctx: FnContext): Image {
     specularColor: new THREE.Color(1, 1, 1),
   });
   
-  // Specular-only material for sharp sparkle highlights
-  const sparkleMaterial = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(0, 0, 0),
-    specular: new THREE.Color(1, 1, 1),
-    shininess: 800,  // Very sharp highlights
+  // Custom shader for facet edge sparkles
+  const sparkleMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      uLightPositions: { 
+        value: [
+          new THREE.Vector3(3, 4, 8),
+          new THREE.Vector3(-3, 3, 7),
+          new THREE.Vector3(0, 6, 6),
+          new THREE.Vector3(5, 8, 10),
+          new THREE.Vector3(-5, 3, 8),
+        ]
+      },
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vWorldPos;
+      varying vec3 vBarycentric;
+      
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+        
+        // Approximate barycentric for edge detection
+        int idx = gl_VertexID - (gl_VertexID / 3) * 3;
+        if (idx == 0) vBarycentric = vec3(1, 0, 0);
+        else if (idx == 1) vBarycentric = vec3(0, 1, 0);
+        else vBarycentric = vec3(0, 0, 1);
+        
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uLightPositions[5];
+      
+      varying vec3 vNormal;
+      varying vec3 vWorldPos;
+      varying vec3 vBarycentric;
+      
+      void main() {
+        vec3 normal = normalize(vNormal);
+        vec3 viewDir = normalize(cameraPosition - vWorldPos);
+        
+        // Edge detection using barycentric coordinates
+        float minBary = min(min(vBarycentric.x, vBarycentric.y), vBarycentric.z);
+        float edgeFactor = smoothstep(0.0, 0.08, minBary);
+        float isEdge = 1.0 - edgeFactor;
+        
+        // Calculate specular from multiple lights
+        float totalSpec = 0.0;
+        for (int i = 0; i < 5; i++) {
+          vec3 lightDir = normalize(uLightPositions[i] - vWorldPos);
+          vec3 halfDir = normalize(lightDir + viewDir);
+          float spec = pow(max(dot(normal, halfDir), 0.0), 256.0);
+          totalSpec += spec;
+        }
+        
+        // Only show sparkle near edges and where specular is strong
+        float sparkle = totalSpec * isEdge * 2.0;
+        
+        // Also add some specular on flat faces but much weaker
+        sparkle += totalSpec * 0.3;
+        
+        gl_FragColor = vec4(vec3(1.0), sparkle);
+      }
+    `,
     transparent: true,
-    opacity: 1.0,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.FrontSide,
-    flatShading: true,
   });
 
   const addEmerald = (x: number, y: number, scale: number) => {
