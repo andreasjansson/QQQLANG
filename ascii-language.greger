@@ -11491,5 +11491,45 @@ Fix bloom washing out background - raise threshold
 ID: toolu_01Wzv8EDhaQskSujR6RNK8E3
 
 <tool.toolu_01Wzv8EDhaQskSujR6RNK8E3>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix bloom washing out background - raise threshold
 </tool.toolu_01Wzv8EDhaQskSujR6RNK8E3>
+
+# ASSISTANT
+
+Also check if tone mapping exposure is too high:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01FX7PiNvBEMh3G4Dq3GwKZY
+
+## path
+
+<tool.toolu_01FX7PiNvBEMh3G4Dq3GwKZY>
+character-defs.ts
+</tool.toolu_01FX7PiNvBEMh3G4Dq3GwKZY>
+
+## git-commit-message
+
+<tool.toolu_01FX7PiNvBEMh3G4Dq3GwKZY>
+Reduce tone mapping exposure
+</tool.toolu_01FX7PiNvBEMh3G4Dq3GwKZY>
+
+## diff
+
+<tool.toolu_01FX7PiNvBEMh3G4Dq3GwKZY>
+     emeraldRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+-    emeraldRenderer.toneMappingExposure = 1.2;
+\ No newline at end of file
++    emeraldRenderer.toneMappingExposure = 1.0;
+\ No newline at end of file
+
+</tool.toolu_01FX7PiNvBEMh3G4Dq3GwKZY>
+
+# TOOL RESULT
+
+ID: toolu_01FX7PiNvBEMh3G4Dq3GwKZY
+
+<tool.toolu_01FX7PiNvBEMh3G4Dq3GwKZY>
+
+</tool.toolu_01FX7PiNvBEMh3G4Dq3GwKZY>
