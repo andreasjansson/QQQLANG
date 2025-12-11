@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-142104709123>
+${greger-prompt-code-style<eval-result-142220582033>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-142104709123>}
+</eval-result-142220582033>}
 
 # USER
 
@@ -7206,5 +7206,238 @@ Oil-slick: more smudging, bilinear sampling, add shading and specular highlights
 ID: toolu_01HXB51wj62Y6tYFRJbD1HmM
 
 <tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Oil-slick: more smudging, bilinear sampling, add shading and specular highlights
 </tool.toolu_01HXB51wj62Y6tYFRJbD1HmM>
+
+# ASSISTANT
+
+Now the oil slick effect:
+1. Uses bilinear interpolation for smooth sampling (no jagged edges)
+2. Uses the noise gradient for displacement (smudges along the "flow" of the oil)
+3. Computes surface normals from the noise heightfield
+4. Adds diffuse shading based on a light direction
+5. Adds specular highlights (the shiny reflections you see on oil)
+
+# USER
+
+no that just looks like a texture, not like oil smear
+
+# THINKING
+
+Signature: EvMJCkYIChgCKkC8T9iNXjA/DfRLY/RmUw2tITsd7ZdAi6gXlSUl6GkyR30iyEYp3vPP4S9T4Ub08y26F9JkmZtZp7Zmo5/MtYqhEgykTMA57+fo0Vs0XxgaDOlM81wA8UAtkIWrAiIwthR1V+q3Jr6CeXUYPXAQB/sTXkP6Xsaud4UOIylBC+cp30PLplQArm9JH8ZFitcIKtoIHAyUInmCd7wOeKtaVj7PNm4FyIzz4gIWsHeZQ/ImXPfJewV4rQf8d19H1kbajzqkcgb03XEOvp7zCXOaNZ8Idcb8dmDj929ZHhWzjMEkX1bMQEvdXlkXIOq19mygOSr61pLZR+plJUGalri2hPg77moBR8zR5BwVOeVADp01lk5Nm6WHaemXj+nUZNvaKIMuG3D+D3HhjMEQXefY6fpo6Yquf7TwsdbTXV11+fcTHcOzpxnPU1FVO1O4s9Z2veqstIv2O8VhshUyOkJl0bvOGs8Cx7X2Uy4i5M8QWlXblyV1I90M9KeqyHgXn/2frPooyuCOrlX5yRuk/6gKkpz1EltBpxe2L6BgTF1gbOactfYy4EPiqZ1sDDJSnm8wN9QORWrnEprfvPRHA4yiz+Q9yix3yXmuzeALIEahKlyZ3PBJrWC8yj+TkL4+IjxD+Pk/4O2bnh1P1LpRU0AEYf0/OqR5Oa7DekHq7zcOqF6uXfHhNu6GQSWedxD6Hj/LpBg8WHCTuTRTcrnrTlaGITMllAmcsC4h+OB2Fa/+lRTZzFooAHVL8xpc7sG/2KgsHyYYrQDIWNd0CqRXzyV1B+KjhfByyCmO2l8IX4qBze1GSvFLQra4Yh9c7p0Dgt33ob71/6kq0aItdCO5KctWmZd1R45M25vCF8VoOhdb1H0DINb4VJBmsVeYho2E9CajImXd6XnInI66uUKX4iab/UsGQLZgaN6JTf5L+sP25ZM8wrrxM4mrufYrhWHpbNASZaLeTNb6AMOcB64/DoqO+N3k5VI9C451O+iuADYugi17MwTwJr/TCIInR+WP0cL+ZbWZ6WXNF849OXJ+Pe8Z7BFVN6vtkoe7r6J3ajBzscv9Qgp0MvFvIMcuN4/kd82v9a8Ep9Jp4rLC3CIOcbPFbTIPz6yYSkUXZbqQS3Vn2+1OuJH/XvkWPrCcq9DTbOyM6ISxHAYvbX+egFlRIvLUKv3aEnOnA2PJzY2+mY8joeeFI37f6IrusSnZsb3miSlsA2I8Eq2vtslvRHpKc6q0AHLOeibFhXvUAjrtaFe0dt0zCsU66t/DKbHLOAt4+MmQ3RfOhVqq0PYiFTocCv9LWfm5DUTdTIlCc/hIMbVm0dA21RdRCTJwl3zgemSm3dMgViV01CTjb/kTjRAFRjSSg53l2+Lcse/JlVbWLvv17N1p6ZeQZj3jyZ0VCMwwGlopMIQW4V1w664Ev3ywueHRD9s/bZkOwIqzlGibLGFtoEDTWdPym/k/rs8j9j5oicAeRtBh09hoLZ22DHoUwFx6dkMMC8p1c9rEQeReXVbkxAdS2ahFTWycKY5jt2sTmH4xSSb61P0yYDtnJCWooQ/3W13B2Wg+Q2BKyZngjx6hp9Jrj9NJjXYgcNcuI1Ct2BhqZL0oSN7nSrr1cV64yVmPtA/KsTOoFDn26LfnyCnBlNucbkCc4+jJ82q3nsyNQQ4l1F5U4zitJn17plX1+RgB
+
+The user is saying it looks like a texture, not like an oil smear. I think the issue is that an oil smear has a specific look - it's like when you smear oil paint or actual oil, you get these elongated streaks that follow the direction of the smear. 
+
+What makes oil smears distinctive:
+1. Long, flowing streaks in consistent directions (not just random displacement)
+2. Colors get pulled/stretched along the smear direction
+3. The smear has a viscous, flowing quality
+4. There are often swirling patterns where the oil has been pushed around
+
+I should think about this more like fluid dynamics or like smearing wet paint. The displacement should:
+1. Be more coherent - pixels should flow in similar directions in nearby areas
+2. Have longer "strokes" - not just small random offsets
+3. Maybe use curl noise to get that swirling, flowing look
+
+Let me try a different approach - use curl noise for the displacement direction (gives nice swirling flow patterns), and make the displacement much stronger and more coherent. Also maybe do multiple iterations of sampling to create that stretched, smeared look.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DSUKXzLudvsZytxFvnqPJM
+
+## path
+
+<tool.toolu_01DSUKXzLudvsZytxFvnqPJM>
+character-defs.ts
+</tool.toolu_01DSUKXzLudvsZytxFvnqPJM>
+
+## git-commit-message
+
+<tool.toolu_01DSUKXzLudvsZytxFvnqPJM>
+Oil-slick: use curl noise for flowing smear streaks, iterative smearing
+</tool.toolu_01DSUKXzLudvsZytxFvnqPJM>
+
+## diff
+
+<tool.toolu_01DSUKXzLudvsZytxFvnqPJM>
+ function fnOilSlick(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
++  let current = cloneImage(prev);
+   
+   const seed = ctx.images.length * 137.5 + n * 17.3;
+   
+   const hash = (x: number, y: number, s: number): number => {
+     const val = Math.sin(x * 127.1 + y * 311.7 + s * 74.3) * 43758.5453;
+     return val - Math.floor(val);
+   };
+   
+   const smoothstep = (t: number): number => t * t * (3 - 2 * t);
+   
+   const noise = (x: number, y: number, s: number): number => {
+     const ix = Math.floor(x);
+     const iy = Math.floor(y);
+     const fx = smoothstep(x - ix);
+     const fy = smoothstep(y - iy);
+     
+     const a = hash(ix, iy, s);
+     const b = hash(ix + 1, iy, s);
+     const c = hash(ix, iy + 1, s);
+     const d = hash(ix + 1, iy + 1, s);
+     
+     return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+   };
+   
+   const fbm = (x: number, y: number, octaves: number): number => {
+     let value = 0;
+     let amplitude = 0.5;
+     let frequency = 1;
+     let maxValue = 0;
+     
+     for (let i = 0; i < octaves; i++) {
+       value += amplitude * noise(x * frequency, y * frequency, seed + i * 100);
+       maxValue += amplitude;
+       amplitude *= 0.5;
+       frequency *= 2.0;
+     }
+     
+     return value / maxValue;
+   };
+   
+   const sampleBilinear = (img: Image, fx: number, fy: number): [number, number, number] => {
+     const x0 = Math.floor(fx);
+     const y0 = Math.floor(fy);
+     const x1 = x0 + 1;
+     const y1 = y0 + 1;
+     const tx = fx - x0;
+     const ty = fy - y0;
+     
+     const [r00, g00, b00] = getPixel(img, x0, y0);
+     const [r10, g10, b10] = getPixel(img, x1, y0);
+     const [r01, g01, b01] = getPixel(img, x0, y1);
+     const [r11, g11, b11] = getPixel(img, x1, y1);
+     
+     const r = r00 * (1 - tx) * (1 - ty) + r10 * tx * (1 - ty) + r01 * (1 - tx) * ty + r11 * tx * ty;
+     const g = g00 * (1 - tx) * (1 - ty) + g10 * tx * (1 - ty) + g01 * (1 - tx) * ty + g11 * tx * ty;
+     const b = b00 * (1 - tx) * (1 - ty) + b10 * tx * (1 - ty) + b01 * (1 - tx) * ty + b11 * tx * ty;
+     
+     return [r, g, b];
+   };
+   
+-  const scale = 0.003 + n * 0.001;
+-  const smudgeStrength = 80 + n * 25;
++  const scale = 0.002;
++  const eps = 0.1;
++  const iterations = 12 + n * 4;
++  const stepSize = 3 + n * 0.5;
+   
+-  const lightDir = [0.4, -0.3, 0.8];
+-  const lightLen = Math.sqrt(lightDir[0] ** 2 + lightDir[1] ** 2 + lightDir[2] ** 2);
+-  lightDir[0] /= lightLen;
+-  lightDir[1] /= lightLen;
+-  lightDir[2] /= lightLen;
++  for (let iter = 0; iter < iterations; iter++) {
++    const out = createSolidImage(current.width, current.height, '#000000');
++    
++    for (let y = 0; y < current.height; y++) {
++      for (let x = 0; x < current.width; x++) {
++        const nx = x * scale;
++        const ny = y * scale;
++        
++        const h = fbm(nx, ny, 4);
++        const hx = fbm(nx + eps, ny, 4);
++        const hy = fbm(nx, ny + eps, 4);
++        
++        const curlX = (hy - h) / eps;
++        const curlY = -(hx - h) / eps;
++        
++        const len = Math.sqrt(curlX * curlX + curlY * curlY) + 0.0001;
++        const dx = (curlX / len) * stepSize;
++        const dy = (curlY / len) * stepSize;
++        
++        const sx = x + dx;
++        const sy = y + dy;
++        
++        const [r, g, b] = sampleBilinear(current, sx, sy);
++        setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
++      }
++    }
++    
++    current = out;
++  }
+   
+-  const eps = 0.5;
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+       const nx = x * scale;
+       const ny = y * scale;
+       
+-      const height = fbm(nx, ny, 6);
+-      const heightX = fbm(nx + eps * scale, ny, 6);
+-      const heightY = fbm(nx, ny + eps * scale, 6);
++      const h = fbm(nx, ny, 4);
++      const hx = fbm(nx + eps, ny, 4);
++      const hy = fbm(nx, ny + eps, 4);
+       
+-      const gradX = (heightX - height) / eps;
+-      const gradY = (heightY - height) / eps;
++      const gradX = (hx - h) / eps;
++      const gradY = (hy - h) / eps;
+       
+-      const normalX = -gradX * 8;
+-      const normalY = -gradY * 8;
+-      const normalZ = 1;
+-      const nLen = Math.sqrt(normalX ** 2 + normalY ** 2 + normalZ ** 2);
++      const highlight = Math.pow(Math.max(0, gradX * 0.7 + gradY * 0.7), 2) * 120;
++      const shadow = 0.85 + h * 0.15;
+       
+-      const nnx = normalX / nLen;
+-      const nny = normalY / nLen;
+-      const nnz = normalZ / nLen;
++      const [r, g, b] = getPixel(current, x, y);
+       
+-      const diffuse = Math.max(0, nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]);
++      const nr = Math.min(255, r * shadow + highlight);
++      const ng = Math.min(255, g * shadow + highlight);
++      const nb = Math.min(255, b * shadow + highlight);
+       
+-      const reflectX = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nnx - lightDir[0];
+-      const reflectY = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nny - lightDir[1];
+-      const reflectZ = 2 * (nnx * lightDir[0] + nny * lightDir[1] + nnz * lightDir[2]) * nnz - lightDir[2];
+-      const specular = Math.pow(Math.max(0, reflectZ), 32);
+-      
+-      const dx = gradX * smudgeStrength;
+-      const dy = gradY * smudgeStrength;
+-      
+-      const sx = x + dx;
+-      const sy = y + dy;
+-      
+-      const [r, g, b] = sampleBilinear(prev, sx, sy);
+-      
+-      const lighting = 0.7 + diffuse * 0.3;
+-      const spec = specular * 180;
+-      
+-      const nr = Math.min(255, r * lighting + spec);
+-      const ng = Math.min(255, g * lighting + spec);
+-      const nb = Math.min(255, b * lighting + spec);
+-      
+       setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
+     }
+   }
+   
+   return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_01DSUKXzLudvsZytxFvnqPJM>
+
+# TOOL RESULT
+
+ID: toolu_01DSUKXzLudvsZytxFvnqPJM
+
+<tool.toolu_01DSUKXzLudvsZytxFvnqPJM>
+
+</tool.toolu_01DSUKXzLudvsZytxFvnqPJM>
