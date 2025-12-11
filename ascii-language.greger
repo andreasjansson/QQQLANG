@@ -15147,5 +15147,252 @@ Import getInvalidUploadIndices for graying out invalid uploads
 ID: toolu_01JLY8zTnd9fSvxgx9mA2Jhb
 
 <tool.toolu_01JLY8zTnd9fSvxgx9mA2Jhb>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Import getInvalidUploadIndices for graying out invalid uploads
 </tool.toolu_01JLY8zTnd9fSvxgx9mA2Jhb>
+
+# ASSISTANT
+
+Now update `updateInputColors` to use this and style invalid uploads:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01GRjnHb9pXCUwgdHWx5cKD1
+
+## pattern
+
+<tool.toolu_01GRjnHb9pXCUwgdHWx5cKD1>
+let uploadCharPositions
+</tool.toolu_01GRjnHb9pXCUwgdHWx5cKD1>
+
+## path
+
+<tool.toolu_01GRjnHb9pXCUwgdHWx5cKD1>
+index.html
+</tool.toolu_01GRjnHb9pXCUwgdHWx5cKD1>
+
+## context-lines
+
+<tool.toolu_01GRjnHb9pXCUwgdHWx5cKD1>
+3
+</tool.toolu_01GRjnHb9pXCUwgdHWx5cKD1>
+
+# TOOL RESULT
+
+ID: toolu_01GRjnHb9pXCUwgdHWx5cKD1
+
+<tool.toolu_01GRjnHb9pXCUwgdHWx5cKD1>
+546-      debugPane.innerHTML = html;
+547-    }
+548-
+549:    let uploadCharPositions = [];
+550-    
+551-    function updateInputColors(program) {
+552-      const ops = getParsedOperations(program);
+
+</tool.toolu_01GRjnHb9pXCUwgdHWx5cKD1>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01LiMkNhPWEHu2yzH8qH7uaP
+
+## path
+
+<tool.toolu_01LiMkNhPWEHu2yzH8qH7uaP>
+index.html
+</tool.toolu_01LiMkNhPWEHu2yzH8qH7uaP>
+
+## start-line
+
+<tool.toolu_01LiMkNhPWEHu2yzH8qH7uaP>
+549
+</tool.toolu_01LiMkNhPWEHu2yzH8qH7uaP>
+
+## end-line
+
+<tool.toolu_01LiMkNhPWEHu2yzH8qH7uaP>
+620
+</tool.toolu_01LiMkNhPWEHu2yzH8qH7uaP>
+
+# TOOL RESULT
+
+ID: toolu_01LiMkNhPWEHu2yzH8qH7uaP
+
+<tool.toolu_01LiMkNhPWEHu2yzH8qH7uaP>
+    let uploadCharPositions = [];
+    
+    function updateInputColors(program) {
+      const ops = getParsedOperations(program);
+      const chars = [...program].filter(c => {
+        const code = c.codePointAt(0);
+        return (code > 32 && code < 127) || c === UPLOAD_CHAR;
+      });
+      
+      let html = '';
+      let charIdx = 0;
+      let uploadIdx = 0;
+      uploadCharPositions = [];
+      
+      for (let i = 0; i < ops.length; i++) {
+        const op = ops[i];
+        const prevIdentifier = i > 0 ? ops[i - 1].identifier : '';
+        const opChars = [...op.identifier.substring(prevIdentifier.length)];
+        const numChars = opChars.length;
+        
+        let color = '#ffffff';
+        if (op.type === 'solid') {
+          color = op.color;
+        } else if (op.type === 'uploaded-image') {
+          color = '#888888';
+        } else {
+          color = op.fnDef.color;
+        }
+        
+        const bgColor = color + '40';
+        
+        for (let j = 0; j < numChars; j++) {
+          if (charIdx < chars.length) {
+            const char = chars[charIdx];
+            if (char === UPLOAD_CHAR) {
+              html += `<span class="upload-char" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
+              uploadCharPositions.push({ charIdx, uploadIdx });
+              uploadIdx++;
+            } else {
+              html += `<span style="background-color: ${bgColor};">${char}</span>`;
+            }
+            charIdx++;
+          }
+        }
+      }
+      
+      inputBackground.innerHTML = html;
+    }
+    
+    function isOverUploadChar(clientX) {
+      if (uploadCharPositions.length === 0) return false;
+      
+      const inputRect = input.getBoundingClientRect();
+      const clickX = clientX - inputRect.left;
+      
+      const spans = inputBackground.querySelectorAll('.upload-char');
+      for (const span of spans) {
+        const spanRect = span.getBoundingClientRect();
+        const bgRect = inputBackground.getBoundingClientRect();
+        const spanLeft = spanRect.left - bgRect.left;
+        const spanRight = spanLeft + spanRect.width;
+        
+        if (clickX >= spanLeft && clickX <= spanRight) {
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    function handleInputClick(e) {
+      if (uploadCharPositions.length === 0) return;
+      
+</tool.toolu_01LiMkNhPWEHu2yzH8qH7uaP>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01AdCK7ZuiDNj79tsP6s3JJV
+
+## path
+
+<tool.toolu_01AdCK7ZuiDNj79tsP6s3JJV>
+index.html
+</tool.toolu_01AdCK7ZuiDNj79tsP6s3JJV>
+
+## git-commit-message
+
+<tool.toolu_01AdCK7ZuiDNj79tsP6s3JJV>
+Style invalid upload chars with reduced opacity
+</tool.toolu_01AdCK7ZuiDNj79tsP6s3JJV>
+
+## diff
+
+<tool.toolu_01AdCK7ZuiDNj79tsP6s3JJV>
+     let uploadCharPositions = [];
++    let invalidUploadIndicesCache = new Set();
+     
+     function updateInputColors(program) {
+       const ops = getParsedOperations(program);
++      const invalidUploads = getInvalidUploadIndices(program);
++      invalidUploadIndicesCache = invalidUploads;
++      
+       const chars = [...program].filter(c => {
+         const code = c.codePointAt(0);
+         return (code > 32 && code < 127) || c === UPLOAD_CHAR;
+       });
+       
+       let html = '';
+       let charIdx = 0;
+       let uploadIdx = 0;
+       uploadCharPositions = [];
+       
+       for (let i = 0; i < ops.length; i++) {
+         const op = ops[i];
+         const prevIdentifier = i > 0 ? ops[i - 1].identifier : '';
+         const opChars = [...op.identifier.substring(prevIdentifier.length)];
+         const numChars = opChars.length;
+         
+         let color = '#ffffff';
+         if (op.type === 'solid') {
+           color = op.color;
+         } else if (op.type === 'uploaded-image') {
+           color = '#888888';
+         } else {
+           color = op.fnDef.color;
+         }
+         
+         const bgColor = color + '40';
+         
+         for (let j = 0; j < numChars; j++) {
+           if (charIdx < chars.length) {
+             const char = chars[charIdx];
+             if (char === UPLOAD_CHAR) {
+-              html += `<span class="upload-char" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
+-              uploadCharPositions.push({ charIdx, uploadIdx });
++              const isInvalid = invalidUploads.has(uploadIdx);
++              const invalidClass = isInvalid ? ' upload-invalid' : '';
++              html += `<span class="upload-char${invalidClass}" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
++              uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
+               uploadIdx++;
+             } else {
+               html += `<span style="background-color: ${bgColor};">${char}</span>`;
+             }
+             charIdx++;
+           }
+         }
+       }
+       
++      // Also render any remaining upload chars that weren't part of ops (invalid ones skipped)
++      while (charIdx < chars.length) {
++        const char = chars[charIdx];
++        if (char === UPLOAD_CHAR) {
++          const isInvalid = invalidUploads.has(uploadIdx);
++          const invalidClass = isInvalid ? ' upload-invalid' : '';
++          html += `<span class="upload-char${invalidClass}" style="background-color: #44444440;" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
++          uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
++          uploadIdx++;
++        } else {
++          html += `<span style="background-color: #44444440;">${char}</span>`;
++        }
++        charIdx++;
++      }
++      
+       inputBackground.innerHTML = html;
+     }
+\ No newline at end of file
+
+</tool.toolu_01AdCK7ZuiDNj79tsP6s3JJV>
+
+# TOOL RESULT
+
+ID: toolu_01AdCK7ZuiDNj79tsP6s3JJV
+
+<tool.toolu_01AdCK7ZuiDNj79tsP6s3JJV>
+
+</tool.toolu_01AdCK7ZuiDNj79tsP6s3JJV>

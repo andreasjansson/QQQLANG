@@ -547,9 +547,13 @@
     }
 
     let uploadCharPositions = [];
+    let invalidUploadIndicesCache = new Set();
     
     function updateInputColors(program) {
       const ops = getParsedOperations(program);
+      const invalidUploads = getInvalidUploadIndices(program);
+      invalidUploadIndicesCache = invalidUploads;
+      
       const chars = [...program].filter(c => {
         const code = c.codePointAt(0);
         return (code > 32 && code < 127) || c === UPLOAD_CHAR;
@@ -581,8 +585,10 @@
           if (charIdx < chars.length) {
             const char = chars[charIdx];
             if (char === UPLOAD_CHAR) {
-              html += `<span class="upload-char" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
-              uploadCharPositions.push({ charIdx, uploadIdx });
+              const isInvalid = invalidUploads.has(uploadIdx);
+              const invalidClass = isInvalid ? ' upload-invalid' : '';
+              html += `<span class="upload-char${invalidClass}" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
+              uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
               uploadIdx++;
             } else {
               html += `<span style="background-color: ${bgColor};">${char}</span>`;
@@ -590,6 +596,21 @@
             charIdx++;
           }
         }
+      }
+      
+      // Also render any remaining upload chars that weren't part of ops (invalid ones skipped)
+      while (charIdx < chars.length) {
+        const char = chars[charIdx];
+        if (char === UPLOAD_CHAR) {
+          const isInvalid = invalidUploads.has(uploadIdx);
+          const invalidClass = isInvalid ? ' upload-invalid' : '';
+          html += `<span class="upload-char${invalidClass}" style="background-color: #44444440;" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
+          uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
+          uploadIdx++;
+        } else {
+          html += `<span style="background-color: #44444440;">${char}</span>`;
+        }
+        charIdx++;
       }
       
       inputBackground.innerHTML = html;
