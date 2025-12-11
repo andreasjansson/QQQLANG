@@ -4207,8 +4207,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnPlus,
     arity: 0,
     argTypes: [],
-    functionName: "quad-sharpen-blur",
-    documentation: "Cross divides into 4 quadrants; top-left/bottom-right sharpened, others blurred"
+    functionName: "zoom",
+    documentation: "Zooms in 1.2x from center, can be repeated for more zoom"
   },
   
   ',': {
