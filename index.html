@@ -542,8 +542,13 @@
     
     // Wait for emerald model to load before first render
     emeraldReady.then(() => {
-      loadProgramFromURL();
-      resize();
+      if (shouldShowIntro()) {
+        showIntro();
+        resize();
+      } else {
+        loadProgramFromURL();
+        resize();
+      }
     });
   </script>
 </body>
