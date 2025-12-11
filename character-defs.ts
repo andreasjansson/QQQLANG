@@ -4959,8 +4959,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnQ,
     arity: 0,
     argTypes: [],
-    functionName: "inverted-tile",
-    documentation: "Splits prev diagonally, inverts bottom-right half, then tiles in four quadrants"
+    functionName: "prism",
+    documentation: "Creates negative prism: diagonal split with inversion, then mirrors into 4 quadrants (h-flip right, v-flip bottom)"
   },
   
   'R': {
