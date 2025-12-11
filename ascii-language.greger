@@ -8782,5 +8782,140 @@ Use proper glassy emerald material with correct settings
 ID: toolu_0133ATXaS3sYnd26EJARYkKw
 
 <tool.toolu_0133ATXaS3sYnd26EJARYkKw>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Use proper glassy emerald material with correct settings
 </tool.toolu_0133ATXaS3sYnd26EJARYkKw>
+
+# ASSISTANT
+
+Now let me also remove the debug logging to clean things up, and make sure the environment map is properly set up for the material:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_011xJbSJvNrgHBJimdKYtj3z
+
+## path
+
+<tool.toolu_011xJbSJvNrgHBJimdKYtj3z>
+character-defs.ts
+</tool.toolu_011xJbSJvNrgHBJimdKYtj3z>
+
+## start-line
+
+<tool.toolu_011xJbSJvNrgHBJimdKYtj3z>
+1370
+</tool.toolu_011xJbSJvNrgHBJimdKYtj3z>
+
+## end-line
+
+<tool.toolu_011xJbSJvNrgHBJimdKYtj3z>
+1420
+</tool.toolu_011xJbSJvNrgHBJimdKYtj3z>
+
+# TOOL RESULT
+
+ID: toolu_011xJbSJvNrgHBJimdKYtj3z
+
+<tool.toolu_011xJbSJvNrgHBJimdKYtj3z>
+  while (emeraldScene!.children.length > 0) {
+    emeraldScene!.remove(emeraldScene!.children[0]);
+  }
+  
+  const bgTexture = new THREE.DataTexture(
+    prev.data,
+    prev.width,
+    prev.height,
+    THREE.RGBAFormat
+  );
+  bgTexture.needsUpdate = true;
+  bgTexture.flipY = true;
+  
+  const pmremGenerator = new THREE.PMREMGenerator(emeraldRenderer!);
+  const envMap = pmremGenerator.fromEquirectangular(bgTexture).texture;
+  emeraldScene!.environment = envMap;
+  emeraldScene!.background = bgTexture;
+  
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  emeraldScene!.add(ambientLight);
+  
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  keyLight.position.set(5, 8, 5);
+  emeraldScene!.add(keyLight);
+  
+  const fillLight = new THREE.DirectionalLight(0xaaffaa, 1.0);
+  fillLight.position.set(-5, 3, 3);
+  emeraldScene!.add(fillLight);
+  
+  const backLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  backLight.position.set(0, 5, -5);
+  emeraldScene!.add(backLight);
+  
+  const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 20);
+  pointLight1.position.set(3, 2, 3);
+  emeraldScene!.add(pointLight1);
+  
+  const pointLight2 = new THREE.PointLight(0x88ffaa, 0.8, 20);
+  pointLight2.position.set(-3, 2, 3);
+  emeraldScene!.add(pointLight2);
+  
+  const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color(0.05, 0.45, 0.2),
+    metalness: 0.0,
+    roughness: 0.02,
+    transmission: 0.85,
+    thickness: 2.0,
+    ior: 1.57,
+    transparent: true,
+    opacity: 1.0,
+    envMapIntensity: 2.0,
+</tool.toolu_011xJbSJvNrgHBJimdKYtj3z>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Wi8m6iQDXugFmL13fATphN
+
+## path
+
+<tool.toolu_01Wi8m6iQDXugFmL13fATphN>
+character-defs.ts
+</tool.toolu_01Wi8m6iQDXugFmL13fATphN>
+
+## git-commit-message
+
+<tool.toolu_01Wi8m6iQDXugFmL13fATphN>
+Set envMap on material explicitly
+</tool.toolu_01Wi8m6iQDXugFmL13fATphN>
+
+## diff
+
+<tool.toolu_01Wi8m6iQDXugFmL13fATphN>
+   const emeraldMaterial = new THREE.MeshPhysicalMaterial({
+     color: new THREE.Color(0.05, 0.45, 0.2),
+     metalness: 0.0,
+     roughness: 0.02,
+     transmission: 0.85,
+     thickness: 2.0,
+     ior: 1.57,
+     transparent: true,
+     opacity: 1.0,
++    envMap: envMap,
+     envMapIntensity: 2.0,
+     clearcoat: 1.0,
+     clearcoatRoughness: 0.02,
+     reflectivity: 1.0,
+     attenuationColor: new THREE.Color(0.0, 0.3, 0.1),
+     attenuationDistance: 0.3,
+     side: THREE.DoubleSide,
+   });
+\ No newline at end of file
+
+</tool.toolu_01Wi8m6iQDXugFmL13fATphN>
+
+# TOOL RESULT
+
+ID: toolu_01Wi8m6iQDXugFmL13fATphN
+
+<tool.toolu_01Wi8m6iQDXugFmL13fATphN>
+
+</tool.toolu_01Wi8m6iQDXugFmL13fATphN>
