@@ -5669,9 +5669,9 @@ export const characterDefs: Record<string, CharDef> = {
     number: 66,
     fn: fnPipe,
     arity: 1,
-    argTypes: ['int'],
+    argTypes: ['index'],
     functionName: "vertical-split",
-    documentation: "Left=prev, right=old image j; 20% wavy blend zone uses screen/difference/xor in alternating horizontal bands"
+    documentation: "Left=prev, right=old image; 20% wavy blend zone uses screen/difference/xor in alternating horizontal bands"
   },
   
   '}': {
