@@ -4186,7 +4186,8 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
   const seed = ctx.images.length * 137.5 + warpN * 17.3;
   const depth = 2 + Math.floor(warpN / 3);
   const warpStrength = 0.1 + warpN * 0.08;
-  const patternScale = 0.5 + iridN * 0.2;
+  const patternScale = 1.5;
+  const glossStrength = iridN * 0.08;
   
   const vertexShader = `
     attribute vec2 position;
