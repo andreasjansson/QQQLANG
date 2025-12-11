@@ -5350,8 +5350,8 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnColon,
     arity: 1,
     argTypes: ['int'],
-    functionName: "circular-zoom",
-    documentation: "n circular regions evenly spaced horizontally show prev at 2x zoom, rest box-blurred with radius 5"
+    functionName: "porthole",
+    documentation: "Shows old image j in a center circle (radius 90% of half-size), prev image outside"
   },
   
   ';': {
