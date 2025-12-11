@@ -7928,5 +7928,120 @@ Add glitter sparkle effect via custom shader
 ID: toolu_011rYBMSQ34rybFKxDVdW147
 
 <tool.toolu_011rYBMSQ34rybFKxDVdW147>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add glitter sparkle effect via custom shader
 </tool.toolu_011rYBMSQ34rybFKxDVdW147>
+
+# ASSISTANT
+
+Now I need to close off the unused material properly:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01QLuoKPLcEMwUFwc1jC4rcD
+
+## pattern
+
+<tool.toolu_01QLuoKPLcEMwUFwc1jC4rcD>
+_unusedPhysicalMaterial
+</tool.toolu_01QLuoKPLcEMwUFwc1jC4rcD>
+
+## path
+
+<tool.toolu_01QLuoKPLcEMwUFwc1jC4rcD>
+character-defs.ts
+</tool.toolu_01QLuoKPLcEMwUFwc1jC4rcD>
+
+## context-lines
+
+<tool.toolu_01QLuoKPLcEMwUFwc1jC4rcD>
+15
+</tool.toolu_01QLuoKPLcEMwUFwc1jC4rcD>
+
+# TOOL RESULT
+
+ID: toolu_01QLuoKPLcEMwUFwc1jC4rcD
+
+<tool.toolu_01QLuoKPLcEMwUFwc1jC4rcD>
+1462-        
+1463-        // Combine
+1464-        vec3 color = baseColor;
+1465-        color += vec3(1.0) * totalSpec * 0.5;
+1466-        color += vec3(1.0, 1.0, 0.95) * sparkle;
+1467-        color += uColor * fresnel * 0.4;
+1468-        
+1469-        gl_FragColor = vec4(color, 0.88 + fresnel * 0.12);
+1470-      }
+1471-    `,
+1472-    transparent: true,
+1473-    side: THREE.DoubleSide,
+1474-  });
+1475-  
+1476-  // Keep reference for compatibility but use shader
+1477:  const _unusedPhysicalMaterial = new THREE.MeshPhysicalMaterial({
+1478-    color: new THREE.Color(0.0, 0.8, 0.28),
+1479-    metalness: 0.0,
+1480-    roughness: 0.0,
+1481-    transmission: 0.92,
+1482-    thickness: 0.6,
+1483-    ior: 1.65,
+1484-    envMapIntensity: 0.35,
+1485-    clearcoat: 1.0,
+1486-    clearcoatRoughness: 0.0,
+1487-    transparent: true,
+1488-    opacity: 1.0,
+1489-    side: THREE.DoubleSide,
+1490-    flatShading: true,
+1491-    attenuationColor: new THREE.Color(0.0, 0.5, 0.15),
+1492-    attenuationDistance: 0.4,
+
+</tool.toolu_01QLuoKPLcEMwUFwc1jC4rcD>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Y4AsECR96Bvrz3RoZPSZPz
+
+## path
+
+<tool.toolu_01Y4AsECR96Bvrz3RoZPSZPz>
+character-defs.ts
+</tool.toolu_01Y4AsECR96Bvrz3RoZPSZPz>
+
+## git-commit-message
+
+<tool.toolu_01Y4AsECR96Bvrz3RoZPSZPz>
+Remove unused physical material reference
+</tool.toolu_01Y4AsECR96Bvrz3RoZPSZPz>
+
+## diff
+
+<tool.toolu_01Y4AsECR96Bvrz3RoZPSZPz>
+-  // Keep reference for compatibility but use shader
+-  const _unusedPhysicalMaterial = new THREE.MeshPhysicalMaterial({
+-    color: new THREE.Color(0.0, 0.8, 0.28),
+-    metalness: 0.0,
+-    roughness: 0.0,
+-    transmission: 0.92,
+-    thickness: 0.6,
+-    ior: 1.65,
+-    envMapIntensity: 0.35,
+-    clearcoat: 1.0,
+-    clearcoatRoughness: 0.0,
+-    transparent: true,
+-    opacity: 1.0,
+-    side: THREE.DoubleSide,
+-    flatShading: true,
+-    attenuationColor: new THREE.Color(0.0, 0.5, 0.15),
+-    attenuationDistance: 0.4,
+\ No newline at end of file
+
+</tool.toolu_01Y4AsECR96Bvrz3RoZPSZPz>
+
+# TOOL RESULT
+
+ID: toolu_01Y4AsECR96Bvrz3RoZPSZPz
+
+<tool.toolu_01Y4AsECR96Bvrz3RoZPSZPz>
+
+</tool.toolu_01Y4AsECR96Bvrz3RoZPSZPz>
