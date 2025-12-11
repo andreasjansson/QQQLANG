@@ -2330,19 +2330,21 @@ function fnU(ctx: FnContext, n: number): Image {
   const w = ctx.width;
   const h = ctx.height;
   
-  const shiftAmount = 40 + n * 12;
+  const hueAmount = 60 + n * 20;
+  const satAmount = 0.3 + n * 0.05;
+  const lightAmount = 0.15 + n * 0.03;
   
-  const baseAngle = n * 0.4;
-  const angleR = baseAngle;
-  const angleG = baseAngle + Math.PI * 2 / 3;
-  const angleB = baseAngle + Math.PI * 4 / 3;
+  const baseAngle = n * 0.5;
+  const angleH = baseAngle;
+  const angleS = baseAngle + Math.PI * 2 / 3;
+  const angleL = baseAngle + Math.PI * 4 / 3;
   
-  const dirRX = Math.cos(angleR);
-  const dirRY = Math.sin(angleR);
-  const dirGX = Math.cos(angleG);
-  const dirGY = Math.sin(angleG);
-  const dirBX = Math.cos(angleB);
-  const dirBY = Math.sin(angleB);
+  const dirHX = Math.cos(angleH);
+  const dirHY = Math.sin(angleH);
+  const dirSX = Math.cos(angleS);
+  const dirSY = Math.sin(angleS);
+  const dirLX = Math.cos(angleL);
+  const dirLY = Math.sin(angleL);
   
   const cx = w / 2;
   const cy = h / 2;
@@ -2353,18 +2355,25 @@ function fnU(ctx: FnContext, n: number): Image {
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const [origR, origG, origB] = getPixel(prev, x, y);
+      let [h, s, l] = rgbToHsl(origR, origG, origB);
       
       const rx = x - cx;
       const ry = y - cy;
       
-      const shiftR = (rx * dirRX + ry * dirRY) / maxDist;
-      const shiftG = (rx * dirGX + ry * dirGY) / maxDist;
-      const shiftB = (rx * dirBX + ry * dirBY) / maxDist;
+      const tH = (rx * dirHX + ry * dirHY) / maxDist;
+      const tS = (rx * dirSX + ry * dirSY) / maxDist;
+      const tL = (rx * dirLX + ry * dirLY) / maxDist;
       
-      const r = Math.max(0, Math.min(255, Math.round(origR + shiftR * shiftAmount)));
-      const g = Math.max(0, Math.min(255, Math.round(origG + shiftG * shiftAmount)));
-      const b = Math.max(0, Math.min(255, Math.round(origB + shiftB * shiftAmount)));
+      const hueShift = tH * hueAmount;
+      h = (h + hueShift + 360) % 360;
       
+      const satMod = 1 + tS * satAmount;
+      s = Math.max(0, Math.min(1, s * satMod));
+      
+      const lightShift = tL * lightAmount;
+      l = Math.max(0, Math.min(1, l + lightShift * (1 - Math.abs(l - 0.5) * 2)));
+      
+      const [r, g, b] = hslToRgb(h, s, l);
       setPixel(out, x, y, r, g, b);
     }
   }
