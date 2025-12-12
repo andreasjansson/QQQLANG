@@ -1518,7 +1518,7 @@ export const emeraldReady = loadEmeraldModel();
 // 86.9K params, ~350KB, runs at 100 FPS on mobile
 let sinetSession: ort.InferenceSession | null = null;
 let sinetInferenceInProgress = false;
-const SINET_INPUT_SIZE = 224;
+const SINET_INPUT_SIZE = 320;
 const SINET_MEAN = [102.890434, 111.25247, 126.91212];
 const SINET_STD = [62.93292, 62.82138, 66.355705];
 
