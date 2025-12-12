@@ -2273,7 +2273,7 @@ function fnT(ctx: FnContext, n: number): Image {
   const allTexCoords: number[] = [];
   
   for (const c of cubesData) {
-    const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth);
+    const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth, c.texX0, c.texY0, c.texX1, c.texY1);
     allVertices.push(...box.vertices);
     allNormals.push(...box.normals);
     allTexCoords.push(...box.texCoords);

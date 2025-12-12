@@ -9526,5 +9526,48 @@ Update createBox to use proper texture coordinates for roof
 ID: toolu_013fWZJ3vuFFR2wRiirFSw4Z
 
 <tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update createBox to use proper texture coordinates for roof
 </tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Mp2J2EcoocJq7sKHBzdQzT
+
+## path
+
+<tool.toolu_01Mp2J2EcoocJq7sKHBzdQzT>
+character-defs.ts
+</tool.toolu_01Mp2J2EcoocJq7sKHBzdQzT>
+
+## git-commit-message
+
+<tool.toolu_01Mp2J2EcoocJq7sKHBzdQzT>
+Update cube generation to pass texture coordinates
+</tool.toolu_01Mp2J2EcoocJq7sKHBzdQzT>
+
+## diff
+
+<tool.toolu_01Mp2J2EcoocJq7sKHBzdQzT>
+   const allVertices: number[] = [];
+   const allNormals: number[] = [];
+   const allTexCoords: number[] = [];
+   
+   for (const c of cubesData) {
+-    const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth);
++    const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth, c.texX0, c.texY0, c.texX1, c.texY1);
+     allVertices.push(...box.vertices);
+     allNormals.push(...box.normals);
+     allTexCoords.push(...box.texCoords);
+   }
+\ No newline at end of file
+
+</tool.toolu_01Mp2J2EcoocJq7sKHBzdQzT>
+
+# TOOL RESULT
+
+ID: toolu_01Mp2J2EcoocJq7sKHBzdQzT
+
+<tool.toolu_01Mp2J2EcoocJq7sKHBzdQzT>
+
+</tool.toolu_01Mp2J2EcoocJq7sKHBzdQzT>
