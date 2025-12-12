@@ -2192,10 +2192,6 @@ function fnT(ctx: FnContext, n: number): Image {
     }
   }
   
-  const lightDirX = 0.4;
-  const lightDirY = -0.5;
-  const lightDirZ = 0.8;
-  
   const vertexShader = `
     attribute vec3 aPosition;
     attribute vec3 aNormal;
@@ -2224,7 +2220,6 @@ function fnT(ctx: FnContext, n: number): Image {
     precision highp float;
     
     uniform sampler2D uTexture;
-    uniform vec3 uLightDir;
     uniform float uIsBackground;
     
     varying vec3 vNormal;
@@ -2236,41 +2231,52 @@ function fnT(ctx: FnContext, n: number): Image {
       vec3 color = texture2D(uTexture, vTexCoord).rgb;
       
       if (uIsBackground > 0.5) {
-        // Darken background slightly to simulate shadows from buildings
-        float shadowFactor = 0.7;
-        gl_FragColor = vec4(color * shadowFactor, 1.0);
+        // Darken background to simulate being in shadow
+        gl_FragColor = vec4(color * 0.5, 1.0);
       } else {
         vec3 normal = normalize(vNormal);
-        vec3 lightDir = normalize(uLightDir);
+        
+        // Light coming from upper-right-front (behind camera)
+        vec3 lightDir = normalize(vec3(0.5, -0.3, 1.0));
         vec3 viewDir = vec3(0.0, 0.0, 1.0);
         
-        // Ambient with height-based variation (taller = brighter ambient)
-        float ambient = 0.35 + vHeight * 0.3;
+        // Check which face we're on
+        bool isTopFace = normal.z > 0.9;
+        bool isRightFace = normal.x > 0.9;
+        bool isLeftFace = normal.x < -0.9;
+        bool isFrontFace = normal.y > 0.9;
+        bool isBackFace = normal.y < -0.9;
         
-        // Diffuse lighting
-        float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
+        float lighting = 0.0;
         
-        // Specular highlight for top faces
-        vec3 reflectDir = reflect(-lightDir, normal);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
-        float specular = spec * 0.3 * step(0.9, normal.z); // Only on top faces
-        
-        // Fake ambient occlusion - darker at bottom of side faces
-        float ao = 1.0;
-        if (abs(normal.z) < 0.1) { // Side faces
-          ao = 0.6 + 0.4 * (vHeight / 0.5); // Darker near ground
+        if (isTopFace) {
+          // Top faces are bright - fully lit by sun
+          float diffuse = max(dot(normal, lightDir), 0.0);
+          lighting = 0.7 + diffuse * 0.5;
+          
+          // Specular highlight
+          vec3 reflectDir = reflect(-lightDir, normal);
+          float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+          lighting += spec * 0.3;
+        } else if (isRightFace) {
+          // Right faces catch some light
+          lighting = 0.5 + max(dot(normal, lightDir), 0.0) * 0.3;
+        } else if (isLeftFace) {
+          // Left faces are in shadow
+          lighting = 0.25;
+        } else if (isFrontFace) {
+          // Front faces (bottom of screen) - partial light
+          lighting = 0.4;
+        } else if (isBackFace) {
+          // Back faces (top of screen) - darker
+          lighting = 0.3;
         }
         
-        // Rim lighting for edges
-        float rim = 1.0 - max(dot(viewDir, normal), 0.0);
-        rim = pow(rim, 3.0) * 0.15;
+        // Height-based ambient boost - taller buildings catch more light
+        lighting += vHeight * 0.2;
         
-        float lighting = (ambient + diffuse) * ao + specular + rim;
-        
-        // Slightly warm the lit areas, cool the shadows
-        vec3 warmLight = vec3(1.05, 1.0, 0.95);
-        vec3 coolShadow = vec3(0.9, 0.95, 1.05);
-        vec3 tint = mix(coolShadow, warmLight, lighting);
+        // Warm sunlight tint for lit areas
+        vec3 tint = mix(vec3(0.8, 0.85, 1.0), vec3(1.1, 1.05, 0.95), lighting);
         
         gl_FragColor = vec4(color * lighting * tint, 1.0);
       }
