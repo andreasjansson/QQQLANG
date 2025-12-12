@@ -3450,11 +3450,16 @@ function fnPercent(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnAmpersand(ctx: FnContext, mode: number): Image {
+function fnAmpersand(ctx: FnContext, mode: string): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const ditherMode = ((mode - 1) % 16 + 16) % 16;
+  const modes = [
+    'ordered-5level','bayer-bw','threshold-bw','ordered-2bit','floyd-rgb','floyd-bw',
+    'atkinson-4level','atkinson-bw','stucki-6level','burkes','sierra','random-bw',
+    'cluster-2bit','bluenoise-bw','bayer2x2-2bit','noise-2bit'
+  ];
+  const ditherMode = modes.indexOf(mode);
   const seed = ctx.images.length * 137.5;
   
   const hash = (x: number, y: number) => {
