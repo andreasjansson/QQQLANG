@@ -2189,15 +2189,17 @@ function fnT(ctx: FnContext, n: number): Image {
   const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
   mainLight.position.set(2, 3, 4);
   mainLight.castShadow = true;
-  mainLight.shadow.mapSize.width = 2048;
-  mainLight.shadow.mapSize.height = 2048;
+  mainLight.shadow.mapSize.width = 4096;
+  mainLight.shadow.mapSize.height = 4096;
   mainLight.shadow.camera.near = 0.1;
   mainLight.shadow.camera.far = 20;
-  mainLight.shadow.camera.left = -3;
-  mainLight.shadow.camera.right = 3;
-  mainLight.shadow.camera.top = 3;
-  mainLight.shadow.camera.bottom = -3;
-  mainLight.shadow.bias = -0.001;
+  const shadowSize = Math.max(frustumWidth, frustumHeight) * 0.8;
+  mainLight.shadow.camera.left = -shadowSize;
+  mainLight.shadow.camera.right = shadowSize;
+  mainLight.shadow.camera.top = shadowSize;
+  mainLight.shadow.camera.bottom = -shadowSize;
+  mainLight.shadow.bias = -0.0005;
+  mainLight.shadow.radius = 3;
   scene.add(mainLight);
   
   const fillLight = new THREE.DirectionalLight(0x8899ff, 0.3);
