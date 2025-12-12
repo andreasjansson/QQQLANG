@@ -11957,5 +11957,67 @@ Update all blend mode cases to use string names
 ID: toolu_0121bUY2eeFtstxiG1Fki5JQ
 
 <tool.toolu_0121bUY2eeFtstxiG1Fki5JQ>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update all blend mode cases to use string names
 </tool.toolu_0121bUY2eeFtstxiG1Fki5JQ>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016eiRSQGcNeRuwMqGXs2frc
+
+## path
+
+<tool.toolu_016eiRSQGcNeRuwMqGXs2frc>
+character-defs.ts
+</tool.toolu_016eiRSQGcNeRuwMqGXs2frc>
+
+## git-commit-message
+
+<tool.toolu_016eiRSQGcNeRuwMqGXs2frc>
+Update remaining blend mode cases
+</tool.toolu_016eiRSQGcNeRuwMqGXs2frc>
+
+## diff
+
+<tool.toolu_016eiRSQGcNeRuwMqGXs2frc>
+           const [, , bl] = rgbToHsl(br, bg, bb);
+           if (bl < 0.333) {
+             r = tr; g = tg; b = tb;
+           } else {
+             r = br; g = bg; b = bb;
+           }
+           break;
+         }
+         
+-        case 32: { // Replace Mid Third - replace middle 33% with prev
++        case 'replace-mid-third': {
+           const [, , bl] = rgbToHsl(br, bg, bb);
+           if (bl >= 0.333 && bl < 0.667) {
+             r = tr; g = tg; b = tb;
+           } else {
+             r = br; g = bg; b = bb;
+           }
+           break;
+         }
+         
+-        case 33: { // Replace Light Third - replace lightest 33% with prev
++        case 'replace-light-third': {
+           const [, , bl] = rgbToHsl(br, bg, bb);
+           if (bl >= 0.667) {
+             r = tr; g = tg; b = tb;
+           } else {
+             r = br; g = bg; b = bb;
+           }
+           break;
+         }
+\ No newline at end of file
+
+</tool.toolu_016eiRSQGcNeRuwMqGXs2frc>
+
+# TOOL RESULT
+
+ID: toolu_016eiRSQGcNeRuwMqGXs2frc
+
+<tool.toolu_016eiRSQGcNeRuwMqGXs2frc>
+
+</tool.toolu_016eiRSQGcNeRuwMqGXs2frc>
