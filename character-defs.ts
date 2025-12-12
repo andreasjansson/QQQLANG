@@ -2748,21 +2748,21 @@ function fn2(ctx: FnContext, old: Image, oldThird: number, prevThird: number): I
   const oldIdx = ((oldThird - 1) % 3 + 3) % 3;
   const prevIdx = ((prevThird - 1) % 3 + 3) % 3;
   
-  const thirdHeight = Math.floor(ctx.height / 3);
+  const thirdWidth = Math.floor(ctx.width / 3);
   
-  const oldStartY = oldIdx * thirdHeight;
-  const oldEndY = oldIdx === 2 ? ctx.height : (oldIdx + 1) * thirdHeight;
+  const oldStartX = oldIdx * thirdWidth;
+  const oldEndX = oldIdx === 2 ? ctx.width : (oldIdx + 1) * thirdWidth;
   
-  const prevStartY = prevIdx * thirdHeight;
-  const prevEndY = prevIdx === 2 ? ctx.height : (prevIdx + 1) * thirdHeight;
+  const prevStartX = prevIdx * thirdWidth;
+  const prevEndX = prevIdx === 2 ? ctx.width : (prevIdx + 1) * thirdWidth;
   
-  const oldHeight = oldEndY - oldStartY;
-  const prevHeight = prevEndY - prevStartY;
+  const oldWidth = oldEndX - oldStartX;
+  const prevWidth = prevEndX - prevStartX;
   
-  for (let y = prevStartY; y < prevEndY; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcY = oldStartY + Math.floor((y - prevStartY) / prevHeight * oldHeight);
-      const [r, g, b] = getPixel(old, x, srcY);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = prevStartX; x < prevEndX; x++) {
+      const srcX = oldStartX + Math.floor((x - prevStartX) / prevWidth * oldWidth);
+      const [r, g, b] = getPixel(old, srcX, y);
       setPixel(out, x, y, r, g, b);
     }
   }
