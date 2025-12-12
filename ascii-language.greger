@@ -12037,5 +12037,55 @@ Fix lighting in fnT - stronger contrast, light from behind camera
 ID: toolu_01F7pm6ZmwfKTdLgKXmvyGKR
 
 <tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix lighting in fnT - stronger contrast, light from behind camera
 </tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+
+# ASSISTANT
+
+Now let me also remove the unused uniform that we no longer need:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Up85QkLrcMepjyRJy8ZEny
+
+## path
+
+<tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+character-defs.ts
+</tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+
+## git-commit-message
+
+<tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+Remove unused uLightDir uniform from fnT
+</tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+
+## original-content
+
+<tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, lightDirZ);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
+</tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+
+## new-content
+
+<tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
+</tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+
+# TOOL RESULT
+
+ID: toolu_01Up85QkLrcMepjyRJy8ZEny
+
+<tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+
+</tool.toolu_01Up85QkLrcMepjyRJy8ZEny>

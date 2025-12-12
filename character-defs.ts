@@ -2361,7 +2361,6 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
-  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, lightDirZ);
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
   gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
   
