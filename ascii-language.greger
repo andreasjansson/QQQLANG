@@ -14174,5 +14174,519 @@ Remove reflection pass resources and simplify rendering
 ID: toolu_01WVLmJZo2d6txyUF7fr6hEH
 
 <tool.toolu_01WVLmJZo2d6txyUF7fr6hEH>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Remove reflection pass resources and simplify rendering
 </tool.toolu_01WVLmJZo2d6txyUF7fr6hEH>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0147rL4Dua3uczrGVftSD3Tt
+
+## path
+
+<tool.toolu_0147rL4Dua3uczrGVftSD3Tt>
+character-defs.ts
+</tool.toolu_0147rL4Dua3uczrGVftSD3Tt>
+
+## git-commit-message
+
+<tool.toolu_0147rL4Dua3uczrGVftSD3Tt>
+Remove reflection rendering pass
+</tool.toolu_0147rL4Dua3uczrGVftSD3Tt>
+
+## diff
+
+<tool.toolu_0147rL4Dua3uczrGVftSD3Tt>
+-  // Camera matrices (used in multiple passes)
+-  const fov = Math.PI / 2.5;
+-  const near = 0.1, far = 10.0;
+-  const f = 1.0 / Math.tan(fov / 2);
+-  const perspective = new Float32Array([
+-    f, 0, 0, 0,
+-    0, f, 0, 0,
+-    0, 0, (far+near)/(near-far), -1,
+-    0, 0, (2*far*near)/(near-far), 0
+-  ]);
+-  
+-  const camZ = 0.5 / Math.tan(fov / 2);
+-  const view = new Float32Array([
+-    1, 0, 0, 0,
+-    0, 1, 0, 0,
+-    0, 0, 1, 0,
+-    -0.5, -0.5, -camZ, 1
+-  ]);
+-  
+-  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+-  
+-  // === PASS 2: Render environment/reflection map ===
+-  gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
+-  gl.viewport(0, 0, ctx.width, ctx.height);
+-  gl.clearColor(0, 0, 0, 1);
+-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+-  
+-  gl.useProgram(envProgram);
+-  
+-  const envPosLoc = gl.getAttribLocation(envProgram, 'aPosition');
+-  const envNormLoc = gl.getAttribLocation(envProgram, 'aNormal');
+-  const envTexLoc = gl.getAttribLocation(envProgram, 'aTexCoord');
+-  
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, texture);
+-  gl.uniform1i(gl.getUniformLocation(envProgram, 'uTexture'), 0);
+-  gl.uniform3f(gl.getUniformLocation(envProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
+-  
+-  // Draw background
+-  gl.disable(gl.DEPTH_TEST);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uProjection'), false, ortho);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uView'), false, identity);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uModel'), false, identity);
+-  gl.uniform1f(gl.getUniformLocation(envProgram, 'uIsBackground'), 1.0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+-  gl.enableVertexAttribArray(envPosLoc);
+-  gl.vertexAttribPointer(envPosLoc, 3, gl.FLOAT, false, 0, 0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+-  gl.enableVertexAttribArray(envNormLoc);
+-  gl.vertexAttribPointer(envNormLoc, 3, gl.FLOAT, false, 0, 0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+-  gl.enableVertexAttribArray(envTexLoc);
+-  gl.vertexAttribPointer(envTexLoc, 2, gl.FLOAT, false, 0, 0);
+-  
+-  gl.drawArrays(gl.TRIANGULAR, 0, 6);
+-  
+-  // Draw buildings for reflection map
+-  gl.enable(gl.DEPTH_TEST);
+-  gl.clear(gl.DEPTH_BUFFER_BIT);
+-  
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uProjection'), false, perspective);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uView'), false, view);
+-  gl.uniform1f(gl.getUniformLocation(envProgram, 'uIsBackground'), 0.0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+-  gl.enableVertexAttribArray(envPosLoc);
+-  gl.vertexAttribPointer(envPosLoc, 3, gl.FLOAT, false, 0, 0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+-  gl.enableVertexAttribArray(envNormLoc);
+-  gl.vertexAttribPointer(envNormLoc, 3, gl.FLOAT, false, 0, 0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+-  gl.enableVertexAttribArray(envTexLoc);
+-  gl.vertexAttribPointer(envTexLoc, 2, gl.FLOAT, false, 0, 0);
+-  
+-  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+-  
+-  gl.disableVertexAttribArray(envPosLoc);
+-  gl.disableVertexAttribArray(envNormLoc);
+-  gl.disableVertexAttribArray(envTexLoc);
+-  
+-  // === PASS 3: Render main scene with reflections ===
+\ No newline at end of file
++  // === PASS 2: Render main scene ===
+\ No newline at end of file
+
+</tool.toolu_0147rL4Dua3uczrGVftSD3Tt>
+
+# TOOL RESULT
+
+ID: toolu_0147rL4Dua3uczrGVftSD3Tt
+
+<tool.toolu_0147rL4Dua3uczrGVftSD3Tt>
+Original content not found in file: /Users/ajansson/projects/ascii-language/character-defs.ts -- Try again!
+</tool.toolu_0147rL4Dua3uczrGVftSD3Tt>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01Y66j3Sm8WaHUGQbadyMXDK
+
+## path
+
+<tool.toolu_01Y66j3Sm8WaHUGQbadyMXDK>
+character-defs.ts
+</tool.toolu_01Y66j3Sm8WaHUGQbadyMXDK>
+
+## start-line
+
+<tool.toolu_01Y66j3Sm8WaHUGQbadyMXDK>
+2400
+</tool.toolu_01Y66j3Sm8WaHUGQbadyMXDK>
+
+## end-line
+
+<tool.toolu_01Y66j3Sm8WaHUGQbadyMXDK>
+2500
+</tool.toolu_01Y66j3Sm8WaHUGQbadyMXDK>
+
+# TOOL RESULT
+
+ID: toolu_01Y66j3Sm8WaHUGQbadyMXDK
+
+<tool.toolu_01Y66j3Sm8WaHUGQbadyMXDK>
+  for (const c of cubesData) {
+    const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth, c.texX0, c.texY0, c.texX1, c.texY1);
+    allVertices.push(...box.vertices);
+    allNormals.push(...box.normals);
+    allTexCoords.push(...box.texCoords);
+  }
+  
+  // Light matrices - light from upper-right, behind camera
+  const lightDir = [0.4, -0.3, 0.8];
+  const lightDirLen = Math.sqrt(lightDir[0]**2 + lightDir[1]**2 + lightDir[2]**2);
+  lightDir[0] /= lightDirLen;
+  lightDir[1] /= lightDirLen;
+  lightDir[2] /= lightDirLen;
+  
+  // Orthographic projection for directional light shadow map
+  const lightOrtho = new Float32Array([
+    2, 0, 0, 0,
+    0, 2, 0, 0,
+    0, 0, -0.5, 0,
+    -1, -1, 0, 1
+  ]);
+  
+  // Light view - looking down the light direction
+  const lightView = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    -lightDir[0]*0.5, -lightDir[1]*0.5, 1, 0,
+    0, 0, -1, 1
+  ]);
+  
+  const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  
+  // Create buffers
+  const posBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allVertices), gl.STATIC_DRAW);
+  
+  const normBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allNormals), gl.STATIC_DRAW);
+  
+  const texBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allTexCoords), gl.STATIC_DRAW);
+  
+  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
+  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
+  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
+  
+  const bgPosBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgVertices, gl.STATIC_DRAW);
+  
+  const bgNormBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgNormals, gl.STATIC_DRAW);
+  
+  const bgTexBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgTexCoords, gl.STATIC_DRAW);
+  
+  // === PASS 1: Render shadow map ===
+  gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
+  gl.viewport(0, 0, shadowMapSize, shadowMapSize);
+  gl.clearColor(1, 1, 1, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LESS);
+  
+  gl.useProgram(shadowProgram);
+  
+  const shadowPosLoc = gl.getAttribLocation(shadowProgram, 'aPosition');
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.enableVertexAttribArray(shadowPosLoc);
+  gl.vertexAttribPointer(shadowPosLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(shadowProgram, 'uLightProjection'), false, lightOrtho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(shadowProgram, 'uLightView'), false, lightView);
+  gl.uniformMatrix4fv(gl.getUniformLocation(shadowProgram, 'uModel'), false, identity);
+  
+  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+  gl.disableVertexAttribArray(shadowPosLoc);
+  
+  // Camera matrices (used in multiple passes)
+  const fov = Math.PI / 2.5;
+  const near = 0.1, far = 10.0;
+  const f = 1.0 / Math.tan(fov / 2);
+  const perspective = new Float32Array([
+    f, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far+near)/(near-far), -1,
+    0, 0, (2*far*near)/(near-far), 0
+  ]);
+  
+  const camZ = 0.5 / Math.tan(fov / 2);
+  const view = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    -0.5, -0.5, -camZ, 1
+  ]);
+</tool.toolu_01Y66j3Sm8WaHUGQbadyMXDK>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01DikySTgENnCqD8Fw8YDPxf
+
+## path
+
+<tool.toolu_01DikySTgENnCqD8Fw8YDPxf>
+character-defs.ts
+</tool.toolu_01DikySTgENnCqD8Fw8YDPxf>
+
+## start-line
+
+<tool.toolu_01DikySTgENnCqD8Fw8YDPxf>
+2500
+</tool.toolu_01DikySTgENnCqD8Fw8YDPxf>
+
+## end-line
+
+<tool.toolu_01DikySTgENnCqD8Fw8YDPxf>
+2600
+</tool.toolu_01DikySTgENnCqD8Fw8YDPxf>
+
+# TOOL RESULT
+
+ID: toolu_01DikySTgENnCqD8Fw8YDPxf
+
+<tool.toolu_01DikySTgENnCqD8Fw8YDPxf>
+  ]);
+  
+  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+  
+  // === PASS 2: Render environment/reflection map ===
+  gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  
+  gl.useProgram(envProgram);
+  
+  const envPosLoc = gl.getAttribLocation(envProgram, 'aPosition');
+  const envNormLoc = gl.getAttribLocation(envProgram, 'aNormal');
+  const envTexLoc = gl.getAttribLocation(envProgram, 'aTexCoord');
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.uniform1i(gl.getUniformLocation(envProgram, 'uTexture'), 0);
+  gl.uniform3f(gl.getUniformLocation(envProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
+  
+  // Draw background
+  gl.disable(gl.DEPTH_TEST);
+  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uView'), false, identity);
+  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uModel'), false, identity);
+  gl.uniform1f(gl.getUniformLocation(envProgram, 'uIsBackground'), 1.0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+  gl.enableVertexAttribArray(envPosLoc);
+  gl.vertexAttribPointer(envPosLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+  gl.enableVertexAttribArray(envNormLoc);
+  gl.vertexAttribPointer(envNormLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+  gl.enableVertexAttribArray(envTexLoc);
+  gl.vertexAttribPointer(envTexLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  
+  // Draw buildings for reflection map
+  gl.enable(gl.DEPTH_TEST);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uProjection'), false, perspective);
+  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uView'), false, view);
+  gl.uniform1f(gl.getUniformLocation(envProgram, 'uIsBackground'), 0.0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.enableVertexAttribArray(envPosLoc);
+  gl.vertexAttribPointer(envPosLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+  gl.enableVertexAttribArray(envNormLoc);
+  gl.vertexAttribPointer(envNormLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+  gl.enableVertexAttribArray(envTexLoc);
+  gl.vertexAttribPointer(envTexLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+  
+  gl.disableVertexAttribArray(envPosLoc);
+  gl.disableVertexAttribArray(envNormLoc);
+  gl.disableVertexAttribArray(envTexLoc);
+  
+  // === PASS 3: Render main scene with reflections ===
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  
+  gl.useProgram(mainProgram);
+  
+  const posLoc = gl.getAttribLocation(mainProgram, 'aPosition');
+  const normLoc = gl.getAttribLocation(mainProgram, 'aNormal');
+  const texLoc = gl.getAttribLocation(mainProgram, 'aTexCoord');
+  
+  // Bind textures
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
+  
+  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uTexture'), 0);
+  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uShadowMap'), 1);
+  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uReflectionMap'), 2);
+  gl.uniform3f(gl.getUniformLocation(mainProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
+  gl.uniform2f(gl.getUniformLocation(mainProgram, 'uResolution'), ctx.width, ctx.height);
+  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightProjection'), false, lightOrtho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightView'), false, lightView);
+  
+  // Draw background first (no depth test)
+  gl.disable(gl.DEPTH_TEST);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uView'), false, identity);
+</tool.toolu_01DikySTgENnCqD8Fw8YDPxf>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01HUxvTEejvcPFR5mDkN63v4
+
+## path
+
+<tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
+character-defs.ts
+</tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
+
+## git-commit-message
+
+<tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
+Remove reflection pass and simplify to 2-pass rendering
+</tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
+
+## diff
+
+<tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
+   const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+   
+-  // === PASS 2: Render environment/reflection map ===
+-  gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
+-  gl.viewport(0, 0, ctx.width, ctx.height);
+-  gl.clearColor(0, 0, 0, 1);
+-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+-  
+-  gl.useProgram(envProgram);
+-  
+-  const envPosLoc = gl.getAttribLocation(envProgram, 'aPosition');
+-  const envNormLoc = gl.getAttribLocation(envProgram, 'aNormal');
+-  const envTexLoc = gl.getAttribLocation(envProgram, 'aTexCoord');
+-  
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, texture);
+-  gl.uniform1i(gl.getUniformLocation(envProgram, 'uTexture'), 0);
+-  gl.uniform3f(gl.getUniformLocation(envProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
+-  
+-  // Draw background
+-  gl.disable(gl.DEPTH_TEST);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uProjection'), false, ortho);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uView'), false, identity);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uModel'), false, identity);
+-  gl.uniform1f(gl.getUniformLocation(envProgram, 'uIsBackground'), 1.0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+-  gl.enableVertexAttribArray(envPosLoc);
+-  gl.vertexAttribPointer(envPosLoc, 3, gl.FLOAT, false, 0, 0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+-  gl.enableVertexAttribArray(envNormLoc);
+-  gl.vertexAttribPointer(envNormLoc, 3, gl.FLOAT, false, 0, 0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+-  gl.enableVertexAttribArray(envTexLoc);
+-  gl.vertexAttribPointer(envTexLoc, 2, gl.FLOAT, false, 0, 0);
+-  
+-  gl.drawArrays(gl.TRIANGLES, 0, 6);
+-  
+-  // Draw buildings for reflection map
+-  gl.enable(gl.DEPTH_TEST);
+-  gl.clear(gl.DEPTH_BUFFER_BIT);
+-  
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uProjection'), false, perspective);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uView'), false, view);
+-  gl.uniform1f(gl.getUniformLocation(envProgram, 'uIsBackground'), 0.0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+-  gl.enableVertexAttribArray(envPosLoc);
+-  gl.vertexAttribPointer(envPosLoc, 3, gl.FLOAT, false, 0, 0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+-  gl.enableVertexAttribArray(envNormLoc);
+-  gl.vertexAttribPointer(envNormLoc, 3, gl.FLOAT, false, 0, 0);
+-  
+-  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+-  gl.enableVertexAttribArray(envTexLoc);
+-  gl.vertexAttribPointer(envTexLoc, 2, gl.FLOAT, false, 0, 0);
+-  
+-  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+-  
+-  gl.disableVertexAttribArray(envPosLoc);
+-  gl.disableVertexAttribArray(envNormLoc);
+-  gl.disableVertexAttribArray(envTexLoc);
+-  
+-  // === PASS 3: Render main scene with reflections ===
++  // === PASS 2: Render main scene ===
+   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+   gl.viewport(0, 0, ctx.width, ctx.height);
+   gl.clearColor(0, 0, 0, 1);
+   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+   
+   gl.useProgram(mainProgram);
+   
+   const posLoc = gl.getAttribLocation(mainProgram, 'aPosition');
+   const normLoc = gl.getAttribLocation(mainProgram, 'aNormal');
+   const texLoc = gl.getAttribLocation(mainProgram, 'aTexCoord');
+   
+   // Bind textures
+   gl.activeTexture(gl.TEXTURE0);
+   gl.bindTexture(gl.TEXTURE_2D, texture);
+   gl.activeTexture(gl.TEXTURE1);
+   gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+-  gl.activeTexture(gl.TEXTURE2);
+-  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
+   
+   gl.uniform1i(gl.getUniformLocation(mainProgram, 'uTexture'), 0);
+   gl.uniform1i(gl.getUniformLocation(mainProgram, 'uShadowMap'), 1);
+-  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uReflectionMap'), 2);
+   gl.uniform3f(gl.getUniformLocation(mainProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
+-  gl.uniform2f(gl.getUniformLocation(mainProgram, 'uResolution'), ctx.width, ctx.height);
+   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightProjection'), false, lightOrtho);
+   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightView'), false, lightView);
+   
+   // Draw background first (no depth test)
+   gl.disable(gl.DEPTH_TEST);
+   
+   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uProjection'), false, ortho);
+   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uView'), false, identity);
+\ No newline at end of file
+
+</tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
+
+# TOOL RESULT
+
+ID: toolu_01HUxvTEejvcPFR5mDkN63v4
+
+<tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
+
+</tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
