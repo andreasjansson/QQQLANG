@@ -4676,12 +4676,11 @@ function fnImageHistory(ctx: FnContext): Image {
     // Draw thumbnail
     tempCtx.drawImage(thumbCanvas, thumbX, thumbY);
     
-    // Draw text below thumbnail - now 3 lines
+    // Draw text below thumbnail on single line
     const textY = thumbY + thumbSize + fontSize + 2;
     tempCtx.fillStyle = '#00FF00';
     tempCtx.textAlign = 'center';
-    tempCtx.fillText(`#${i} [${accessKey}]`, thumbX + thumbSize / 2, textY);
-    tempCtx.fillText(displayOp, thumbX + thumbSize / 2, textY + fontSize + 2);
+    tempCtx.fillText(`#${i} [${accessKey}] ${displayOp}`, thumbX + thumbSize / 2, textY);
   }
   
   const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
