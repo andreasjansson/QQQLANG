@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-151559320226>
+${greger-prompt-code-style<eval-result-151749103319>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-151559320226>}
+</eval-result-151749103319>}
 
 # IMPORTANT
 
@@ -11178,55 +11178,33 @@ character-defs.ts
 Fix fnT perspective projection to cover full canvas by removing aspect correction
 </tool.toolu_01E6s2dBR1wbbs1Smj9BhnUf>
 
-## original-content
+## diff
 
 <tool.toolu_01E6s2dBR1wbbs1Smj9BhnUf>
-  gl.depthFunc(gl.LESS);
-  gl.clear(gl.DEPTH_BUFFER_BIT);
-  
-  const aspect = ctx.width / ctx.height;
-  const fov = Math.PI / 2.5;
-  const near = 0.1, far = 10.0;
-  const f = 1.0 / Math.tan(fov / 2);
-  const perspective = new Float32Array([
-    f/aspect, 0, 0, 0,
-    0, f, 0, 0,
-    0, 0, (far+near)/(near-far), -1,
-    0, 0, (2*far*near)/(near-far), 0
-  ]);
-  
-  const camZ = 0.5 / Math.tan(fov / 2);
-  const view = new Float32Array([
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    -0.5, -0.5, -camZ, 1
-  ]);
-</tool.toolu_01E6s2dBR1wbbs1Smj9BhnUf>
+   gl.depthFunc(gl.LESS);
+   gl.clear(gl.DEPTH_BUFFER_BIT);
+   
+-  const aspect = ctx.width / ctx.height;
+   const fov = Math.PI / 2.5;
+   const near = 0.1, far = 10.0;
+   const f = 1.0 / Math.tan(fov / 2);
+   const perspective = new Float32Array([
+-    f/aspect, 0, 0, 0,
++    f, 0, 0, 0,
+     0, f, 0, 0,
+     0, 0, (far+near)/(near-far), -1,
+     0, 0, (2*far*near)/(near-far), 0
+   ]);
+   
+   const camZ = 0.5 / Math.tan(fov / 2);
+   const view = new Float32Array([
+     1, 0, 0, 0,
+     0, 1, 0, 0,
+     0, 0, 1, 0,
+     -0.5, -0.5, -camZ, 1
+   ]);
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01E6s2dBR1wbbs1Smj9BhnUf>
-  gl.depthFunc(gl.LESS);
-  gl.clear(gl.DEPTH_BUFFER_BIT);
-  
-  const fov = Math.PI / 2.5;
-  const near = 0.1, far = 10.0;
-  const f = 1.0 / Math.tan(fov / 2);
-  const perspective = new Float32Array([
-    f, 0, 0, 0,
-    0, f, 0, 0,
-    0, 0, (far+near)/(near-far), -1,
-    0, 0, (2*far*near)/(near-far), 0
-  ]);
-  
-  const camZ = 0.5 / Math.tan(fov / 2);
-  const view = new Float32Array([
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    -0.5, -0.5, -camZ, 1
-  ]);
 </tool.toolu_01E6s2dBR1wbbs1Smj9BhnUf>
 
 # TOOL RESULT
@@ -11234,5 +11212,515 @@ Fix fnT perspective projection to cover full canvas by removing aspect correctio
 ID: toolu_01E6s2dBR1wbbs1Smj9BhnUf
 
 <tool.toolu_01E6s2dBR1wbbs1Smj9BhnUf>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix fnT perspective projection to cover full canvas by removing aspect correction
 </tool.toolu_01E6s2dBR1wbbs1Smj9BhnUf>
+
+# ASSISTANT
+
+Done! The issue was that the perspective projection matrix was dividing by the aspect ratio (`f/aspect`), which caused the cubes to be compressed horizontally on landscape canvases. By removing the aspect correction (just using `f`), the buildings will now stretch to cover the entire canvas.
+
+The buildings will appear stretched on non-square canvases, but they'll properly cover the full image. The height multiplier argument still works the same way - lower values give shorter buildings, higher values give taller ones, all based on the deterministic seed from `ctx.images.length`.
+
+# USER
+
+Perfect! Now add a bit of lighting and shadows
+
+# THINKING
+
+Signature: EsQECkYIChgCKkCZmDtqRXuQaWH6EOYYL8NjxX/G7xC7vJLOs7w0Bc/KHXnkCVAdwSzJD2NOwN6Ay5+aOAYC+ReNboz+F5Apv1dFEgzAVnBA0eKQsEFSmD4aDG6ZHslWpzzEyTAdJCIwy+7Jxz4bdY+O+zTaS3FVwHQPh2kX7rVtjVgt0c3faFJ9kUoJH7q0+1dSbHMgCA1tKqsDC2ZBE0pYAhmK7RjA2VIaUOdJk/M8CcXsw1JL+Uce1fR9FRdClLHfeMfF1sgg1mr1y2eqyEKACv3e2EFCp4lnFd8uivLhn2pH0KPgV+QcDMPAdM9IIR6l0jeCfmsTk1lauSbnC6sovCz997PxqdPDSsjvdfujEeRPfnR8QVEajCq0k7pFmnvnCRxZ4Uupaeav23ae9hDMz2cMMXjCxR9qCAbBqJco+/tMEzxrNVOsW45SNr8bzz/8OJLZRtXqftoYL7lkJgEmD+FtbzPvj6jaP9bdCyyg4iLKsSWdVyZoDMcwB6fODRAgELm7nFWL51rVhEES3zmJ92DGwb0czx/PBCU0xAS1woobFchc03HbgyynT8KX2uFFR5u9kbF/S9w5QsG0ycm9l5oUI3qz7TiOOj9tClXHmTW+Hp9PglpbCUuV+7+yPQn/KfOCcCQo1J5IA1txLwIaR0RTi44V0i6V7G8428wk20oqmaItD0BB3Hb+jVgOYIqgF5RlZsYCpZr4lFl3LS7rZoyt3c/JotPLBa9hilLf/DfnObnxsy4Ujj1oinvOBFHubHad5BgB
+
+The user wants to add lighting and shadows to the city function (fnT). Let me look at the current shader code to understand what's there and then add proper lighting and shadows.
+
+I need to find the fragment shader for fnT and enhance it with:
+1. Better lighting (directional light, ambient)
+2. Shadows (either shadow mapping or fake shadows based on building height)
+
+Let me look at the current shader code in fnT.
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01Mjh6Kw9XaMBy21CsT4MQgW
+
+## path
+
+<tool.toolu_01Mjh6Kw9XaMBy21CsT4MQgW>
+character-defs.ts
+</tool.toolu_01Mjh6Kw9XaMBy21CsT4MQgW>
+
+## start-line
+
+<tool.toolu_01Mjh6Kw9XaMBy21CsT4MQgW>
+2270
+</tool.toolu_01Mjh6Kw9XaMBy21CsT4MQgW>
+
+## end-line
+
+<tool.toolu_01Mjh6Kw9XaMBy21CsT4MQgW>
+2360
+</tool.toolu_01Mjh6Kw9XaMBy21CsT4MQgW>
+
+# TOOL RESULT
+
+ID: toolu_01Mjh6Kw9XaMBy21CsT4MQgW
+
+<tool.toolu_01Mjh6Kw9XaMBy21CsT4MQgW>
+    
+    // Top face - textured with image at this position
+    vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(0,0,1);
+    texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
+    
+    // Right face (+x)
+    vertices.push(x1,y0,z0, x1,y0,z1, x1,y1,z1, x1,y0,z0, x1,y1,z1, x1,y1,z0);
+    for(let i=0;i<6;i++) normals.push(1,0,0);
+    texCoords.push(u1,v0, u1,v0, u1,v1, u1,v0, u1,v1, u1,v1);
+    
+    // Left face (-x)
+    vertices.push(x0,y0,z1, x0,y0,z0, x0,y1,z0, x0,y0,z1, x0,y1,z0, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(-1,0,0);
+    texCoords.push(u0,v0, u0,v0, u0,v1, u0,v0, u0,v1, u0,v1);
+    
+    // Front face (+y)
+    vertices.push(x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z1, x1,y1,z0, x0,y1,z0);
+    for(let i=0;i<6;i++) normals.push(0,1,0);
+    texCoords.push(u0,v1, u1,v1, u1,v1, u0,v1, u1,v1, u0,v1);
+    
+    // Back face (-y)
+    vertices.push(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z0, x1,y0,z1, x0,y0,z1);
+    for(let i=0;i<6;i++) normals.push(0,-1,0);
+    texCoords.push(u0,v0, u1,v0, u1,v0, u0,v0, u1,v0, u0,v0);
+    
+    return { vertices, normals, texCoords };
+  }
+  
+  const allVertices: number[] = [];
+  const allNormals: number[] = [];
+  const allTexCoords: number[] = [];
+  
+  for (const c of cubesData) {
+    const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth, c.texX0, c.texY0, c.texX1, c.texY1);
+    allVertices.push(...box.vertices);
+    allNormals.push(...box.normals);
+    allTexCoords.push(...box.texCoords);
+  }
+  
+  gl.useProgram(program);
+  gl.disable(gl.DEPTH_TEST);
+  
+  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
+  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
+  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
+  
+  const posLoc = gl.getAttribLocation(program, 'aPosition');
+  const normLoc = gl.getAttribLocation(program, 'aNormal');
+  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
+  
+  const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, 1.0);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
+  
+  const bgPosBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgVertices, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgNormBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgNormals, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgTexBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgTexCoords, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LESS);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  
+  const fov = Math.PI / 2.5;
+  const near = 0.1, far = 10.0;
+  const f = 1.0 / Math.tan(fov / 2);
+</tool.toolu_01Mjh6Kw9XaMBy21CsT4MQgW>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01HQFvdxLkH6PET12BoqbogY
+
+## path
+
+<tool.toolu_01HQFvdxLkH6PET12BoqbogY>
+character-defs.ts
+</tool.toolu_01HQFvdxLkH6PET12BoqbogY>
+
+## start-line
+
+<tool.toolu_01HQFvdxLkH6PET12BoqbogY>
+2215
+</tool.toolu_01HQFvdxLkH6PET12BoqbogY>
+
+## end-line
+
+<tool.toolu_01HQFvdxLkH6PET12BoqbogY>
+2275
+</tool.toolu_01HQFvdxLkH6PET12BoqbogY>
+
+# TOOL RESULT
+
+ID: toolu_01HQFvdxLkH6PET12BoqbogY
+
+<tool.toolu_01HQFvdxLkH6PET12BoqbogY>
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightDir;
+    uniform float uIsBackground;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        gl_FragColor = vec4(color, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        vec3 lightDir = normalize(uLightDir);
+        
+        float ambient = 0.5;
+        float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
+        float lighting = ambient + diffuse;
+        
+        gl_FragColor = vec4(color * lighting, 1.0);
+      }
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number, texX0: number, texY0: number, texX1: number, texY1: number): { vertices: number[], normals: number[], texCoords: number[] } {
+    const x0 = cx - hw, x1 = cx + hw;
+    const y0 = cy - hh, y1 = cy + hh;
+    const z0 = 0, z1 = depth;
+    
+    const u0 = texX0, u1 = texX1;
+    const v0 = texY0, v1 = texY1;
+    
+    const vertices: number[] = [];
+    const normals: number[] = [];
+    const texCoords: number[] = [];
+    
+    // Top face - textured with image at this position
+    vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(0,0,1);
+    texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
+    
+</tool.toolu_01HQFvdxLkH6PET12BoqbogY>
+
+# ASSISTANT
+
+Now let me look at the full shader setup and update it with better lighting and shadows:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_018KAkSm86BLuSQhaNvRfbA9
+
+## path
+
+<tool.toolu_018KAkSm86BLuSQhaNvRfbA9>
+character-defs.ts
+</tool.toolu_018KAkSm86BLuSQhaNvRfbA9>
+
+## start-line
+
+<tool.toolu_018KAkSm86BLuSQhaNvRfbA9>
+2185
+</tool.toolu_018KAkSm86BLuSQhaNvRfbA9>
+
+## end-line
+
+<tool.toolu_018KAkSm86BLuSQhaNvRfbA9>
+2250
+</tool.toolu_018KAkSm86BLuSQhaNvRfbA9>
+
+# TOOL RESULT
+
+ID: toolu_018KAkSm86BLuSQhaNvRfbA9
+
+<tool.toolu_018KAkSm86BLuSQhaNvRfbA9>
+      const texX1 = x1 / ctx.width;
+      const texY1 = y1 / ctx.height;
+      
+      cubesData.push({
+        cx, cy, hw, hh, depth,
+        texX0, texY0, texX1, texY1
+      });
+    }
+  }
+  
+  const lightDirX = -0.3;
+  const lightDirY = -0.4;
+  
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightDir;
+    uniform float uIsBackground;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        gl_FragColor = vec4(color, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        vec3 lightDir = normalize(uLightDir);
+        
+        float ambient = 0.5;
+        float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
+        float lighting = ambient + diffuse;
+        
+        gl_FragColor = vec4(color * lighting, 1.0);
+      }
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  
+</tool.toolu_018KAkSm86BLuSQhaNvRfbA9>
+
+# ASSISTANT
+
+Now I'll update the shaders to add better lighting with specular highlights and fake ambient occlusion/shadows between buildings:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01V46GC2EKkp5GbFqVNtKudK
+
+## path
+
+<tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+character-defs.ts
+</tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+
+## git-commit-message
+
+<tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+Add better lighting and shadows to fnT city function
+</tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+
+## original-content
+
+<tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+  const lightDirX = -0.3;
+  const lightDirY = -0.4;
+  
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightDir;
+    uniform float uIsBackground;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        gl_FragColor = vec4(color, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        vec3 lightDir = normalize(uLightDir);
+        
+        float ambient = 0.5;
+        float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
+        float lighting = ambient + diffuse;
+        
+        gl_FragColor = vec4(color * lighting, 1.0);
+      }
+    }
+  `;
+</tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+
+## new-content
+
+<tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+  const lightDirX = 0.4;
+  const lightDirY = -0.5;
+  const lightDirZ = 0.8;
+  
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying float vHeight;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      vHeight = aPosition.z;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightDir;
+    uniform float uIsBackground;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying float vHeight;
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        // Darken background slightly to simulate shadows from buildings
+        float shadowFactor = 0.7;
+        gl_FragColor = vec4(color * shadowFactor, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        vec3 lightDir = normalize(uLightDir);
+        vec3 viewDir = vec3(0.0, 0.0, 1.0);
+        
+        // Ambient with height-based variation (taller = brighter ambient)
+        float ambient = 0.35 + vHeight * 0.3;
+        
+        // Diffuse lighting
+        float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
+        
+        // Specular highlight for top faces
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
+        float specular = spec * 0.3 * step(0.9, normal.z); // Only on top faces
+        
+        // Fake ambient occlusion - darker at bottom of side faces
+        float ao = 1.0;
+        if (abs(normal.z) < 0.1) { // Side faces
+          ao = 0.6 + 0.4 * (vHeight / 0.5); // Darker near ground
+        }
+        
+        // Rim lighting for edges
+        float rim = 1.0 - max(dot(viewDir, normal), 0.0);
+        rim = pow(rim, 3.0) * 0.15;
+        
+        float lighting = (ambient + diffuse) * ao + specular + rim;
+        
+        // Slightly warm the lit areas, cool the shadows
+        vec3 warmLight = vec3(1.05, 1.0, 0.95);
+        vec3 coolShadow = vec3(0.9, 0.95, 1.05);
+        vec3 tint = mix(coolShadow, warmLight, lighting);
+        
+        gl_FragColor = vec4(color * lighting * tint, 1.0);
+      }
+    }
+  `;
+</tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+
+# TOOL RESULT
+
+ID: toolu_01V46GC2EKkp5GbFqVNtKudK
+
+<tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+
+</tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
