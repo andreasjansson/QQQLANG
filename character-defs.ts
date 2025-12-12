@@ -6129,9 +6129,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#F0E68C',
     number: 20,
     fn: fnT,
-    args: [{ type: INT, documentation: "Number of 3D cubes (char+1)" }],
-    functionName: "cubes",
-    documentation: "3D cubes protruding from image plane."
+    args: [{ type: INT, documentation: "Grid density (char+2, 2-20)" }],
+    functionName: "city",
+    documentation: "Grid of square 3D buildings with varying heights, textured with image squares."
   },
   
   'U': {
