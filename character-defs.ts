@@ -2183,7 +2183,7 @@ function fnT(ctx: FnContext, n: number): Image {
   light.shadow.camera.bottom = -d;
   light.shadow.camera.near = 0.1;
   light.shadow.camera.far = 20;
-  light.shadow.radius = 4;
+  light.shadow.radius = 2;
   light.shadow.bias = -0.0005;
   scene.add(light);
   
