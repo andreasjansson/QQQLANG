@@ -1,4 +1,4 @@
-import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR, OpInfo } from './character-defs.js';
+import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR, OpInfo, ArgType, IntType, ColorType, IndexType, ChoiceType } from './character-defs.js';
 
 interface UploadedImageRef {
   type: 'uploaded';
