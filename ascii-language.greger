@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-155737597454>
+${greger-prompt-code-style<eval-result-155803677160>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-155737597454>}
+</eval-result-155803677160>}
 
 # IMPORTANT
 
@@ -12272,5 +12272,52 @@ Fix jagged shadows and stretch edge pixels on building sides
 ID: toolu_01HGe8DtQrr5XmqvA6oEYLgg
 
 <tool.toolu_01HGe8DtQrr5XmqvA6oEYLgg>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix jagged shadows and stretch edge pixels on building sides
 </tool.toolu_01HGe8DtQrr5XmqvA6oEYLgg>
+
+# USER
+
+That's more jagged. Maybe you're doing it at too low resolution?
+
+# THINKING
+
+Signature: EoECCkYIChgCKkDTogQzRwyxDTRz5FiKANKr5791efyE/A8QPJxpHxWOxTq5qo7NWg+9vg0bomOZN0W4KXdw+m2ELeqiL8v18syWEgwLT/5NE9Ns9lFcnOoaDJVhZRmKVFCw6exgwiIwSBLujFv7kt+0JAofNzBeYqbUlWOvWc0Qm9k6cmtn4wRxAGh/W2rd2GQH4UHOM3hhKmll0zfVq7WDLucigO4iwvWv21Ieqv5mSPb1YHYIC3szB+RDQzdgP9MF1AQPk0nytKBl2fP5OkDW+RDoVvfSp69cVYcw5XKmSvT7ja5y7AgKPnGLTuNO4mNG+3jl4Hd/Oxzbx5idwm9eFioYAQ==
+
+The user says the shadows are more jagged now. Let me increase the shadow map resolution.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_019dsQfqVrS5dMt3RqYWgmpG
+
+## path
+
+<tool.toolu_019dsQfqVrS5dMt3RqYWgmpG>
+character-defs.ts
+</tool.toolu_019dsQfqVrS5dMt3RqYWgmpG>
+
+## git-commit-message
+
+<tool.toolu_019dsQfqVrS5dMt3RqYWgmpG>
+Increase shadow map resolution to 4096 for smoother shadows
+</tool.toolu_019dsQfqVrS5dMt3RqYWgmpG>
+
+## diff
+
+<tool.toolu_019dsQfqVrS5dMt3RqYWgmpG>
+-  light.shadow.mapSize.width = 2048;
+-  light.shadow.mapSize.height = 2048;
+\ No newline at end of file
++  light.shadow.mapSize.width = 4096;
++  light.shadow.mapSize.height = 4096;
+\ No newline at end of file
+
+</tool.toolu_019dsQfqVrS5dMt3RqYWgmpG>
+
+# TOOL RESULT
+
+ID: toolu_019dsQfqVrS5dMt3RqYWgmpG
+
+<tool.toolu_019dsQfqVrS5dMt3RqYWgmpG>
+
+</tool.toolu_019dsQfqVrS5dMt3RqYWgmpG>

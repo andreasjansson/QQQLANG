@@ -2174,8 +2174,8 @@ function fnT(ctx: FnContext, n: number): Image {
   const light = new THREE.DirectionalLight(0xffffff, 2);
   light.position.set(3, 3, 5);
   light.castShadow = true;
-  light.shadow.mapSize.width = 2048;
-  light.shadow.mapSize.height = 2048;
+  light.shadow.mapSize.width = 4096;
+  light.shadow.mapSize.height = 4096;
   const d = Math.max(frustumWidth, frustumHeight);
   light.shadow.camera.left = -d;
   light.shadow.camera.right = d;
