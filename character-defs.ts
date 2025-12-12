@@ -2301,12 +2301,26 @@ function fnT(ctx: FnContext, n: number): Image {
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
         float specular = spec * 0.4;
         
+        // Reflection - sample texture based on reflected view direction
+        vec3 viewReflect = reflect(-viewDir, normal);
+        vec2 reflectUV = vWorldPos.xy + viewReflect.xy * 0.15;
+        reflectUV = clamp(reflectUV, 0.0, 1.0);
+        vec3 reflectColor = texture2D(uTexture, reflectUV).rgb;
+        
+        // Fresnel effect - more reflective at glancing angles
+        float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 3.0);
+        float reflectivity = 0.15 + fresnel * 0.35;
+        
         // Shadow
         float shadow = calculateShadow();
         
         float lighting = ambient + (1.0 - shadow * 0.7) * (diffuse + specular);
         
-        gl_FragColor = vec4(color * lighting, 1.0);
+        // Blend base color with reflection
+        vec3 litColor = color * lighting;
+        vec3 finalColor = mix(litColor, reflectColor * (0.8 + lighting * 0.4), reflectivity);
+        
+        gl_FragColor = vec4(finalColor, 1.0);
       }
     }
   `;
