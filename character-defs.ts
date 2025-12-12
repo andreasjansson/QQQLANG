@@ -5991,7 +5991,7 @@ export const characterDefs: Record<string, CharDef> = {
       { type: INT, documentation: "X position (normalized 0-1)" },
       { type: INT, documentation: "Y position (normalized 0-1)" },
       { type: INT, documentation: "Circle size (normalized 0-1)" },
-      { type: Choice('normal','xor','nand','and','or','multiply','screen','overlay','darken','lighten','difference','exclusion','add','subtract','hardlight','softlight'), documentation: "Blend mode (cycles through 16)" }
+      { type: INT, documentation: "Blend mode (mod 16: normal, xor, nand, and, or, multiply, screen, overlay, darken, lighten, diff, excl, add, sub, hard, soft)" }
     ],
     functionName: "circle-stamp",
     documentation: "Stamp circular region from old image center onto current."
