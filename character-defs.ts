@@ -2811,11 +2811,9 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
   const fgData = fgCtx.getImageData(0, 0, ctx.width, ctx.height);
   
   for (let i = 0; i < fgData.data.length; i += 4) {
-    // Sharpen the mask - boost alpha values to reduce transparency
+    // Hard threshold - fully opaque or fully transparent
     const rawAlpha = scaledMaskData.data[i + 3];
-    // Apply a curve to make edges sharper: values above threshold become more opaque
-    const sharpened = rawAlpha < 10 ? 0 : Math.min(255, Math.round(rawAlpha * 1.5 + 50));
-    fgData.data[i + 3] = sharpened;
+    fgData.data[i + 3] = rawAlpha > 25 ? 255 : 0;
   }
   
   fgCtx.putImageData(fgData, 0, 0);
