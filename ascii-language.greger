@@ -9115,5 +9115,128 @@ Add helpHideTimeout variable for auto-hiding help
 ID: toolu_01YJ13BtcwqHmAYZARWxVd46
 
 <tool.toolu_01YJ13BtcwqHmAYZARWxVd46>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Add helpHideTimeout variable for auto-hiding help
 </tool.toolu_01YJ13BtcwqHmAYZARWxVd46>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01EWK6ecpDoUC7USwZshbHBo
+
+## path
+
+<tool.toolu_01EWK6ecpDoUC7USwZshbHBo>
+index.html
+</tool.toolu_01EWK6ecpDoUC7USwZshbHBo>
+
+## git-commit-message
+
+<tool.toolu_01EWK6ecpDoUC7USwZshbHBo>
+Update updateHelpDisplay to show arity-0 functions and auto-hide after 1s
+</tool.toolu_01EWK6ecpDoUC7USwZshbHBo>
+
+## diff
+
+<tool.toolu_01EWK6ecpDoUC7USwZshbHBo>
+     function updateHelpDisplay() {
++      // Clear any pending hide timeout
++      if (helpHideTimeout) {
++        clearTimeout(helpHideTimeout);
++        helpHideTimeout = null;
++      }
++      
+       const program = input.value || '';
+       const cursorPos = input.selectionStart ?? program.length;
+       
+       // Only show help if cursor is at the end of the program
+       if (cursorPos !== program.length) {
+         helpContainer.innerHTML = '';
+         return;
+       }
+       
+       if (!program) {
+         helpContainer.innerHTML = '';
+         return;
+       }
+       
+       const ops = getParsedOperations(program);
+       if (ops.length === 0) {
+         helpContainer.innerHTML = '';
+         return;
+       }
+       
+       const lastOp = ops[ops.length - 1];
+       
+       if (lastOp.type !== 'function') {
+         helpContainer.innerHTML = '';
+         return;
+       }
+       
+       const def = lastOp.fnDef;
+       
+       // Check if function is complete (has all arguments)
+       const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
+       const currentOpChars = [...lastOp.identifier.substring(prevIdentifier.length)];
+       const argsProvided = currentOpChars.length - 1; // Subtract 1 for the function character itself
+       
++      // If function has no args (arity 0), show help briefly then hide after 1 second
++      if (def.args.length === 0 && argsProvided === 0) {
++        const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
++        const firstLine = `${char} ${def.functionName} — ${def.documentation}`;
++        helpContainer.innerHTML = `<div>${firstLine}</div>`;
++        
++        helpHideTimeout = setTimeout(() => {
++          helpContainer.innerHTML = '';
++          helpHideTimeout = null;
++        }, 1000);
++        return;
++      }
++      
+       if (argsProvided >= def.args.length) {
+         // Function is complete, don't show help
+         helpContainer.innerHTML = '';
+         return;
+       }
+       
+       const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
+       
+       // Format first line: C name — doc
+       const firstLine = `${char} ${def.functionName} — ${def.documentation}`;
+       let html = `<div>${firstLine}</div>`;
+       
+       // Format arg lines: (n) argDoc [type] — choices
+       for (let i = 0; i < def.args.length; i++) {
+         const arg = def.args[i];
+         let argLine = `(${i + 1}) ${arg.documentation} [${arg.type.name}]`;
+         
+         if (arg.type instanceof ChoiceType) {
+           const choices = arg.type.choices;
+           let mappings;
+           if (choices.length < 68) {
+             mappings = choices.map((choice, idx) => {
+               return `${numToChar(idx + 1)}→${choice}`;
+             }).join(',');
+           } else {
+             mappings = choices.slice(0, 5).map((choice, idx) => {
+               return `${numToChar(idx + 1)}→${choice}`;
+             }).join(',') + ',[etc.]';
+           }
+           argLine += ` — ${mappings}`;
+         }
+         
+         html += `<div>${argLine}</div>`;
+       }
+       
+       helpContainer.innerHTML = html;
+     }
+\ No newline at end of file
+
+</tool.toolu_01EWK6ecpDoUC7USwZshbHBo>
+
+# TOOL RESULT
+
+ID: toolu_01EWK6ecpDoUC7USwZshbHBo
+
+<tool.toolu_01EWK6ecpDoUC7USwZshbHBo>
+
+</tool.toolu_01EWK6ecpDoUC7USwZshbHBo>

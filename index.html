@@ -427,6 +427,12 @@
     }
     
     function updateHelpDisplay() {
+      // Clear any pending hide timeout
+      if (helpHideTimeout) {
+        clearTimeout(helpHideTimeout);
+        helpHideTimeout = null;
+      }
+      
       const program = input.value || '';
       const cursorPos = input.selectionStart ?? program.length;
       
@@ -460,6 +466,19 @@
       const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
       const currentOpChars = [...lastOp.identifier.substring(prevIdentifier.length)];
       const argsProvided = currentOpChars.length - 1; // Subtract 1 for the function character itself
+      
+      // If function has no args (arity 0), show help briefly then hide after 1 second
+      if (def.args.length === 0 && argsProvided === 0) {
+        const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
+        const firstLine = `${char} ${def.functionName} — ${def.documentation}`;
+        helpContainer.innerHTML = `<div>${firstLine}</div>`;
+        
+        helpHideTimeout = setTimeout(() => {
+          helpContainer.innerHTML = '';
+          helpHideTimeout = null;
+        }, 1000);
+        return;
+      }
       
       if (argsProvided >= def.args.length) {
         // Function is complete, don't show help
