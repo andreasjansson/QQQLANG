@@ -4037,8 +4037,8 @@ function fnBlur(ctx: FnContext, n: number): Image {
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, null);
   
-  // Blur radius based on n (1-68 maps to radius 1-20)
-  const radius = Math.max(1, Math.min(Math.floor(n / 3.5) + 1, 20));
+  // Blur radius based on n (1-68 maps to radius 1-50)
+  const radius = Math.max(1, Math.min(Math.floor(n * 0.75) + 1, 50));
   
   const vertexShader = `
     attribute vec2 position;
