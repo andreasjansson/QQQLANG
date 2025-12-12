@@ -14656,5 +14656,51 @@ Add margin below text to separate from images below
 ID: toolu_01ETDVuJPZgrw5BSUMzTP8Vu
 
 <tool.toolu_01ETDVuJPZgrw5BSUMzTP8Vu>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add margin below text to separate from images below
 </tool.toolu_01ETDVuJPZgrw5BSUMzTP8Vu>
+
+# ASSISTANT
+
+Wait, I need to actually increase the cell height calculation to add space below the text. Let me fix that:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01HLpWdzpJ7ZjEf2BkwvkAEC
+
+## path
+
+<tool.toolu_01HLpWdzpJ7ZjEf2BkwvkAEC>
+character-defs.ts
+</tool.toolu_01HLpWdzpJ7ZjEf2BkwvkAEC>
+
+## git-commit-message
+
+<tool.toolu_01HLpWdzpJ7ZjEf2BkwvkAEC>
+Add bottom margin to cell height for text separation
+</tool.toolu_01HLpWdzpJ7ZjEf2BkwvkAEC>
+
+## diff
+
+<tool.toolu_01HLpWdzpJ7ZjEf2BkwvkAEC>
+-    // Reserve space for text (1 line: #n [C] AAA) - minimal
++    // Reserve space for text (1 line: #n [C] AAA) - minimal, plus bottom margin
+     const textHeight = Math.min(cellHeight * 0.15, 14);
+     const fontSize = Math.max(6, Math.min(10, textHeight));
++    const bottomMargin = 3;
+     
+     // Thumbnail gets remaining space with minimal padding
+-    const thumbSize = Math.min(cellWidth - 2, cellHeight - textHeight - 2);
+\ No newline at end of file
++    const thumbSize = Math.min(cellWidth - 2, cellHeight - textHeight - bottomMargin - 2);
+\ No newline at end of file
+
+</tool.toolu_01HLpWdzpJ7ZjEf2BkwvkAEC>
+
+# TOOL RESULT
+
+ID: toolu_01HLpWdzpJ7ZjEf2BkwvkAEC
+
+<tool.toolu_01HLpWdzpJ7ZjEf2BkwvkAEC>
+
+</tool.toolu_01HLpWdzpJ7ZjEf2BkwvkAEC>
