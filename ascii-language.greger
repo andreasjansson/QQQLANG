@@ -11311,5 +11311,49 @@ Fix shadows by using textured floor plane instead of scene.background
 ID: toolu_01PhfAivVscFv9HTVfeZXahW
 
 <tool.toolu_01PhfAivVscFv9HTVfeZXahW>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix shadows by using textured floor plane instead of scene.background
 </tool.toolu_01PhfAivVscFv9HTVfeZXahW>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XQ4PpTACmnknG5yEeAjskc
+
+## path
+
+<tool.toolu_01XQ4PpTACmnknG5yEeAjskc>
+character-defs.ts
+</tool.toolu_01XQ4PpTACmnknG5yEeAjskc>
+
+## git-commit-message
+
+<tool.toolu_01XQ4PpTACmnknG5yEeAjskc>
+Use textured floor material that receives shadows
+</tool.toolu_01XQ4PpTACmnknG5yEeAjskc>
+
+## diff
+
+<tool.toolu_01XQ4PpTACmnknG5yEeAjskc>
+-  const floorGeometry = new THREE.PlaneGeometry(frustumWidth * 1.5, frustumHeight * 1.5);
+-  const floorMaterial = new THREE.ShadowMaterial({ opacity: 0.35 });
++  const floorGeometry = new THREE.PlaneGeometry(frustumWidth, frustumHeight);
++  const floorMaterial = new THREE.MeshStandardMaterial({
++    map: bgTexture,
++    roughness: 1.0,
++    metalness: 0.0,
++  });
+   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+   floor.position.z = -0.001;
+   floor.receiveShadow = true;
+   scene.add(floor);
+\ No newline at end of file
+
+</tool.toolu_01XQ4PpTACmnknG5yEeAjskc>
+
+# TOOL RESULT
+
+ID: toolu_01XQ4PpTACmnknG5yEeAjskc
+
+<tool.toolu_01XQ4PpTACmnknG5yEeAjskc>
+
+</tool.toolu_01XQ4PpTACmnknG5yEeAjskc>
