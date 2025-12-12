@@ -3837,16 +3837,16 @@ function fnDot(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnSlash(ctx: FnContext, offX: number, offY: number, size: number, blend: number): Image {
+function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: number, blend: number): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   
   const norm = (n: number) => Math.max(0, Math.min(1, (n - 1) / 67));
   
-  // Source: full circle from center of prev
-  const srcCenterX = prev.width / 2;
-  const srcCenterY = prev.height / 2;
-  const srcRadius = Math.min(prev.width, prev.height) / 2;
+  // Source: full circle from center of old image
+  const srcCenterX = old.width / 2;
+  const srcCenterY = old.height / 2;
+  const srcRadius = Math.min(old.width, old.height) / 2;
   
   // Destination position and size
   const dstX = norm(offX) * ctx.width;
@@ -3905,15 +3905,15 @@ function fnSlash(ctx: FnContext, offX: number, offY: number, size: number, blend
       // Bilinear interpolation
       const x0 = Math.floor(srcPxF);
       const y0 = Math.floor(srcPyF);
-      const x1 = Math.min(prev.width - 1, x0 + 1);
-      const y1 = Math.min(prev.height - 1, y0 + 1);
+      const x1 = Math.min(old.width - 1, x0 + 1);
+      const y1 = Math.min(old.height - 1, y0 + 1);
       const fx = srcPxF - x0;
       const fy = srcPyF - y0;
       
-      const [r00, g00, b00] = getPixel(prev, x0, y0);
-      const [r10, g10, b10] = getPixel(prev, x1, y0);
-      const [r01, g01, b01] = getPixel(prev, x0, y1);
-      const [r11, g11, b11] = getPixel(prev, x1, y1);
+      const [r00, g00, b00] = getPixel(old, x0, y0);
+      const [r10, g10, b10] = getPixel(old, x1, y0);
+      const [r01, g01, b01] = getPixel(old, x0, y1);
+      const [r11, g11, b11] = getPixel(old, x1, y1);
       
       const srcR = Math.round(r00 * (1 - fx) * (1 - fy) + r10 * fx * (1 - fy) + r01 * (1 - fx) * fy + r11 * fx * fy);
       const srcG = Math.round(g00 * (1 - fx) * (1 - fy) + g10 * fx * (1 - fy) + g01 * (1 - fx) * fy + g11 * fx * fy);
