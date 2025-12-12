@@ -10447,5 +10447,49 @@ Add WebGL state reset to fnT
 ID: toolu_01KSMZvbnMfbuc9qTTfZUG67
 
 <tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add WebGL state reset to fnT
 </tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RA35bUVoT3e8vcKK2qAD8W
+
+## path
+
+<tool.toolu_01RA35bUVoT3e8vcKK2qAD8W>
+character-defs.ts
+</tool.toolu_01RA35bUVoT3e8vcKK2qAD8W>
+
+## git-commit-message
+
+<tool.toolu_01RA35bUVoT3e8vcKK2qAD8W>
+Add WebGL state reset to fnAsterisk
+</tool.toolu_01RA35bUVoT3e8vcKK2qAD8W>
+
+## diff
+
+<tool.toolu_01RA35bUVoT3e8vcKK2qAD8W>
+ function fnAsterisk(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE0);
++  
+   const vertexShader = `
+     attribute vec2 position;
+\ No newline at end of file
+
+</tool.toolu_01RA35bUVoT3e8vcKK2qAD8W>
+
+# TOOL RESULT
+
+ID: toolu_01RA35bUVoT3e8vcKK2qAD8W
+
+<tool.toolu_01RA35bUVoT3e8vcKK2qAD8W>
+
+</tool.toolu_01RA35bUVoT3e8vcKK2qAD8W>
