@@ -9238,5 +9238,53 @@ Update CharDef to support async functions
 ID: toolu_01Hj8YSLeTNootvMW8FkQ3ye
 
 <tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update CharDef to support async functions
 </tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_018Xvp2qbiXfXxCWgrFKTEfh
+
+## path
+
+<tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
+character-defs.ts
+</tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
+
+## git-commit-message
+
+<tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
+Add background removal preload and ready promise
+</tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
+
+## diff
+
+<tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
+ // Start loading immediately when module loads
+-export const emeraldReady = loadEmeraldModel();
+\ No newline at end of file
++export const emeraldReady = loadEmeraldModel();
++
++// Background removal model preload
++let bgRemovalModelReady = false;
++export const bgRemovalReady = preloadBgRemoval({
++  model: 'isnet_quint8',
++  progress: (key, current, total) => {
++    console.log(`BG Removal: ${key} ${current}/${total}`);
++  }
++}).then(() => {
++  bgRemovalModelReady = true;
++  console.log('Background removal model ready');
++});
+\ No newline at end of file
+
+</tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
+
+# TOOL RESULT
+
+ID: toolu_018Xvp2qbiXfXxCWgrFKTEfh
+
+<tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
+
+</tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>

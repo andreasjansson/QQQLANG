@@ -1510,6 +1510,18 @@ function loadEmeraldModel(): Promise<void> {
 // Start loading immediately when module loads
 export const emeraldReady = loadEmeraldModel();
 
+// Background removal model preload
+let bgRemovalModelReady = false;
+export const bgRemovalReady = preloadBgRemoval({
+  model: 'isnet_quint8',
+  progress: (key, current, total) => {
+    console.log(`BG Removal: ${key} ${current}/${total}`);
+  }
+}).then(() => {
+  bgRemovalModelReady = true;
+  console.log('Background removal model ready');
+});
+
 function fnE(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   
