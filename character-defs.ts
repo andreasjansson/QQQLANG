@@ -4598,7 +4598,7 @@ function fnImageHistory(ctx: FnContext): Image {
     return out;
   }
   
-  const margin = 2;
+  const margin = 1;
   const availWidth = ctx.width - margin * 2;
   const availHeight = ctx.height - margin * 2;
   
@@ -4606,21 +4606,21 @@ function fnImageHistory(ctx: FnContext): Image {
   let bestLayout = { cols: 1, rows: numImages, thumbSize: 10, fontSize: 6 };
   let bestScore = 0;
   
-  for (let cols = 1; cols <= Math.min(8, numImages); cols++) {
+  for (let cols = 1; cols <= Math.min(10, numImages); cols++) {
     const rows = Math.ceil(numImages / cols);
     
     // Each cell needs: thumbnail + text space
     const cellWidth = availWidth / cols;
     const cellHeight = availHeight / rows;
     
-    // Reserve space for text (1 line: #n [C] AAA)
-    const textHeight = Math.min(cellHeight * 0.2, 20);
-    const fontSize = Math.max(6, Math.min(12, textHeight));
+    // Reserve space for text (1 line: #n [C] AAA) - minimal
+    const textHeight = Math.min(cellHeight * 0.15, 14);
+    const fontSize = Math.max(6, Math.min(10, textHeight));
     
-    // Thumbnail gets remaining space
-    const thumbSize = Math.min(cellWidth - 4, cellHeight - textHeight - 4);
+    // Thumbnail gets remaining space with minimal padding
+    const thumbSize = Math.min(cellWidth - 2, cellHeight - textHeight - 2);
     
-    if (thumbSize > 10 && fontSize >= 6) {
+    if (thumbSize > 8 && fontSize >= 6) {
       // Score based on thumbnail size and font readability
       const score = thumbSize * fontSize;
       if (score > bestScore) {
