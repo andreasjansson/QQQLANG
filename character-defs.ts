@@ -4569,7 +4569,8 @@ function fnImageHistory(ctx: FnContext): Image {
   tempCtx.fillStyle = '#000000';
   tempCtx.fillRect(0, 0, ctx.width, ctx.height);
   
-  const numImages = ctx.images.length;
+  // Skip the initial black placeholder at index 0
+  const numImages = ctx.images.length - 1;
   if (numImages === 0) {
     tempCtx.fillStyle = '#00FF00';
     tempCtx.font = '16px monospace';
