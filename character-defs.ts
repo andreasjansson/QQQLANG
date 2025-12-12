@@ -2732,12 +2732,15 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
   const feeds = { 'data': new ort.Tensor('float32', inputTensor, [1, 3, SINET_INPUT_SIZE, SINET_INPUT_SIZE]) };
   const results = await sinetSession.run(feeds);
   
-  // Get output mask (assuming output is named 'output' and is [1, 1, 224, 224] or [1, 2, 224, 224])
+  // Get output mask
   const outputNames = Object.keys(results);
   const outputTensor = results[outputNames[0]];
   const outputData = outputTensor.data as Float32Array;
   
-  // Create mask at 224x224
+  console.log('SINet output dims:', outputTensor.dims);
+  console.log('SINet output sample values:', outputData.slice(0, 10));
+  
+  // Create mask at model size
   const maskCanvas = document.createElement('canvas');
   maskCanvas.width = SINET_INPUT_SIZE;
   maskCanvas.height = SINET_INPUT_SIZE;
@@ -2751,20 +2754,27 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
   for (let i = 0; i < spatialSize; i++) {
     let alpha: number;
     if (outputChannels === 2) {
-      // Softmax over 2 channels (background, foreground)
-      const bg = outputData[i];
-      const fg = outputData[spatialSize + i];
-      const maxVal = Math.max(bg, fg);
-      const expBg = Math.exp(bg - maxVal);
-      const expFg = Math.exp(fg - maxVal);
-      alpha = expFg / (expBg + expFg);
+      // Model is SINet_Softmax - already outputs probabilities
+      // Channel 0 = background, Channel 1 = foreground
+      const fg = outputData[spatialSize + i]; // foreground is second channel
+      alpha = fg; // Already 0-1 from softmax
     } else {
-      // Single channel sigmoid
-      alpha = 1 / (1 + Math.exp(-outputData[i]));
+      // Single channel - assume it's already a probability
+      alpha = outputData[i];
     }
     
-    maskImageData.data[i * 4 + 3] = Math.round(alpha * 255);
+    // Clamp and convert to 0-255
+    alpha = Math.max(0, Math.min(1, alpha));
+    const alphaInt = Math.round(alpha * 255);
+    
+    // Set RGBA - use white with alpha for proper scaling
+    maskImageData.data[i * 4] = 255;
+    maskImageData.data[i * 4 + 1] = 255;
+    maskImageData.data[i * 4 + 2] = 255;
+    maskImageData.data[i * 4 + 3] = alphaInt;
   }
+  
+  console.log('Mask alpha sample:', Array.from(maskImageData.data.slice(0, 40)).filter((_, i) => i % 4 === 3));
   
   // Scale mask to original size
   maskCtx.putImageData(maskImageData, 0, 0);
