@@ -4292,175 +4292,238 @@ function fnCloseBracket(ctx: FnContext): Image {
   return out;
 }
 
-function fnUnderscore(ctx: FnContext, old: Image): Image {
+function fnBlend(ctx: FnContext, mode: number): Image {
   const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
+  const prev1 = ctx.images.length >= 2 ? ctx.images[ctx.images.length - 2] : prev;
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = position * 0.5 + 0.5;
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
+  const NUM_MODES = 32;
+  const blendMode = ((mode - 1) % NUM_MODES + NUM_MODES) % NUM_MODES;
   
-  const blurShader = `
-    precision highp float;
-    uniform sampler2D uTexture;
-    uniform vec2 uDirection;
-    uniform vec2 uResolution;
-    varying vec2 vUV;
-    
-    void main() {
-      vec2 texelSize = 1.0 / uResolution;
-      vec3 result = vec3(0.0);
-      
-      float weights[5];
-      weights[0] = 0.227027;
-      weights[1] = 0.1945946;
-      weights[2] = 0.1216216;
-      weights[3] = 0.054054;
-      weights[4] = 0.016216;
-      
-      result += texture2D(uTexture, vUV).rgb * weights[0];
-      for (int i = 1; i < 5; i++) {
-        vec2 offset = uDirection * texelSize * float(i) * 5.0;
-        result += texture2D(uTexture, vUV + offset).rgb * weights[i];
-        result += texture2D(uTexture, vUV - offset).rgb * weights[i];
-      }
-      
-      gl_FragColor = vec4(result, 1.0);
-    }
-  `;
-  
-  const luminosityShader = `
-    precision highp float;
-    uniform sampler2D uPrev;
-    uniform sampler2D uBlurred;
-    varying vec2 vUV;
-    
-    void main() {
-      vec2 flippedUV = vec2(vUV.x, 1.0 - vUV.y);
-      vec3 prevColor = texture2D(uPrev, flippedUV).rgb;
-      vec3 blurColor = texture2D(uBlurred, vUV).rgb;
-      
-      float prevLum = dot(prevColor, vec3(0.299, 0.587, 0.114));
-      float blurLum = dot(blurColor, vec3(0.299, 0.587, 0.114));
-      
-      float scale = blurLum > 0.001 ? prevLum / blurLum : 1.0;
-      vec3 result = clamp(blurColor * scale, 0.0, 1.0);
-      
-      gl_FragColor = vec4(result, 1.0);
-    }
-  `;
-  
-  const blurProgram = createShaderProgram(gl, vertexShader, blurShader);
-  const luminosityProgram = createShaderProgram(gl, vertexShader, luminosityShader);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const oldTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const prevTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const tempTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const blurredTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, blurredTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const framebuffer = gl.createFramebuffer();
-  
-  gl.useProgram(blurProgram);
-  const blurPosLoc = gl.getAttribLocation(blurProgram, 'position');
-  gl.enableVertexAttribArray(blurPosLoc);
-  gl.vertexAttribPointer(blurPosLoc, 2, gl.FLOAT, false, 0, 0);
-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uResolution'), ctx.width, ctx.height);
-  
-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
-  gl.uniform1i(gl.getUniformLocation(blurProgram, 'uTexture'), 0);
-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 1.0, 0.0);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, blurredTexture, 0);
-  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 0.0, 1.0);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  
-  gl.useProgram(luminosityProgram);
-  const lumPosLoc = gl.getAttribLocation(luminosityProgram, 'position');
-  gl.enableVertexAttribArray(lumPosLoc);
-  gl.vertexAttribPointer(lumPosLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
-  gl.uniform1i(gl.getUniformLocation(luminosityProgram, 'uPrev'), 0);
-  
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, blurredTexture);
-  gl.uniform1i(gl.getUniformLocation(luminosityProgram, 'uBlurred'), 1);
-  
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+      const [br, bg, bb] = getPixel(prev1, x, y);
+      const [tr, tg, tb] = getPixel(prev, x, y);
+      
+      let r: number, g: number, b: number;
+      
+      switch (blendMode) {
+        case 0: // Normal - top replaces base
+          r = tr; g = tg; b = tb;
+          break;
+          
+        case 1: // Multiply
+          r = (br * tr) / 255;
+          g = (bg * tg) / 255;
+          b = (bb * tb) / 255;
+          break;
+          
+        case 2: // Screen
+          r = 255 - ((255 - br) * (255 - tr)) / 255;
+          g = 255 - ((255 - bg) * (255 - tg)) / 255;
+          b = 255 - ((255 - bb) * (255 - tb)) / 255;
+          break;
+          
+        case 3: // Overlay
+          r = br < 128 ? (2 * br * tr) / 255 : 255 - (2 * (255 - br) * (255 - tr)) / 255;
+          g = bg < 128 ? (2 * bg * tg) / 255 : 255 - (2 * (255 - bg) * (255 - tg)) / 255;
+          b = bb < 128 ? (2 * bb * tb) / 255 : 255 - (2 * (255 - bb) * (255 - tb)) / 255;
+          break;
+          
+        case 4: // Darken
+          r = Math.min(br, tr);
+          g = Math.min(bg, tg);
+          b = Math.min(bb, tb);
+          break;
+          
+        case 5: // Lighten
+          r = Math.max(br, tr);
+          g = Math.max(bg, tg);
+          b = Math.max(bb, tb);
+          break;
+          
+        case 6: // Color Dodge
+          r = tr === 255 ? 255 : Math.min(255, (br * 255) / (255 - tr));
+          g = tg === 255 ? 255 : Math.min(255, (bg * 255) / (255 - tg));
+          b = tb === 255 ? 255 : Math.min(255, (bb * 255) / (255 - tb));
+          break;
+          
+        case 7: // Color Burn
+          r = tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * 255) / tr);
+          g = tg === 0 ? 0 : Math.max(0, 255 - ((255 - bg) * 255) / tg);
+          b = tb === 0 ? 0 : Math.max(0, 255 - ((255 - bb) * 255) / tb);
+          break;
+          
+        case 8: // Hard Light
+          r = tr < 128 ? (2 * br * tr) / 255 : 255 - (2 * (255 - br) * (255 - tr)) / 255;
+          g = tg < 128 ? (2 * bg * tg) / 255 : 255 - (2 * (255 - bg) * (255 - tg)) / 255;
+          b = tb < 128 ? (2 * bb * tb) / 255 : 255 - (2 * (255 - bb) * (255 - tb)) / 255;
+          break;
+          
+        case 9: { // Soft Light
+          const softLight = (b: number, t: number) => {
+            const tb = t / 255, bb = b / 255;
+            return (tb < 0.5 
+              ? bb - (1 - 2 * tb) * bb * (1 - bb) 
+              : bb + (2 * tb - 1) * (bb < 0.25 ? ((16 * bb - 12) * bb + 4) * bb : Math.sqrt(bb) - bb)) * 255;
+          };
+          r = softLight(br, tr);
+          g = softLight(bg, tg);
+          b = softLight(bb, tb);
+          break;
+        }
+          
+        case 10: // Difference
+          r = Math.abs(br - tr);
+          g = Math.abs(bg - tg);
+          b = Math.abs(bb - tb);
+          break;
+          
+        case 11: // Exclusion
+          r = br + tr - (2 * br * tr) / 255;
+          g = bg + tg - (2 * bg * tg) / 255;
+          b = bb + tb - (2 * bb * tb) / 255;
+          break;
+          
+        case 12: // Add
+          r = Math.min(255, br + tr);
+          g = Math.min(255, bg + tg);
+          b = Math.min(255, bb + tb);
+          break;
+          
+        case 13: // Subtract
+          r = Math.max(0, br - tr);
+          g = Math.max(0, bg - tg);
+          b = Math.max(0, bb - tb);
+          break;
+          
+        case 14: // XOR
+          r = br ^ tr;
+          g = bg ^ tg;
+          b = bb ^ tb;
+          break;
+          
+        case 15: // AND
+          r = br & tr;
+          g = bg & tg;
+          b = bb & tb;
+          break;
+          
+        case 16: // OR
+          r = br | tr;
+          g = bg | tg;
+          b = bb | tb;
+          break;
+          
+        case 17: // NAND
+          r = 255 - (br & tr);
+          g = 255 - (bg & tg);
+          b = 255 - (bb & tb);
+          break;
+          
+        case 18: // NOR
+          r = 255 - (br | tr);
+          g = 255 - (bg | tg);
+          b = 255 - (bb | tb);
+          break;
+          
+        case 19: // XNOR
+          r = 255 - (br ^ tr);
+          g = 255 - (bg ^ tg);
+          b = 255 - (bb ^ tb);
+          break;
+          
+        case 20: // Average
+          r = (br + tr) / 2;
+          g = (bg + tg) / 2;
+          b = (bb + tb) / 2;
+          break;
+          
+        case 21: // Divide
+          r = tr === 0 ? 255 : Math.min(255, (br * 255) / tr);
+          g = tg === 0 ? 255 : Math.min(255, (bg * 255) / tg);
+          b = tb === 0 ? 255 : Math.min(255, (bb * 255) / tb);
+          break;
+          
+        case 22: // Grain Extract
+          r = Math.max(0, Math.min(255, br - tr + 128));
+          g = Math.max(0, Math.min(255, bg - tg + 128));
+          b = Math.max(0, Math.min(255, bb - tb + 128));
+          break;
+          
+        case 23: // Grain Merge
+          r = Math.max(0, Math.min(255, br + tr - 128));
+          g = Math.max(0, Math.min(255, bg + tg - 128));
+          b = Math.max(0, Math.min(255, bb + tb - 128));
+          break;
+          
+        case 24: // Vivid Light
+          r = tr < 128 
+            ? (tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * 255) / (2 * tr)))
+            : (tr === 255 ? 255 : Math.min(255, (br * 255) / (2 * (255 - tr))));
+          g = tg < 128 
+            ? (tg === 0 ? 0 : Math.max(0, 255 - ((255 - bg) * 255) / (2 * tg)))
+            : (tg === 255 ? 255 : Math.min(255, (bg * 255) / (2 * (255 - tg))));
+          b = tb < 128 
+            ? (tb === 0 ? 0 : Math.max(0, 255 - ((255 - bb) * 255) / (2 * tb)))
+            : (tb === 255 ? 255 : Math.min(255, (bb * 255) / (2 * (255 - tb))));
+          break;
+          
+        case 25: // Linear Light
+          r = Math.max(0, Math.min(255, br + 2 * tr - 255));
+          g = Math.max(0, Math.min(255, bg + 2 * tg - 255));
+          b = Math.max(0, Math.min(255, bb + 2 * tb - 255));
+          break;
+          
+        case 26: // Pin Light
+          r = tr < 128 ? Math.min(br, 2 * tr) : Math.max(br, 2 * tr - 255);
+          g = tg < 128 ? Math.min(bg, 2 * tg) : Math.max(bg, 2 * tg - 255);
+          b = tb < 128 ? Math.min(bb, 2 * tb) : Math.max(bb, 2 * tb - 255);
+          break;
+          
+        case 27: // Hard Mix
+          r = br + tr < 255 ? 0 : 255;
+          g = bg + tg < 255 ? 0 : 255;
+          b = bb + tb < 255 ? 0 : 255;
+          break;
+          
+        case 28: { // Hue - hue from top, sat/lum from base
+          const [bh, bs, bl] = rgbToHsl(br, bg, bb);
+          const [th] = rgbToHsl(tr, tg, tb);
+          [r, g, b] = hslToRgb(th, bs, bl);
+          break;
+        }
+          
+        case 29: { // Saturation - sat from top, hue/lum from base
+          const [bh, , bl] = rgbToHsl(br, bg, bb);
+          const [, ts] = rgbToHsl(tr, tg, tb);
+          [r, g, b] = hslToRgb(bh, ts, bl);
+          break;
+        }
+          
+        case 30: { // Color - hue/sat from top, lum from base
+          const [, , bl] = rgbToHsl(br, bg, bb);
+          const [th, ts] = rgbToHsl(tr, tg, tb);
+          [r, g, b] = hslToRgb(th, ts, bl);
+          break;
+        }
+          
+        case 31: { // Luminosity - lum from top, hue/sat from base
+          const [bh, bs] = rgbToHsl(br, bg, bb);
+          const [, , tl] = rgbToHsl(tr, tg, tb);
+          [r, g, b] = hslToRgb(bh, bs, tl);
+          break;
+        }
+          
+        default:
+          r = tr; g = tg; b = tb;
+      }
+      
+      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
     }
   }
   
-  gl.deleteTexture(oldTexture);
-  gl.deleteTexture(prevTexture);
-  gl.deleteTexture(tempTexture);
-  gl.deleteTexture(blurredTexture);
-  gl.deleteFramebuffer(framebuffer);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(blurProgram);
-  gl.deleteProgram(luminosityProgram);
-  
-  return { width: ctx.width, height: ctx.height, data: flipped };
+  return out;
 }
 
 function fnBacktick(ctx: FnContext, n: number): Image {
