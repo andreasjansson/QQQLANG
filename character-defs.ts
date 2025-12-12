@@ -2496,49 +2496,95 @@ function fnY(ctx: FnContext, n: number): Image {
 
 function fnZ(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const blurAmount = n * 4;
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
-  const sharpRadius = 0.2;
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
   
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const normDist = dist / maxR;
-      
-      if (normDist < sharpRadius) {
-        const [r, g, b] = getPixel(prev, x, y);
-        setPixel(out, x, y, r, g, b);
-      } else {
-        const blurStrength = Math.min(1, (normDist - sharpRadius) / (1 - sharpRadius));
-        const samples = Math.max(1, Math.floor(blurStrength * blurAmount / 2));
-        
-        let sumR = 0, sumG = 0, sumB = 0;
-        for (let i = 0; i <= samples; i++) {
-          const t = i / samples;
-          const sx = cx + dx * (1 - t * blurStrength * 0.5);
-          const sy = cy + dy * (1 - t * blurStrength * 0.5);
-          const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-          sumR += r;
-          sumG += g;
-          sumB += b;
-        }
-        
-        setPixel(out, x, y, 
-          Math.round(sumR / (samples + 1)),
-          Math.round(sumG / (samples + 1)),
-          Math.round(sumB / (samples + 1))
-        );
-      }
+  // Blur strength based on n (1-68)
+  const strength = n * 0.015;
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, position.y * 0.5 + 0.5);
+      gl_Position = vec4(position, 0.0, 1.0);
     }
-  }
+  `;
   
-  return out;
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uStrength;
+    varying vec2 vUV;
+    
+    #define SAMPLES 32
+    
+    void main() {
+      vec2 center = vec2(0.5, 0.5);
+      vec2 dir = vUV - center;
+      float dist = length(dir);
+      
+      // Sharp center, blur increases toward edges
+      float sharpRadius = 0.15;
+      float blurFactor = smoothstep(sharpRadius, 0.7, dist) * uStrength;
+      
+      vec3 color = vec3(0.0);
+      float totalWeight = 0.0;
+      
+      for (int i = 0; i < SAMPLES; i++) {
+        float t = float(i) / float(SAMPLES - 1);
+        // Sample along the radial direction toward center
+        vec2 offset = dir * t * blurFactor;
+        vec2 samplePos = vUV - offset;
+        
+        // Weight samples - center samples weighted more
+        float weight = 1.0 - t * 0.5;
+        color += texture2D(uTexture, samplePos).rgb * weight;
+        totalWeight += weight;
+      }
+      
+      gl_FragColor = vec4(color / totalWeight, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uStrength'), strength);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: pixels };
 }
 
 function fnQ(ctx: FnContext): Image {
