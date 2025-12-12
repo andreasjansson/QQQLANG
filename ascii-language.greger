@@ -9858,5 +9858,193 @@ Update remaining characters #-~ with new args structure
 ID: toolu_01UKrrkHbxXu68EAqgR5cbhd
 
 <tool.toolu_01UKrrkHbxXu68EAqgR5cbhd>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update remaining characters #-~ with new args structure
 </tool.toolu_01UKrrkHbxXu68EAqgR5cbhd>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01MXkjwvW1En2SFgbpJmXvmn
+
+## path
+
+<tool.toolu_01MXkjwvW1En2SFgbpJmXvmn>
+character-defs.ts
+</tool.toolu_01MXkjwvW1En2SFgbpJmXvmn>
+
+## start-line
+
+<tool.toolu_01MXkjwvW1En2SFgbpJmXvmn>
+6080
+</tool.toolu_01MXkjwvW1En2SFgbpJmXvmn>
+
+## end-line
+
+<tool.toolu_01MXkjwvW1En2SFgbpJmXvmn>
+6150
+</tool.toolu_01MXkjwvW1En2SFgbpJmXvmn>
+
+# TOOL RESULT
+
+ID: toolu_01MXkjwvW1En2SFgbpJmXvmn
+
+<tool.toolu_01MXkjwvW1En2SFgbpJmXvmn>
+    number: 62,
+    fn: fnCloseBracket,
+    args: [],
+    functionName: "left-half-offset",
+    documentation: "Shift left half vertically by 20% with wraparound."
+  },
+  
+  '_': {
+    color: '#FF7F50',
+    number: 63,
+    fn: fnBlend,
+    args: [{ type: Choice('multiply','screen','overlay','darken','lighten','dodge','burn','hardlight','softlight','difference','exclusion','add','subtract','xor','and','or','nand','nor','xnor','average','divide','grain-extract','grain-merge','vivid','linear','pin','hardmix','hue','saturation','color','luminosity','replace-dark-third','replace-mid-third','replace-light-third','???'), documentation: "Blend mode (cycles through 34)" }],
+    functionName: "blend",
+    documentation: "Blend current with previous using specified mode."
+  },
+  
+  '`': {
+    color: '#6495ED',
+    number: 64,
+    fn: fnBacktick,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "gradient-smear",
+    documentation: "Iteratively smears pixels along image gradients; edges create directional streaks, n controls iterations and strength"
+  },
+  
+  '{': {
+    color: '#DC143C',
+    number: 65,
+    fn: fnSkewLeft,
+    arity: 0,
+    argTypes: [],
+    functionName: "skew-left",
+    documentation: "Skews image 20 degrees left (top shifts left, bottom shifts right) with wraparound"
+  },
+  
+  '|': {
+    color: '#00BFFF',
+    number: 66,
+    fn: fnPipe,
+    arity: 1,
+    argTypes: ['index'],
+    functionName: "vertical-split",
+    documentation: "Left=prev, right=old image; 20% wavy blend zone uses screen/difference/xor in alternating horizontal bands"
+  },
+  
+  '}': {
+    color: '#9400D3',
+    number: 67,
+    fn: fnSkewRight,
+    arity: 0,
+    argTypes: [],
+    functionName: "skew-right",
+    documentation: "Skews image 20 degrees right (top shifts right, bottom shifts left) with wraparound"
+  },
+  
+  '~': {
+    color: '#FF6347',
+    number: 68,
+    fn: fnTilde,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "wave-chromatic",
+    documentation: "Horizontal wave distortion with amplitude = sin(y*0.05)*n*8, chromatic aberration (R +n px, B -n px)"
+  },
+};
+</tool.toolu_01MXkjwvW1En2SFgbpJmXvmn>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01FKxUqZ6U5dCi6g7JGDwhko
+
+## path
+
+<tool.toolu_01FKxUqZ6U5dCi6g7JGDwhko>
+character-defs.ts
+</tool.toolu_01FKxUqZ6U5dCi6g7JGDwhko>
+
+## git-commit-message
+
+<tool.toolu_01FKxUqZ6U5dCi6g7JGDwhko>
+Update final characters with new args structure
+</tool.toolu_01FKxUqZ6U5dCi6g7JGDwhko>
+
+## diff
+
+<tool.toolu_01FKxUqZ6U5dCi6g7JGDwhko>
+   '`': {
+     color: '#6495ED',
+     number: 64,
+     fn: fnBacktick,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Iterations and smear strength" }],
+     functionName: "gradient-smear",
+-    documentation: "Iteratively smears pixels along image gradients; edges create directional streaks, n controls iterations and strength"
++    documentation: "Iterative gradient-based pixel smearing creating directional streaks."
+   },
+   
+   '{': {
+     color: '#DC143C',
+     number: 65,
+     fn: fnSkewLeft,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "skew-left",
+-    documentation: "Skews image 20 degrees left (top shifts left, bottom shifts right) with wraparound"
++    documentation: "Skew 20° left with wraparound (top left, bottom right)."
+   },
+   
+   '|': {
+     color: '#00BFFF',
+     number: 66,
+     fn: fnPipe,
+-    arity: 1,
+-    argTypes: ['index'],
++    args: [{ type: INDEX, documentation: "Old image for right half" }],
+     functionName: "vertical-split",
+-    documentation: "Left=prev, right=old image; 20% wavy blend zone uses screen/difference/xor in alternating horizontal bands"
++    documentation: "Vertical split with wavy blend zone using multiple blend modes."
+   },
+   
+   '}': {
+     color: '#9400D3',
+     number: 67,
+     fn: fnSkewRight,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "skew-right",
+-    documentation: "Skews image 20 degrees right (top shifts right, bottom shifts left) with wraparound"
++    documentation: "Skew 20° right with wraparound (top right, bottom left)."
+   },
+   
+   '~': {
+     color: '#FF6347',
+     number: 68,
+     fn: fnTilde,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Wave amplitude and chromatic shift" }],
+     functionName: "wave-chromatic",
+-    documentation: "Horizontal wave distortion with amplitude = sin(y*0.05)*n*8, chromatic aberration (R +n px, B -n px)"
++    documentation: "Horizontal wave distortion with chromatic aberration."
+   },
+ };
+\ No newline at end of file
+
+</tool.toolu_01FKxUqZ6U5dCi6g7JGDwhko>
+
+# TOOL RESULT
+
+ID: toolu_01FKxUqZ6U5dCi6g7JGDwhko
+
+<tool.toolu_01FKxUqZ6U5dCi6g7JGDwhko>
+
+</tool.toolu_01FKxUqZ6U5dCi6g7JGDwhko>
