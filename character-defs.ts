@@ -6187,9 +6187,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#F0E68C',
     number: 20,
     fn: fnT,
-    args: [{ type: INT, documentation: "Maximum building height (normalized 0-1)" }],
+    args: [{ type: INT, documentation: "Building height multiplier (A=short, ~=tall)" }],
     functionName: "city",
-    documentation: "8×8 grid of square 3D buildings with varying heights, textured with image squares."
+    documentation: "Grid of 3D buildings covering entire canvas, heights based on seed with multiplier."
   },
   
   'U': {
