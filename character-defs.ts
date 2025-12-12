@@ -2686,6 +2686,12 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
     return cloneImage(prev);
   }
   
+  if (sinetInferenceInProgress) {
+    console.warn('SINet inference already in progress, returning prev image');
+    return cloneImage(prev);
+  }
+  
+  sinetInferenceInProgress = true;
   const startTime = performance.now();
   
   // Resize input to 224x224 for SINet

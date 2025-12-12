@@ -10980,5 +10980,64 @@ Add inference lock to prevent concurrent SINet calls
 ID: toolu_0141gPLHFoAWxdoNfD92CV9G
 
 <tool.toolu_0141gPLHFoAWxdoNfD92CV9G>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add inference lock to prevent concurrent SINet calls
 </tool.toolu_0141gPLHFoAWxdoNfD92CV9G>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RpT5LDh352qeTos8Hfwarw
+
+## path
+
+<tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+character-defs.ts
+</tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+
+## git-commit-message
+
+<tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+Check inference lock before running SINet
+</tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+
+## original-content
+
+<tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+async function fn0(ctx: FnContext, old: Image): Promise<Image> {
+  const prev = getPrevImage(ctx);
+  
+  if (!sinetSession) {
+    console.warn('SINet model not ready, returning prev image');
+    return cloneImage(prev);
+  }
+  
+  const startTime = performance.now();
+</tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+
+## new-content
+
+<tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+async function fn0(ctx: FnContext, old: Image): Promise<Image> {
+  const prev = getPrevImage(ctx);
+  
+  if (!sinetSession) {
+    console.warn('SINet model not ready, returning prev image');
+    return cloneImage(prev);
+  }
+  
+  if (sinetInferenceInProgress) {
+    console.warn('SINet inference already in progress, returning prev image');
+    return cloneImage(prev);
+  }
+  
+  sinetInferenceInProgress = true;
+  const startTime = performance.now();
+</tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+
+# TOOL RESULT
+
+ID: toolu_01RpT5LDh352qeTos8Hfwarw
+
+<tool.toolu_01RpT5LDh352qeTos8Hfwarw>
+
+</tool.toolu_01RpT5LDh352qeTos8Hfwarw>
