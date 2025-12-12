@@ -2188,8 +2188,8 @@ function fnT(ctx: FnContext, n: number): Image {
   light.shadow.bias = -0.0005;
   scene.add(light);
   
-  const light2 = new THREE.DirectionalLight(0xffffff, 1.5);
-  light2.position.set(-5, -4, 8);
+  const light2 = new THREE.DirectionalLight(0xffffff, 1.0);
+  light2.position.set(-8, 2, 4);
   light2.castShadow = true;
   light2.shadow.mapSize.width = 1536;
   light2.shadow.mapSize.height = 1536;
