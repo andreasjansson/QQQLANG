@@ -10270,5 +10270,52 @@ Fix WebGL state pollution by resetting active texture unit in fnD
 ID: toolu_01PFxf5BteRWu7jqsSagLso2
 
 <tool.toolu_01PFxf5BteRWu7jqsSagLso2>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix WebGL state pollution by resetting active texture unit in fnD
 </tool.toolu_01PFxf5BteRWu7jqsSagLso2>
+
+# ASSISTANT
+
+Now let me add similar resets to other WebGL functions to prevent this issue from happening elsewhere:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01CEVGjnyrvJXcMH6oMHdtNS
+
+## path
+
+<tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
+character-defs.ts
+</tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
+
+## git-commit-message
+
+<tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
+Add WebGL state reset to fnA
+</tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
+
+## diff
+
+<tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
+ function fnA(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE0);
++  
+   const vertexShader = `
+\ No newline at end of file
+
+</tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
+
+# TOOL RESULT
+
+ID: toolu_01CEVGjnyrvJXcMH6oMHdtNS
+
+<tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
+
+</tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
