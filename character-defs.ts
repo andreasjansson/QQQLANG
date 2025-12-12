@@ -11,11 +11,17 @@ export interface Image {
   data: Uint8ClampedArray;
 }
 
+export interface OpInfo {
+  identifier: string;
+  type: 'solid' | 'uploaded-image' | 'function';
+}
+
 export interface FnContext {
   width: number;
   height: number;
   images: Image[];
   currentIndex: number;
+  opInfos: OpInfo[];
 }
 
 export interface CharDef {
