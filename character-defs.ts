@@ -2872,6 +2872,12 @@ function fnD(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE0);
+  
   const n = 7;
   const numDrips = Math.max(1, n * 3);
   const dripStrength = Math.max(0.5, Math.min(n * 0.2 + 0.8, 2.0));
