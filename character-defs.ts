@@ -6,6 +6,9 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as ort from 'onnxruntime-web';
 
+// Configure ONNX Runtime to use CDN for WASM files
+ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
+
 export interface Image {
   width: number;
   height: number;
