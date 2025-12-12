@@ -9464,5 +9464,99 @@ Make runProgram async to support async character functions
 ID: toolu_01635DqzkYBVNiDdiphawEq5
 
 <tool.toolu_01635DqzkYBVNiDdiphawEq5>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Make runProgram async to support async character functions
 </tool.toolu_01635DqzkYBVNiDdiphawEq5>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011f7iYwMHVdkKutRgDZMw6P
+
+## path
+
+<tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+runtime.ts
+</tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+
+## git-commit-message
+
+<tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+Await async function results in runProgram
+</tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+
+## original-content
+
+<tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+      console.log(`  Executing function: ${op.fnDef.functionName} with args:`, op.args);
+      const ctx: FnContext = {
+        width,
+        height,
+        images: [...images],
+        currentIndex: images.length,
+        opInfos: [...opInfos],
+      };
+      
+      const resolvedArgs = op.args.map((arg, idx) => {
+        const argDef = op.fnDef.args[idx];
+        const argType = argDef.type;
+        if (argType instanceof IndexType) {
+          if (typeof arg === 'object' && arg.type === 'uploaded') {
+            return getUploadedImage(arg.index, width, height);
+          } else if (typeof arg === 'number') {
+            return getOldImage(ctx, arg);
+          }
+        } else if (argType instanceof ChoiceType) {
+          if (typeof arg === 'number') {
+            const choiceIndex = (arg - 1) % argType.choices.length;
+            return argType.choices[choiceIndex];
+          }
+        }
+        return arg;
+      });
+      
+      result = op.fnDef.fn(ctx, ...resolvedArgs);
+    }
+</tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+
+## new-content
+
+<tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+      console.log(`  Executing function: ${op.fnDef.functionName} with args:`, op.args);
+      const ctx: FnContext = {
+        width,
+        height,
+        images: [...images],
+        currentIndex: images.length,
+        opInfos: [...opInfos],
+      };
+      
+      const resolvedArgs = op.args.map((arg, idx) => {
+        const argDef = op.fnDef.args[idx];
+        const argType = argDef.type;
+        if (argType instanceof IndexType) {
+          if (typeof arg === 'object' && arg.type === 'uploaded') {
+            return getUploadedImage(arg.index, width, height);
+          } else if (typeof arg === 'number') {
+            return getOldImage(ctx, arg);
+          }
+        } else if (argType instanceof ChoiceType) {
+          if (typeof arg === 'number') {
+            const choiceIndex = (arg - 1) % argType.choices.length;
+            return argType.choices[choiceIndex];
+          }
+        }
+        return arg;
+      });
+      
+      const fnResult = op.fnDef.fn(ctx, ...resolvedArgs);
+      result = fnResult instanceof Promise ? await fnResult : fnResult;
+    }
+</tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+
+# TOOL RESULT
+
+ID: toolu_011f7iYwMHVdkKutRgDZMw6P
+
+<tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+
+</tool.toolu_011f7iYwMHVdkKutRgDZMw6P>

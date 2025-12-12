@@ -394,7 +394,8 @@ export async function runProgram(program: string, width: number, height: number)
         return arg;
       });
       
-      result = op.fnDef.fn(ctx, ...resolvedArgs);
+      const fnResult = op.fnDef.fn(ctx, ...resolvedArgs);
+      result = fnResult instanceof Promise ? await fnResult : fnResult;
     }
     
     images.push(result);
