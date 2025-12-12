@@ -10475,5 +10475,102 @@ Add updateHelpDisplay function to show inline function help
 ID: toolu_01Tv23htws95htckDtQN31dY
 
 <tool.toolu_01Tv23htws95htckDtQN31dY>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Add updateHelpDisplay function to show inline function help
 </tool.toolu_01Tv23htws95htckDtQN31dY>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01S59vQuNLbaNKtGfvmPWGsP
+
+## path
+
+<tool.toolu_01S59vQuNLbaNKtGfvmPWGsP>
+index.html
+</tool.toolu_01S59vQuNLbaNKtGfvmPWGsP>
+
+## git-commit-message
+
+<tool.toolu_01S59vQuNLbaNKtGfvmPWGsP>
+Implement updateHelpDisplay function
+</tool.toolu_01S59vQuNLbaNKtGfvmPWGsP>
+
+## diff
+
+<tool.toolu_01S59vQuNLbaNKtGfvmPWGsP>
++    function updateHelpDisplay() {
++      const program = input.value || '';
++      if (!program) {
++        helpContainer.innerHTML = '';
++        return;
++      }
++      
++      const ops = getParsedOperations(program);
++      if (ops.length === 0) {
++        helpContainer.innerHTML = '';
++        return;
++      }
++      
++      const lastOp = ops[ops.length - 1];
++      
++      if (lastOp.type !== 'function') {
++        helpContainer.innerHTML = '';
++        return;
++      }
++      
++      const def = lastOp.fnDef;
++      const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
++      
++      let html = `<div><span class="fn-name">${def.functionName}</span> <span class="fn-char">[${char}]</span> -- ${def.documentation}</div>`;
++      
++      for (let i = 0; i < def.args.length; i++) {
++        const arg = def.args[i];
++        let typeDisplay = arg.type.name;
++        if (arg.type instanceof ChoiceType && arg.type.choices.length <= 10) {
++          typeDisplay = `choice(${arg.type.choices.slice(0, 5).join(',')})`;
++        }
++        html += `<div class="arg-line">(${i + 1}) :${typeDisplay} -- ${arg.documentation}</div>`;
++      }
++      
++      helpContainer.innerHTML = html;
++    }
++    
+     function updateUploadButtonState() {
+       const cursorPos = input.selectionStart ?? input.value.length;
+       const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
+       const btnText = uploadButton.querySelector('.btn-text .btn-indicator');
+       const btnIcon = uploadButton.querySelector('.btn-icon');
+       
+       if (expectedType === 'initial' || expectedType === 'index') {
+         uploadButton.disabled = false;
+         btnText.className = 'btn-indicator';
+         btnText.textContent = 'Upload';
+         btnIcon.textContent = '📷';
+       } else if (expectedType === 'function') {
+         uploadButton.disabled = true;
+         btnText.className = 'btn-indicator';
+         btnText.textContent = '𝑓𝑛';
+         btnIcon.textContent = '𝑓';
+       } else if (expectedType === 'int') {
+         uploadButton.disabled = true;
+         btnText.className = 'btn-indicator';
+         btnText.textContent = '𝑥';
+         btnIcon.textContent = '𝑥';
+       } else if (expectedType === 'color') {
+         uploadButton.disabled = true;
+         btnText.className = 'btn-indicator btn-rainbow';
+         btnText.textContent = '■';
+         btnIcon.textContent = '🌈';
+       }
+     }
+\ No newline at end of file
+
+</tool.toolu_01S59vQuNLbaNKtGfvmPWGsP>
+
+# TOOL RESULT
+
+ID: toolu_01S59vQuNLbaNKtGfvmPWGsP
+
+<tool.toolu_01S59vQuNLbaNKtGfvmPWGsP>
+
+</tool.toolu_01S59vQuNLbaNKtGfvmPWGsP>
