@@ -10185,5 +10185,50 @@ Fix building gaps and improve shadow quality in fnT
 ID: toolu_01E4ZifgM4PEHCMpv9aSC8nW
 
 <tool.toolu_01E4ZifgM4PEHCMpv9aSC8nW>
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix building gaps and improve shadow quality in fnT
 
+- Remove gap between buildings (was 0.92, now 1.0)
+- Expand shadow camera frustum to cover full scene
+- Increase shadow map to 4096x4096
+- Add shadow radius for softer shadows
+- Adjust shadow bias
 </tool.toolu_01E4ZifgM4PEHCMpv9aSC8nW>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01BcooJYTATfjxp54y9Z23y4
+
+## path
+
+<tool.toolu_01BcooJYTATfjxp54y9Z23y4>
+character-defs.ts
+</tool.toolu_01BcooJYTATfjxp54y9Z23y4>
+
+## git-commit-message
+
+<tool.toolu_01BcooJYTATfjxp54y9Z23y4>
+Remove gaps between buildings in fnT
+</tool.toolu_01BcooJYTATfjxp54y9Z23y4>
+
+## diff
+
+<tool.toolu_01BcooJYTATfjxp54y9Z23y4>
+       const boxGeometry = new THREE.BoxGeometry(
+-        cellWidth * 0.92,
+-        cellHeight * 0.92,
++        cellWidth,
++        cellHeight,
+         depth
+       );
+\ No newline at end of file
+
+</tool.toolu_01BcooJYTATfjxp54y9Z23y4>
+
+# TOOL RESULT
+
+ID: toolu_01BcooJYTATfjxp54y9Z23y4
+
+<tool.toolu_01BcooJYTATfjxp54y9Z23y4>
+
+</tool.toolu_01BcooJYTATfjxp54y9Z23y4>
