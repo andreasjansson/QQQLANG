@@ -2212,7 +2212,60 @@ function fnT(ctx: FnContext, n: number): Image {
     }
   `;
   
-  // Main render shaders
+  // Environment capture shader (for reflection map)
+  const envVertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const envFragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform float uIsBackground;
+    uniform vec3 uLightDir;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        gl_FragColor = vec4(color, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        vec3 lightDir = normalize(uLightDir);
+        
+        float ambient = 0.4;
+        float diff = max(dot(normal, lightDir), 0.0);
+        float diffuse = diff * 0.6;
+        float lighting = ambient + diffuse;
+        
+        gl_FragColor = vec4(color * lighting, 1.0);
+      }
+    }
+  `;
+  
+  // Main render shaders with reflections
   const vertexShader = `
     attribute vec3 aPosition;
     attribute vec3 aNormal;
@@ -2228,6 +2281,7 @@ function fnT(ctx: FnContext, n: number): Image {
     varying vec2 vTexCoord;
     varying vec3 vWorldPos;
     varying vec4 vLightSpacePos;
+    varying vec4 vScreenPos;
     
     void main() {
       vec4 worldPos = uModel * vec4(aPosition, 1.0);
@@ -2235,7 +2289,9 @@ function fnT(ctx: FnContext, n: number): Image {
       vNormal = mat3(uModel) * aNormal;
       vTexCoord = aTexCoord;
       vLightSpacePos = uLightProjection * uLightView * worldPos;
-      gl_Position = uProjection * uView * worldPos;
+      vec4 clipPos = uProjection * uView * worldPos;
+      vScreenPos = clipPos;
+      gl_Position = clipPos;
     }
   `;
   
@@ -2244,13 +2300,16 @@ function fnT(ctx: FnContext, n: number): Image {
     
     uniform sampler2D uTexture;
     uniform sampler2D uShadowMap;
+    uniform sampler2D uReflectionMap;
     uniform float uIsBackground;
     uniform vec3 uLightDir;
+    uniform vec2 uResolution;
     
     varying vec3 vNormal;
     varying vec2 vTexCoord;
     varying vec3 vWorldPos;
     varying vec4 vLightSpacePos;
+    varying vec4 vScreenPos;
     
     float calculateShadow() {
       vec3 projCoords = vLightSpacePos.xyz / vLightSpacePos.w;
@@ -2298,18 +2357,29 @@ function fnT(ctx: FnContext, n: number): Image {
         
         // Specular
         vec3 reflectDir = reflect(-lightDir, normal);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-        float specular = spec * 0.4;
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64.0);
+        float specular = spec * 0.5;
         
-        // Reflection - sample texture based on reflected view direction
+        // Screen-space reflection
+        vec2 screenUV = (vScreenPos.xy / vScreenPos.w) * 0.5 + 0.5;
         vec3 viewReflect = reflect(-viewDir, normal);
-        vec2 reflectUV = vWorldPos.xy + viewReflect.xy * 0.15;
-        reflectUV = clamp(reflectUV, 0.0, 1.0);
-        vec3 reflectColor = texture2D(uTexture, reflectUV).rgb;
+        
+        // Offset UV based on reflection direction and surface normal
+        vec2 reflectOffset = viewReflect.xy * 0.2;
+        vec2 reflectUV = screenUV + reflectOffset;
+        reflectUV.y = 1.0 - reflectUV.y; // Flip Y for reflection
+        reflectUV = clamp(reflectUV, 0.01, 0.99);
+        
+        vec3 reflectColor = texture2D(uReflectionMap, reflectUV).rgb;
         
         // Fresnel effect - more reflective at glancing angles
-        float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 3.0);
-        float reflectivity = 0.15 + fresnel * 0.35;
+        float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 4.0);
+        float reflectivity = 0.1 + fresnel * 0.5;
+        
+        // Side faces are more reflective (like glass windows)
+        if (abs(normal.z) < 0.5) {
+          reflectivity += 0.15;
+        }
         
         // Shadow
         float shadow = calculateShadow();
@@ -2318,7 +2388,10 @@ function fnT(ctx: FnContext, n: number): Image {
         
         // Blend base color with reflection
         vec3 litColor = color * lighting;
-        vec3 finalColor = mix(litColor, reflectColor * (0.8 + lighting * 0.4), reflectivity);
+        vec3 finalColor = mix(litColor, reflectColor, reflectivity * (1.0 - shadow * 0.3));
+        
+        // Add subtle specular highlight on top
+        finalColor += vec3(1.0) * specular * (1.0 - shadow);
         
         gl_FragColor = vec4(finalColor, 1.0);
       }

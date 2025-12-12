@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-152505336429>
+${greger-prompt-code-style<eval-result-152545787846>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-152505336429>}
+</eval-result-152545787846>}
 
 # IMPORTANT
 
@@ -13123,5 +13123,293 @@ Add reflections to city buildings
 ID: toolu_01XHagKu1gJcJuV4ZGdYAzPD
 
 <tool.toolu_01XHagKu1gJcJuV4ZGdYAzPD>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add reflections to city buildings
 </tool.toolu_01XHagKu1gJcJuV4ZGdYAzPD>
+
+# ASSISTANT
+
+Done! I've added reflections to the buildings with:
+
+1. **Environment reflection** - The buildings sample from the texture based on the reflected view direction, creating a pseudo-environment map effect
+
+2. **Fresnel effect** - Surfaces are more reflective at glancing angles (when you look at them from the side) and less reflective when viewed head-on, just like real glass/glossy materials
+
+3. **Reflectivity blend** - Base reflectivity of 15% that increases up to 50% at glancing angles due to the Fresnel term
+
+4. **Reflection color** - The reflected color is also slightly affected by the lighting, so reflections in shadows appear darker
+
+# USER
+
+No do it properly!
+
+# THINKING
+
+Signature: EqELCkYIChgCKkCCxOdH7peBTcg/wc1yNaZqFgzhZD94Ovckf+0PdWIHlRCeJBC20eNIrLNQZY1+N1WGLdnCNnCFDRKK2Km/kapPEgzywxlxhg/vThnrpwoaDAiilfvSlQqZG0XCcCIwWfaUqLixTCSllKmDMait3aJBDO6HbotTbiKsCRtgtGVYvTuJuLljU4eaohdK5370KogKkgzw91YFFyFSEXsfxhEtuIUnrcGiA6O2c/dnGCQ3T07vyhBwRJj5x/jB9p1cbW7moCw7O1atentBnugghATTxlkyWYmhxGTjZBg/Fc/aBxdKVZKz2blhWxyiuV/eexIUWP9m3e6iiCbLbwik9dOtwcwotR6h3d6hOf+A0k1HLUUE36aLtftzv1Qo00P+lF2iWnmAsOa0ZXFMPGHP7sbHSuAxapQLp30/1pcE0zdux0o/NAzClbHcgocn3EGGYq8FXwyzXS/0jE43InPFmMxoOHrvm0lDwLq+lQ5h7qlL0e2MXWFJz3hfOeNWRcAZ6hLehzGG7A9nfv5psaRS7KH3KTLu54ZPhnSpMqVRpOXSnAZT9w8VaRL6j7uF8uJA9C6VYOdTqI4jfvE6oGbPVfpSbO+8rW3EUxaIn3EidmfUTIzu58hyVEf30HO6/Cf/pFpy3H3EeRA4EL6LoB9iPp4c8mDAkwV+6nNlZQt0u15+Bbls8U/RDT8AbfaMOWyWOfDaZQGstbnMbKkTbgY881i6p3WOR76nc8w4a70BkQaTnmsadEL0d8XUf0U5hNbtiG33PIf1sCjSOdJ9GsywULl92ypm/MzpTcXENaeleU18jhSF4+mRLfUCSAZmphPIyNHAjvfsQVeTwgaf7MhwYKMIM3tMad10AH3C3IVmG7H4bWp274TTf4xFOn6/8jpXO3jwZnViqUgM/r96J38igsEy4gpU3KUgtOlRlsyIOYMRYWiIRUptUicB0kS1ZbWEHqWVkT0b7qDvHvfVPiI6Pb6Vr0SSQt3GuAg19r/LDbdVJDoudbjFVzKY8YnSrLxYXOtUYkdTnALtB0kSWrIW8n9ctIAZWpJ44MkRTqXGIrhIicRkjqnNRS7vaz+/XEcdON06zxV9KgaxywAwhMAoUn1vkCg7lceIWq8PcVRwOZ6Hq/x+MKEhEZ/wssmh1MMTBAlEL2l3oJW0BYTe/pP364G5H2BWWeQDzP4RUK3A6J5Onrd5PpC+0V/Sc4LaqSfdxwRnNPocV1axOYW6WJwXAwzJ5C3ehwk+3XRYKqovX9Gn+cTwmklFOQl+J2a5Yq8YCtinKfthhiM/j6a1FZA9kLISFbovXYp8SsoRVTt7nWpYxDeroj+loB5wcw2EBnfnm15cdl2UhD4LkyJKiyxOoG2oTa2cZb2Reujk2RxsfqUbLVZL4ZTWj15ch1Ic+IkiHSLUlDu7W78VoLmAluTKW0wG9UxxOIUhRMYJB6AmJk+kLSjyuj4J2Our5Oogo0QvRUBi3UC9GWWO4tI4byefUn/dOCKQDEqRARHQEIy9TAWYcRmXhZoQeAKuQ7zU9zj2yy3QPiDajXTK552mBjQdeXoWljJ+m78rpl0fdJHd2kSH1/QekFG1RZXqwJqgaIOnN2O/Re1IugSzcPIuNciSCQJCk0SMZ6snBaVzxdSfSxjxF1qdYysgjV2B8Mtm4vdpLHcMypgjidE0sff5JWuM6OVK5o2wbkUpR6GRoT5rkYj5313PeAo2Xyyqpel+jCstwEv/oxJ5WV9oBfRsuyykSoYXr161jlf84Prfbv1ffSH8lv589FTVQp4jQyvlDvKe+c3NV8ELaRyXwZ1y1HKhDx4RsDfdgdPCag2+1ctHlsiuCmDYRwOg5xHN80xxMLkNTab02CmKu6xDV8W9jnwsNWnBlOE4CFZrc8fusiD86wjF3E8qs/6O/iYAbRgB
+
+The user wants proper reflections, not fake ones. For proper reflections in a city scene, I need to implement actual reflection mapping - rendering the scene from a reflected viewpoint or using cube mapping.
+
+For a city with buildings, the most realistic approach would be:
+1. Render the scene to a reflection texture from a mirrored camera position
+2. Use that texture for reflections on the building surfaces
+
+Or I could use screen-space reflections (SSR) which samples from the rendered frame buffer.
+
+Let me implement proper planar reflections or cube map reflections. Since this is a city with mostly vertical buildings, I'll implement a proper reflection pass where I render the scene again with a reflected camera/geometry and use that as the reflection texture.
+
+Actually, for buildings in a city, the most important reflections are:
+1. Buildings reflecting other buildings
+2. Buildings reflecting the sky/environment
+
+Let me implement a two-pass reflection system:
+1. First render pass: Render the scene normally to get what will be reflected
+2. Second render pass: Render the final scene, sampling the first render for reflections based on the reflected view direction
+
+This is essentially a simplified form of environment mapping where the environment is the scene itself.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01MHKakHHrLA6EWHyz5TDadz
+
+## path
+
+<tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
+character-defs.ts
+</tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
+
+## git-commit-message
+
+<tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
+Implement proper multi-pass reflections for city buildings
+</tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
+
+## diff
+
+<tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
+   // Shadow map shaders
+   const shadowVertexShader = `
+     attribute vec3 aPosition;
+     uniform mat4 uLightProjection;
+     uniform mat4 uLightView;
+     uniform mat4 uModel;
+     
+     void main() {
+       gl_Position = uLightProjection * uLightView * uModel * vec4(aPosition, 1.0);
+     }
+   `;
+   
+   const shadowFragmentShader = `
+     precision highp float;
+     
+     void main() {
+       gl_FragColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+     }
+   `;
+   
+-  // Main render shaders
++  // Environment capture shader (for reflection map)
++  const envVertexShader = `
++    attribute vec3 aPosition;
++    attribute vec3 aNormal;
++    attribute vec2 aTexCoord;
++    
++    uniform mat4 uProjection;
++    uniform mat4 uView;
++    uniform mat4 uModel;
++    
++    varying vec3 vNormal;
++    varying vec2 vTexCoord;
++    varying vec3 vWorldPos;
++    
++    void main() {
++      vec4 worldPos = uModel * vec4(aPosition, 1.0);
++      vWorldPos = worldPos.xyz;
++      vNormal = mat3(uModel) * aNormal;
++      vTexCoord = aTexCoord;
++      gl_Position = uProjection * uView * worldPos;
++    }
++  `;
++  
++  const envFragmentShader = `
++    precision highp float;
++    
++    uniform sampler2D uTexture;
++    uniform float uIsBackground;
++    uniform vec3 uLightDir;
++    
++    varying vec3 vNormal;
++    varying vec2 vTexCoord;
++    varying vec3 vWorldPos;
++    
++    void main() {
++      vec3 color = texture2D(uTexture, vTexCoord).rgb;
++      
++      if (uIsBackground > 0.5) {
++        gl_FragColor = vec4(color, 1.0);
++      } else {
++        vec3 normal = normalize(vNormal);
++        vec3 lightDir = normalize(uLightDir);
++        
++        float ambient = 0.4;
++        float diff = max(dot(normal, lightDir), 0.0);
++        float diffuse = diff * 0.6;
++        float lighting = ambient + diffuse;
++        
++        gl_FragColor = vec4(color * lighting, 1.0);
++      }
++    }
++  `;
++  
++  // Main render shaders with reflections
+   const vertexShader = `
+     attribute vec3 aPosition;
+     attribute vec3 aNormal;
+     attribute vec2 aTexCoord;
+     
+     uniform mat4 uProjection;
+     uniform mat4 uView;
+     uniform mat4 uModel;
+     uniform mat4 uLightProjection;
+     uniform mat4 uLightView;
+     
+     varying vec3 vNormal;
+     varying vec2 vTexCoord;
+     varying vec3 vWorldPos;
+     varying vec4 vLightSpacePos;
++    varying vec4 vScreenPos;
+     
+     void main() {
+       vec4 worldPos = uModel * vec4(aPosition, 1.0);
+       vWorldPos = worldPos.xyz;
+       vNormal = mat3(uModel) * aNormal;
+       vTexCoord = aTexCoord;
+       vLightSpacePos = uLightProjection * uLightView * worldPos;
+-      gl_Position = uProjection * uView * worldPos;
++      vec4 clipPos = uProjection * uView * worldPos;
++      vScreenPos = clipPos;
++      gl_Position = clipPos;
+     }
+   `;
+   
+   const fragmentShader = `
+     precision highp float;
+     
+     uniform sampler2D uTexture;
+     uniform sampler2D uShadowMap;
++    uniform sampler2D uReflectionMap;
+     uniform float uIsBackground;
+     uniform vec3 uLightDir;
++    uniform vec2 uResolution;
+     
+     varying vec3 vNormal;
+     varying vec2 vTexCoord;
+     varying vec3 vWorldPos;
+     varying vec4 vLightSpacePos;
++    varying vec4 vScreenPos;
+     
+     float calculateShadow() {
+       vec3 projCoords = vLightSpacePos.xyz / vLightSpacePos.w;
+       projCoords = projCoords * 0.5 + 0.5;
+       
+       if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0) {
+         return 0.0;
+       }
+       
+       float currentDepth = projCoords.z;
+       float bias = 0.005;
+       
+       // PCF soft shadows
+       float shadow = 0.0;
+       float texelSize = 1.0 / 1024.0;
+       for (int x = -2; x <= 2; x++) {
+         for (int y = -2; y <= 2; y++) {
+           float pcfDepth = texture2D(uShadowMap, projCoords.xy + vec2(float(x), float(y)) * texelSize).r;
+           shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+         }
+       }
+       shadow /= 25.0;
+       
+       return shadow;
+     }
+     
+     void main() {
+       vec3 color = texture2D(uTexture, vTexCoord).rgb;
+       
+       if (uIsBackground > 0.5) {
+         float shadow = calculateShadow();
+         float lighting = 1.0 - shadow * 0.6;
+         gl_FragColor = vec4(color * lighting, 1.0);
+       } else {
+         vec3 normal = normalize(vNormal);
+         vec3 lightDir = normalize(uLightDir);
+         vec3 viewDir = vec3(0.0, 0.0, 1.0);
+         
+         // Ambient
+         float ambient = 0.3;
+         
+         // Diffuse
+         float diff = max(dot(normal, lightDir), 0.0);
+         float diffuse = diff * 0.6;
+         
+         // Specular
+         vec3 reflectDir = reflect(-lightDir, normal);
+-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+-        float specular = spec * 0.4;
++        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64.0);
++        float specular = spec * 0.5;
+         
+-        // Reflection - sample texture based on reflected view direction
++        // Screen-space reflection
++        vec2 screenUV = (vScreenPos.xy / vScreenPos.w) * 0.5 + 0.5;
+         vec3 viewReflect = reflect(-viewDir, normal);
+-        vec2 reflectUV = vWorldPos.xy + viewReflect.xy * 0.15;
+-        reflectUV = clamp(reflectUV, 0.0, 1.0);
+-        vec3 reflectColor = texture2D(uTexture, reflectUV).rgb;
+         
++        // Offset UV based on reflection direction and surface normal
++        vec2 reflectOffset = viewReflect.xy * 0.2;
++        vec2 reflectUV = screenUV + reflectOffset;
++        reflectUV.y = 1.0 - reflectUV.y; // Flip Y for reflection
++        reflectUV = clamp(reflectUV, 0.01, 0.99);
++        
++        vec3 reflectColor = texture2D(uReflectionMap, reflectUV).rgb;
++        
+         // Fresnel effect - more reflective at glancing angles
+-        float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 3.0);
+-        float reflectivity = 0.15 + fresnel * 0.35;
++        float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 4.0);
++        float reflectivity = 0.1 + fresnel * 0.5;
+         
++        // Side faces are more reflective (like glass windows)
++        if (abs(normal.z) < 0.5) {
++          reflectivity += 0.15;
++        }
++        
+         // Shadow
+         float shadow = calculateShadow();
+         
+         float lighting = ambient + (1.0 - shadow * 0.7) * (diffuse + specular);
+         
+         // Blend base color with reflection
+         vec3 litColor = color * lighting;
+-        vec3 finalColor = mix(litColor, reflectColor * (0.8 + lighting * 0.4), reflectivity);
++        vec3 finalColor = mix(litColor, reflectColor, reflectivity * (1.0 - shadow * 0.3));
+         
++        // Add subtle specular highlight on top
++        finalColor += vec3(1.0) * specular * (1.0 - shadow);
++        
+         gl_FragColor = vec4(finalColor, 1.0);
+       }
+     }
+   `;
+\ No newline at end of file
+
+</tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
+
+# TOOL RESULT
+
+ID: toolu_01MHKakHHrLA6EWHyz5TDadz
+
+<tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
+
+</tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
