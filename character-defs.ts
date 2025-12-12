@@ -2228,13 +2228,13 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   
-  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number): { vertices: number[], normals: number[], texCoords: number[] } {
+  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number, texX0: number, texY0: number, texX1: number, texY1: number): { vertices: number[], normals: number[], texCoords: number[] } {
     const x0 = cx - hw, x1 = cx + hw;
     const y0 = cy - hh, y1 = cy + hh;
     const z0 = 0, z1 = depth;
     
-    const u0 = cx - hw, u1 = cx + hw;
-    const v0 = cy - hh, v1 = cy + hh;
+    const u0 = texX0, u1 = texX1;
+    const v0 = texY0, v1 = texY1;
     
     const vertices: number[] = [];
     const normals: number[] = [];
