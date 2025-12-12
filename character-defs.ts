@@ -5396,6 +5396,11 @@ function generateIndexPage(numPages: number): string[] {
 }
 
 function fnHelp(ctx: FnContext, pageArg: number): Image {
+  // If pageArg is 42 (the '#' character), show image history
+  if (pageArg === 42) {
+    return fnImageHistory(ctx);
+  }
+  
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const tempCanvas = document.createElement('canvas');
