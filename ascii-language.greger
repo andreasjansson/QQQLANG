@@ -8392,5 +8392,303 @@ Remove normal blend mode, add lightness-based replace modes to fnBlend
 ID: toolu_015yQbpN3UWmG6oYJCQSf84Z
 
 <tool.toolu_015yQbpN3UWmG6oYJCQSf84Z>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Remove normal blend mode, add lightness-based replace modes to fnBlend
 </tool.toolu_015yQbpN3UWmG6oYJCQSf84Z>
+
+# ASSISTANT
+
+Now let me shift all the remaining case numbers down by 1 and add the new lightness-based modes:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_018BcFPAaxXQFXn1fkCzxDhb
+
+## path
+
+<tool.toolu_018BcFPAaxXQFXn1fkCzxDhb>
+character-defs.ts
+</tool.toolu_018BcFPAaxXQFXn1fkCzxDhb>
+
+## git-commit-message
+
+<tool.toolu_018BcFPAaxXQFXn1fkCzxDhb>
+Shift blend mode cases down by 1 after removing normal
+</tool.toolu_018BcFPAaxXQFXn1fkCzxDhb>
+
+## diff
+
+<tool.toolu_018BcFPAaxXQFXn1fkCzxDhb>
+         case 0: // Multiply
+           r = (br * tr) / 255;
+           g = (bg * tg) / 255;
+           b = (bb * tb) / 255;
+           break;
+           
+-        case 2: // Screen
++        case 1: // Screen
+           r = 255 - ((255 - br) * (255 - tr)) / 255;
+           g = 255 - ((255 - bg) * (255 - tg)) / 255;
+           b = 255 - ((255 - bb) * (255 - tb)) / 255;
+           break;
+           
+-        case 3: // Overlay
++        case 2: // Overlay
+           r = br < 128 ? (2 * br * tr) / 255 : 255 - (2 * (255 - br) * (255 - tr)) / 255;
+           g = bg < 128 ? (2 * bg * tg) / 255 : 255 - (2 * (255 - bg) * (255 - tg)) / 255;
+           b = bb < 128 ? (2 * bb * tb) / 255 : 255 - (2 * (255 - bb) * (255 - tb)) / 255;
+           break;
+           
+-        case 4: // Darken
++        case 3: // Darken
+           r = Math.min(br, tr);
+           g = Math.min(bg, tg);
+           b = Math.min(bb, tb);
+           break;
+           
+-        case 5: // Lighten
++        case 4: // Lighten
+           r = Math.max(br, tr);
+           g = Math.max(bg, tg);
+           b = Math.max(bb, tb);
+           break;
+           
+-        case 6: // Color Dodge
++        case 5: // Color Dodge
+           r = tr === 255 ? 255 : Math.min(255, (br * 255) / (255 - tr));
+           g = tg === 255 ? 255 : Math.min(255, (bg * 255) / (255 - tg));
+           b = tb === 255 ? 255 : Math.min(255, (bb * 255) / (255 - tb));
+           break;
+           
+-        case 7: // Color Burn
++        case 6: // Color Burn
+           r = tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * 255) / tr);
+           g = tg === 0 ? 0 : Math.max(0, 255 - ((255 - bg) * 255) / tg);
+           b = tb === 0 ? 0 : Math.max(0, 255 - ((255 - bb) * 255) / tb);
+           break;
+           
+-        case 8: // Hard Light
++        case 7: // Hard Light
+           r = tr < 128 ? (2 * br * tr) / 255 : 255 - (2 * (255 - br) * (255 - tr)) / 255;
+           g = tg < 128 ? (2 * bg * tg) / 255 : 255 - (2 * (255 - bg) * (255 - tg)) / 255;
+           b = tb < 128 ? (2 * bb * tb) / 255 : 255 - (2 * (255 - bb) * (255 - tb)) / 255;
+           break;
+           
+-        case 9: { // Soft Light
++        case 8: { // Soft Light
+           const softLight = (b: number, t: number) => {
+             const tb = t / 255, bb = b / 255;
+             return (tb < 0.5 
+               ? bb - (1 - 2 * tb) * bb * (1 - bb) 
+               : bb + (2 * tb - 1) * (bb < 0.25 ? ((16 * bb - 12) * bb + 4) * bb : Math.sqrt(bb) - bb)) * 255;
+           };
+           r = softLight(br, tr);
+           g = softLight(bg, tg);
+           b = softLight(bb, tb);
+           break;
+         }
+           
+-        case 10: // Difference
++        case 9: // Difference
+           r = Math.abs(br - tr);
+           g = Math.abs(bg - tg);
+           b = Math.abs(bb - tb);
+           break;
+           
+-        case 11: // Exclusion
++        case 10: // Exclusion
+           r = br + tr - (2 * br * tr) / 255;
+           g = bg + tg - (2 * bg * tg) / 255;
+           b = bb + tb - (2 * bb * tb) / 255;
+           break;
+           
+-        case 12: // Add
++        case 11: // Add
+           r = Math.min(255, br + tr);
+           g = Math.min(255, bg + tg);
+           b = Math.min(255, bb + tb);
+           break;
+           
+-        case 13: // Subtract
++        case 12: // Subtract
+           r = Math.max(0, br - tr);
+           g = Math.max(0, bg - tg);
+           b = Math.max(0, bb - tb);
+           break;
+           
+-        case 14: // XOR
++        case 13: // XOR
+           r = br ^ tr;
+           g = bg ^ tg;
+           b = bb ^ tb;
+           break;
+           
+-        case 15: // AND
++        case 14: // AND
+           r = br & tr;
+           g = bg & tg;
+           b = bb & tb;
+           break;
+           
+-        case 16: // OR
++        case 15: // OR
+           r = br | tr;
+           g = bg | tg;
+           b = bb | tb;
+           break;
+           
+-        case 17: // NAND
++        case 16: // NAND
+           r = 255 - (br & tr);
+           g = 255 - (bg & tg);
+           b = 255 - (bb & tb);
+           break;
+           
+-        case 18: // NOR
++        case 17: // NOR
+           r = 255 - (br | tr);
+           g = 255 - (bg | tg);
+           b = 255 - (bb | tb);
+           break;
+           
+-        case 19: // XNOR
++        case 18: // XNOR
+           r = 255 - (br ^ tr);
+           g = 255 - (bg ^ tg);
+           b = 255 - (bb ^ tb);
+           break;
+           
+-        case 20: // Average
++        case 19: // Average
+           r = (br + tr) / 2;
+           g = (bg + tg) / 2;
+           b = (bb + tb) / 2;
+           break;
+           
+-        case 21: // Divide
++        case 20: // Divide
+           r = tr === 0 ? 255 : Math.min(255, (br * 255) / tr);
+           g = tg === 0 ? 255 : Math.min(255, (bg * 255) / tg);
+           b = tb === 0 ? 255 : Math.min(255, (bb * 255) / tb);
+           break;
+           
+-        case 22: // Grain Extract
++        case 21: // Grain Extract
+           r = Math.max(0, Math.min(255, br - tr + 128));
+           g = Math.max(0, Math.min(255, bg - tg + 128));
+           b = Math.max(0, Math.min(255, bb - tb + 128));
+           break;
+           
+-        case 23: // Grain Merge
++        case 22: // Grain Merge
+           r = Math.max(0, Math.min(255, br + tr - 128));
+           g = Math.max(0, Math.min(255, bg + tg - 128));
+           b = Math.max(0, Math.min(255, bb + tb - 128));
+           break;
+           
+-        case 24: // Vivid Light
++        case 23: // Vivid Light
+           r = tr < 128 
+             ? (tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * 255) / (2 * tr)))
+             : (tr === 255 ? 255 : Math.min(255, (br * 255) / (2 * (255 - tr))));
+           g = tg < 128 
+             ? (tg === 0 ? 0 : Math.max(0, 255 - ((255 - bg) * 255) / (2 * tg)))
+             : (tg === 255 ? 255 : Math.min(255, (bg * 255) / (2 * (255 - tg))));
+           b = tb < 128 
+             ? (tb === 0 ? 0 : Math.max(0, 255 - ((255 - bb) * 255) / (2 * tb)))
+             : (tb === 255 ? 255 : Math.min(255, (bb * 255) / (2 * (255 - tb))));
+           break;
+           
+-        case 25: // Linear Light
++        case 24: // Linear Light
+           r = Math.max(0, Math.min(255, br + 2 * tr - 255));
+           g = Math.max(0, Math.min(255, bg + 2 * tg - 255));
+           b = Math.max(0, Math.min(255, bb + 2 * tb - 255));
+           break;
+           
+-        case 26: // Pin Light
++        case 25: // Pin Light
+           r = tr < 128 ? Math.min(br, 2 * tr) : Math.max(br, 2 * tr - 255);
+           g = tg < 128 ? Math.min(bg, 2 * tg) : Math.max(bg, 2 * tg - 255);
+           b = tb < 128 ? Math.min(bb, 2 * tb) : Math.max(bb, 2 * tb - 255);
+           break;
+           
+-        case 27: // Hard Mix
++        case 26: // Hard Mix
+           r = br + tr < 255 ? 0 : 255;
+           g = bg + tg < 255 ? 0 : 255;
+           b = bb + tb < 255 ? 0 : 255;
+           break;
+           
+-        case 28: { // Hue - hue from top, sat/lum from base
++        case 27: { // Hue - hue from top, sat/lum from base
+           const [bh, bs, bl] = rgbToHsl(br, bg, bb);
+           const [th] = rgbToHsl(tr, tg, tb);
+           [r, g, b] = hslToRgb(th, bs, bl);
+           break;
+         }
+           
+-        case 29: { // Saturation - sat from top, hue/lum from base
++        case 28: { // Saturation - sat from top, hue/lum from base
+           const [bh, , bl] = rgbToHsl(br, bg, bb);
+           const [, ts] = rgbToHsl(tr, tg, tb);
+           [r, g, b] = hslToRgb(bh, ts, bl);
+           break;
+         }
+           
+-        case 30: { // Color - hue/sat from top, lum from base
++        case 29: { // Color - hue/sat from top, lum from base
+           const [, , bl] = rgbToHsl(br, bg, bb);
+           const [th, ts] = rgbToHsl(tr, tg, tb);
+           [r, g, b] = hslToRgb(th, ts, bl);
+           break;
+         }
+           
+-        case 31: { // Luminosity - lum from top, hue/sat from base
++        case 30: { // Luminosity - lum from top, hue/sat from base
+           const [bh, bs] = rgbToHsl(br, bg, bb);
+           const [, , tl] = rgbToHsl(tr, tg, tb);
+           [r, g, b] = hslToRgb(bh, bs, tl);
+           break;
++        }
++        
++        case 31: { // Replace Dark Third - replace darkest 33% with prev
++          const [, , bl] = rgbToHsl(br, bg, bb);
++          if (bl < 0.333) {
++            r = tr; g = tg; b = tb;
++          } else {
++            r = br; g = bg; b = bb;
++          }
++          break;
++        }
++        
++        case 32: { // Replace Mid Third - replace middle 33% with prev
++          const [, , bl] = rgbToHsl(br, bg, bb);
++          if (bl >= 0.333 && bl < 0.667) {
++            r = tr; g = tg; b = tb;
++          } else {
++            r = br; g = bg; b = bb;
++          }
++          break;
++        }
++        
++        case 33: { // Replace Light Third - replace lightest 33% with prev
++          const [, , bl] = rgbToHsl(br, bg, bb);
++          if (bl >= 0.667) {
++            r = tr; g = tg; b = tb;
++          } else {
++            r = br; g = bg; b = bb;
++          }
++          break;
+         }
+\ No newline at end of file
+
+</tool.toolu_018BcFPAaxXQFXn1fkCzxDhb>
+
+# TOOL RESULT
+
+ID: toolu_018BcFPAaxXQFXn1fkCzxDhb
+
+<tool.toolu_018BcFPAaxXQFXn1fkCzxDhb>
+
+</tool.toolu_018BcFPAaxXQFXn1fkCzxDhb>
