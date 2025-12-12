@@ -2148,76 +2148,41 @@ function fnT(ctx: FnContext, n: number): Image {
   const cols = Math.max(1, Math.round(ctx.width / approxCellSize));
   const rows = Math.max(1, Math.round(ctx.height / approxCellSize));
   
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    preserveDrawingBuffer: true,
-    alpha: false,
-  });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(ctx.width, ctx.height);
-  renderer.setPixelRatio(1);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
   
   const scene = new THREE.Scene();
   
-  const bgTexture = new THREE.DataTexture(
-    prev.data,
-    prev.width,
-    prev.height,
-    THREE.RGBAFormat
-  );
-  bgTexture.colorSpace = THREE.SRGBColorSpace;
+  const bgTexture = new THREE.DataTexture(prev.data, prev.width, prev.height, THREE.RGBAFormat);
   bgTexture.needsUpdate = true;
   bgTexture.flipY = true;
+  scene.background = bgTexture;
   
   const fov = 50;
   const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100);
-  
   const frustumHeight = 2;
   const frustumWidth = frustumHeight * aspect;
   const camZ = frustumHeight / (2 * Math.tan((fov * Math.PI / 180) / 2));
   camera.position.set(0, 0, camZ);
   camera.lookAt(0, 0, 0);
   
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-  scene.add(ambientLight);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(ambient);
   
-  const mainLight = new THREE.DirectionalLight(0xffffff, 1.8);
-  mainLight.position.set(2, 2, 5);
-  mainLight.castShadow = true;
-  mainLight.shadow.mapSize.width = 1024;
-  mainLight.shadow.mapSize.height = 1024;
-  mainLight.shadow.camera.near = 0.1;
-  mainLight.shadow.camera.far = 20;
-  const shadowSize = Math.max(frustumWidth, frustumHeight);
-  mainLight.shadow.camera.left = -shadowSize;
-  mainLight.shadow.camera.right = shadowSize;
-  mainLight.shadow.camera.top = shadowSize;
-  mainLight.shadow.camera.bottom = -shadowSize;
-  mainLight.shadow.bias = -0.001;
-  scene.add(mainLight);
-  
-  const fillLight = new THREE.DirectionalLight(0x8899ff, 0.4);
-  fillLight.position.set(-2, 1, 2);
-  scene.add(fillLight);
-  
-  const rimLight = new THREE.DirectionalLight(0xffeedd, 0.5);
-  rimLight.position.set(0, -2, 3);
-  scene.add(rimLight);
-  
-  const floorGeometry = new THREE.PlaneGeometry(frustumWidth, frustumHeight);
-  const floorMaterial = new THREE.MeshStandardMaterial({
-    map: bgTexture,
-    roughness: 1.0,
-    metalness: 0.0,
-  });
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.position.z = -0.001;
-  floor.receiveShadow = true;
-  scene.add(floor);
+  const light = new THREE.DirectionalLight(0xffffff, 2);
+  light.position.set(3, 3, 5);
+  light.castShadow = true;
+  light.shadow.mapSize.width = 2048;
+  light.shadow.mapSize.height = 2048;
+  const d = Math.max(frustumWidth, frustumHeight);
+  light.shadow.camera.left = -d;
+  light.shadow.camera.right = d;
+  light.shadow.camera.top = d;
+  light.shadow.camera.bottom = -d;
+  light.shadow.camera.near = 0.1;
+  light.shadow.camera.far = 20;
+  scene.add(light);
   
   const cellWidth = frustumWidth / cols;
   const cellHeight = frustumHeight / rows;
@@ -2225,67 +2190,31 @@ function fnT(ctx: FnContext, n: number): Image {
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const idx = row * cols + col;
-      
-      const baseDepth = 0.05 + hash(idx * 127.1) * 0.4;
-      const depth = baseDepth * heightMultiplier;
-      
+      const depth = (0.05 + hash(idx * 127.1) * 0.4) * heightMultiplier;
       const cx = (col + 0.5) * cellWidth - frustumWidth / 2;
       const cy = (row + 0.5) * cellHeight - frustumHeight / 2;
       
-      const boxGeometry = new THREE.BoxGeometry(
-        cellWidth,
-        cellHeight,
-        depth
-      );
+      const geometry = new THREE.BoxGeometry(cellWidth, cellHeight, depth);
       
-      const texX0 = col / cols;
-      const texY0 = 1 - (row + 1) / rows;
-      const texX1 = (col + 1) / cols;
-      const texY1 = 1 - row / rows;
+      const uvs = geometry.attributes.uv;
+      const positions = geometry.attributes.position;
+      const normals = geometry.attributes.normal;
+      const texX0 = col / cols, texX1 = (col + 1) / cols;
+      const texY0 = 1 - (row + 1) / rows, texY1 = 1 - row / rows;
       
-      const uvAttribute = boxGeometry.attributes.uv;
-      const positions = boxGeometry.attributes.position;
-      const normals = boxGeometry.attributes.normal;
-      
-      for (let i = 0; i < uvAttribute.count; i++) {
-        const nz = normals.getZ(i);
-        if (nz > 0.9) {
-          const px = positions.getX(i);
-          const py = positions.getY(i);
-          const u = px > 0 ? texX1 : texX0;
-          const v = py > 0 ? texY1 : texY0;
-          uvAttribute.setXY(i, u, v);
+      for (let i = 0; i < uvs.count; i++) {
+        if (normals.getZ(i) > 0.9) {
+          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY1 : texY0);
         }
       }
-      uvAttribute.needsUpdate = true;
       
       const hue = hash(idx * 311.7);
-      const saturation = 0.15 + hash(idx * 74.3) * 0.2;
-      const lightness = 0.5 + hash(idx * 191.3) * 0.2;
-      const sideColor = new THREE.Color().setHSL(hue, saturation, lightness);
+      const sideColor = new THREE.Color().setHSL(hue, 0.2, 0.55);
       
-      const topMaterial = new THREE.MeshStandardMaterial({
-        map: bgTexture,
-        roughness: 0.3,
-        metalness: 0.1,
-      });
+      const topMat = new THREE.MeshStandardMaterial({ map: bgTexture, roughness: 0.4 });
+      const sideMat = new THREE.MeshStandardMaterial({ color: sideColor, roughness: 0.7 });
       
-      const sideMaterial = new THREE.MeshStandardMaterial({
-        color: sideColor,
-        roughness: 0.6,
-        metalness: 0.2,
-      });
-      
-      const materials = [
-        sideMaterial, // +x
-        sideMaterial, // -x
-        sideMaterial, // +y
-        sideMaterial, // -y
-        topMaterial,  // +z (top)
-        sideMaterial, // -z (bottom)
-      ];
-      
-      const box = new THREE.Mesh(boxGeometry, materials);
+      const box = new THREE.Mesh(geometry, [sideMat, sideMat, sideMat, sideMat, topMat, sideMat]);
       box.position.set(cx, cy, depth / 2);
       box.castShadow = true;
       box.receiveShadow = true;
@@ -2295,19 +2224,19 @@ function fnT(ctx: FnContext, n: number): Image {
   
   renderer.render(scene, camera);
   
-  const glContext = renderer.getContext();
+  const gl = renderer.getContext();
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  glContext.readPixels(0, 0, ctx.width, ctx.height, glContext.RGBA, glContext.UNSIGNED_BYTE, pixels);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
   
   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+      const src = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dst = (y * ctx.width + x) * 4;
+      flipped[dst] = pixels[src];
+      flipped[dst + 1] = pixels[src + 1];
+      flipped[dst + 2] = pixels[src + 2];
+      flipped[dst + 3] = pixels[src + 3];
     }
   }
   
@@ -2315,11 +2244,8 @@ function fnT(ctx: FnContext, n: number): Image {
   scene.traverse((obj) => {
     if (obj instanceof THREE.Mesh) {
       obj.geometry.dispose();
-      if (Array.isArray(obj.material)) {
-        obj.material.forEach(m => m.dispose());
-      } else {
-        obj.material.dispose();
-      }
+      if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+      else obj.material.dispose();
     }
   });
   renderer.dispose();
