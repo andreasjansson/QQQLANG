@@ -6031,7 +6031,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "help",
-    documentation: "Displays help text; ?? or ?A shows intro, ?B/?C/etc show character reference pages, invalid pages show index"
+    documentation: "Displays help text; ?? or ?A shows intro, ?B/?C/etc show character reference pages, ?# shows image history table with thumbnails, invalid pages show index"
   },
   
   '@': {
