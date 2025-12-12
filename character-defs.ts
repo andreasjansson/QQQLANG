@@ -2157,7 +2157,6 @@ function fnT(ctx: FnContext, n: number): Image {
   
   const bgTexture = new THREE.DataTexture(prev.data, prev.width, prev.height, THREE.RGBAFormat);
   bgTexture.needsUpdate = true;
-  bgTexture.flipY = true;
   scene.background = bgTexture;
   
   const fov = 50;
