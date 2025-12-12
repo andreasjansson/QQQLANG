@@ -2755,8 +2755,8 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
     let alpha: number;
     if (outputChannels === 2) {
       // Model is SINet_Softmax - already outputs probabilities
-      // Channel 0 = foreground, Channel 1 = background
-      const fg = outputData[i]; // foreground is first channel
+      // Channel 0 = background, Channel 1 = foreground
+      const fg = outputData[spatialSize + i]; // foreground is second channel
       alpha = fg; // Already 0-1 from softmax
     } else {
       // Single channel - assume it's already a probability
