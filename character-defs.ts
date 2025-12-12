@@ -6359,9 +6359,9 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnSlash,
     args: [
       { type: INDEX, documentation: "Old image source" },
-      { type: INT, documentation: "X position (normalized 0-1)" },
-      { type: INT, documentation: "Y position (normalized 0-1)" },
-      { type: INT, documentation: "Circle size (normalized 0-1)" },
+      { type: INT, documentation: "X position (A=left, 7=center, ~=right)" },
+      { type: INT, documentation: "Y position (A=top, 7=center, ~=bottom)" },
+      { type: INT, documentation: "Circle size (A=tiny, ~=full)" },
       { type: INT, documentation: "Blend mode (mod 16: normal, xor, nand, and, or, multiply, screen, overlay, darken, lighten, diff, excl, add, sub, hard, soft)" }
     ],
     functionName: "circle-stamp",
