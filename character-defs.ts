@@ -4667,7 +4667,7 @@ function fnImageHistory(ctx: FnContext): Image {
     
     // Draw thumbnail
     const thumbX = x + (cellWidth - thumbSize) / 2;
-    const thumbY = y + 2;
+    const thumbY = y + 1;
     
     // Create temp canvas for thumbnail
     const thumbCanvas = document.createElement('canvas');
