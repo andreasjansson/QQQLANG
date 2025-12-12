@@ -4622,10 +4622,6 @@ function fnImageHistory(ctx: FnContext): Image {
     return '?';
   };
   
-  // Track which ops created which images (reverse lookup from parsing)
-  const ops = getParsedOperations(''); // This won't work, we need the actual program
-  // Instead, we'll show image index and access key
-  
   for (let i = 0; i < numImages; i++) {
     const col = i % cols;
     const row = Math.floor(i / cols);
