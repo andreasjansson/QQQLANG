@@ -404,17 +404,6 @@
       return '?';
     }
     
-    function wrapAtCharLevel(text, maxWidth) {
-      if (text.length <= maxWidth) return [text];
-      const lines = [];
-      let i = 0;
-      while (i < text.length) {
-        lines.push(text.substring(i, i + maxWidth));
-        i += maxWidth;
-      }
-      return lines;
-    }
-    
     function updateHelpDisplay() {
       const program = input.value || '';
       const cursorPos = input.selectionStart ?? program.length;
@@ -458,13 +447,9 @@
       
       const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
       
-      // Calculate max width based on container (rough estimate: ~80 chars for 11px font)
-      const maxWidth = Math.floor(helpContainer.clientWidth / 7);
-      
       // Format first line: C name -- doc
       const firstLine = `${char} ${def.functionName} -- ${def.documentation}`;
-      const firstLineWrapped = wrapAtCharLevel(firstLine, maxWidth);
-      let html = firstLineWrapped.map(line => `<div>${line}</div>`).join('');
+      let html = `<div>${firstLine}</div>`;
       
       // Format arg lines: (n) argDoc [type] -- choices
       for (let i = 0; i < def.args.length; i++) {
@@ -486,12 +471,7 @@
           argLine += ` -- ${mappings}`;
         }
         
-        const argLineWrapped = wrapAtCharLevel(argLine, maxWidth);
-        html += argLineWrapped.map((line, idx) => {
-          // Indent continuation lines
-          const prefix = idx > 0 ? '    ' : '';
-          return `<div class="arg-line">${prefix}${line}</div>`;
-        }).join('');
+        html += `<div>${argLine}</div>`;
       }
       
       helpContainer.innerHTML = html;
