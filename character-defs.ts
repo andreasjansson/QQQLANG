@@ -4594,12 +4594,12 @@ function fnImageHistory(ctx: FnContext): Image {
     const cellWidth = availWidth / cols;
     const cellHeight = availHeight / rows;
     
-    // Reserve space for text (3 lines: #, key, func)
-    const textHeight = Math.min(cellHeight * 0.3, 30);
-    const fontSize = Math.max(6, Math.min(12, textHeight / 3));
+    // Reserve space for text (1 line: #n [C] AAA)
+    const textHeight = Math.min(cellHeight * 0.2, 20);
+    const fontSize = Math.max(6, Math.min(12, textHeight));
     
     // Thumbnail gets remaining space
-    const thumbSize = Math.min(cellWidth - 10, cellHeight - textHeight - 5);
+    const thumbSize = Math.min(cellWidth - 10, cellHeight - textHeight - 10);
     
     if (thumbSize > 10 && fontSize >= 6) {
       // Score based on thumbnail size and font readability

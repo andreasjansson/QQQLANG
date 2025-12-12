@@ -9676,5 +9676,68 @@ Put image info on single line: #n [C] AAA
 ID: toolu_016WmvTc5UahQPJcBpZVMsND
 
 <tool.toolu_016WmvTc5UahQPJcBpZVMsND>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Put image info on single line: #n [C] AAA
 </tool.toolu_016WmvTc5UahQPJcBpZVMsND>
+
+# ASSISTANT
+
+Now let me also adjust the layout calculation since we only need one line of text instead of the original estimate:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01FVrfjw8oMSSUJPKxzsWyg4
+
+## path
+
+<tool.toolu_01FVrfjw8oMSSUJPKxzsWyg4>
+character-defs.ts
+</tool.toolu_01FVrfjw8oMSSUJPKxzsWyg4>
+
+## git-commit-message
+
+<tool.toolu_01FVrfjw8oMSSUJPKxzsWyg4>
+Adjust layout calculation for single line of text
+</tool.toolu_01FVrfjw8oMSSUJPKxzsWyg4>
+
+## diff
+
+<tool.toolu_01FVrfjw8oMSSUJPKxzsWyg4>
+   for (let cols = 1; cols <= Math.min(8, numImages); cols++) {
+     const rows = Math.ceil(numImages / cols);
+     
+     // Each cell needs: thumbnail + text space
+     const cellWidth = availWidth / cols;
+     const cellHeight = availHeight / rows;
+     
+-    // Reserve space for text (3 lines: #, key, func)
+-    const textHeight = Math.min(cellHeight * 0.3, 30);
+-    const fontSize = Math.max(6, Math.min(12, textHeight / 3));
++    // Reserve space for text (1 line: #n [C] AAA)
++    const textHeight = Math.min(cellHeight * 0.2, 20);
++    const fontSize = Math.max(6, Math.min(12, textHeight));
+     
+     // Thumbnail gets remaining space
+-    const thumbSize = Math.min(cellWidth - 10, cellHeight - textHeight - 5);
++    const thumbSize = Math.min(cellWidth - 10, cellHeight - textHeight - 10);
+     
+     if (thumbSize > 10 && fontSize >= 6) {
+       // Score based on thumbnail size and font readability
+       const score = thumbSize * fontSize;
+       if (score > bestScore) {
+         bestScore = score;
+         bestLayout = { cols, rows, thumbSize, fontSize };
+       }
+     }
+   }
+\ No newline at end of file
+
+</tool.toolu_01FVrfjw8oMSSUJPKxzsWyg4>
+
+# TOOL RESULT
+
+ID: toolu_01FVrfjw8oMSSUJPKxzsWyg4
+
+<tool.toolu_01FVrfjw8oMSSUJPKxzsWyg4>
+
+</tool.toolu_01FVrfjw8oMSSUJPKxzsWyg4>
