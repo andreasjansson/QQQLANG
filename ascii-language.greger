@@ -11744,5 +11744,98 @@ Revert saturation/lightness boost
 ID: toolu_019XVWdXocuSKumoKwaXmPNF
 
 <tool.toolu_019XVWdXocuSKumoKwaXmPNF>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Revert saturation/lightness boost
 </tool.toolu_019XVWdXocuSKumoKwaXmPNF>
+
+# ASSISTANT
+
+Now let me add debugging to see what the mask looks like and fix potential issues. The model is "SINet_Softmax.onnx" so it probably already outputs softmax probabilities (not raw logits). Let me also check if channels might be swapped:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_014vqJaz3ZvFYS2sLaPboG5S
+
+## path
+
+<tool.toolu_014vqJaz3ZvFYS2sLaPboG5S>
+character-defs.ts
+</tool.toolu_014vqJaz3ZvFYS2sLaPboG5S>
+
+## git-commit-message
+
+<tool.toolu_014vqJaz3ZvFYS2sLaPboG5S>
+Fix mask handling - model outputs softmax, check channel order, use proper grayscale mask
+</tool.toolu_014vqJaz3ZvFYS2sLaPboG5S>
+
+## diff
+
+<tool.toolu_014vqJaz3ZvFYS2sLaPboG5S>
+-  // Get output mask (assuming output is named 'output' and is [1, 1, 224, 224] or [1, 2, 224, 224])
++  // Get output mask
+   const outputNames = Object.keys(results);
+   const outputTensor = results[outputNames[0]];
+   const outputData = outputTensor.data as Float32Array;
+   
+-  // Create mask at 224x224
++  console.log('SINet output dims:', outputTensor.dims);
++  console.log('SINet output sample values:', outputData.slice(0, 10));
++  
++  // Create mask at model size
+   const maskCanvas = document.createElement('canvas');
+   maskCanvas.width = SINET_INPUT_SIZE;
+   maskCanvas.height = SINET_INPUT_SIZE;
+   const maskCtx = maskCanvas.getContext('2d')!;
+   const maskImageData = maskCtx.createImageData(SINET_INPUT_SIZE, SINET_INPUT_SIZE);
+   
+   // Handle different output formats
+   const outputChannels = outputTensor.dims[1] as number;
+   const spatialSize = SINET_INPUT_SIZE * SINET_INPUT_SIZE;
+   
+   for (let i = 0; i < spatialSize; i++) {
+     let alpha: number;
+     if (outputChannels === 2) {
+-      // Softmax over 2 channels (background, foreground)
+-      const bg = outputData[i];
+-      const fg = outputData[spatialSize + i];
+-      const maxVal = Math.max(bg, fg);
+-      const expBg = Math.exp(bg - maxVal);
+-      const expFg = Math.exp(fg - maxVal);
+-      alpha = expFg / (expBg + expFg);
++      // Model is SINet_Softmax - already outputs probabilities
++      // Channel 0 = background, Channel 1 = foreground
++      const fg = outputData[spatialSize + i]; // foreground is second channel
++      alpha = fg; // Already 0-1 from softmax
+     } else {
+-      // Single channel sigmoid
+-      alpha = 1 / (1 + Math.exp(-outputData[i]));
++      // Single channel - assume it's already a probability
++      alpha = outputData[i];
+     }
+     
+-    maskImageData.data[i * 4 + 3] = Math.round(alpha * 255);
+-  }
+\ No newline at end of file
++    // Clamp and convert to 0-255
++    alpha = Math.max(0, Math.min(1, alpha));
++    const alphaInt = Math.round(alpha * 255);
++    
++    // Set RGBA - use white with alpha for proper scaling
++    maskImageData.data[i * 4] = 255;
++    maskImageData.data[i * 4 + 1] = 255;
++    maskImageData.data[i * 4 + 2] = 255;
++    maskImageData.data[i * 4 + 3] = alphaInt;
++  }
++  
++  console.log('Mask alpha sample:', Array.from(maskImageData.data.slice(0, 40)).filter((_, i) => i % 4 === 3));
+\ No newline at end of file
+
+</tool.toolu_014vqJaz3ZvFYS2sLaPboG5S>
+
+# TOOL RESULT
+
+ID: toolu_014vqJaz3ZvFYS2sLaPboG5S
+
+<tool.toolu_014vqJaz3ZvFYS2sLaPboG5S>
+
+</tool.toolu_014vqJaz3ZvFYS2sLaPboG5S>
