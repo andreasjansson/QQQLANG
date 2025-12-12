@@ -2203,20 +2203,34 @@ function fnT(ctx: FnContext, n: number): Image {
       const normals = geometry.attributes.normal;
       const texX0 = col / cols, texX1 = (col + 1) / cols;
       const texY0 = 1 - (row + 1) / rows, texY1 = 1 - row / rows;
+      const halfW = cellWidth / 2, halfH = cellHeight / 2;
       
       for (let i = 0; i < uvs.count; i++) {
-        if (normals.getZ(i) > 0.9) {
-          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY0 : texY1);
+        const nx = normals.getX(i), ny = normals.getY(i), nz = normals.getZ(i);
+        const py = positions.getY(i);
+        const px = positions.getX(i);
+        
+        if (nz > 0.9) {
+          // Top face - map to texture region
+          uvs.setXY(i, px > 0 ? texX1 : texX0, py > 0 ? texY0 : texY1);
+        } else if (nx > 0.9) {
+          // Right side - use right edge column
+          uvs.setXY(i, texX1, py > 0 ? texY0 : texY1);
+        } else if (nx < -0.9) {
+          // Left side - use left edge column
+          uvs.setXY(i, texX0, py > 0 ? texY0 : texY1);
+        } else if (ny > 0.9) {
+          // Front side - use top edge row
+          uvs.setXY(i, px > 0 ? texX1 : texX0, texY0);
+        } else if (ny < -0.9) {
+          // Back side - use bottom edge row
+          uvs.setXY(i, px > 0 ? texX1 : texX0, texY1);
         }
       }
       
-      const hue = hash(idx * 311.7);
-      const sideColor = new THREE.Color().setHSL(hue, 0.2, 0.55);
+      const mat = new THREE.MeshStandardMaterial({ map: bgTexture, roughness: 0.4 });
       
-      const topMat = new THREE.MeshStandardMaterial({ map: bgTexture, roughness: 0.4 });
-      const sideMat = new THREE.MeshStandardMaterial({ color: sideColor, roughness: 0.7 });
-      
-      const box = new THREE.Mesh(geometry, [sideMat, sideMat, sideMat, sideMat, topMat, sideMat]);
+      const box = new THREE.Mesh(geometry, mat);
       box.position.set(cx, cy, depth / 2);
       box.castShadow = true;
       box.receiveShadow = true;
