@@ -4064,7 +4064,7 @@ function fnBlur(ctx: FnContext, n: number): Image {
       float weightSum = 0.0;
       
       // Gaussian weights approximation
-      for (float i = -20.0; i <= 20.0; i += 1.0) {
+      for (float i = -50.0; i <= 50.0; i += 1.0) {
         if (abs(i) > uRadius) continue;
         
         float weight = exp(-(i * i) / (2.0 * uRadius * uRadius / 4.0));
