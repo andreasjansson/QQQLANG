@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-115036803550>
+${greger-prompt-code-style<eval-result-115457941236>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-115036803550>}
+</eval-result-115457941236>}
 
 # IMPORTANT
 
@@ -7326,5 +7326,900 @@ Replace # function with simple insert that replaces prev with old image
 ID: toolu_01Ve8kFUqsFKwj16KvSNgXjW
 
 <tool.toolu_01Ve8kFUqsFKwj16KvSNgXjW>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Replace # function with simple insert that replaces prev with old image
 </tool.toolu_01Ve8kFUqsFKwj16KvSNgXjW>
+
+# ASSISTANT
+
+The `#` function has been replaced with a simple insert function that:
+- Takes 1 argument of type `index` (an old image from history)
+- Returns that old image, effectively replacing the previous image in the pipeline
+
+For example, in a program like `ABC#A`, the `#A` would insert image at index 1 (the result after `A`), replacing whatever the current image was.
+
+# USER
+
+Make `_` a general blend function that blends prev with the prev-1 (the one preceding prev). The single argument should be the blend function, including xor, nand, luminosity, and several other standard and some esoteric blend functions
+
+# THINKING
+
+Signature: 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
+
+The user wants to replace the `_` function with a general blend function that:
+1. Blends prev with prev-1 (the image before prev in the history)
+2. Takes a single argument that selects the blend mode
+3. Should include standard blend modes like xor, nand, luminosity, and others
+
+Let me look at the current `_` definition:
+
+```typescript
+'_': {
+    color: '#FF7F50',
+    number: 63,
+    fn: fnUnderscore,
+    arity: 1,
+    argTypes: ['index'],
+    functionName: "blur-luminosity",
+    documentation: "Luminosity blend: colors from heavily blurred old image, luminance/structure from prev"
+  },
+```
+
+And `fnUnderscore` is a complex WebGL-based function that does blur + luminosity blend.
+
+I need to create a new function that:
+1. Gets prev and prev-1 from the context
+2. Takes an int argument to select blend mode
+3. Implements many blend modes
+
+Looking at existing blend mode implementations in the code (like in `fnBackslash` and `fnSlash`), there's already a pattern:
+
+```typescript
+const blendFuncs: ((b: number, t: number) => number)[] = [
+    // 0: Normal - replace
+    (b, t) => t,
+    // 1: XOR
+    (b, t) => b ^ t,
+    // 2: NAND
+    (b, t) => 255 - (b & t),
+    // 3: AND
+    (b, t) => b & t,
+    // 4: OR
+    (b, t) => b | t,
+    // 5: Multiply
+    (b, t) => (b * t) / 255,
+    // 6: Screen
+    (b, t) => 255 - ((255 - b) * (255 - t)) / 255,
+    // 7: Overlay
+    (b, t) => b < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
+    // 8: Darken
+    (b, t) => Math.min(b, t),
+    // 9: Lighten
+    (b, t) => Math.max(b, t),
+    // 10: Difference
+    (b, t) => Math.abs(b - t),
+    // 11: Exclusion
+    (b, t) => b
+
+I see a comprehensive set of blend modes covering various pixel-level blending techniques. The array includes standard operations like XOR, NAND, AND, and more complex blending methods like overlay, screen, and difference. Each function takes two pixel values and applies a specific blending algorithm, returning a transformed pixel value.
+
+I want to expand this collection to incorporate more advanced blending techniques, particularly those involving color space transformations like luminosity blending. This will require implementing color space conversions, potentially using HSL or similar color models to extract and manipulate luminance information.
+
+The next phase involves designing functions that can handle color space transitions and implement more nuanced blending algorithms that preserve color characteristics while allowing precise luminosity adjustments.
+
+I'll develop a comprehensive blend mode strategy that covers standard image compositing techniques, bitwise operations, arithmetic manipulations, and sophisticated color space transformations. The goal is to create a flexible, performant blending system that supports complex visual composition strategies.
+
+The implementation involves iterating through pixel coordinates, extracting color channels from source images, and applying sophisticated blending algorithms across multiple computational domains. By using modular arithmetic for mode selection, the function ensures robust handling of blend mode inputs while supporting an extensive range of visual mixing techniques.
+
+The core approach involves nested pixel-level iteration, extracting base and top layer color information, and dynamically applying the selected blend mode's specific transformation logic to generate the output image's pixel values.<$code-close/>
+
+# ASSISTANT
+
+I'll replace the `_` function with a comprehensive blend function. Let me first look at the current implementation to understand what to replace:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01EK4JWj1zMx4rqtENBfkRHf
+
+## pattern
+
+<tool.toolu_01EK4JWj1zMx4rqtENBfkRHf>
+function fnUnderscore
+</tool.toolu_01EK4JWj1zMx4rqtENBfkRHf>
+
+## context-lines
+
+<tool.toolu_01EK4JWj1zMx4rqtENBfkRHf>
+3
+</tool.toolu_01EK4JWj1zMx4rqtENBfkRHf>
+
+# TOOL RESULT
+
+ID: toolu_01EK4JWj1zMx4rqtENBfkRHf
+
+<tool.toolu_01EK4JWj1zMx4rqtENBfkRHf>
+/Users/ajansson/projects/ascii-language/ascii-language.greger-4822-  return out;
+/Users/ajansson/projects/ascii-language/ascii-language.greger-4823-}
+/Users/ajansson/projects/ascii-language/ascii-language.greger-4824-
+/Users/ajansson/projects/ascii-language/ascii-language.greger:4825:function fnUnderscore(ctx: FnContext, old: Image): Image {
+/Users/ajansson/projects/ascii-language/ascii-language.greger-4826-  const prev = getPrevImage(ctx);
+/Users/ajansson/projects/ascii-language/ascii-language.greger-4827-  const gl = initWebGL(ctx.width, ctx.height);
+/Users/ajansson/projects/ascii-language/ascii-language.greger-4828-  
+--
+/Users/ajansson/projects/ascii-language/character-defs.ts-4292-  return out;
+/Users/ajansson/projects/ascii-language/character-defs.ts-4293-}
+/Users/ajansson/projects/ascii-language/character-defs.ts-4294-
+/Users/ajansson/projects/ascii-language/character-defs.ts:4295:function fnUnderscore(ctx: FnContext, old: Image): Image {
+/Users/ajansson/projects/ascii-language/character-defs.ts-4296-  const prev = getPrevImage(ctx);
+/Users/ajansson/projects/ascii-language/character-defs.ts-4297-  const gl = initWebGL(ctx.width, ctx.height);
+/Users/ajansson/projects/ascii-language/character-defs.ts-4298-  
+
+</tool.toolu_01EK4JWj1zMx4rqtENBfkRHf>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01S7hzKBgVHnt5Bo4rdxH8KK
+
+## path
+
+<tool.toolu_01S7hzKBgVHnt5Bo4rdxH8KK>
+character-defs.ts
+</tool.toolu_01S7hzKBgVHnt5Bo4rdxH8KK>
+
+## start-line
+
+<tool.toolu_01S7hzKBgVHnt5Bo4rdxH8KK>
+4295
+</tool.toolu_01S7hzKBgVHnt5Bo4rdxH8KK>
+
+## end-line
+
+<tool.toolu_01S7hzKBgVHnt5Bo4rdxH8KK>
+4400
+</tool.toolu_01S7hzKBgVHnt5Bo4rdxH8KK>
+
+# TOOL RESULT
+
+ID: toolu_01S7hzKBgVHnt5Bo4rdxH8KK
+
+<tool.toolu_01S7hzKBgVHnt5Bo4rdxH8KK>
+function fnUnderscore(ctx: FnContext, old: Image): Image {
+  const prev = getPrevImage(ctx);
+  const gl = initWebGL(ctx.width, ctx.height);
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = position * 0.5 + 0.5;
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const blurShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uDirection;
+    uniform vec2 uResolution;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 texelSize = 1.0 / uResolution;
+      vec3 result = vec3(0.0);
+      
+      float weights[5];
+      weights[0] = 0.227027;
+      weights[1] = 0.1945946;
+      weights[2] = 0.1216216;
+      weights[3] = 0.054054;
+      weights[4] = 0.016216;
+      
+      result += texture2D(uTexture, vUV).rgb * weights[0];
+      for (int i = 1; i < 5; i++) {
+        vec2 offset = uDirection * texelSize * float(i) * 5.0;
+        result += texture2D(uTexture, vUV + offset).rgb * weights[i];
+        result += texture2D(uTexture, vUV - offset).rgb * weights[i];
+      }
+      
+      gl_FragColor = vec4(result, 1.0);
+    }
+  `;
+  
+  const luminosityShader = `
+    precision highp float;
+    uniform sampler2D uPrev;
+    uniform sampler2D uBlurred;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 flippedUV = vec2(vUV.x, 1.0 - vUV.y);
+      vec3 prevColor = texture2D(uPrev, flippedUV).rgb;
+      vec3 blurColor = texture2D(uBlurred, vUV).rgb;
+      
+      float prevLum = dot(prevColor, vec3(0.299, 0.587, 0.114));
+      float blurLum = dot(blurColor, vec3(0.299, 0.587, 0.114));
+      
+      float scale = blurLum > 0.001 ? prevLum / blurLum : 1.0;
+      vec3 result = clamp(blurColor * scale, 0.0, 1.0);
+      
+      gl_FragColor = vec4(result, 1.0);
+    }
+  `;
+  
+  const blurProgram = createShaderProgram(gl, vertexShader, blurShader);
+  const luminosityProgram = createShaderProgram(gl, vertexShader, luminosityShader);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const oldTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const prevTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const tempTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const blurredTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, blurredTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const framebuffer = gl.createFramebuffer();
+  
+  gl.useProgram(blurProgram);
+</tool.toolu_01S7hzKBgVHnt5Bo4rdxH8KK>
+
+# ASSISTANT
+
+Let me see where the function ends:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_013oHyn6SXkwiQnVAWGaRMgV
+
+## path
+
+<tool.toolu_013oHyn6SXkwiQnVAWGaRMgV>
+character-defs.ts
+</tool.toolu_013oHyn6SXkwiQnVAWGaRMgV>
+
+## start-line
+
+<tool.toolu_013oHyn6SXkwiQnVAWGaRMgV>
+4400
+</tool.toolu_013oHyn6SXkwiQnVAWGaRMgV>
+
+## end-line
+
+<tool.toolu_013oHyn6SXkwiQnVAWGaRMgV>
+4480
+</tool.toolu_013oHyn6SXkwiQnVAWGaRMgV>
+
+# TOOL RESULT
+
+ID: toolu_013oHyn6SXkwiQnVAWGaRMgV
+
+<tool.toolu_013oHyn6SXkwiQnVAWGaRMgV>
+  gl.useProgram(blurProgram);
+  const blurPosLoc = gl.getAttribLocation(blurProgram, 'position');
+  gl.enableVertexAttribArray(blurPosLoc);
+  gl.vertexAttribPointer(blurPosLoc, 2, gl.FLOAT, false, 0, 0);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uResolution'), ctx.width, ctx.height);
+  
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+  gl.uniform1i(gl.getUniformLocation(blurProgram, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 1.0, 0.0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, blurredTexture, 0);
+  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
+  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 0.0, 1.0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  
+  gl.useProgram(luminosityProgram);
+  const lumPosLoc = gl.getAttribLocation(luminosityProgram, 'position');
+  gl.enableVertexAttribArray(lumPosLoc);
+  gl.vertexAttribPointer(lumPosLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+  gl.uniform1i(gl.getUniformLocation(luminosityProgram, 'uPrev'), 0);
+  
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, blurredTexture);
+  gl.uniform1i(gl.getUniformLocation(luminosityProgram, 'uBlurred'), 1);
+  
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+    }
+  }
+  
+  gl.deleteTexture(oldTexture);
+  gl.deleteTexture(prevTexture);
+  gl.deleteTexture(tempTexture);
+  gl.deleteTexture(blurredTexture);
+  gl.deleteFramebuffer(framebuffer);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(blurProgram);
+  gl.deleteProgram(luminosityProgram);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
+}
+
+function fnBacktick(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const { width, height } = ctx;
+  
+  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+  
+  const gradX = new Float32Array(width * height);
+  const gradY = new Float32Array(width * height);
+  const gradMag = new Float32Array(width * height);
+  
+  let maxMag = 1;
+  
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+</tool.toolu_013oHyn6SXkwiQnVAWGaRMgV>
+
+# ASSISTANT
+
+Now let me find the `_` definition in characterDefs:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01HcNkr4aE5BNKjaWVUyDj4Q
+
+## pattern
+
+<tool.toolu_01HcNkr4aE5BNKjaWVUyDj4Q>
+"_":
+</tool.toolu_01HcNkr4aE5BNKjaWVUyDj4Q>
+
+## context-lines
+
+<tool.toolu_01HcNkr4aE5BNKjaWVUyDj4Q>
+8
+</tool.toolu_01HcNkr4aE5BNKjaWVUyDj4Q>
+
+# TOOL RESULT
+
+ID: toolu_01HcNkr4aE5BNKjaWVUyDj4Q
+
+<tool.toolu_01HcNkr4aE5BNKjaWVUyDj4Q>
+No matches found
+</tool.toolu_01HcNkr4aE5BNKjaWVUyDj4Q>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01CdwK9ss6D9fsDivt7nJijp
+
+## pattern
+
+<tool.toolu_01CdwK9ss6D9fsDivt7nJijp>
+'_':
+</tool.toolu_01CdwK9ss6D9fsDivt7nJijp>
+
+## context-lines
+
+<tool.toolu_01CdwK9ss6D9fsDivt7nJijp>
+8
+</tool.toolu_01CdwK9ss6D9fsDivt7nJijp>
+
+# TOOL RESULT
+
+ID: toolu_01CdwK9ss6D9fsDivt7nJijp
+
+<tool.toolu_01CdwK9ss6D9fsDivt7nJijp>
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6375-    number: 62,
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6376-    fn: fnCloseBracket,
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6377-    arity: 0,
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6378-    argTypes: [],
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6379-    functionName: "left-half-offset",
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6380-    documentation: "Offsets the left half of the image vertically by 20% with wraparound"
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6381-  },
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6382-  
+/Users/ajansson/projects/ascii-language/ascii-language.greger:6383:  '_': {
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6384-    color: '#FF7F50',
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6385-    number: 63,
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6386-    fn: fnUnderscore,
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6387-    arity: 1,
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6388-    argTypes: ['index'],
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6389-    functionName: "blur-luminosity",
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6390-    documentation: "Luminosity blend: colors from heavily blurred old image, luminance/structure from prev"
+/Users/ajansson/projects/ascii-language/ascii-language.greger-6391-  },
+--
+/Users/ajansson/projects/ascii-language/character-defs.ts-5845-    number: 62,
+/Users/ajansson/projects/ascii-language/character-defs.ts-5846-    fn: fnCloseBracket,
+/Users/ajansson/projects/ascii-language/character-defs.ts-5847-    arity: 0,
+/Users/ajansson/projects/ascii-language/character-defs.ts-5848-    argTypes: [],
+/Users/ajansson/projects/ascii-language/character-defs.ts-5849-    functionName: "left-half-offset",
+/Users/ajansson/projects/ascii-language/character-defs.ts-5850-    documentation: "Offsets the left half of the image vertically by 20% with wraparound"
+/Users/ajansson/projects/ascii-language/character-defs.ts-5851-  },
+/Users/ajansson/projects/ascii-language/character-defs.ts-5852-  
+/Users/ajansson/projects/ascii-language/character-defs.ts:5853:  '_': {
+/Users/ajansson/projects/ascii-language/character-defs.ts-5854-    color: '#FF7F50',
+/Users/ajansson/projects/ascii-language/character-defs.ts-5855-    number: 63,
+/Users/ajansson/projects/ascii-language/character-defs.ts-5856-    fn: fnUnderscore,
+/Users/ajansson/projects/ascii-language/character-defs.ts-5857-    arity: 1,
+/Users/ajansson/projects/ascii-language/character-defs.ts-5858-    argTypes: ['index'],
+/Users/ajansson/projects/ascii-language/character-defs.ts-5859-    functionName: "blur-luminosity",
+/Users/ajansson/projects/ascii-language/character-defs.ts-5860-    documentation: "Luminosity blend: colors from heavily blurred old image, luminance/structure from prev"
+/Users/ajansson/projects/ascii-language/character-defs.ts-5861-  },
+
+</tool.toolu_01CdwK9ss6D9fsDivt7nJijp>
+
+# ASSISTANT
+
+Now I'll replace the `fnUnderscore` function with a new general blend function and update the character definition:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01JDnpAhYC5HjWurPdzB36Hi
+
+## path
+
+<tool.toolu_01JDnpAhYC5HjWurPdzB36Hi>
+character-defs.ts
+</tool.toolu_01JDnpAhYC5HjWurPdzB36Hi>
+
+## diff
+
+<tool.toolu_01JDnpAhYC5HjWurPdzB36Hi>
+-function fnUnderscore(ctx: FnContext, old: Image): Image {
++function fnBlend(ctx: FnContext, mode: number): Image {
+   const prev = getPrevImage(ctx);
+-  const gl = initWebGL(ctx.width, ctx.height);
++  const prev1 = ctx.images.length >= 2 ? ctx.images[ctx.images.length - 2] : prev;
++  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+-  const vertexShader = `
+-    attribute vec2 position;
+-    varying vec2 vUV;
+-    void main() {
+-      vUV = position * 0.5 + 0.5;
+-      gl_Position = vec4(position, 0.0, 1.0);
+-    }
+-  `;
++  const NUM_MODES = 32;
++  const blendMode = ((mode - 1) % NUM_MODES + NUM_MODES) % NUM_MODES;
+   
+-  const blurShader = `
+-    precision highp float;
+-    uniform sampler2D uTexture;
+-    uniform vec2 uDirection;
+-    uniform vec2 uResolution;
+-    varying vec2 vUV;
+-    
+-    void main() {
+-      vec2 texelSize = 1.0 / uResolution;
+-      vec3 result = vec3(0.0);
++  for (let y = 0; y < ctx.height; y++) {
++    for (let x = 0; x < ctx.width; x++) {
++      const [br, bg, bb] = getPixel(prev1, x, y);
++      const [tr, tg, tb] = getPixel(prev, x, y);
+       
+-      float weights[5];
+-      weights[0] = 0.227027;
+-      weights[1] = 0.1945946;
+-      weights[2] = 0.1216216;
+-      weights[3] = 0.054054;
+-      weights[4] = 0.016216;
++      let r: number, g: number, b: number;
+       
+-      result += texture2D(uTexture, vUV).rgb * weights[0];
+-      for (int i = 1; i < 5; i++) {
+-        vec2 offset = uDirection * texelSize * float(i) * 5.0;
+-        result += texture2D(uTexture, vUV + offset).rgb * weights[i];
+-        result += texture2D(uTexture, vUV - offset).rgb * weights[i];
++      switch (blendMode) {
++        case 0: // Normal - top replaces base
++          r = tr; g = tg; b = tb;
++          break;
++          
++        case 1: // Multiply
++          r = (br * tr) / 255;
++          g = (bg * tg) / 255;
++          b = (bb * tb) / 255;
++          break;
++          
++        case 2: // Screen
++          r = 255 - ((255 - br) * (255 - tr)) / 255;
++          g = 255 - ((255 - bg) * (255 - tg)) / 255;
++          b = 255 - ((255 - bb) * (255 - tb)) / 255;
++          break;
++          
++        case 3: // Overlay
++          r = br < 128 ? (2 * br * tr) / 255 : 255 - (2 * (255 - br) * (255 - tr)) / 255;
++          g = bg < 128 ? (2 * bg * tg) / 255 : 255 - (2 * (255 - bg) * (255 - tg)) / 255;
++          b = bb < 128 ? (2 * bb * tb) / 255 : 255 - (2 * (255 - bb) * (255 - tb)) / 255;
++          break;
++          
++        case 4: // Darken
++          r = Math.min(br, tr);
++          g = Math.min(bg, tg);
++          b = Math.min(bb, tb);
++          break;
++          
++        case 5: // Lighten
++          r = Math.max(br, tr);
++          g = Math.max(bg, tg);
++          b = Math.max(bb, tb);
++          break;
++          
++        case 6: // Color Dodge
++          r = tr === 255 ? 255 : Math.min(255, (br * 255) / (255 - tr));
++          g = tg === 255 ? 255 : Math.min(255, (bg * 255) / (255 - tg));
++          b = tb === 255 ? 255 : Math.min(255, (bb * 255) / (255 - tb));
++          break;
++          
++        case 7: // Color Burn
++          r = tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * 255) / tr);
++          g = tg === 0 ? 0 : Math.max(0, 255 - ((255 - bg) * 255) / tg);
++          b = tb === 0 ? 0 : Math.max(0, 255 - ((255 - bb) * 255) / tb);
++          break;
++          
++        case 8: // Hard Light
++          r = tr < 128 ? (2 * br * tr) / 255 : 255 - (2 * (255 - br) * (255 - tr)) / 255;
++          g = tg < 128 ? (2 * bg * tg) / 255 : 255 - (2 * (255 - bg) * (255 - tg)) / 255;
++          b = tb < 128 ? (2 * bb * tb) / 255 : 255 - (2 * (255 - bb) * (255 - tb)) / 255;
++          break;
++          
++        case 9: { // Soft Light
++          const softLight = (b: number, t: number) => {
++            const tb = t / 255, bb = b / 255;
++            return (tb < 0.5 
++              ? bb - (1 - 2 * tb) * bb * (1 - bb) 
++              : bb + (2 * tb - 1) * (bb < 0.25 ? ((16 * bb - 12) * bb + 4) * bb : Math.sqrt(bb) - bb)) * 255;
++          };
++          r = softLight(br, tr);
++          g = softLight(bg, tg);
++          b = softLight(bb, tb);
++          break;
++        }
++          
++        case 10: // Difference
++          r = Math.abs(br - tr);
++          g = Math.abs(bg - tg);
++          b = Math.abs(bb - tb);
++          break;
++          
++        case 11: // Exclusion
++          r = br + tr - (2 * br * tr) / 255;
++          g = bg + tg - (2 * bg * tg) / 255;
++          b = bb + tb - (2 * bb * tb) / 255;
++          break;
++          
++        case 12: // Add
++          r = Math.min(255, br + tr);
++          g = Math.min(255, bg + tg);
++          b = Math.min(255, bb + tb);
++          break;
++          
++        case 13: // Subtract
++          r = Math.max(0, br - tr);
++          g = Math.max(0, bg - tg);
++          b = Math.max(0, bb - tb);
++          break;
++          
++        case 14: // XOR
++          r = br ^ tr;
++          g = bg ^ tg;
++          b = bb ^ tb;
++          break;
++          
++        case 15: // AND
++          r = br & tr;
++          g = bg & tg;
++          b = bb & tb;
++          break;
++          
++        case 16: // OR
++          r = br | tr;
++          g = bg | tg;
++          b = bb | tb;
++          break;
++          
++        case 17: // NAND
++          r = 255 - (br & tr);
++          g = 255 - (bg & tg);
++          b = 255 - (bb & tb);
++          break;
++          
++        case 18: // NOR
++          r = 255 - (br | tr);
++          g = 255 - (bg | tg);
++          b = 255 - (bb | tb);
++          break;
++          
++        case 19: // XNOR
++          r = 255 - (br ^ tr);
++          g = 255 - (bg ^ tg);
++          b = 255 - (bb ^ tb);
++          break;
++          
++        case 20: // Average
++          r = (br + tr) / 2;
++          g = (bg + tg) / 2;
++          b = (bb + tb) / 2;
++          break;
++          
++        case 21: // Divide
++          r = tr === 0 ? 255 : Math.min(255, (br * 255) / tr);
++          g = tg === 0 ? 255 : Math.min(255, (bg * 255) / tg);
++          b = tb === 0 ? 255 : Math.min(255, (bb * 255) / tb);
++          break;
++          
++        case 22: // Grain Extract
++          r = Math.max(0, Math.min(255, br - tr + 128));
++          g = Math.max(0, Math.min(255, bg - tg + 128));
++          b = Math.max(0, Math.min(255, bb - tb + 128));
++          break;
++          
++        case 23: // Grain Merge
++          r = Math.max(0, Math.min(255, br + tr - 128));
++          g = Math.max(0, Math.min(255, bg + tg - 128));
++          b = Math.max(0, Math.min(255, bb + tb - 128));
++          break;
++          
++        case 24: // Vivid Light
++          r = tr < 128 
++            ? (tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * 255) / (2 * tr)))
++            : (tr === 255 ? 255 : Math.min(255, (br * 255) / (2 * (255 - tr))));
++          g = tg < 128 
++            ? (tg === 0 ? 0 : Math.max(0, 255 - ((255 - bg) * 255) / (2 * tg)))
++            : (tg === 255 ? 255 : Math.min(255, (bg * 255) / (2 * (255 - tg))));
++          b = tb < 128 
++            ? (tb === 0 ? 0 : Math.max(0, 255 - ((255 - bb) * 255) / (2 * tb)))
++            : (tb === 255 ? 255 : Math.min(255, (bb * 255) / (2 * (255 - tb))));
++          break;
++          
++        case 25: // Linear Light
++          r = Math.max(0, Math.min(255, br + 2 * tr - 255));
++          g = Math.max(0, Math.min(255, bg + 2 * tg - 255));
++          b = Math.max(0, Math.min(255, bb + 2 * tb - 255));
++          break;
++          
++        case 26: // Pin Light
++          r = tr < 128 ? Math.min(br, 2 * tr) : Math.max(br, 2 * tr - 255);
++          g = tg < 128 ? Math.min(bg, 2 * tg) : Math.max(bg, 2 * tg - 255);
++          b = tb < 128 ? Math.min(bb, 2 * tb) : Math.max(bb, 2 * tb - 255);
++          break;
++          
++        case 27: // Hard Mix
++          r = br + tr < 255 ? 0 : 255;
++          g = bg + tg < 255 ? 0 : 255;
++          b = bb + tb < 255 ? 0 : 255;
++          break;
++          
++        case 28: { // Hue - hue from top, sat/lum from base
++          const [bh, bs, bl] = rgbToHsl(br, bg, bb);
++          const [th] = rgbToHsl(tr, tg, tb);
++          [r, g, b] = hslToRgb(th, bs, bl);
++          break;
++        }
++          
++        case 29: { // Saturation - sat from top, hue/lum from base
++          const [bh, , bl] = rgbToHsl(br, bg, bb);
++          const [, ts] = rgbToHsl(tr, tg, tb);
++          [r, g, b] = hslToRgb(bh, ts, bl);
++          break;
++        }
++          
++        case 30: { // Color - hue/sat from top, lum from base
++          const [, , bl] = rgbToHsl(br, bg, bb);
++          const [th, ts] = rgbToHsl(tr, tg, tb);
++          [r, g, b] = hslToRgb(th, ts, bl);
++          break;
++        }
++          
++        case 31: { // Luminosity - lum from top, hue/sat from base
++          const [bh, bs] = rgbToHsl(br, bg, bb);
++          const [, , tl] = rgbToHsl(tr, tg, tb);
++          [r, g, b] = hslToRgb(bh, bs, tl);
++          break;
++        }
++          
++        default:
++          r = tr; g = tg; b = tb;
+       }
+       
+-      gl_FragColor = vec4(result, 1.0);
++      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+     }
+-  `;
+-  
+-  const luminosityShader = `
+-    precision highp float;
+-    uniform sampler2D uPrev;
+-    uniform sampler2D uBlurred;
+-    varying vec2 vUV;
+-    
+-    void main() {
+-      vec2 flippedUV = vec2(vUV.x, 1.0 - vUV.y);
+-      vec3 prevColor = texture2D(uPrev, flippedUV).rgb;
+-      vec3 blurColor = texture2D(uBlurred, vUV).rgb;
+-      
+-      float prevLum = dot(prevColor, vec3(0.299, 0.587, 0.114));
+-      float blurLum = dot(blurColor, vec3(0.299, 0.587, 0.114));
+-      
+-      float scale = blurLum > 0.001 ? prevLum / blurLum : 1.0;
+-      vec3 result = clamp(blurColor * scale, 0.0, 1.0);
+-      
+-      gl_FragColor = vec4(result, 1.0);
+-    }
+-  `;
+-  
+-  const blurProgram = createShaderProgram(gl, vertexShader, blurShader);
+-  const luminosityProgram = createShaderProgram(gl, vertexShader, luminosityShader);
+-  
+-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+-  const buffer = gl.createBuffer();
+-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+-  
+-  const oldTexture = gl.createTexture();
+-  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, old.width, old.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, old.data);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+-  
+-  const prevTexture = gl.createTexture();
+-  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+-  
+-  const tempTexture = gl.createTexture();
+-  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
+-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+-  
+-  const blurredTexture = gl.createTexture();
+-  gl.bindTexture(gl.TEXTURE_2D, blurredTexture);
+-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+-  
+-  const framebuffer = gl.createFramebuffer();
+-  
+-  gl.useProgram(blurProgram);
+-  const blurPosLoc = gl.getAttribLocation(blurProgram, 'position');
+-  gl.enableVertexAttribArray(blurPosLoc);
+-  gl.vertexAttribPointer(blurPosLoc, 2, gl.FLOAT, false, 0, 0);
+-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uResolution'), ctx.width, ctx.height);
+-  
+-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
+-  gl.viewport(0, 0, ctx.width, ctx.height);
+-  
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, oldTexture);
+-  gl.uniform1i(gl.getUniformLocation(blurProgram, 'uTexture'), 0);
+-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 1.0, 0.0);
+-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+-  
+-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, blurredTexture, 0);
+-  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
+-  gl.uniform2f(gl.getUniformLocation(blurProgram, 'uDirection'), 0.0, 1.0);
+-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+-  
+-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+-  gl.viewport(0, 0, ctx.width, ctx.height);
+-  
+-  gl.useProgram(luminosityProgram);
+-  const lumPosLoc = gl.getAttribLocation(luminosityProgram, 'position');
+-  gl.enableVertexAttribArray(lumPosLoc);
+-  gl.vertexAttribPointer(lumPosLoc, 2, gl.FLOAT, false, 0, 0);
+-  
+-  gl.activeTexture(gl.TEXTURE0);
+-  gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+-  gl.uniform1i(gl.getUniformLocation(luminosityProgram, 'uPrev'), 0);
+-  
+-  gl.activeTexture(gl.TEXTURE1);
+-  gl.bindTexture(gl.TEXTURE_2D, blurredTexture);
+-  gl.uniform1i(gl.getUniformLocation(luminosityProgram, 'uBlurred'), 1);
+-  
+-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+-  
+-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+-  
+-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+-  for (let y = 0; y < ctx.height; y++) {
+-    for (let x = 0; x < ctx.width; x++) {
+-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+-      const dstIdx = (y * ctx.width + x) * 4;
+-      flipped[dstIdx] = pixels[srcIdx];
+-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+-    }
+   }
+   
+-  gl.deleteTexture(oldTexture);
+-  gl.deleteTexture(prevTexture);
+-  gl.deleteTexture(tempTexture);
+-  gl.deleteTexture(blurredTexture);
+-  gl.deleteFramebuffer(framebuffer);
+-  gl.deleteBuffer(buffer);
+-  gl.deleteProgram(blurProgram);
+-  gl.deleteProgram(luminosityProgram);
+-  
+-  return { width: ctx.width, height: ctx.height, data: flipped };
++  return out;
+ }
+\ No newline at end of file
+
+</tool.toolu_01JDnpAhYC5HjWurPdzB36Hi>
+
+## git-commit-message
+
+<tool.toolu_01JDnpAhYC5HjWurPdzB36Hi>
+Replace fnUnderscore with fnBlend - general blend function with 32 modes
+</tool.toolu_01JDnpAhYC5HjWurPdzB36Hi>
+
+# TOOL RESULT
+
+ID: toolu_01JDnpAhYC5HjWurPdzB36Hi
+
+<tool.toolu_01JDnpAhYC5HjWurPdzB36Hi>
+
+</tool.toolu_01JDnpAhYC5HjWurPdzB36Hi>
