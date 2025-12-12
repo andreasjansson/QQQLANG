@@ -3861,72 +3861,242 @@ function fnApostrophe(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnOpenParen(ctx: FnContext, n: number): Image {
+function fnFisheye(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const strength = n / 10;
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
   
+  // Strength: negative = pinch (concave), positive = bulge (convex)
+  // Map n from 1-68 to strength: 1-34 = pinch (-1 to 0), 35-68 = bulge (0 to 1)
+  const strength = (n - 34.5) / 34.5;
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform float uStrength;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 center = vec2(0.5, 0.5);
+      vec2 coord = vUV - center;
+      
+      // Account for aspect ratio
+      float aspect = uResolution.x / uResolution.y;
+      coord.x *= aspect;
+      
+      float r = length(coord);
+      float maxR = 0.5 * max(aspect, 1.0);
+      float normR = r / maxR;
+      
+      // Smooth falloff - edges stay fixed, center gets maximum distortion
+      // Uses a quadratic falloff: (1 - r^2) means 0 distortion at edges, max at center
+      float falloff = 1.0 - normR * normR;
+      
+      // Apply fisheye distortion
+      // For bulge (strength > 0): sample from closer to center (zoom in middle)
+      // For pinch (strength < 0): sample from further from center (zoom out middle)
+      float distortionFactor = 1.0 + uStrength * falloff * 0.8;
+      
+      vec2 distortedCoord = coord / distortionFactor;
+      
+      // Undo aspect ratio correction
+      distortedCoord.x /= aspect;
+      
+      vec2 sampleUV = distortedCoord + center;
+      
+      // Clamp to valid range
+      sampleUV = clamp(sampleUV, 0.0, 1.0);
+      
+      gl_FragColor = texture2D(uTexture, sampleUV);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uStrength'), strength);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const normDist = dist / maxR;
-      
-      const pinchFactor = 1 + strength * (1 - normDist);
-      const sx = cx + dx * pinchFactor;
-      const sy = cy + dy * pinchFactor;
-      
-      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      
-      const brighten = (1 - normDist) * strength * 30;
-      r = Math.min(255, r + brighten);
-      g = Math.min(255, g + brighten);
-      b = Math.min(255, b + brighten);
-      
-      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnCloseParen(ctx: FnContext, n: number): Image {
+function fnBlur(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const strength = n / 10;
-  const cx = ctx.width / 2;
-  const cy = ctx.height / 2;
-  const maxR = Math.sqrt(cx * cx + cy * cy);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
   
+  // Blur radius based on n (1-68 maps to radius 1-20)
+  const radius = Math.max(1, Math.min(Math.floor(n / 3.5) + 1, 20));
+  
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  // Two-pass Gaussian blur for efficiency
+  const blurFragShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    uniform vec2 uDirection;
+    uniform float uRadius;
+    varying vec2 vUV;
+    
+    void main() {
+      vec2 texelSize = 1.0 / uResolution;
+      vec3 result = vec3(0.0);
+      float weightSum = 0.0;
+      
+      // Gaussian weights approximation
+      for (float i = -20.0; i <= 20.0; i += 1.0) {
+        if (abs(i) > uRadius) continue;
+        
+        float weight = exp(-(i * i) / (2.0 * uRadius * uRadius / 4.0));
+        vec2 offset = uDirection * texelSize * i;
+        result += texture2D(uTexture, vUV + offset).rgb * weight;
+        weightSum += weight;
+      }
+      
+      gl_FragColor = vec4(result / weightSum, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, blurFragShader);
+  
+  // Create textures for two-pass blur
+  const srcTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const tempTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const framebuffer = gl.createFramebuffer();
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  gl.useProgram(program);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uRadius'), radius);
+  
+  // Pass 1: Horizontal blur (src -> temp)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, srcTexture);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'uDirection'), 1.0, 0.0);
+  
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  // Pass 2: Vertical blur (temp -> screen)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  
+  gl.bindTexture(gl.TEXTURE_2D, tempTexture);
+  gl.uniform2f(gl.getUniformLocation(program, 'uDirection'), 0.0, 1.0);
+  
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const normDist = dist / maxR;
-      
-      const bulgeFactor = 1 - strength * normDist * 0.5;
-      const sx = cx + dx * bulgeFactor;
-      const sy = cy + dy * bulgeFactor;
-      
-      let [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
-      
-      const darken = normDist * strength * 50;
-      r = Math.max(0, r - darken);
-      g = Math.max(0, g - darken);
-      b = Math.max(0, b - darken);
-      
-      setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(srcTexture);
+  gl.deleteTexture(tempTexture);
+  gl.deleteFramebuffer(framebuffer);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnAsterisk(ctx: FnContext): Image {
