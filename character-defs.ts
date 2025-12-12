@@ -6425,9 +6425,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#E6E6FA',
     number: 27,
     fn: fn0,
-    args: [{ type: INDEX, documentation: "Old image to overlay blend" }],
-    functionName: "overlay",
-    documentation: "Overlay blend mode darkening darks and lightening lights."
+    args: [{ type: INDEX, documentation: "Background image to composite behind" }],
+    functionName: "bg-remove",
+    documentation: "Removes background from prev image using ML, composites on specified background."
   },
   
   '1': {
