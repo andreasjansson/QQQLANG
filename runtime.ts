@@ -391,6 +391,10 @@ export function runProgram(program: string, width: number, height: number): Imag
     }
     
     images.push(result);
+    opInfos.push({
+      identifier: op.identifier,
+      type: op.type
+    });
     imageCache.set(op.identifier, result);
     console.log(`  ✓ Cached result for "${op.identifier}"`);
   }
