@@ -10717,5 +10717,45 @@ Revert % to use INT instead of Choice for backward compatibility
 ID: toolu_01WiKq7HCv83Q1CCAsnpczos
 
 <tool.toolu_01WiKq7HCv83Q1CCAsnpczos>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Revert % to use INT instead of Choice for backward compatibility
 </tool.toolu_01WiKq7HCv83Q1CCAsnpczos>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Ks6c8TPZSxxudxf6KP5txh
+
+## path
+
+<tool.toolu_01Ks6c8TPZSxxudxf6KP5txh>
+character-defs.ts
+</tool.toolu_01Ks6c8TPZSxxudxf6KP5txh>
+
+## git-commit-message
+
+<tool.toolu_01Ks6c8TPZSxxudxf6KP5txh>
+Fix fnPercent to use n as int
+</tool.toolu_01Ks6c8TPZSxxudxf6KP5txh>
+
+## diff
+
+<tool.toolu_01Ks6c8TPZSxxudxf6KP5txh>
+-function fnPercent(ctx: FnContext, direction: string): Image {
++function fnPercent(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+-  const horizontal = direction === 'horizontal';
+\ No newline at end of file
++  const horizontal = n % 2 === 0;
+\ No newline at end of file
+
+</tool.toolu_01Ks6c8TPZSxxudxf6KP5txh>
+
+# TOOL RESULT
+
+ID: toolu_01Ks6c8TPZSxxudxf6KP5txh
+
+<tool.toolu_01Ks6c8TPZSxxudxf6KP5txh>
+
+</tool.toolu_01Ks6c8TPZSxxudxf6KP5txh>
