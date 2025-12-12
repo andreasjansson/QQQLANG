@@ -9522,5 +9522,99 @@ Push opInfo after creating result image
 ID: toolu_018ViWEhHWahAL8xQFAsCqPy
 
 <tool.toolu_018ViWEhHWahAL8xQFAsCqPy>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Push opInfo after creating result image
 </tool.toolu_018ViWEhHWahAL8xQFAsCqPy>
+
+# ASSISTANT
+
+Now let me update the fnImageHistory function to use the opInfos:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0192mjnqyqmmoiWQ1W2pei4Q
+
+## path
+
+<tool.toolu_0192mjnqyqmmoiWQ1W2pei4Q>
+character-defs.ts
+</tool.toolu_0192mjnqyqmmoiWQ1W2pei4Q>
+
+## git-commit-message
+
+<tool.toolu_0192mjnqyqmmoiWQ1W2pei4Q>
+Update fnImageHistory to display operation identifiers
+</tool.toolu_0192mjnqyqmmoiWQ1W2pei4Q>
+
+## diff
+
+<tool.toolu_0192mjnqyqmmoiWQ1W2pei4Q>
+   for (let i = 0; i < numImages; i++) {
+     const col = i % cols;
+     const row = Math.floor(i / cols);
+     
+     const x = margin + col * cellWidth;
+     const y = margin + row * cellHeight;
+     
+     const img = ctx.images[i];
+     const accessKey = numToChar(i + 1);
+     
++    // Get operation info for this image
++    const opInfo = ctx.opInfos[i];
++    const prevOpIdentifier = i > 0 ? ctx.opInfos[i - 1].identifier : '';
++    const opChars = opInfo.identifier.substring(prevOpIdentifier.length);
++    const displayOp = opChars || (i === 0 ? 'init' : '?');
++    
+     // Draw thumbnail
+     const thumbX = x + (cellWidth - thumbSize) / 2;
+     const thumbY = y + 5;
+     
+     // Create temp canvas for thumbnail
+     const thumbCanvas = document.createElement('canvas');
+     thumbCanvas.width = thumbSize;
+     thumbCanvas.height = thumbSize;
+     const thumbCtx = thumbCanvas.getContext('2d')!;
+     
+     // Draw image scaled to thumbnail
+     const srcSize = Math.min(img.width, img.height);
+     const srcX = (img.width - srcSize) / 2;
+     const srcY = (img.height - srcSize) / 2;
+     
+     const srcCanvas = document.createElement('canvas');
+     srcCanvas.width = img.width;
+     srcCanvas.height = img.height;
+     const srcCtx = srcCanvas.getContext('2d')!;
+     const srcImageData = new ImageData(img.data, img.width, img.height);
+     srcCtx.putImageData(srcImageData, 0, 0);
+     
+     thumbCtx.drawImage(srcCanvas, srcX, srcY, srcSize, srcSize, 0, 0, thumbSize, thumbSize);
+     
+     // Draw thumbnail border
+     tempCtx.strokeStyle = '#00FF00';
+     tempCtx.lineWidth = 1;
+     tempCtx.strokeRect(thumbX, thumbY, thumbSize, thumbSize);
+     
+     // Draw thumbnail
+     tempCtx.drawImage(thumbCanvas, thumbX, thumbY);
+     
+-    // Draw text below thumbnail
++    // Draw text below thumbnail - now 3 lines
+     const textY = thumbY + thumbSize + fontSize + 2;
+     tempCtx.fillStyle = '#00FF00';
+     tempCtx.textAlign = 'center';
+-    tempCtx.fillText(`#${i}`, thumbX + thumbSize / 2, textY);
+-    tempCtx.fillText(`[${accessKey}]`, thumbX + thumbSize / 2, textY + fontSize + 2);
++    tempCtx.fillText(`#${i} [${accessKey}]`, thumbX + thumbSize / 2, textY);
++    tempCtx.fillText(displayOp, thumbX + thumbSize / 2, textY + fontSize + 2);
+   }
+\ No newline at end of file
+
+</tool.toolu_0192mjnqyqmmoiWQ1W2pei4Q>
+
+# TOOL RESULT
+
+ID: toolu_0192mjnqyqmmoiWQ1W2pei4Q
+
+<tool.toolu_0192mjnqyqmmoiWQ1W2pei4Q>
+
+</tool.toolu_0192mjnqyqmmoiWQ1W2pei4Q>
