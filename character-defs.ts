@@ -2203,11 +2203,11 @@ function fnT(ctx: FnContext, n: number): Image {
       const positions = geometry.attributes.position;
       const normals = geometry.attributes.normal;
       const texX0 = col / cols, texX1 = (col + 1) / cols;
-      const texY0 = 1 - (row + 1) / rows, texY1 = 1 - row / rows;
+      const texY0 = row / rows, texY1 = (row + 1) / rows;
       
       for (let i = 0; i < uvs.count; i++) {
         if (normals.getZ(i) > 0.9) {
-          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY0 : texY1);
+          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY1 : texY0);
         }
       }
       
