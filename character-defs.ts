@@ -5703,10 +5703,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#C71585',
     number: 61,
     fn: fnBackslash,
-    arity: 1,
-    argTypes: ['color'],
-    functionName: "diagonal-lines-reverse",
-    documentation: "Diagonal lines from top-right to bottom-left in color c, spacing based on luminance"
+    arity: 10,
+    argTypes: ['index', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int'],
+    functionName: "composite",
+    documentation: "Composites a region from old image onto prev; args: old_idx, src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h, rotation (A=0°, ~=360°)"
   },
   
   ']': {
