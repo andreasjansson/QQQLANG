@@ -9483,5 +9483,48 @@ Fix fnT to create square buildings covering entire canvas
 ID: toolu_01Up7k1rxvhVwcRnhFbBjSzb
 
 <tool.toolu_01Up7k1rxvhVwcRnhFbBjSzb>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix fnT to create square buildings covering entire canvas
 </tool.toolu_01Up7k1rxvhVwcRnhFbBjSzb>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_013fWZJ3vuFFR2wRiirFSw4Z
+
+## path
+
+<tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
+character-defs.ts
+</tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
+
+## git-commit-message
+
+<tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
+Update createBox to use proper texture coordinates for roof
+</tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
+
+## diff
+
+<tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
+-  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number): { vertices: number[], normals: number[], texCoords: number[] } {
++  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number, texX0: number, texY0: number, texX1: number, texY1: number): { vertices: number[], normals: number[], texCoords: number[] } {
+     const x0 = cx - hw, x1 = cx + hw;
+     const y0 = cy - hh, y1 = cy + hh;
+     const z0 = 0, z1 = depth;
+     
+-    const u0 = cx - hw, u1 = cx + hw;
+-    const v0 = cy - hh, v1 = cy + hh;
+\ No newline at end of file
++    const u0 = texX0, u1 = texX1;
++    const v0 = texY0, v1 = texY1;
+\ No newline at end of file
+
+</tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
+
+# TOOL RESULT
+
+ID: toolu_013fWZJ3vuFFR2wRiirFSw4Z
+
+<tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
+
+</tool.toolu_013fWZJ3vuFFR2wRiirFSw4Z>
