@@ -5946,7 +5946,7 @@ export const characterDefs: Record<string, CharDef> = {
     arity: 1,
     argTypes: ['int'],
     functionName: "blend",
-    documentation: "Blends prev with prev-1 using mode n%32: A=normal, B=multiply, C=screen, D=overlay, E=darken, F=lighten, G=dodge, H=burn, I=hardlight, J=softlight, K=difference, L=exclusion, M=add, N=subtract, O=xor, P=and, Q=or, R=nand, S=nor, T=xnor, U=average, V=divide, W=grain-extract, X=grain-merge, Y=vivid, Z=linear, 0=pin, 1=hardmix, 2=hue, 3=saturation, 4=color, 5=luminosity"
+    documentation: "Blends prev with prev-1 using mode n%34: A=multiply, B=screen, C=overlay, D=darken, E=lighten, F=dodge, G=burn, H=hardlight, I=softlight, J=difference, K=exclusion, L=add, M=subtract, N=xor, O=and, P=or, Q=nand, R=nor, S=xnor, T=average, U=divide, V=grain-extract, W=grain-merge, X=vivid, Y=linear, Z=pin, 0=hardmix, 1=hue, 2=saturation, 3=color, 4=luminosity, 5=replace-dark-third, 6=replace-mid-third, 7=replace-light-third"
   },
   
   '`': {
