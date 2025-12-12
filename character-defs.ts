@@ -2592,8 +2592,6 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.disableVertexAttribArray(texLoc);
   gl.disable(gl.DEPTH_TEST);
   
-  gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, null);
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, null);
   gl.activeTexture(gl.TEXTURE0);
@@ -2601,11 +2599,8 @@ function fnT(ctx: FnContext, n: number): Image {
   
   gl.deleteTexture(texture);
   gl.deleteTexture(shadowTexture);
-  gl.deleteTexture(reflectionTexture);
   gl.deleteFramebuffer(shadowFramebuffer);
-  gl.deleteFramebuffer(reflectionFramebuffer);
   gl.deleteRenderbuffer(shadowDepthBuffer);
-  gl.deleteRenderbuffer(reflectionDepthBuffer);
   gl.deleteBuffer(bgPosBuf);
   gl.deleteBuffer(bgNormBuf);
   gl.deleteBuffer(bgTexBuf);
@@ -2613,7 +2608,6 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.deleteBuffer(normBuf);
   gl.deleteBuffer(texBuf);
   gl.deleteProgram(shadowProgram);
-  gl.deleteProgram(envProgram);
   gl.deleteProgram(mainProgram);
   
   return { width: ctx.width, height: ctx.height, data: flipped };
