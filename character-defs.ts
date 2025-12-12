@@ -4032,21 +4032,106 @@ function fnOpenBracket(ctx: FnContext): Image {
   return out;
 }
 
-function fnBackslash(ctx: FnContext, c: string): Image {
+function fnBackslash(
+  ctx: FnContext,
+  old: Image,
+  srcX: number,
+  srcY: number,
+  srcW: number,
+  srcH: number,
+  dstX: number,
+  dstY: number,
+  dstW: number,
+  dstH: number,
+  rot: number
+): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
-  const [cr, cg, cb] = hexToRgb(c);
   
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-      const spacing = Math.max(2, Math.floor(2 + luminance * 15));
+  // Map integer values (1-68) to normalized 0-1 range
+  const norm = (n: number) => Math.max(0, Math.min(1, (n - 1) / 67));
+  
+  // Source crop region in old image
+  const sourceCropX = Math.floor(norm(srcX) * old.width);
+  const sourceCropY = Math.floor(norm(srcY) * old.height);
+  const sourceCropW = Math.max(1, Math.round(norm(srcW) * old.width));
+  const sourceCropH = Math.max(1, Math.round(norm(srcH) * old.height));
+  
+  // Destination region in output image
+  const destX = Math.floor(norm(dstX) * ctx.width);
+  const destY = Math.floor(norm(dstY) * ctx.height);
+  const destW = Math.max(1, Math.round(norm(dstW) * ctx.width));
+  const destH = Math.max(1, Math.round(norm(dstH) * ctx.height));
+  
+  // Rotation angle (0-360 degrees)
+  const rotation = norm(rot) * 2 * Math.PI;
+  
+  const destCenterX = destX + destW / 2;
+  const destCenterY = destY + destH / 2;
+  const cosR = Math.cos(-rotation);
+  const sinR = Math.sin(-rotation);
+  
+  // Calculate bounding box of rotated rectangle
+  const halfW = destW / 2;
+  const halfH = destH / 2;
+  const corners = [
+    [-halfW, -halfH],
+    [halfW, -halfH],
+    [halfW, halfH],
+    [-halfW, halfH]
+  ];
+  
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const [cx, cy] of corners) {
+    const rx = cx * Math.cos(rotation) - cy * Math.sin(rotation) + destCenterX;
+    const ry = cx * Math.sin(rotation) + cy * Math.cos(rotation) + destCenterY;
+    minX = Math.min(minX, rx);
+    maxX = Math.max(maxX, rx);
+    minY = Math.min(minY, ry);
+    maxY = Math.max(maxY, ry);
+  }
+  
+  const startX = Math.max(0, Math.floor(minX));
+  const endX = Math.min(ctx.width, Math.ceil(maxX));
+  const startY = Math.max(0, Math.floor(minY));
+  const endY = Math.min(ctx.height, Math.ceil(maxY));
+  
+  for (let py = startY; py < endY; py++) {
+    for (let px = startX; px < endX; px++) {
+      // Inverse rotation to find source coordinates
+      const relX = px - destCenterX;
+      const relY = py - destCenterY;
+      const rotX = relX * cosR - relY * sinR;
+      const rotY = relX * sinR + relY * cosR;
       
-      const diag = ((ctx.width - 1 - x) + y) % spacing;
-      if (diag === 0) {
-        setPixel(out, x, y, cr, cg, cb);
-      }
+      // Map to normalized coordinates in destination rect
+      const normX = (rotX + halfW) / destW;
+      const normY = (rotY + halfH) / destH;
+      
+      // Check if within the destination rectangle (0-1 range)
+      if (normX < 0 || normX >= 1 || normY < 0 || normY >= 1) continue;
+      
+      // Map to source coordinates with bilinear sampling
+      const srcPxF = sourceCropX + normX * sourceCropW;
+      const srcPyF = sourceCropY + normY * sourceCropH;
+      
+      const x0 = Math.floor(srcPxF);
+      const y0 = Math.floor(srcPyF);
+      const x1 = Math.min(old.width - 1, x0 + 1);
+      const y1 = Math.min(old.height - 1, y0 + 1);
+      const fx = srcPxF - x0;
+      const fy = srcPyF - y0;
+      
+      const [r00, g00, b00] = getPixel(old, x0, y0);
+      const [r10, g10, b10] = getPixel(old, x1, y0);
+      const [r01, g01, b01] = getPixel(old, x0, y1);
+      const [r11, g11, b11] = getPixel(old, x1, y1);
+      
+      const r = Math.round(r00 * (1 - fx) * (1 - fy) + r10 * fx * (1 - fy) + r01 * (1 - fx) * fy + r11 * fx * fy);
+      const g = Math.round(g00 * (1 - fx) * (1 - fy) + g10 * fx * (1 - fy) + g01 * (1 - fx) * fy + g11 * fx * fy);
+      const b = Math.round(b00 * (1 - fx) * (1 - fy) + b10 * fx * (1 - fy) + b01 * (1 - fx) * fy + b11 * fx * fy);
+      
+      setPixel(out, px, py, r, g, b);
     }
   }
   
