@@ -337,6 +337,8 @@
     const introOverlay = document.getElementById('intro-overlay');
     const introVideo = document.getElementById('intro-video');
 
+    let helpHideTimeout = null;
+
     const isDebugMode = window.location.search.includes('debug');
     if (isDebugMode) {
       debugPane.classList.add('visible');
