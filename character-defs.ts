@@ -6596,9 +6596,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#6B8E23',
     number: 55,
     fn: fnColon,
-    args: [{ type: INDEX, documentation: "Old image to show in porthole" }],
+    args: [{ type: INDEX, documentation: "Old image for background" }],
     functionName: "porthole",
-    documentation: "Circular window showing old image with current image outside."
+    documentation: "Circular window showing current image with old image as background."
   },
   
   ';': {
