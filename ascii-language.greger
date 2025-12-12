@@ -13647,5 +13647,89 @@ Add reflection pass rendering and cleanup
 ID: toolu_01Rp9VCBvJUQzG8bEXT8xhXD
 
 <tool.toolu_01Rp9VCBvJUQzG8bEXT8xhXD>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add reflection pass rendering and cleanup
 </tool.toolu_01Rp9VCBvJUQzG8bEXT8xhXD>
+
+# ASSISTANT
+
+Now update the main pass to use the reflection texture:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01NjiFrfESydEHgU5cQw96Qw
+
+## path
+
+<tool.toolu_01NjiFrfESydEHgU5cQw96Qw>
+character-defs.ts
+</tool.toolu_01NjiFrfESydEHgU5cQw96Qw>
+
+## git-commit-message
+
+<tool.toolu_01NjiFrfESydEHgU5cQw96Qw>
+Update main pass to use reflection texture
+</tool.toolu_01NjiFrfESydEHgU5cQw96Qw>
+
+## diff
+
+<tool.toolu_01NjiFrfESydEHgU5cQw96Qw>
+   // === PASS 3: Render main scene with reflections ===
+   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+   gl.viewport(0, 0, ctx.width, ctx.height);
+   gl.clearColor(0, 0, 0, 1);
+   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+   
+   gl.useProgram(mainProgram);
+   
+   const posLoc = gl.getAttribLocation(mainProgram, 'aPosition');
+   const normLoc = gl.getAttribLocation(mainProgram, 'aNormal');
+   const texLoc = gl.getAttribLocation(mainProgram, 'aTexCoord');
+   
+-  // Camera matrices
+-  const fov = Math.PI / 2.5;
+-  const near = 0.1, far = 10.0;
+-  const f = 1.0 / Math.tan(fov / 2);
+-  const perspective = new Float32Array([
+-    f, 0, 0, 0,
+-    0, f, 0, 0,
+-    0, 0, (far+near)/(near-far), -1,
+-    0, 0, (2*far*near)/(near-far), 0
+-  ]);
+-  
+-  const camZ = 0.5 / Math.tan(fov / 2);
+-  const view = new Float32Array([
+-    1, 0, 0, 0,
+-    0, 1, 0, 0,
+-    0, 0, 1, 0,
+-    -0.5, -0.5, -camZ, 1
+-  ]);
+-  
+-  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+-  
+   // Bind textures
+   gl.activeTexture(gl.TEXTURE0);
+   gl.bindTexture(gl.TEXTURE_2D, texture);
+   gl.activeTexture(gl.TEXTURE1);
+   gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
++  gl.activeTexture(gl.TEXTURE2);
++  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
+   
+   gl.uniform1i(gl.getUniformLocation(mainProgram, 'uTexture'), 0);
+   gl.uniform1i(gl.getUniformLocation(mainProgram, 'uShadowMap'), 1);
++  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uReflectionMap'), 2);
+   gl.uniform3f(gl.getUniformLocation(mainProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
++  gl.uniform2f(gl.getUniformLocation(mainProgram, 'uResolution'), ctx.width, ctx.height);
+   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightProjection'), false, lightOrtho);
+   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightView'), false, lightView);
+\ No newline at end of file
+
+</tool.toolu_01NjiFrfESydEHgU5cQw96Qw>
+
+# TOOL RESULT
+
+ID: toolu_01NjiFrfESydEHgU5cQw96Qw
+
+<tool.toolu_01NjiFrfESydEHgU5cQw96Qw>
+
+</tool.toolu_01NjiFrfESydEHgU5cQw96Qw>

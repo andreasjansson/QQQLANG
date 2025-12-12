@@ -2677,36 +2677,19 @@ function fnT(ctx: FnContext, n: number): Image {
   const normLoc = gl.getAttribLocation(mainProgram, 'aNormal');
   const texLoc = gl.getAttribLocation(mainProgram, 'aTexCoord');
   
-  // Camera matrices
-  const fov = Math.PI / 2.5;
-  const near = 0.1, far = 10.0;
-  const f = 1.0 / Math.tan(fov / 2);
-  const perspective = new Float32Array([
-    f, 0, 0, 0,
-    0, f, 0, 0,
-    0, 0, (far+near)/(near-far), -1,
-    0, 0, (2*far*near)/(near-far), 0
-  ]);
-  
-  const camZ = 0.5 / Math.tan(fov / 2);
-  const view = new Float32Array([
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    -0.5, -0.5, -camZ, 1
-  ]);
-  
-  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
-  
   // Bind textures
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
   
   gl.uniform1i(gl.getUniformLocation(mainProgram, 'uTexture'), 0);
   gl.uniform1i(gl.getUniformLocation(mainProgram, 'uShadowMap'), 1);
+  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uReflectionMap'), 2);
   gl.uniform3f(gl.getUniformLocation(mainProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
+  gl.uniform2f(gl.getUniformLocation(mainProgram, 'uResolution'), ctx.width, ctx.height);
   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightProjection'), false, lightOrtho);
   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightView'), false, lightView);
   
