@@ -4,7 +4,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import imglyRemoveBackground, { preload as preloadBgRemoval, Config as BgRemovalConfig } from '@imgly/background-removal';
+import * as ort from 'onnxruntime-web';
 
 export interface Image {
   width: number;
