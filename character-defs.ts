@@ -4629,21 +4629,23 @@ function fnImageHistory(ctx: FnContext): Image {
     return '?';
   };
   
-  for (let i = 0; i < numImages; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
+  for (let displayIdx = 0; displayIdx < numImages; displayIdx++) {
+    const col = displayIdx % cols;
+    const row = Math.floor(displayIdx / cols);
     
     const x = margin + col * cellWidth;
     const y = margin + row * cellHeight;
     
+    // Actual image index is displayIdx + 1 (skip index 0)
+    const i = displayIdx + 1;
     const img = ctx.images[i];
-    const accessKey = numToChar(i + 1);
+    const accessKey = numToChar(i);
     
     // Get operation info for this image
     const opInfo = ctx.opInfos[i];
-    const prevOpIdentifier = i > 0 ? ctx.opInfos[i - 1].identifier : '';
+    const prevOpIdentifier = i > 1 ? ctx.opInfos[i - 1].identifier : '';
     const opChars = opInfo.identifier.substring(prevOpIdentifier.length);
-    const displayOp = opChars || (i === 0 ? 'init' : '?');
+    const displayOp = opChars || '?';
     
     // Draw thumbnail
     const thumbX = x + (cellWidth - thumbSize) / 2;
