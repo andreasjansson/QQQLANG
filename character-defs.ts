@@ -5509,190 +5509,180 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#8B4513',
     number: 2,
     fn: fnV,
-    arity: 1,
-    argTypes: ['color'],
+    args: [{ type: COLOR, documentation: "Border tint color" }],
     functionName: "border",
-    documentation: "Circular gradient darkening edges, tinted toward color c"
+    documentation: "Circular gradient darkening edges with color tint."
   },
   
   'C': {
     color: '#FF6B35',
     number: 3,
     fn: fnC,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Number of concentric circles" }],
     functionName: "concentric-hue",
-    documentation: "Creates n concentric circles alternating between original and hue-shifted versions"
+    documentation: "Alternating original and hue-shifted concentric circles."
   },
   
   'D': {
     color: '#FF1493',
     number: 4,
     fn: fnD,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "drip",
-    documentation: "Metaball-based dripping effect with blobby liquid drips"
+    documentation: "Metaball-based dripping water drops effect."
   },
   
   'E': {
     color: '#50C878',
     number: 5,
     fn: fnE,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "emerald",
-    documentation: "Renders bright reflective 3D emeralds in symmetric pattern with large center emerald"
+    documentation: "Renders reflective 3D emeralds in symmetric pattern."
   },
   
   'F': {
     color: '#FFD700',
     number: 6,
     fn: fnO,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "FFT multiplier strength" }],
     functionName: "fft-overflow",
-    documentation: "2D FFT with magnitude overflow/wrap and per-channel phase shifts - creates banded halos and chromatic frequency ghosts"
+    documentation: "2D FFT with magnitude overflow and chromatic phase shifts."
   },
   
   'G': {
     color: '#9370DB',
     number: 7,
     fn: fnG,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Number of posterize colors" }],
     functionName: "grayscale-colorize",
-    documentation: "Converts to grayscale then applies n-color rainbow palette based on brightness"
+    documentation: "Converts to grayscale then applies rainbow palette."
   },
   
   'H': {
     color: '#DC143C',
     number: 8,
     fn: fnH,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "hourglass",
-    documentation: "Hourglass gradient: NAND blend inside hourglass shape, XOR/add/diff blend outside, creates colors from gradients"
+    documentation: "Hourglass gradient with bitwise color blending."
   },
   
   'I': {
     color: '#00FF7F',
     number: 9,
     fn: fnI,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "invert-edges",
-    documentation: "Inverts prev colors, then applies Sobel edge detection and draws edges in white"
+    documentation: "Inverts colors then adds Sobel edge detection."
   },
   
   'J': {
     color: '#FF8C00',
     number: 10,
     fn: fnF,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Fractal zoom depth" }],
     functionName: "julia-fractal",
-    documentation: "Julia set fractal masks prev - inside set shows prev, outside darkened; n controls zoom level"
+    documentation: "Julia set fractal masking the previous image."
   },
   
   'K': {
     color: '#4B0082',
     number: 11,
     fn: fnK,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Number of kaleidoscope segments" }],
     functionName: "kaleidoscope",
-    documentation: "Creates n-way kaleidoscope effect centered on image with 1.1x zoom"
+    documentation: "N-way kaleidoscope effect with zoom."
   },
   
   'L': {
     color: '#20B2AA',
     number: 12,
     fn: fnL,
-    arity: 2,
-    argTypes: ['index', 'int'],
+    args: [
+      { type: INDEX, documentation: "Old image for tube texture" },
+      { type: INT, documentation: "Rotation angle multiplier" }
+    ],
     functionName: "lissajous",
-    documentation: "3D Lissajous tube textured with prev, old_image as background; first arg=old image, second=rotation"
+    documentation: "3D Lissajous tube with textured surface."
   },
   
   'M': {
     color: '#FF69B4',
     number: 13,
     fn: fnM,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Pattern complexity seed" }],
     functionName: "moire",
-    documentation: "Moiré interference pattern: 3 overlapping line grids create 8 zones with different hue/saturation/lightness shifts"
+    documentation: "Moiré interference pattern with color zones."
   },
   
   'N': {
     color: '#8A2BE2',
     number: 14,
     fn: fnN,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "neon",
-    documentation: "Neon glow effect - edges glow in their original hue, scattered light points add ambiance"
+    documentation: "Neon glow effect on bright edges."
   },
   
   'O': {
     color: '#FF6347',
     number: 15,
     fn: fnOilSlick,
-    arity: 2,
-    argTypes: ['int', 'int'],
+    args: [
+      { type: INT, documentation: "Warp strength" },
+      { type: INT, documentation: "Iteration depth" }
+    ],
     functionName: "oil-slick",
-    documentation: "Domain warping effect; first arg controls warp strength, second controls iterations/complexity"
+    documentation: "Domain warping with iridescent lighting."
   },
   
   'P': {
     color: '#4682B4',
     number: 16,
     fn: fnP,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Pixel cell size" }],
     functionName: "diagonal-pixelate",
-    documentation: "Pixelates with cell size n+1, diagonal split: top-left = average, bottom-right = most saturated"
+    documentation: "Pixelate with diagonal split using average/saturated colors."
   },
   
   'Q': {
     color: '#32CD32',
     number: 17,
     fn: fnQ,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "prism",
-    documentation: "Creates negative prism: diagonal split with inversion, then mirrors into 4 quadrants (h-flip right, v-flip bottom)"
+    documentation: "Negative prism with diagonal inversion and mirroring."
   },
   
   'R': {
     color: '#DA70D6',
     number: 18,
     fn: fnR,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "room",
-    documentation: "3D room with three walls, ceiling, and floor textured with prev, lit from center"
+    documentation: "3D room with textured walls, ceiling, and floor."
   },
   
   'S': {
     color: '#87CEEB',
     number: 19,
     fn: fnS,
-    arity: 2,
-    argTypes: ['index', 'int'],
+    args: [
+      { type: INDEX, documentation: "Old image for triangle interior" },
+      { type: INT, documentation: "Fractal detail level (1-68)" }
+    ],
     functionName: "sierpinski",
-    documentation: "Sierpiński triangle fractal: first arg=old image for interior, second=detail level (1-68); outer shells get hue shifts, invert, grayscale"
+    documentation: "Sierpiński triangle fractal with color effects."
   },
   
   'T': {
     color: '#F0E68C',
     number: 20,
     fn: fnT,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Number of 3D cubes (n+1)" }],
     functionName: "cubes",
-    documentation: "n+1 3D cubes protrude from prev plane toward camera, tops textured from prev, sides use edge pixels, lit from front"
+    documentation: "3D cubes protruding from image plane."
   },
   
   'U': {
