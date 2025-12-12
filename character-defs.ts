@@ -4552,6 +4552,136 @@ function fnBlend(ctx: FnContext, mode: number): Image {
   return out;
 }
 
+function fnImageHistory(ctx: FnContext): Image {
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = ctx.width;
+  tempCanvas.height = ctx.height;
+  const tempCtx = tempCanvas.getContext('2d')!;
+  
+  tempCtx.fillStyle = '#000000';
+  tempCtx.fillRect(0, 0, ctx.width, ctx.height);
+  
+  const numImages = ctx.images.length;
+  if (numImages === 0) {
+    tempCtx.fillStyle = '#00FF00';
+    tempCtx.font = '16px monospace';
+    tempCtx.fillText('No images in history', 10, 30);
+    const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
+    out.data.set(imageData.data);
+    return out;
+  }
+  
+  const margin = 5;
+  const availWidth = ctx.width - margin * 2;
+  const availHeight = ctx.height - margin * 2;
+  
+  // Calculate optimal layout
+  let bestLayout = { cols: 1, rows: numImages, thumbSize: 10, fontSize: 6 };
+  let bestScore = 0;
+  
+  for (let cols = 1; cols <= Math.min(8, numImages); cols++) {
+    const rows = Math.ceil(numImages / cols);
+    
+    // Each cell needs: thumbnail + text space
+    const cellWidth = availWidth / cols;
+    const cellHeight = availHeight / rows;
+    
+    // Reserve space for text (3 lines: #, key, func)
+    const textHeight = Math.min(cellHeight * 0.3, 30);
+    const fontSize = Math.max(6, Math.min(12, textHeight / 3));
+    
+    // Thumbnail gets remaining space
+    const thumbSize = Math.min(cellWidth - 10, cellHeight - textHeight - 5);
+    
+    if (thumbSize > 10 && fontSize >= 6) {
+      // Score based on thumbnail size and font readability
+      const score = thumbSize * fontSize;
+      if (score > bestScore) {
+        bestScore = score;
+        bestLayout = { cols, rows, thumbSize, fontSize };
+      }
+    }
+  }
+  
+  const { cols, thumbSize, fontSize } = bestLayout;
+  const cellWidth = availWidth / cols;
+  const cellHeight = availHeight / Math.ceil(numImages / cols);
+  
+  tempCtx.fillStyle = '#00FF00';
+  tempCtx.font = `${fontSize}px monospace`;
+  
+  // Number to character mapping (same as in characterDefs)
+  const numToChar = (num: number): string => {
+    if (num >= 1 && num <= 26) return String.fromCharCode('A'.charCodeAt(0) + num - 1);
+    if (num >= 27 && num <= 36) return String.fromCharCode('0'.charCodeAt(0) + num - 27);
+    const symbols = '<>^!"#$%&\'()*+,-./:;=?@[\\]_`{|}~';
+    const idx = num - 37;
+    if (idx >= 0 && idx < symbols.length) return symbols[idx];
+    return '?';
+  };
+  
+  // Track which ops created which images (reverse lookup from parsing)
+  const ops = getParsedOperations(''); // This won't work, we need the actual program
+  // Instead, we'll show image index and access key
+  
+  for (let i = 0; i < numImages; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    
+    const x = margin + col * cellWidth;
+    const y = margin + row * cellHeight;
+    
+    const img = ctx.images[i];
+    const accessKey = numToChar(i + 1);
+    
+    // Draw thumbnail
+    const thumbX = x + (cellWidth - thumbSize) / 2;
+    const thumbY = y + 5;
+    
+    // Create temp canvas for thumbnail
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = thumbSize;
+    thumbCanvas.height = thumbSize;
+    const thumbCtx = thumbCanvas.getContext('2d')!;
+    
+    // Draw image scaled to thumbnail
+    const srcSize = Math.min(img.width, img.height);
+    const srcX = (img.width - srcSize) / 2;
+    const srcY = (img.height - srcSize) / 2;
+    
+    const srcCanvas = document.createElement('canvas');
+    srcCanvas.width = img.width;
+    srcCanvas.height = img.height;
+    const srcCtx = srcCanvas.getContext('2d')!;
+    const srcImageData = new ImageData(img.data, img.width, img.height);
+    srcCtx.putImageData(srcImageData, 0, 0);
+    
+    thumbCtx.drawImage(srcCanvas, srcX, srcY, srcSize, srcSize, 0, 0, thumbSize, thumbSize);
+    
+    // Draw thumbnail border
+    tempCtx.strokeStyle = '#00FF00';
+    tempCtx.lineWidth = 1;
+    tempCtx.strokeRect(thumbX, thumbY, thumbSize, thumbSize);
+    
+    // Draw thumbnail
+    tempCtx.drawImage(thumbCanvas, thumbX, thumbY);
+    
+    // Draw text below thumbnail
+    const textY = thumbY + thumbSize + fontSize + 2;
+    tempCtx.fillStyle = '#00FF00';
+    tempCtx.textAlign = 'center';
+    tempCtx.fillText(`#${i}`, thumbX + thumbSize / 2, textY);
+    tempCtx.fillText(`[${accessKey}]`, thumbX + thumbSize / 2, textY + fontSize + 2);
+  }
+  
+  const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
+  out.data.set(imageData.data);
+  
+  return out;
+}
+
 function fnBacktick(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
