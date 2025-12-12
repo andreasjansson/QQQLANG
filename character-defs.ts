@@ -2188,6 +2188,21 @@ function fnT(ctx: FnContext, n: number): Image {
   light.shadow.bias = -0.0005;
   scene.add(light);
   
+  const light2 = new THREE.DirectionalLight(0xffffff, 1.5);
+  light2.position.set(-5, -4, 8);
+  light2.castShadow = true;
+  light2.shadow.mapSize.width = 1536;
+  light2.shadow.mapSize.height = 1536;
+  light2.shadow.camera.left = -d;
+  light2.shadow.camera.right = d;
+  light2.shadow.camera.top = d;
+  light2.shadow.camera.bottom = -d;
+  light2.shadow.camera.near = 0.1;
+  light2.shadow.camera.far = 30;
+  light2.shadow.radius = 2;
+  light2.shadow.bias = -0.0005;
+  scene.add(light2);
+  
   const cellWidth = frustumWidth / cols;
   const cellHeight = frustumHeight / rows;
   
