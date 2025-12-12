@@ -2502,7 +2502,7 @@ function fnZ(ctx: FnContext, n: number): Image {
   gl.bindTexture(gl.TEXTURE_2D, null);
   
   // Blur strength based on n (1-68)
-  const strength = n * 0.015;
+  const strength = n * 0.06;
   
   const vertexShader = `
     attribute vec2 position;
