@@ -12138,199 +12138,213 @@ character-defs.ts
 Implement proper shadow mapping for fnT city function
 </tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
 
-## original-content
+## diff
 
 <tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
-  const vertexShader = `
-    attribute vec3 aPosition;
-    attribute vec3 aNormal;
-    attribute vec2 aTexCoord;
-    
-    uniform mat4 uProjection;
-    uniform mat4 uView;
-    uniform mat4 uModel;
-    
-    varying vec3 vNormal;
-    varying vec2 vTexCoord;
-    varying vec3 vWorldPos;
-    varying float vHeight;
-    
-    void main() {
-      vec4 worldPos = uModel * vec4(aPosition, 1.0);
-      vWorldPos = worldPos.xyz;
-      vNormal = mat3(uModel) * aNormal;
-      vTexCoord = aTexCoord;
-      vHeight = aPosition.z;
-      gl_Position = uProjection * uView * worldPos;
-    }
-  `;
-  
-  const fragmentShader = `
-    precision highp float;
-    
-    uniform sampler2D uTexture;
-    uniform float uIsBackground;
-    
-    varying vec3 vNormal;
-    varying vec2 vTexCoord;
-    varying vec3 vWorldPos;
-    varying float vHeight;
-    
-    void main() {
-      vec3 color = texture2D(uTexture, vTexCoord).rgb;
-      
-      if (uIsBackground > 0.5) {
-        // Darken background to simulate being in shadow
-        gl_FragColor = vec4(color * 0.5, 1.0);
-      } else {
-        vec3 normal = normalize(vNormal);
-        
-        // Light coming from upper-right-front (behind camera)
-        vec3 lightDir = normalize(vec3(0.5, -0.3, 1.0));
-        vec3 viewDir = vec3(0.0, 0.0, 1.0);
-        
-        // Check which face we're on
-        bool isTopFace = normal.z > 0.9;
-        bool isRightFace = normal.x > 0.9;
-        bool isLeftFace = normal.x < -0.9;
-        bool isFrontFace = normal.y > 0.9;
-        bool isBackFace = normal.y < -0.9;
-        
-        float lighting = 0.0;
-        
-        if (isTopFace) {
-          // Top faces are bright - fully lit by sun
-          float diffuse = max(dot(normal, lightDir), 0.0);
-          lighting = 0.7 + diffuse * 0.5;
-          
-          // Specular highlight
-          vec3 reflectDir = reflect(-lightDir, normal);
-          float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-          lighting += spec * 0.3;
-        } else if (isRightFace) {
-          // Right faces catch some light
-          lighting = 0.5 + max(dot(normal, lightDir), 0.0) * 0.3;
-        } else if (isLeftFace) {
-          // Left faces are in shadow
-          lighting = 0.25;
-        } else if (isFrontFace) {
-          // Front faces (bottom of screen) - partial light
-          lighting = 0.4;
-        } else if (isBackFace) {
-          // Back faces (top of screen) - darker
-          lighting = 0.3;
-        }
-        
-        // Height-based ambient boost - taller buildings catch more light
-        lighting += vHeight * 0.2;
-        
-        // Warm sunlight tint for lit areas
-        vec3 tint = mix(vec3(0.8, 0.85, 1.0), vec3(1.1, 1.05, 0.95), lighting);
-        
-        gl_FragColor = vec4(color * lighting * tint, 1.0);
-      }
-    }
-  `;
++  // Shadow map shaders
++  const shadowVertexShader = `
++    attribute vec3 aPosition;
++    uniform mat4 uLightProjection;
++    uniform mat4 uLightView;
++    uniform mat4 uModel;
++    
++    void main() {
++      gl_Position = uLightProjection * uLightView * uModel * vec4(aPosition, 1.0);
++    }
++  `;
++  
++  const shadowFragmentShader = `
++    precision highp float;
++    
++    void main() {
++      gl_FragColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
++    }
++  `;
++  
++  // Main render shaders
+   const vertexShader = `
+     attribute vec3 aPosition;
+     attribute vec3 aNormal;
+     attribute vec2 aTexCoord;
+     
+     uniform mat4 uProjection;
+     uniform mat4 uView;
+     uniform mat4 uModel;
++    uniform mat4 uLightProjection;
++    uniform mat4 uLightView;
+     
+     varying vec3 vNormal;
+     varying vec2 vTexCoord;
+     varying vec3 vWorldPos;
+-    varying float vHeight;
++    varying vec4 vLightSpacePos;
+     
+     void main() {
+       vec4 worldPos = uModel * vec4(aPosition, 1.0);
+       vWorldPos = worldPos.xyz;
+       vNormal = mat3(uModel) * aNormal;
+       vTexCoord = aTexCoord;
+-      vHeight = aPosition.z;
++      vLightSpacePos = uLightProjection * uLightView * worldPos;
+       gl_Position = uProjection * uView * worldPos;
+     }
+   `;
+   
+   const fragmentShader = `
+     precision highp float;
+     
+     uniform sampler2D uTexture;
++    uniform sampler2D uShadowMap;
+     uniform float uIsBackground;
++    uniform vec3 uLightDir;
+     
+     varying vec3 vNormal;
+     varying vec2 vTexCoord;
+     varying vec3 vWorldPos;
+-    varying float vHeight;
++    varying vec4 vLightSpacePos;
+     
++    float calculateShadow() {
++      vec3 projCoords = vLightSpacePos.xyz / vLightSpacePos.w;
++      projCoords = projCoords * 0.5 + 0.5;
++      
++      if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0) {
++        return 0.0;
++      }
++      
++      float currentDepth = projCoords.z;
++      float bias = 0.005;
++      
++      // PCF soft shadows
++      float shadow = 0.0;
++      float texelSize = 1.0 / 1024.0;
++      for (int x = -2; x <= 2; x++) {
++        for (int y = -2; y <= 2; y++) {
++          float pcfDepth = texture2D(uShadowMap, projCoords.xy + vec2(float(x), float(y)) * texelSize).r;
++          shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
++        }
++      }
++      shadow /= 25.0;
++      
++      return shadow;
++    }
++    
+     void main() {
+       vec3 color = texture2D(uTexture, vTexCoord).rgb;
+       
+       if (uIsBackground > 0.5) {
+-        // Darken background to simulate being in shadow
+-        gl_FragColor = vec4(color * 0.5, 1.0);
++        float shadow = calculateShadow();
++        float lighting = 1.0 - shadow * 0.6;
++        gl_FragColor = vec4(color * lighting, 1.0);
+       } else {
+         vec3 normal = normalize(vNormal);
+-        
+-        // Light coming from upper-right-front (behind camera)
+-        vec3 lightDir = normalize(vec3(0.5, -0.3, 1.0));
++        vec3 lightDir = normalize(uLightDir);
+         vec3 viewDir = vec3(0.0, 0.0, 1.0);
+         
+-        // Check which face we're on
+-        bool isTopFace = normal.z > 0.9;
+-        bool isRightFace = normal.x > 0.9;
+-        bool isLeftFace = normal.x < -0.9;
+-        bool isFrontFace = normal.y > 0.9;
+-        bool isBackFace = normal.y < -0.9;
++        // Ambient
++        float ambient = 0.3;
+         
+-        float lighting = 0.0;
++        // Diffuse
++        float diff = max(dot(normal, lightDir), 0.0);
++        float diffuse = diff * 0.6;
+         
+-        if (isTopFace) {
+-          // Top faces are bright - fully lit by sun
+-          float diffuse = max(dot(normal, lightDir), 0.0);
+-          lighting = 0.7 + diffuse * 0.5;
+-          
+-          // Specular highlight
+-          vec3 reflectDir = reflect(-lightDir, normal);
+-          float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+-          lighting += spec * 0.3;
+-        } else if (isRightFace) {
+-          // Right faces catch some light
+-          lighting = 0.5 + max(dot(normal, lightDir), 0.0) * 0.3;
+-        } else if (isLeftFace) {
+-          // Left faces are in shadow
+-          lighting = 0.25;
+-        } else if (isFrontFace) {
+-          // Front faces (bottom of screen) - partial light
+-          lighting = 0.4;
+-        } else if (isBackFace) {
+-          // Back faces (top of screen) - darker
+-          lighting = 0.3;
+-        }
++        // Specular
++        vec3 reflectDir = reflect(-lightDir, normal);
++        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
++        float specular = spec * 0.4;
+         
+-        // Height-based ambient boost - taller buildings catch more light
+-        lighting += vHeight * 0.2;
++        // Shadow
++        float shadow = calculateShadow();
+         
+-        // Warm sunlight tint for lit areas
+-        vec3 tint = mix(vec3(0.8, 0.85, 1.0), vec3(1.1, 1.05, 0.95), lighting);
++        float lighting = ambient + (1.0 - shadow * 0.7) * (diffuse + specular);
+         
+-        gl_FragColor = vec4(color * lighting * tint, 1.0);
++        gl_FragColor = vec4(color * lighting, 1.0);
+       }
+     }
+   `;
+\ No newline at end of file
+
 </tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
 
-## new-content
+# TOOL RESULT
+
+ID: toolu_01RQ3o8XH3nQwAmgZSWo227h
 
 <tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
-  // Shadow map shaders
-  const shadowVertexShader = `
-    attribute vec3 aPosition;
-    uniform mat4 uLightProjection;
-    uniform mat4 uLightView;
-    uniform mat4 uModel;
-    
-    void main() {
-      gl_Position = uLightProjection * uLightView * uModel * vec4(aPosition, 1.0);
-    }
-  `;
-  
-  const shadowFragmentShader = `
-    precision highp float;
-    
-    void main() {
-      gl_FragColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
-    }
-  `;
-  
-  // Main render shaders
-  const vertexShader = `
-    attribute vec3 aPosition;
-    attribute vec3 aNormal;
-    attribute vec2 aTexCoord;
-    
-    uniform mat4 uProjection;
-    uniform mat4 uView;
-    uniform mat4 uModel;
-    uniform mat4 uLightProjection;
-    uniform mat4 uLightView;
-    
-    varying vec3 vNormal;
-    varying vec2 vTexCoord;
-    varying vec3 vWorldPos;
-    varying vec4 vLightSpacePos;
-    
-    void main() {
-      vec4 worldPos = uModel * vec4(aPosition, 1.0);
-      vWorldPos = worldPos.xyz;
-      vNormal = mat3(uModel) * aNormal;
-      vTexCoord = aTexCoord;
-      vLightSpacePos = uLightProjection * uLightView * worldPos;
-      gl_Position = uProjection * uView * worldPos;
-    }
-  `;
-  
-  const fragmentShader = `
-    precision highp float;
-    
-    uniform sampler2D uTexture;
-    uniform sampler2D uShadowMap;
-    uniform float uIsBackground;
-    uniform vec3 uLightDir;
-    
-    varying vec3 vNormal;
-    varying vec2 vTexCoord;
-    varying vec3 vWorldPos;
-    varying vec4 vLightSpacePos;
-    
-    float calculateShadow() {
-      vec3 projCoords = vLightSpacePos.xyz / vLightSpacePos.w;
-      projCoords = projCoords * 0.5 + 0.5;
-      
-      if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0) {
-        return 0.0;
-      }
-      
-      float currentDepth = projCoords.z;
-      float bias = 0.005;
-      
-      // PCF soft shadows
-      float shadow = 0.0;
-      float texelSize = 1.0 / 1024.0;
-      for (int x = -2; x <= 2; x++) {
-        for (int y = -2; y <= 2; y++) {
-          float pcfDepth = texture2D(uShadowMap, projCoords.xy + vec2(float(x), float(y)) * texelSize).r;
-          shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-        }
-      }
-      shadow /= 25.0;
-      
-      return shadow;
-    }
-    
-    void main() {
-      vec3 color = texture2D(uTexture, vTexCoord).rgb;
-      
-      if (uIsBackground > 0.5) {
-        float shadow = calculateShadow();
-        float lighting = 1.0 - shadow * 0.6;
-        gl_FragColor = vec4(color * lighting, 1.0);
-      } else {
-        vec3 normal = normalize(vNormal);
-        vec3 lightDir = normalize(uLightDir);
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Implement proper shadow mapping for fnT city function
+</tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+
+# ASSISTANT
+
+Now I need to update the rendering code to actually create and use the shadow map:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_018oKDaXSAhJXRQSBsvSF6Jt
+
+## path
+
+<tool.toolu_018oKDaXSAhJXRQSBsvSF6Jt>
+character-defs.ts
+</tool.toolu_018oKDaXSAhJXRQSBsvSF6Jt>
+
+## start-line
+
+<tool.toolu_018oKDaXSAhJXRQSBsvSF6Jt>
+2290
+</tool.toolu_018oKDaXSAhJXRQSBsvSF6Jt>
+
+## end-line
+
+<tool.toolu_018oKDaXSAhJXRQSBsvSF6Jt>
+2450
+</tool.toolu_018oKDaXSAhJXRQSBsvSF6Jt>
+
+# TOOL RESULT
+
+ID: toolu_018oKDaXSAhJXRQSBsvSF6Jt
+
+<tool.toolu_018oKDaXSAhJXRQSBsvSF6Jt>
         vec3 viewDir = vec3(0.0, 0.0, 1.0);
         
         // Ambient
@@ -12354,12 +12368,608 @@ Implement proper shadow mapping for fnT city function
       }
     }
   `;
-</tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  function createBox(cx: number, cy: number, hw: number, hh: number, depth: number, texX0: number, texY0: number, texX1: number, texY1: number): { vertices: number[], normals: number[], texCoords: number[] } {
+    const x0 = cx - hw, x1 = cx + hw;
+    const y0 = cy - hh, y1 = cy + hh;
+    const z0 = 0, z1 = depth;
+    
+    const u0 = texX0, u1 = texX1;
+    const v0 = texY0, v1 = texY1;
+    
+    const vertices: number[] = [];
+    const normals: number[] = [];
+    const texCoords: number[] = [];
+    
+    // Top face - textured with image at this position
+    vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(0,0,1);
+    texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
+    
+    // Right face (+x)
+    vertices.push(x1,y0,z0, x1,y0,z1, x1,y1,z1, x1,y0,z0, x1,y1,z1, x1,y1,z0);
+    for(let i=0;i<6;i++) normals.push(1,0,0);
+    texCoords.push(u1,v0, u1,v0, u1,v1, u1,v0, u1,v1, u1,v1);
+    
+    // Left face (-x)
+    vertices.push(x0,y0,z1, x0,y0,z0, x0,y1,z0, x0,y0,z1, x0,y1,z0, x0,y1,z1);
+    for(let i=0;i<6;i++) normals.push(-1,0,0);
+    texCoords.push(u0,v0, u0,v0, u0,v1, u0,v0, u0,v1, u0,v1);
+    
+    // Front face (+y)
+    vertices.push(x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z1, x1,y1,z0, x0,y1,z0);
+    for(let i=0;i<6;i++) normals.push(0,1,0);
+    texCoords.push(u0,v1, u1,v1, u1,v1, u0,v1, u1,v1, u0,v1);
+    
+    // Back face (-y)
+    vertices.push(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z0, x1,y0,z1, x0,y0,z1);
+    for(let i=0;i<6;i++) normals.push(0,-1,0);
+    texCoords.push(u0,v0, u1,v0, u1,v0, u0,v0, u1,v0, u0,v0);
+    
+    return { vertices, normals, texCoords };
+  }
+  
+  const allVertices: number[] = [];
+  const allNormals: number[] = [];
+  const allTexCoords: number[] = [];
+  
+  for (const c of cubesData) {
+    const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth, c.texX0, c.texY0, c.texX1, c.texY1);
+    allVertices.push(...box.vertices);
+    allNormals.push(...box.normals);
+    allTexCoords.push(...box.texCoords);
+  }
+  
+  gl.useProgram(program);
+  gl.disable(gl.DEPTH_TEST);
+  
+  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
+  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
+  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
+  
+  const posLoc = gl.getAttribLocation(program, 'aPosition');
+  const normLoc = gl.getAttribLocation(program, 'aNormal');
+  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
+  
+  const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
+  
+  const bgPosBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgVertices, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgNormBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgNormals, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const bgTexBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, bgTexCoords, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LESS);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  
+  const fov = Math.PI / 2.5;
+  const near = 0.1, far = 10.0;
+  const f = 1.0 / Math.tan(fov / 2);
+  const perspective = new Float32Array([
+    f, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far+near)/(near-far), -1,
+    0, 0, (2*far*near)/(near-far), 0
+  ]);
+  
+  const camZ = 0.5 / Math.tan(fov / 2);
+  const view = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    -0.5, -0.5, -camZ, 1
+  ]);
+  
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 0.0);
+  
+  const posBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allVertices), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const normBuf = gl.createBuffer();
+</tool.toolu_018oKDaXSAhJXRQSBsvSF6Jt>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01VmjEcoq57VJYJjdMWbbQfk
+
+## path
+
+<tool.toolu_01VmjEcoq57VJYJjdMWbbQfk>
+character-defs.ts
+</tool.toolu_01VmjEcoq57VJYJjdMWbbQfk>
+
+## start-line
+
+<tool.toolu_01VmjEcoq57VJYJjdMWbbQfk>
+2440
+</tool.toolu_01VmjEcoq57VJYJjdMWbbQfk>
+
+## end-line
+
+<tool.toolu_01VmjEcoq57VJYJjdMWbbQfk>
+2510
+</tool.toolu_01VmjEcoq57VJYJjdMWbbQfk>
 
 # TOOL RESULT
 
-ID: toolu_01RQ3o8XH3nQwAmgZSWo227h
+ID: toolu_01VmjEcoq57VJYJjdMWbbQfk
 
-<tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+<tool.toolu_01VmjEcoq57VJYJjdMWbbQfk>
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
+  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
+  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 0.0);
+  
+  const posBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allVertices), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const normBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allNormals), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normLoc);
+  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+  
+  const texBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allTexCoords), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = (y * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+    }
+  }
+  
+  gl.disableVertexAttribArray(posLoc);
+  gl.disableVertexAttribArray(normLoc);
+  gl.disableVertexAttribArray(texLoc);
+  gl.disable(gl.DEPTH_TEST);
+  
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(bgPosBuf);
+  gl.deleteBuffer(bgNormBuf);
+  gl.deleteBuffer(bgTexBuf);
+  gl.deleteBuffer(posBuf);
+  gl.deleteBuffer(normBuf);
+  gl.deleteBuffer(texBuf);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
+}
 
-</tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+function fnU(ctx: FnContext, n: number): Image {
+  const prev = getPrevImage(ctx);
+  const w = ctx.width;
+  const h = ctx.height;
+  
+  const hueAmount = 90 + (n % 12) * 15;
+  const satAmount = 0.5 + (n % 8) * 0.1;
+  const lightAmount = 0.06 + (n % 8) * 0.01;
+  
+  const baseAngle = n * 0.5;
+  const angleH = baseAngle;
+  const angleS = baseAngle + Math.PI * 2 / 3;
+  const angleL = baseAngle + Math.PI * 4 / 3;
+  
+  const dirHX = Math.cos(angleH);
+</tool.toolu_01VmjEcoq57VJYJjdMWbbQfk>
+
+# ASSISTANT
+
+Now I need to replace the entire rendering section to add proper shadow mapping. Let me do this in one comprehensive replacement:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01LPuGGwXME2fkqxYVUftNga
+
+## path
+
+<tool.toolu_01LPuGGwXME2fkqxYVUftNga>
+character-defs.ts
+</tool.toolu_01LPuGGwXME2fkqxYVUftNga>
+
+## git-commit-message
+
+<tool.toolu_01LPuGGwXME2fkqxYVUftNga>
+Add complete shadow mapping implementation to fnT
+</tool.toolu_01LPuGGwXME2fkqxYVUftNga>
+
+## diff
+
+<tool.toolu_01LPuGGwXME2fkqxYVUftNga>
+-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
++  const shadowProgram = createShaderProgram(gl, shadowVertexShader, shadowFragmentShader);
++  const mainProgram = createShaderProgram(gl, vertexShader, fragmentShader);
+   
+   const texture = gl.createTexture();
+   gl.bindTexture(gl.TEXTURE_2D, texture);
+   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   
++  // Create shadow map framebuffer and texture
++  const shadowMapSize = 1024;
++  const shadowFramebuffer = gl.createFramebuffer();
++  const shadowTexture = gl.createTexture();
++  
++  gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowMapSize, shadowMapSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  
++  gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
++  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, shadowTexture, 0);
++  
++  // Create depth renderbuffer for shadow pass
++  const shadowDepthBuffer = gl.createRenderbuffer();
++  gl.bindRenderbuffer(gl.RENDERBUFFER, shadowDepthBuffer);
++  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, shadowMapSize, shadowMapSize);
++  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, shadowDepthBuffer);
++  
++  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
++  
+   function createBox(cx: number, cy: number, hw: number, hh: number, depth: number, texX0: number, texY0: number, texX1: number, texY1: number): { vertices: number[], normals: number[], texCoords: number[] } {
+     const x0 = cx - hw, x1 = cx + hw;
+     const y0 = cy - hh, y1 = cy + hh;
+     const z0 = 0, z1 = depth;
+     
+     const u0 = texX0, u1 = texX1;
+     const v0 = texY0, v1 = texY1;
+     
+     const vertices: number[] = [];
+     const normals: number[] = [];
+     const texCoords: number[] = [];
+     
+-    // Top face - textured with image at this position
++    // Top face
+     vertices.push(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y0,z1, x1,y1,z1, x0,y1,z1);
+     for(let i=0;i<6;i++) normals.push(0,0,1);
+     texCoords.push(u0,v0, u1,v0, u1,v1, u0,v0, u1,v1, u0,v1);
+     
+     // Right face (+x)
+     vertices.push(x1,y0,z0, x1,y0,z1, x1,y1,z1, x1,y0,z0, x1,y1,z1, x1,y1,z0);
+     for(let i=0;i<6;i++) normals.push(1,0,0);
+     texCoords.push(u1,v0, u1,v0, u1,v1, u1,v0, u1,v1, u1,v1);
+     
+     // Left face (-x)
+     vertices.push(x0,y0,z1, x0,y0,z0, x0,y1,z0, x0,y0,z1, x0,y1,z0, x0,y1,z1);
+     for(let i=0;i<6;i++) normals.push(-1,0,0);
+     texCoords.push(u0,v0, u0,v0, u0,v1, u0,v0, u0,v1, u0,v1);
+     
+     // Front face (+y)
+     vertices.push(x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z1, x1,y1,z0, x0,y1,z0);
+     for(let i=0;i<6;i++) normals.push(0,1,0);
+     texCoords.push(u0,v1, u1,v1, u1,v1, u0,v1, u1,v1, u0,v1);
+     
+     // Back face (-y)
+     vertices.push(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z0, x1,y0,z1, x0,y0,z1);
+     for(let i=0;i<6;i++) normals.push(0,-1,0);
+     texCoords.push(u0,v0, u1,v0, u1,v0, u0,v0, u1,v0, u0,v0);
+     
+     return { vertices, normals, texCoords };
+   }
+   
+   const allVertices: number[] = [];
+   const allNormals: number[] = [];
+   const allTexCoords: number[] = [];
+   
+   for (const c of cubesData) {
+     const box = createBox(c.cx, c.cy, c.hw, c.hh, c.depth, c.texX0, c.texY0, c.texX1, c.texY1);
+     allVertices.push(...box.vertices);
+     allNormals.push(...box.normals);
+     allTexCoords.push(...box.texCoords);
+   }
+   
+-  gl.useProgram(program);
+-  gl.disable(gl.DEPTH_TEST);
++  // Light matrices - light from upper-right, behind camera
++  const lightDir = [0.4, -0.3, 0.8];
++  const lightDirLen = Math.sqrt(lightDir[0]**2 + lightDir[1]**2 + lightDir[2]**2);
++  lightDir[0] /= lightDirLen;
++  lightDir[1] /= lightDirLen;
++  lightDir[2] /= lightDirLen;
+   
+-  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
+-  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
+-  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
++  // Orthographic projection for directional light shadow map
++  const lightOrtho = new Float32Array([
++    2, 0, 0, 0,
++    0, 2, 0, 0,
++    0, 0, -0.5, 0,
++    -1, -1, 0, 1
++  ]);
+   
+-  const posLoc = gl.getAttribLocation(program, 'aPosition');
+-  const normLoc = gl.getAttribLocation(program, 'aNormal');
+-  const texLoc = gl.getAttribLocation(program, 'aTexCoord');
++  // Light view - looking down the light direction
++  const lightView = new Float32Array([
++    1, 0, 0, 0,
++    0, 1, 0, 0,
++    -lightDir[0]*0.5, -lightDir[1]*0.5, 1, 0,
++    0, 0, -1, 1
++  ]);
+   
+   const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+-  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+   
+-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+-  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
++  // Create buffers
++  const posBuf = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
++  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allVertices), gl.STATIC_DRAW);
+   
++  const normBuf = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
++  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allNormals), gl.STATIC_DRAW);
++  
++  const texBuf = gl.createBuffer();
++  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
++  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allTexCoords), gl.STATIC_DRAW);
++  
++  const bgVertices = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,0,0, 1,1,0, 0,1,0]);
++  const bgNormals = new Float32Array([0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1]);
++  const bgTexCoords = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
++  
+   const bgPosBuf = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
+   gl.bufferData(gl.ARRAY_BUFFER, bgVertices, gl.STATIC_DRAW);
+-  gl.enableVertexAttribArray(posLoc);
+-  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+   
+   const bgNormBuf = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
+   gl.bufferData(gl.ARRAY_BUFFER, bgNormals, gl.STATIC_DRAW);
+-  gl.enableVertexAttribArray(normLoc);
+-  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+   
+   const bgTexBuf = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
+   gl.bufferData(gl.ARRAY_BUFFER, bgTexCoords, gl.STATIC_DRAW);
+-  gl.enableVertexAttribArray(texLoc);
+-  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+   
++  // === PASS 1: Render shadow map ===
++  gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
++  gl.viewport(0, 0, shadowMapSize, shadowMapSize);
++  gl.clearColor(1, 1, 1, 1);
++  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
++  gl.enable(gl.DEPTH_TEST);
++  gl.depthFunc(gl.LESS);
++  
++  gl.useProgram(shadowProgram);
++  
++  const shadowPosLoc = gl.getAttribLocation(shadowProgram, 'aPosition');
++  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
++  gl.enableVertexAttribArray(shadowPosLoc);
++  gl.vertexAttribPointer(shadowPosLoc, 3, gl.FLOAT, false, 0, 0);
++  
++  gl.uniformMatrix4fv(gl.getUniformLocation(shadowProgram, 'uLightProjection'), false, lightOrtho);
++  gl.uniformMatrix4fv(gl.getUniformLocation(shadowProgram, 'uLightView'), false, lightView);
++  gl.uniformMatrix4fv(gl.getUniformLocation(shadowProgram, 'uModel'), false, identity);
++  
++  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
++  gl.disableVertexAttribArray(shadowPosLoc);
++  
++  // === PASS 2: Render main scene ===
++  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+   gl.viewport(0, 0, ctx.width, ctx.height);
+   gl.clearColor(0, 0, 0, 1);
+   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+-  gl.drawArrays(gl.TRIANGLES, 0, 6);
+   
+-  gl.enable(gl.DEPTH_TEST);
+-  gl.depthFunc(gl.LESS);
+-  gl.clear(gl.DEPTH_BUFFER_BIT);
++  gl.useProgram(mainProgram);
+   
++  const posLoc = gl.getAttribLocation(mainProgram, 'aPosition');
++  const normLoc = gl.getAttribLocation(mainProgram, 'aNormal');
++  const texLoc = gl.getAttribLocation(mainProgram, 'aTexCoord');
++  
++  // Camera matrices
+   const fov = Math.PI / 2.5;
+   const near = 0.1, far = 10.0;
+   const f = 1.0 / Math.tan(fov / 2);
+   const perspective = new Float32Array([
+     f, 0, 0, 0,
+     0, f, 0, 0,
+     0, 0, (far+near)/(near-far), -1,
+     0, 0, (2*far*near)/(near-far), 0
+   ]);
+   
+   const camZ = 0.5 / Math.tan(fov / 2);
+   const view = new Float32Array([
+     1, 0, 0, 0,
+     0, 1, 0, 0,
+     0, 0, 1, 0,
+     -0.5, -0.5, -camZ, 1
+   ]);
+   
+-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, perspective);
+-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, view);
+-  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 0.0);
++  const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
+   
+-  const posBuf = gl.createBuffer();
++  // Bind textures
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, texture);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
++  
++  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uTexture'), 0);
++  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uShadowMap'), 1);
++  gl.uniform3f(gl.getUniformLocation(mainProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
++  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightProjection'), false, lightOrtho);
++  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightView'), false, lightView);
++  
++  // Draw background first (no depth test)
++  gl.disable(gl.DEPTH_TEST);
++  
++  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uProjection'), false, ortho);
++  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uView'), false, identity);
++  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uModel'), false, identity);
++  gl.uniform1f(gl.getUniformLocation(mainProgram, 'uIsBackground'), 1.0);
++  
++  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
++  gl.enableVertexAttribArray(posLoc);
++  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
++  
++  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
++  gl.enableVertexAttribArray(normLoc);
++  gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
++  
++  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
++  gl.enableVertexAttribArray(texLoc);
++  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
++  
++  gl.drawArrays(gl.TRIANGLES, 0, 6);
++  
++  // Draw buildings with depth test
++  gl.enable(gl.DEPTH_TEST);
++  gl.depthFunc(gl.LESS);
++  gl.clear(gl.DEPTH_BUFFER_BIT);
++  
++  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uProjection'), false, perspective);
++  gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uView'), false, view);
++  gl.uniform1f(gl.getUniformLocation(mainProgram, 'uIsBackground'), 0.0);
++  
+   gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allVertices), gl.STATIC_DRAW);
+   gl.enableVertexAttribArray(posLoc);
+   gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+   
+-  const normBuf = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allNormals), gl.STATIC_DRAW);
+   gl.enableVertexAttribArray(normLoc);
+   gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+   
+-  const texBuf = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allTexCoords), gl.STATIC_DRAW);
+   gl.enableVertexAttribArray(texLoc);
+   gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+   
+   gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+   
++  // Read pixels
+   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+   
+   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+   for (let y = 0; y < ctx.height; y++) {
+     for (let x = 0; x < ctx.width; x++) {
+       const srcIdx = (y * ctx.width + x) * 4;
+       const dstIdx = (y * ctx.width + x) * 4;
+       flipped[dstIdx] = pixels[srcIdx];
+       flipped[dstIdx + 1] = pixels[srcIdx + 1];
+       flipped[dstIdx + 2] = pixels[srcIdx + 2];
+       flipped[dstIdx + 3] = pixels[srcIdx + 3];
+     }
+   }
+   
++  // Cleanup
+   gl.disableVertexAttribArray(posLoc);
+   gl.disableVertexAttribArray(normLoc);
+   gl.disableVertexAttribArray(texLoc);
+   gl.disable(gl.DEPTH_TEST);
+   
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  
+   gl.deleteTexture(texture);
++  gl.deleteTexture(shadowTexture);
++  gl.deleteFramebuffer(shadowFramebuffer);
++  gl.deleteRenderbuffer(shadowDepthBuffer);
+   gl.deleteBuffer(bgPosBuf);
+   gl.deleteBuffer(bgNormBuf);
+   gl.deleteBuffer(bgTexBuf);
+   gl.deleteBuffer(posBuf);
+   gl.deleteBuffer(normBuf);
+   gl.deleteBuffer(texBuf);
+-  gl.deleteProgram(program);
++  gl.deleteProgram(shadowProgram);
++  gl.deleteProgram(mainProgram);
+   
+   return { width: ctx.width, height: ctx.height, data: flipped };
+ }
+\ No newline at end of file
+
+</tool.toolu_01LPuGGwXME2fkqxYVUftNga>
+
+# TOOL RESULT
+
+ID: toolu_01LPuGGwXME2fkqxYVUftNga
+
+<tool.toolu_01LPuGGwXME2fkqxYVUftNga>
+
+</tool.toolu_01LPuGGwXME2fkqxYVUftNga>
