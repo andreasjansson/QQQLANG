@@ -2675,47 +2675,135 @@ function fnQ(ctx: FnContext): Image {
 async function fn0(ctx: FnContext, old: Image): Promise<Image> {
   const prev = getPrevImage(ctx);
   
-  if (!bgRemovalModelReady) {
-    console.warn('Background removal model not ready, returning placeholder');
+  if (!sinetSession) {
+    console.warn('SINet model not ready, returning prev image');
     return cloneImage(prev);
   }
   
-  const canvas = document.createElement('canvas');
-  canvas.width = prev.width;
-  canvas.height = prev.height;
-  const canvasCtx = canvas.getContext('2d')!;
+  const startTime = performance.now();
   
-  const imageData = new ImageData(new Uint8ClampedArray(prev.data), prev.width, prev.height);
-  canvasCtx.putImageData(imageData, 0, 0);
+  // Resize input to 224x224 for SINet
+  const inputCanvas = document.createElement('canvas');
+  inputCanvas.width = SINET_INPUT_SIZE;
+  inputCanvas.height = SINET_INPUT_SIZE;
+  const inputCtx = inputCanvas.getContext('2d')!;
   
-  const blob = await new Promise<Blob>((resolve) => {
-    canvas.toBlob((b) => resolve(b!), 'image/png');
-  });
+  // Draw prev image scaled to 224x224
+  const prevCanvas = document.createElement('canvas');
+  prevCanvas.width = prev.width;
+  prevCanvas.height = prev.height;
+  const prevCtx = prevCanvas.getContext('2d')!;
+  const prevImageData = new ImageData(new Uint8ClampedArray(prev.data), prev.width, prev.height);
+  prevCtx.putImageData(prevImageData, 0, 0);
+  inputCtx.drawImage(prevCanvas, 0, 0, SINET_INPUT_SIZE, SINET_INPUT_SIZE);
   
-  const resultBlob = await imglyRemoveBackground(blob, {
-    model: 'isnet_quint8',
-    output: { format: 'image/png' }
-  });
+  const resizedData = inputCtx.getImageData(0, 0, SINET_INPUT_SIZE, SINET_INPUT_SIZE);
   
-  const resultImg = new window.Image();
-  resultImg.src = URL.createObjectURL(resultBlob);
-  await new Promise((resolve) => { resultImg.onload = resolve; });
+  // Preprocess: normalize with mean/std, convert to CHW format
+  const inputTensor = new Float32Array(3 * SINET_INPUT_SIZE * SINET_INPUT_SIZE);
+  for (let y = 0; y < SINET_INPUT_SIZE; y++) {
+    for (let x = 0; x < SINET_INPUT_SIZE; x++) {
+      const pixelIdx = (y * SINET_INPUT_SIZE + x) * 4;
+      const r = resizedData.data[pixelIdx];
+      const g = resizedData.data[pixelIdx + 1];
+      const b = resizedData.data[pixelIdx + 2];
+      
+      // Normalize: (pixel - mean) / (std * 255)
+      const tensorIdx = y * SINET_INPUT_SIZE + x;
+      inputTensor[0 * SINET_INPUT_SIZE * SINET_INPUT_SIZE + tensorIdx] = (r - SINET_MEAN[0]) / (SINET_STD[0] * 255);
+      inputTensor[1 * SINET_INPUT_SIZE * SINET_INPUT_SIZE + tensorIdx] = (g - SINET_MEAN[1]) / (SINET_STD[1] * 255);
+      inputTensor[2 * SINET_INPUT_SIZE * SINET_INPUT_SIZE + tensorIdx] = (b - SINET_MEAN[2]) / (SINET_STD[2] * 255);
+    }
+  }
   
-  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+  // Run inference
+  const feeds = { 'input': new ort.Tensor('float32', inputTensor, [1, 3, SINET_INPUT_SIZE, SINET_INPUT_SIZE]) };
+  const results = await sinetSession.run(feeds);
   
+  // Get output mask (assuming output is named 'output' and is [1, 1, 224, 224] or [1, 2, 224, 224])
+  const outputNames = Object.keys(results);
+  const outputTensor = results[outputNames[0]];
+  const outputData = outputTensor.data as Float32Array;
+  
+  // Create mask at 224x224
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = SINET_INPUT_SIZE;
+  maskCanvas.height = SINET_INPUT_SIZE;
+  const maskCtx = maskCanvas.getContext('2d')!;
+  const maskImageData = maskCtx.createImageData(SINET_INPUT_SIZE, SINET_INPUT_SIZE);
+  
+  // Handle different output formats
+  const outputChannels = outputTensor.dims[1] as number;
+  const spatialSize = SINET_INPUT_SIZE * SINET_INPUT_SIZE;
+  
+  for (let i = 0; i < spatialSize; i++) {
+    let alpha: number;
+    if (outputChannels === 2) {
+      // Softmax over 2 channels (background, foreground)
+      const bg = outputData[i];
+      const fg = outputData[spatialSize + i];
+      const maxVal = Math.max(bg, fg);
+      const expBg = Math.exp(bg - maxVal);
+      const expFg = Math.exp(fg - maxVal);
+      alpha = expFg / (expBg + expFg);
+    } else {
+      // Single channel sigmoid
+      alpha = 1 / (1 + Math.exp(-outputData[i]));
+    }
+    
+    maskImageData.data[i * 4 + 3] = Math.round(alpha * 255);
+  }
+  
+  // Scale mask to original size
+  maskCtx.putImageData(maskImageData, 0, 0);
+  
+  const outputCanvas = document.createElement('canvas');
+  outputCanvas.width = ctx.width;
+  outputCanvas.height = ctx.height;
+  const outputCtx = outputCanvas.getContext('2d')!;
+  
+  // Draw background (old image)
   const oldImageData = new ImageData(new Uint8ClampedArray(old.data), old.width, old.height);
-  canvasCtx.putImageData(oldImageData, 0, 0);
+  const oldCanvas = document.createElement('canvas');
+  oldCanvas.width = old.width;
+  oldCanvas.height = old.height;
+  const oldCtx = oldCanvas.getContext('2d')!;
+  oldCtx.putImageData(oldImageData, 0, 0);
+  outputCtx.drawImage(oldCanvas, 0, 0, ctx.width, ctx.height);
   
-  canvasCtx.drawImage(resultImg, 0, 0, canvas.width, canvas.height);
+  // Apply mask to foreground and draw
+  // Scale mask to output size
+  const scaledMaskCanvas = document.createElement('canvas');
+  scaledMaskCanvas.width = ctx.width;
+  scaledMaskCanvas.height = ctx.height;
+  const scaledMaskCtx = scaledMaskCanvas.getContext('2d')!;
+  scaledMaskCtx.drawImage(maskCanvas, 0, 0, ctx.width, ctx.height);
+  const scaledMaskData = scaledMaskCtx.getImageData(0, 0, ctx.width, ctx.height);
   
-  const finalImageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+  // Create foreground with alpha from mask
+  const fgCanvas = document.createElement('canvas');
+  fgCanvas.width = ctx.width;
+  fgCanvas.height = ctx.height;
+  const fgCtx = fgCanvas.getContext('2d')!;
+  fgCtx.drawImage(prevCanvas, 0, 0, ctx.width, ctx.height);
+  const fgData = fgCtx.getImageData(0, 0, ctx.width, ctx.height);
   
-  URL.revokeObjectURL(resultImg.src);
+  for (let i = 0; i < fgData.data.length; i += 4) {
+    fgData.data[i + 3] = scaledMaskData.data[i + 3];
+  }
+  
+  fgCtx.putImageData(fgData, 0, 0);
+  outputCtx.drawImage(fgCanvas, 0, 0);
+  
+  const finalData = outputCtx.getImageData(0, 0, ctx.width, ctx.height);
+  
+  const endTime = performance.now();
+  console.log(`SINet inference took ${(endTime - startTime).toFixed(1)}ms`);
   
   return {
-    width: canvas.width,
-    height: canvas.height,
-    data: new Uint8ClampedArray(finalImageData.data)
+    width: ctx.width,
+    height: ctx.height,
+    data: new Uint8ClampedArray(finalData.data)
   };
 }
 
