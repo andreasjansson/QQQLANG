@@ -6459,19 +6459,19 @@ export const characterDefs: Record<string, CharDef> = {
   '(': {
     color: '#00CED1',
     number: 47,
-    fn: fnOpenParen,
-    args: [{ type: INT, documentation: "Pinch strength (÷10)" }],
-    functionName: "pinch",
-    documentation: "Pinch distortion toward center with brightening."
+    fn: fnFisheye,
+    args: [{ type: INT, documentation: "Distortion (A-Q=pinch/concave, R-~=bulge/convex)" }],
+    functionName: "fisheye",
+    documentation: "Fisheye lens distortion. Low values pinch inward, high values bulge outward. Edges stay fixed."
   },
   
   ')': {
     color: '#FF69B4',
     number: 48,
-    fn: fnCloseParen,
-    args: [{ type: INT, documentation: "Bulge strength (÷10)" }],
-    functionName: "bulge",
-    documentation: "Bulge distortion from center with darkening."
+    fn: fnBlur,
+    args: [{ type: INT, documentation: "Blur radius (A=subtle, ~=heavy)" }],
+    functionName: "blur",
+    documentation: "Gaussian blur with adjustable radius using two-pass convolution."
   },
   
   '*': {
