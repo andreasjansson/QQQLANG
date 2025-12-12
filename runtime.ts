@@ -314,7 +314,7 @@ let lastWidth = 0;
 let lastHeight = 0;
 let lastUploadCount = 0;
 
-export function runProgram(program: string, width: number, height: number): Image[] {
+export async function runProgram(program: string, width: number, height: number): Promise<Image[]> {
   console.log(`\n=== EXECUTION: ${width}x${height} ===`);
   
   const currentUploadCount = uploadedSources.length;
