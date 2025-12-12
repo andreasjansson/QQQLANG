@@ -7954,5 +7954,55 @@ Update runProgram to resolve args using new structure
 ID: toolu_01MYxsMQ75mHdqJXfeC5havD
 
 <tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Update runProgram to resolve args using new structure
 </tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_019yio8br4ccvY1ScEvcNnEN
+
+## path
+
+<tool.toolu_019yio8br4ccvY1ScEvcNnEN>
+runtime.ts
+</tool.toolu_019yio8br4ccvY1ScEvcNnEN>
+
+## git-commit-message
+
+<tool.toolu_019yio8br4ccvY1ScEvcNnEN>
+Update getExpectedNextType to use args array
+</tool.toolu_019yio8br4ccvY1ScEvcNnEN>
+
+## diff
+
+<tool.toolu_019yio8br4ccvY1ScEvcNnEN>
+   if (lastOp.type === 'function') {
+     const def = lastOp.fnDef;
+     const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
+     const currentOpChars = [...lastOp.identifier.substring(prevIdentifier.length)];
+     const argsProvided = currentOpChars.length - 1;
+     
+-    if (argsProvided < def.arity) {
+-      return def.argTypes[argsProvided] as 'int' | 'color' | 'index';
++    if (argsProvided < def.args.length) {
++      const argType = def.args[argsProvided].type;
++      if (argType instanceof IntType) return 'int';
++      if (argType instanceof ColorType) return 'color';
++      if (argType instanceof IndexType) return 'index';
++      if (argType instanceof ChoiceType) return 'int';
+     }
+     
+     return 'function';
+   }
+\ No newline at end of file
+
+</tool.toolu_019yio8br4ccvY1ScEvcNnEN>
+
+# TOOL RESULT
+
+ID: toolu_019yio8br4ccvY1ScEvcNnEN
+
+<tool.toolu_019yio8br4ccvY1ScEvcNnEN>
+
+</tool.toolu_019yio8br4ccvY1ScEvcNnEN>

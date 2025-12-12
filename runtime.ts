@@ -447,8 +447,12 @@ export function getExpectedNextType(program: string): 'function' | 'int' | 'colo
     const currentOpChars = [...lastOp.identifier.substring(prevIdentifier.length)];
     const argsProvided = currentOpChars.length - 1;
     
-    if (argsProvided < def.arity) {
-      return def.argTypes[argsProvided] as 'int' | 'color' | 'index';
+    if (argsProvided < def.args.length) {
+      const argType = def.args[argsProvided].type;
+      if (argType instanceof IntType) return 'int';
+      if (argType instanceof ColorType) return 'color';
+      if (argType instanceof IndexType) return 'index';
+      if (argType instanceof ChoiceType) return 'int';
     }
     
     return 'function';
