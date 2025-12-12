@@ -6066,7 +6066,7 @@ export const characterDefs: Record<string, CharDef> = {
       { type: INT, documentation: "Dest width (normalized 0-1)" },
       { type: INT, documentation: "Dest height (normalized 0-1)" },
       { type: INT, documentation: "Rotation (normalized 0-1 → 0-360°)" },
-      { type: Choice('normal','xor','nand','and','or','multiply','screen','overlay','darken','lighten','difference','exclusion','add','subtract','hardlight','softlight'), documentation: "Blend mode (cycles through 16)" }
+      { type: INT, documentation: "Blend mode (mod 16: normal, xor, nand, and, or, multiply, screen, overlay, darken, lighten, diff, excl, add, sub, hard, soft)" }
     ],
     functionName: "composite",
     documentation: "Composite transformed region from old image onto current."

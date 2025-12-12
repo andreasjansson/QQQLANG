@@ -10838,5 +10838,58 @@ Update / and \ to use INT for blend modes instead of Choice
 ID: toolu_014wbNHeKg2PVgtxznU1zQps
 
 <tool.toolu_014wbNHeKg2PVgtxznU1zQps>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update / and \ to use INT for blend modes instead of Choice
 </tool.toolu_014wbNHeKg2PVgtxznU1zQps>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016ek8FzPhyPRXvZ7fs5t89q
+
+## path
+
+<tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
+character-defs.ts
+</tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
+
+## git-commit-message
+
+<tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
+Update backslash blend mode to INT
+</tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
+
+## diff
+
+<tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
+   '\\': {
+     color: '#C71585',
+     number: 61,
+     fn: fnBackslash,
+     args: [
+       { type: INDEX, documentation: "Old image source" },
+       { type: INT, documentation: "Source X (normalized 0-1)" },
+       { type: INT, documentation: "Source Y (normalized 0-1)" },
+       { type: INT, documentation: "Source width (normalized 0-1)" },
+       { type: INT, documentation: "Source height (normalized 0-1)" },
+       { type: INT, documentation: "Dest X (normalized 0-1)" },
+       { type: INT, documentation: "Dest Y (normalized 0-1)" },
+       { type: INT, documentation: "Dest width (normalized 0-1)" },
+       { type: INT, documentation: "Dest height (normalized 0-1)" },
+       { type: INT, documentation: "Rotation (normalized 0-1 → 0-360°)" },
+-      { type: Choice('normal','xor','nand','and','or','multiply','screen','overlay','darken','lighten','difference','exclusion','add','subtract','hardlight','softlight'), documentation: "Blend mode (cycles through 16)" }
++      { type: INT, documentation: "Blend mode (mod 16: normal, xor, nand, and, or, multiply, screen, overlay, darken, lighten, diff, excl, add, sub, hard, soft)" }
+     ],
+     functionName: "composite",
+     documentation: "Composite transformed region from old image onto current."
+   },
+\ No newline at end of file
+
+</tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
+
+# TOOL RESULT
+
+ID: toolu_016ek8FzPhyPRXvZ7fs5t89q
+
+<tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
+
+</tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
