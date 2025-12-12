@@ -2501,8 +2501,8 @@ function fnZ(ctx: FnContext, n: number): Image {
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, null);
   
-  // Blur strength based on n (1-68)
-  const strength = n * 0.06;
+  // Match original: blurAmount = n * 4, used for sample count scaling
+  const blurAmount = n * 4.0;
   
   const vertexShader = `
     attribute vec2 position;
@@ -2517,36 +2517,54 @@ function fnZ(ctx: FnContext, n: number): Image {
     precision highp float;
     uniform sampler2D uTexture;
     uniform vec2 uResolution;
-    uniform float uStrength;
+    uniform float uBlurAmount;
     varying vec2 vUV;
     
-    #define SAMPLES 32
+    #define MAX_SAMPLES 64
     
     void main() {
       vec2 center = vec2(0.5, 0.5);
-      vec2 dir = vUV - center;
-      float dist = length(dir);
+      vec2 delta = vUV - center;
       
-      // Sharp center, blur increases toward edges
-      float sharpRadius = 0.15;
-      float blurFactor = smoothstep(sharpRadius, 0.7, dist) * uStrength;
+      // Account for aspect ratio
+      float aspect = uResolution.x / uResolution.y;
+      vec2 scaledDelta = vec2(delta.x * aspect, delta.y);
       
-      vec3 color = vec3(0.0);
-      float totalWeight = 0.0;
+      float dist = length(scaledDelta);
+      float maxR = length(vec2(0.5 * aspect, 0.5));
+      float normDist = dist / maxR;
       
-      for (int i = 0; i < SAMPLES; i++) {
-        float t = float(i) / float(SAMPLES - 1);
-        // Sample along the radial direction toward center
-        vec2 offset = dir * t * blurFactor;
-        vec2 samplePos = vUV - offset;
-        
-        // Weight samples - center samples weighted more
-        float weight = 1.0 - t * 0.5;
-        color += texture2D(uTexture, samplePos).rgb * weight;
-        totalWeight += weight;
+      // Match original: sharp center at 0.2 radius
+      float sharpRadius = 0.2;
+      
+      if (normDist < sharpRadius) {
+        gl_FragColor = texture2D(uTexture, vUV);
+        return;
       }
       
-      gl_FragColor = vec4(color / totalWeight, 1.0);
+      // Linear falloff from sharpRadius to edge (matching original)
+      float blurStrength = min(1.0, (normDist - sharpRadius) / (1.0 - sharpRadius));
+      
+      // Number of samples scales with blur strength and amount
+      int samples = int(max(1.0, blurStrength * uBlurAmount / 2.0));
+      
+      vec3 color = vec3(0.0);
+      float sampleCount = 0.0;
+      
+      for (int i = 0; i < MAX_SAMPLES; i++) {
+        if (i > samples) break;
+        
+        float t = float(i) / max(1.0, float(samples));
+        // Sample from current position toward center
+        // Original: sx = cx + dx * (1 - t * blurStrength * 0.5)
+        // Which means: samplePos = center + delta * (1 - t * blurStrength * 0.5)
+        vec2 samplePos = center + delta * (1.0 - t * blurStrength * 0.5);
+        
+        color += texture2D(uTexture, samplePos).rgb;
+        sampleCount += 1.0;
+      }
+      
+      gl_FragColor = vec4(color / sampleCount, 1.0);
     }
   `;
   
@@ -2572,7 +2590,7 @@ function fnZ(ctx: FnContext, n: number): Image {
   
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
   gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
-  gl.uniform1f(gl.getUniformLocation(program, 'uStrength'), strength);
+  gl.uniform1f(gl.getUniformLocation(program, 'uBlurAmount'), blurAmount);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
