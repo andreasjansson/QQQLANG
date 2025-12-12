@@ -13411,5 +13411,95 @@ Implement proper multi-pass reflections for city buildings
 ID: toolu_01MHKakHHrLA6EWHyz5TDadz
 
 <tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Implement proper multi-pass reflections for city buildings
 </tool.toolu_01MHKakHHrLA6EWHyz5TDadz>
+
+# ASSISTANT
+
+Now I need to update the rendering code to add the reflection pass:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01CJmXn8MRvggeMCuioTXQQu
+
+## path
+
+<tool.toolu_01CJmXn8MRvggeMCuioTXQQu>
+character-defs.ts
+</tool.toolu_01CJmXn8MRvggeMCuioTXQQu>
+
+## git-commit-message
+
+<tool.toolu_01CJmXn8MRvggeMCuioTXQQu>
+Add reflection map rendering pass to fnT
+</tool.toolu_01CJmXn8MRvggeMCuioTXQQu>
+
+## diff
+
+<tool.toolu_01CJmXn8MRvggeMCuioTXQQu>
+   const shadowProgram = createShaderProgram(gl, shadowVertexShader, shadowFragmentShader);
++  const envProgram = createShaderProgram(gl, envVertexShader, envFragmentShader);
+   const mainProgram = createShaderProgram(gl, vertexShader, fragmentShader);
+   
+   const texture = gl.createTexture();
+   gl.bindTexture(gl.TEXTURE_2D, texture);
+   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   
+   // Create shadow map framebuffer and texture
+   const shadowMapSize = 1024;
+   const shadowFramebuffer = gl.createFramebuffer();
+   const shadowTexture = gl.createTexture();
+   
+   gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowMapSize, shadowMapSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   
+   gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
+   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, shadowTexture, 0);
+   
+   // Create depth renderbuffer for shadow pass
+   const shadowDepthBuffer = gl.createRenderbuffer();
+   gl.bindRenderbuffer(gl.RENDERBUFFER, shadowDepthBuffer);
+   gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, shadowMapSize, shadowMapSize);
+   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, shadowDepthBuffer);
+   
++  // Create reflection map framebuffer and texture
++  const reflectionFramebuffer = gl.createFramebuffer();
++  const reflectionTexture = gl.createTexture();
++  
++  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
++  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++  
++  gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
++  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, reflectionTexture, 0);
++  
++  // Create depth renderbuffer for reflection pass
++  const reflectionDepthBuffer = gl.createRenderbuffer();
++  gl.bindRenderbuffer(gl.RENDERBUFFER, reflectionDepthBuffer);
++  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, ctx.width, ctx.height);
++  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, reflectionDepthBuffer);
++  
+   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+\ No newline at end of file
+
+</tool.toolu_01CJmXn8MRvggeMCuioTXQQu>
+
+# TOOL RESULT
+
+ID: toolu_01CJmXn8MRvggeMCuioTXQQu
+
+<tool.toolu_01CJmXn8MRvggeMCuioTXQQu>
+
+</tool.toolu_01CJmXn8MRvggeMCuioTXQQu>
