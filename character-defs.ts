@@ -4216,7 +4216,7 @@ function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: n
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   
-  const norm = (n: number) => Math.max(0, Math.min(1, (n - 1) / 67));
+  const norm = (n: number) => Math.max(0, Math.min(1, (n - 0.5) / 67));
   
   // Source: full circle from center of old image
   const srcCenterX = old.width / 2;
