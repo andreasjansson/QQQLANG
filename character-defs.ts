@@ -6045,8 +6045,8 @@ export const characterDefs: Record<string, CharDef> = {
     number: 20,
     fn: fnT,
     args: [{ type: INT, documentation: "Building height multiplier (A=short, ~=tall)" }],
-    functionName: "city",
-    documentation: "Grid of 3D buildings covering entire canvas, heights based on seed with multiplier."
+    functionName: "tiles",
+    documentation: "Grid of 3D tiles covering entire canvas, heights based on seed with multiplier."
   },
   
   'U': {
