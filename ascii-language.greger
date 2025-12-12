@@ -10317,5 +10317,48 @@ Add WebGL state reset to fnA
 ID: toolu_01CEVGjnyrvJXcMH6oMHdtNS
 
 <tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add WebGL state reset to fnA
 </tool.toolu_01CEVGjnyrvJXcMH6oMHdtNS>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_012QWAFrMjur8aSrN5ayLw1f
+
+## path
+
+<tool.toolu_012QWAFrMjur8aSrN5ayLw1f>
+character-defs.ts
+</tool.toolu_012QWAFrMjur8aSrN5ayLw1f>
+
+## git-commit-message
+
+<tool.toolu_012QWAFrMjur8aSrN5ayLw1f>
+Add WebGL state reset to fnL
+</tool.toolu_012QWAFrMjur8aSrN5ayLw1f>
+
+## diff
+
+<tool.toolu_012QWAFrMjur8aSrN5ayLw1f>
+ function fnL(ctx: FnContext, old: Image, rot: number): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE0);
++  
+   const rotation = rot * 0.3;
+\ No newline at end of file
+
+</tool.toolu_012QWAFrMjur8aSrN5ayLw1f>
+
+# TOOL RESULT
+
+ID: toolu_012QWAFrMjur8aSrN5ayLw1f
+
+<tool.toolu_012QWAFrMjur8aSrN5ayLw1f>
+
+</tool.toolu_012QWAFrMjur8aSrN5ayLw1f>
