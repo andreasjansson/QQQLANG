@@ -1525,7 +1525,7 @@ async function loadSinetModel(): Promise<void> {
   try {
     console.log('Loading SINet model...');
     sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
-      executionProviders: ['webgl', 'wasm'],
+      executionProviders: ['wasm'],
       graphOptimizationLevel: 'all',
     });
     console.log('SINet model loaded successfully');
