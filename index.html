@@ -492,19 +492,17 @@
       const firstLine = `${char} ${def.functionName} — ${def.documentation}`;
       let html = `<div>${firstLine}</div>`;
       
-      // Format arg lines: (n) argDoc (A=x, B=y, [...])
+      // Format arg lines: (n) argDoc (A=x, B=y, ...)
       for (let i = 0; i < def.args.length; i++) {
         const arg = def.args[i];
         let argLine = `(${i + 1}) ${arg.documentation}`;
         
         if (arg.type instanceof ChoiceType) {
           const choices = arg.type.choices;
-          const maxToShow = 3;
-          const mappings = choices.slice(0, maxToShow).map((choice, idx) => {
+          const mappings = choices.map((choice, idx) => {
             return `${numToChar(idx + 1)}=${choice}`;
           }).join(', ');
-          const suffix = choices.length > maxToShow ? ', [...]' : '';
-          argLine += ` (${mappings}${suffix})`;
+          argLine += ` (${mappings})`;
         }
         
         html += `<div>${argLine}</div>`;
