@@ -2741,29 +2741,28 @@ function fn1(ctx: FnContext): Image {
   return out;
 }
 
-function fn2(ctx: FnContext): Image {
+function fn2(ctx: FnContext, old: Image, oldThird: number, prevThird: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const out = cloneImage(prev);
   
-  const len = ctx.images.length;
-  const img3 = len >= 3 ? ctx.images[len - 3] : (len >= 1 ? ctx.images[0] : prev);
-  const img2 = len >= 2 ? ctx.images[len - 2] : prev;
-  const img1 = prev;
+  const oldIdx = ((oldThird - 1) % 3 + 3) % 3;
+  const prevIdx = ((prevThird - 1) % 3 + 3) % 3;
   
-  const third1 = Math.floor(ctx.width / 3);
-  const third2 = Math.floor(ctx.width * 2 / 3);
+  const thirdHeight = Math.floor(ctx.height / 3);
   
-  for (let y = 0; y < ctx.height; y++) {
+  const oldStartY = oldIdx * thirdHeight;
+  const oldEndY = oldIdx === 2 ? ctx.height : (oldIdx + 1) * thirdHeight;
+  
+  const prevStartY = prevIdx * thirdHeight;
+  const prevEndY = prevIdx === 2 ? ctx.height : (prevIdx + 1) * thirdHeight;
+  
+  const oldHeight = oldEndY - oldStartY;
+  const prevHeight = prevEndY - prevStartY;
+  
+  for (let y = prevStartY; y < prevEndY; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      let src: Image;
-      if (x < third1) {
-        src = img3;
-      } else if (x < third2) {
-        src = img2;
-      } else {
-        src = img1;
-      }
-      const [r, g, b] = getPixel(src, x, y);
+      const srcY = oldStartY + Math.floor((y - prevStartY) / prevHeight * oldHeight);
+      const [r, g, b] = getPixel(old, x, srcY);
       setPixel(out, x, y, r, g, b);
     }
   }
@@ -5316,7 +5315,10 @@ For example, the program 'ABCD' has the following interpretation:
 
 If the program string ends before the last function has had arguments defined, it will use its own number and color as default arguments. For example, the programs 'AL', 'ALL', and 'ALLL' are equivalent.
 
-The question mark character '?' is also a function that displays help text. '?1' and '??' show the first page of help, and '?A', '?B', etc. show subsequent pages of help text.`;
+The question mark character '?' is also a function that displays help text. '?1' and '??' show the first page of help, and '?A', '?B', etc. show subsequent pages of help text.
+
+Some functions take an image index as an argument, and uses that old image in some way. '?#' shows the history of images the the characters to use to retrieve each image.
+`;
 
   return wrapText(introText, charsPerLine);
 }
