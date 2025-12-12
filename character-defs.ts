@@ -2198,9 +2198,8 @@ function fnT(ctx: FnContext, n: number): Image {
   mainLight.shadow.camera.right = shadowSize;
   mainLight.shadow.camera.top = shadowSize;
   mainLight.shadow.camera.bottom = -shadowSize;
-  mainLight.shadow.bias = -0.0001;
-  mainLight.shadow.radius = 8;
-  mainLight.shadow.blurSamples = 25;
+  mainLight.shadow.bias = -0.001;
+  mainLight.shadow.normalBias = 0.02;
   scene.add(mainLight);
   
   const fillLight = new THREE.DirectionalLight(0x8899ff, 0.3);
