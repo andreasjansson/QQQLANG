@@ -5764,10 +5764,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#CD853F',
     number: 54,
     fn: fnSlash,
-    arity: 4,
-    argTypes: ['int', 'int', 'int', 'int'],
+    arity: 5,
+    argTypes: ['index', 'int', 'int', 'int', 'int'],
     functionName: "circle-stamp",
-    documentation: "Stamps a circle from center of prev at offset (x,y) with size; args: x, y, size, blend (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, I=darken, J=lighten, K=diff, L=excl, M=add, N=sub, O=hard, P=soft)"
+    documentation: "Stamps a circle from center of old image onto prev; args: old_idx, x, y, size, blend (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, I=darken, J=lighten, K=diff, L=excl, M=add, N=sub, O=hard, P=soft)"
   },
   
   ':': {
