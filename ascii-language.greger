@@ -9839,5 +9839,61 @@ Skip initial black placeholder image in ?# display, start from index 1
 ID: toolu_011d8mCucDrby5qKdmamcmQK
 
 <tool.toolu_011d8mCucDrby5qKdmamcmQK>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Skip initial black placeholder image in ?# display, start from index 1
 </tool.toolu_011d8mCucDrby5qKdmamcmQK>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XtejtaACkUKYT2q5Ny6EbA
+
+## path
+
+<tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
+character-defs.ts
+</tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
+
+## git-commit-message
+
+<tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
+Update loop to iterate from index 1, adjusting image numbering
+</tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
+
+## diff
+
+<tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
+-  for (let i = 0; i < numImages; i++) {
+-    const col = i % cols;
+-    const row = Math.floor(i / cols);
++  for (let displayIdx = 0; displayIdx < numImages; displayIdx++) {
++    const col = displayIdx % cols;
++    const row = Math.floor(displayIdx / cols);
+     
+     const x = margin + col * cellWidth;
+     const y = margin + row * cellHeight;
+     
++    // Actual image index is displayIdx + 1 (skip index 0)
++    const i = displayIdx + 1;
+     const img = ctx.images[i];
+-    const accessKey = numToChar(i + 1);
++    const accessKey = numToChar(i);
+     
+     // Get operation info for this image
+     const opInfo = ctx.opInfos[i];
+-    const prevOpIdentifier = i > 0 ? ctx.opInfos[i - 1].identifier : '';
++    const prevOpIdentifier = i > 1 ? ctx.opInfos[i - 1].identifier : '';
+     const opChars = opInfo.identifier.substring(prevOpIdentifier.length);
+-    const displayOp = opChars || (i === 0 ? 'init' : '?');
+\ No newline at end of file
++    const displayOp = opChars || '?';
+\ No newline at end of file
+
+</tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
+
+# TOOL RESULT
+
+ID: toolu_01XtejtaACkUKYT2q5Ny6EbA
+
+<tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
+
+</tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
