@@ -2155,7 +2155,8 @@ function fnT(ctx: FnContext, n: number): Image {
   });
   renderer.setSize(ctx.width, ctx.height);
   renderer.setPixelRatio(1);
-  renderer.shadowMap.enabled = false;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.VSMShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.2;
