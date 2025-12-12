@@ -413,8 +413,8 @@ export async function runProgram(program: string, width: number, height: number)
   return images;
 }
 
-export function getFinalImage(program: string, width: number, height: number): Image {
-  const images = runProgram(program, width, height);
+export async function getFinalImage(program: string, width: number, height: number): Promise<Image> {
+  const images = await runProgram(program, width, height);
   return images[images.length - 1];
 }
 
