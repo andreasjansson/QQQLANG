@@ -5916,11 +5916,11 @@ export const characterDefs: Record<string, CharDef> = {
   '_': {
     color: '#FF7F50',
     number: 63,
-    fn: fnUnderscore,
+    fn: fnBlend,
     arity: 1,
-    argTypes: ['index'],
-    functionName: "blur-luminosity",
-    documentation: "Luminosity blend: colors from heavily blurred old image, luminance/structure from prev"
+    argTypes: ['int'],
+    functionName: "blend",
+    documentation: "Blends prev with prev-1 using mode n%32: A=normal, B=multiply, C=screen, D=overlay, E=darken, F=lighten, G=dodge, H=burn, I=hardlight, J=softlight, K=difference, L=exclusion, M=add, N=subtract, O=xor, P=and, Q=or, R=nand, S=nor, T=xnor, U=average, V=divide, W=grain-extract, X=grain-merge, Y=vivid, Z=linear, 0=pin, 1=hardmix, 2=hue, 3=saturation, 4=color, 5=luminosity"
   },
   
   '`': {
