@@ -2174,7 +2174,7 @@ function fnT(ctx: FnContext, n: number): Image {
   scene.add(ambient);
   
   const light = new THREE.DirectionalLight(0xffffff, 2);
-  light.position.set(3, 3, 5);
+  light.position.set(0.5, 0.5, 8);
   light.castShadow = true;
   light.shadow.mapSize.width = 1536;
   light.shadow.mapSize.height = 1536;
