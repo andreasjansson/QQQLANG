@@ -2231,8 +2231,8 @@ function fnT(ctx: FnContext, n: number): Image {
       const cy = (row + 0.5) * cellHeight - frustumHeight / 2;
       
       const boxGeometry = new THREE.BoxGeometry(
-        cellWidth * 0.92,
-        cellHeight * 0.92,
+        cellWidth,
+        cellHeight,
         depth
       );
       
