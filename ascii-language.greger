@@ -8051,5 +8051,705 @@ Update character A with new args structure
 ID: toolu_018QS4fSFYvCiEgGWBxC2G8s
 
 <tool.toolu_018QS4fSFYvCiEgGWBxC2G8s>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update character A with new args structure
 </tool.toolu_018QS4fSFYvCiEgGWBxC2G8s>
+
+# ASSISTANT
+
+Let me continue with more character updates in larger batches. I'll read the file to see the current state:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_017M9M2mj67Q76MPFfBVngDJ
+
+## path
+
+<tool.toolu_017M9M2mj67Q76MPFfBVngDJ>
+character-defs.ts
+</tool.toolu_017M9M2mj67Q76MPFfBVngDJ>
+
+## start-line
+
+<tool.toolu_017M9M2mj67Q76MPFfBVngDJ>
+2620
+</tool.toolu_017M9M2mj67Q76MPFfBVngDJ>
+
+## end-line
+
+<tool.toolu_017M9M2mj67Q76MPFfBVngDJ>
+2750
+</tool.toolu_017M9M2mj67Q76MPFfBVngDJ>
+
+# TOOL RESULT
+
+ID: toolu_017M9M2mj67Q76MPFfBVngDJ
+
+<tool.toolu_017M9M2mj67Q76MPFfBVngDJ>
+        
+        let sumR = 0, sumG = 0, sumB = 0;
+        for (let i = 0; i <= samples; i++) {
+          const t = i / samples;
+          const sx = cx + dx * (1 - t * blurStrength * 0.5);
+          const sy = cy + dy * (1 - t * blurStrength * 0.5);
+          const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+          sumR += r;
+          sumG += g;
+          sumB += b;
+        }
+        
+        setPixel(out, x, y, 
+          Math.round(sumR / (samples + 1)),
+          Math.round(sumG / (samples + 1)),
+          Math.round(sumB / (samples + 1))
+        );
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fnQ(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const hw = Math.floor(ctx.width / 2);
+  const hh = Math.floor(ctx.height / 2);
+  
+  const temp = createSolidImage(hw, hh, '#000000');
+  
+  for (let y = 0; y < hh; y++) {
+    for (let x = 0; x < hw; x++) {
+      const sx = (x / hw) * prev.width;
+      const sy = (y / hh) * prev.height;
+      const [r, g, b] = getPixel(prev, Math.floor(sx), Math.floor(sy));
+      
+      if (x / hw + y / hh > 1) {
+        setPixel(temp, x, y, 255 - r, 255 - g, 255 - b);
+      } else {
+        setPixel(temp, x, y, r, g, b);
+      }
+    }
+  }
+  
+  for (let qy = 0; qy < 2; qy++) {
+    for (let qx = 0; qx < 2; qx++) {
+      for (let y = 0; y < hh; y++) {
+        for (let x = 0; x < hw; x++) {
+          const outX = qx * hw + x;
+          const outY = qy * hh + y;
+          if (outX < ctx.width && outY < ctx.height) {
+            const srcX = qx === 1 ? hw - 1 - x : x;
+            const srcY = qy === 1 ? hh - 1 - y : y;
+            const [r, g, b] = getPixel(temp, srcX, srcY);
+            setPixel(out, outX, outY, r, g, b);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
+function fn0(ctx: FnContext, old: Image): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [pr, pg, pb] = getPixel(prev, x, y);
+      const [or, og, ob] = getPixel(old, x, y);
+      
+      const nr = pr < 128 ? (2 * pr * or) / 255 : 255 - (2 * (255 - pr) * (255 - or)) / 255;
+      const ng = pg < 128 ? (2 * pg * og) / 255 : 255 - (2 * (255 - pg) * (255 - og)) / 255;
+      const nb = pb < 128 ? (2 * pb * ob) / 255 : 255 - (2 * (255 - pb) * (255 - ob)) / 255;
+      
+      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
+    }
+  }
+  
+  return out;
+}
+
+function fn1(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const barStart = Math.floor(ctx.width / 3);
+  const barEnd = Math.floor(ctx.width * 2 / 3);
+  
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      
+      if (x >= barStart && x < barEnd) {
+        let sr = 0, sg = 0, sb = 0;
+        const kernel = [
+          [0, -1, 0],
+          [-1, 5, -1],
+          [0, -1, 0]
+        ];
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
+            const weight = kernel[ky + 1][kx + 1];
+            sr += pr * weight;
+            sg += pg * weight;
+            sb += pb * weight;
+          }
+        }
+        sr = Math.max(0, Math.min(255, sr));
+        sg = Math.max(0, Math.min(255, sg));
+        sb = Math.max(0, Math.min(255, sb));
+        
+        const contrast = 1.3;
+        sr = Math.max(0, Math.min(255, ((sr / 255 - 0.5) * contrast + 0.5) * 255));
+        sg = Math.max(0, Math.min(255, ((sg / 255 - 0.5) * contrast + 0.5) * 255));
+        sb = Math.max(0, Math.min(255, ((sb / 255 - 0.5) * contrast + 0.5) * 255));
+        
+        setPixel(out, x, y, Math.round(sr), Math.round(sg), Math.round(sb));
+      } else {
+        const gray = Math.round(r * 0.299 + g * 0.587 + b * 0.114);
+        setPixel(out, x, y, gray, gray, gray);
+      }
+    }
+  }
+  
+</tool.toolu_017M9M2mj67Q76MPFfBVngDJ>
+
+# ASSISTANT
+
+Let me find where the characterDefs object starts:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01ArDFH1sXsHpADMJNeYzmeW
+
+## pattern
+
+<tool.toolu_01ArDFH1sXsHpADMJNeYzmeW>
+export const characterDefs: Record
+</tool.toolu_01ArDFH1sXsHpADMJNeYzmeW>
+
+## path
+
+<tool.toolu_01ArDFH1sXsHpADMJNeYzmeW>
+character-defs.ts
+</tool.toolu_01ArDFH1sXsHpADMJNeYzmeW>
+
+# TOOL RESULT
+
+ID: toolu_01ArDFH1sXsHpADMJNeYzmeW
+
+<tool.toolu_01ArDFH1sXsHpADMJNeYzmeW>
+5498:export const characterDefs: Record<string, CharDef> = {
+
+</tool.toolu_01ArDFH1sXsHpADMJNeYzmeW>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01TM31fyyRooAhD9LEykE4ST
+
+## path
+
+<tool.toolu_01TM31fyyRooAhD9LEykE4ST>
+character-defs.ts
+</tool.toolu_01TM31fyyRooAhD9LEykE4ST>
+
+## start-line
+
+<tool.toolu_01TM31fyyRooAhD9LEykE4ST>
+5498
+</tool.toolu_01TM31fyyRooAhD9LEykE4ST>
+
+## end-line
+
+<tool.toolu_01TM31fyyRooAhD9LEykE4ST>
+5700
+</tool.toolu_01TM31fyyRooAhD9LEykE4ST>
+
+# TOOL RESULT
+
+ID: toolu_01TM31fyyRooAhD9LEykE4ST
+
+<tool.toolu_01TM31fyyRooAhD9LEykE4ST>
+export const characterDefs: Record<string, CharDef> = {
+  'A': {
+    color: '#78A10F',
+    number: 1,
+    fn: fnA,
+    args: [],
+    functionName: "flip-and-sphere",
+    documentation: "Flips prev horizontally, then renders as texture on two 3D spheres with lighting."
+  },
+  
+  'B': {
+    color: '#8B4513',
+    number: 2,
+    fn: fnV,
+    arity: 1,
+    argTypes: ['color'],
+    functionName: "border",
+    documentation: "Circular gradient darkening edges, tinted toward color c"
+  },
+  
+  'C': {
+    color: '#FF6B35',
+    number: 3,
+    fn: fnC,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "concentric-hue",
+    documentation: "Creates n concentric circles alternating between original and hue-shifted versions"
+  },
+  
+  'D': {
+    color: '#FF1493',
+    number: 4,
+    fn: fnD,
+    arity: 0,
+    argTypes: [],
+    functionName: "drip",
+    documentation: "Metaball-based dripping effect with blobby liquid drips"
+  },
+  
+  'E': {
+    color: '#50C878',
+    number: 5,
+    fn: fnE,
+    arity: 0,
+    argTypes: [],
+    functionName: "emerald",
+    documentation: "Renders bright reflective 3D emeralds in symmetric pattern with large center emerald"
+  },
+  
+  'F': {
+    color: '#FFD700',
+    number: 6,
+    fn: fnO,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "fft-overflow",
+    documentation: "2D FFT with magnitude overflow/wrap and per-channel phase shifts - creates banded halos and chromatic frequency ghosts"
+  },
+  
+  'G': {
+    color: '#9370DB',
+    number: 7,
+    fn: fnG,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "grayscale-colorize",
+    documentation: "Converts to grayscale then applies n-color rainbow palette based on brightness"
+  },
+  
+  'H': {
+    color: '#DC143C',
+    number: 8,
+    fn: fnH,
+    arity: 0,
+    argTypes: [],
+    functionName: "hourglass",
+    documentation: "Hourglass gradient: NAND blend inside hourglass shape, XOR/add/diff blend outside, creates colors from gradients"
+  },
+  
+  'I': {
+    color: '#00FF7F',
+    number: 9,
+    fn: fnI,
+    arity: 0,
+    argTypes: [],
+    functionName: "invert-edges",
+    documentation: "Inverts prev colors, then applies Sobel edge detection and draws edges in white"
+  },
+  
+  'J': {
+    color: '#FF8C00',
+    number: 10,
+    fn: fnF,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "julia-fractal",
+    documentation: "Julia set fractal masks prev - inside set shows prev, outside darkened; n controls zoom level"
+  },
+  
+  'K': {
+    color: '#4B0082',
+    number: 11,
+    fn: fnK,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "kaleidoscope",
+    documentation: "Creates n-way kaleidoscope effect centered on image with 1.1x zoom"
+  },
+  
+  'L': {
+    color: '#20B2AA',
+    number: 12,
+    fn: fnL,
+    arity: 2,
+    argTypes: ['index', 'int'],
+    functionName: "lissajous",
+    documentation: "3D Lissajous tube textured with prev, old_image as background; first arg=old image, second=rotation"
+  },
+  
+  'M': {
+    color: '#FF69B4',
+    number: 13,
+    fn: fnM,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "moire",
+    documentation: "Moiré interference pattern: 3 overlapping line grids create 8 zones with different hue/saturation/lightness shifts"
+  },
+  
+  'N': {
+    color: '#8A2BE2',
+    number: 14,
+    fn: fnN,
+    arity: 0,
+    argTypes: [],
+    functionName: "neon",
+    documentation: "Neon glow effect - edges glow in their original hue, scattered light points add ambiance"
+  },
+  
+  'O': {
+    color: '#FF6347',
+    number: 15,
+    fn: fnOilSlick,
+    arity: 2,
+    argTypes: ['int', 'int'],
+    functionName: "oil-slick",
+    documentation: "Domain warping effect; first arg controls warp strength, second controls iterations/complexity"
+  },
+  
+  'P': {
+    color: '#4682B4',
+    number: 16,
+    fn: fnP,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "diagonal-pixelate",
+    documentation: "Pixelates with cell size n+1, diagonal split: top-left = average, bottom-right = most saturated"
+  },
+  
+  'Q': {
+    color: '#32CD32',
+    number: 17,
+    fn: fnQ,
+    arity: 0,
+    argTypes: [],
+    functionName: "prism",
+    documentation: "Creates negative prism: diagonal split with inversion, then mirrors into 4 quadrants (h-flip right, v-flip bottom)"
+  },
+  
+  'R': {
+    color: '#DA70D6',
+    number: 18,
+    fn: fnR,
+    arity: 0,
+    argTypes: [],
+    functionName: "room",
+    documentation: "3D room with three walls, ceiling, and floor textured with prev, lit from center"
+  },
+  
+  'S': {
+    color: '#87CEEB',
+    number: 19,
+    fn: fnS,
+    arity: 2,
+    argTypes: ['index', 'int'],
+    functionName: "sierpinski",
+    documentation: "Sierpiński triangle fractal: first arg=old image for interior, second=detail level (1-68); outer shells get hue shifts, invert, grayscale"
+  },
+  
+  'T': {
+    color: '#F0E68C',
+    number: 20,
+    fn: fnT,
+    arity: 1,
+    argTypes: ['int'],
+    functionName: "cubes",
+    documentation: "n+1 3D cubes protrude from prev plane toward camera, tops textured from prev, sides use edge pixels, lit from front"
+  },
+  
+  'U': {
+    color: '#DDA0DD',
+    number: 21,
+</tool.toolu_01TM31fyyRooAhD9LEykE4ST>
+
+# ASSISTANT
+
+This is a large file with many character definitions. Let me create a script to update all of them at once. First, let me replace them in batches:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011E5cw2jhmbegxkbS324HuD
+
+## path
+
+<tool.toolu_011E5cw2jhmbegxkbS324HuD>
+character-defs.ts
+</tool.toolu_011E5cw2jhmbegxkbS324HuD>
+
+## git-commit-message
+
+<tool.toolu_011E5cw2jhmbegxkbS324HuD>
+Update characters B-Z with new args structure
+</tool.toolu_011E5cw2jhmbegxkbS324HuD>
+
+## diff
+
+<tool.toolu_011E5cw2jhmbegxkbS324HuD>
+   'B': {
+     color: '#8B4513',
+     number: 2,
+     fn: fnV,
+-    arity: 1,
+-    argTypes: ['color'],
++    args: [{ type: COLOR, documentation: "Border tint color" }],
+     functionName: "border",
+-    documentation: "Circular gradient darkening edges, tinted toward color c"
++    documentation: "Circular gradient darkening edges with color tint."
+   },
+   
+   'C': {
+     color: '#FF6B35',
+     number: 3,
+     fn: fnC,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Number of concentric circles" }],
+     functionName: "concentric-hue",
+-    documentation: "Creates n concentric circles alternating between original and hue-shifted versions"
++    documentation: "Alternating original and hue-shifted concentric circles."
+   },
+   
+   'D': {
+     color: '#FF1493',
+     number: 4,
+     fn: fnD,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "drip",
+-    documentation: "Metaball-based dripping effect with blobby liquid drips"
++    documentation: "Metaball-based dripping water drops effect."
+   },
+   
+   'E': {
+     color: '#50C878',
+     number: 5,
+     fn: fnE,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "emerald",
+-    documentation: "Renders bright reflective 3D emeralds in symmetric pattern with large center emerald"
++    documentation: "Renders reflective 3D emeralds in symmetric pattern."
+   },
+   
+   'F': {
+     color: '#FFD700',
+     number: 6,
+     fn: fnO,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "FFT multiplier strength" }],
+     functionName: "fft-overflow",
+-    documentation: "2D FFT with magnitude overflow/wrap and per-channel phase shifts - creates banded halos and chromatic frequency ghosts"
++    documentation: "2D FFT with magnitude overflow and chromatic phase shifts."
+   },
+   
+   'G': {
+     color: '#9370DB',
+     number: 7,
+     fn: fnG,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Number of posterize colors" }],
+     functionName: "grayscale-colorize",
+-    documentation: "Converts to grayscale then applies n-color rainbow palette based on brightness"
++    documentation: "Converts to grayscale then applies rainbow palette."
+   },
+   
+   'H': {
+     color: '#DC143C',
+     number: 8,
+     fn: fnH,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "hourglass",
+-    documentation: "Hourglass gradient: NAND blend inside hourglass shape, XOR/add/diff blend outside, creates colors from gradients"
++    documentation: "Hourglass gradient with bitwise color blending."
+   },
+   
+   'I': {
+     color: '#00FF7F',
+     number: 9,
+     fn: fnI,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "invert-edges",
+-    documentation: "Inverts prev colors, then applies Sobel edge detection and draws edges in white"
++    documentation: "Inverts colors then adds Sobel edge detection."
+   },
+   
+   'J': {
+     color: '#FF8C00',
+     number: 10,
+     fn: fnF,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Fractal zoom depth" }],
+     functionName: "julia-fractal",
+-    documentation: "Julia set fractal masks prev - inside set shows prev, outside darkened; n controls zoom level"
++    documentation: "Julia set fractal masking the previous image."
+   },
+   
+   'K': {
+     color: '#4B0082',
+     number: 11,
+     fn: fnK,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Number of kaleidoscope segments" }],
+     functionName: "kaleidoscope",
+-    documentation: "Creates n-way kaleidoscope effect centered on image with 1.1x zoom"
++    documentation: "N-way kaleidoscope effect with zoom."
+   },
+   
+   'L': {
+     color: '#20B2AA',
+     number: 12,
+     fn: fnL,
+-    arity: 2,
+-    argTypes: ['index', 'int'],
++    args: [
++      { type: INDEX, documentation: "Old image for tube texture" },
++      { type: INT, documentation: "Rotation angle multiplier" }
++    ],
+     functionName: "lissajous",
+-    documentation: "3D Lissajous tube textured with prev, old_image as background; first arg=old image, second=rotation"
++    documentation: "3D Lissajous tube with textured surface."
+   },
+   
+   'M': {
+     color: '#FF69B4',
+     number: 13,
+     fn: fnM,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Pattern complexity seed" }],
+     functionName: "moire",
+-    documentation: "Moiré interference pattern: 3 overlapping line grids create 8 zones with different hue/saturation/lightness shifts"
++    documentation: "Moiré interference pattern with color zones."
+   },
+   
+   'N': {
+     color: '#8A2BE2',
+     number: 14,
+     fn: fnN,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "neon",
+-    documentation: "Neon glow effect - edges glow in their original hue, scattered light points add ambiance"
++    documentation: "Neon glow effect on bright edges."
+   },
+   
+   'O': {
+     color: '#FF6347',
+     number: 15,
+     fn: fnOilSlick,
+-    arity: 2,
+-    argTypes: ['int', 'int'],
++    args: [
++      { type: INT, documentation: "Warp strength" },
++      { type: INT, documentation: "Iteration depth" }
++    ],
+     functionName: "oil-slick",
+-    documentation: "Domain warping effect; first arg controls warp strength, second controls iterations/complexity"
++    documentation: "Domain warping with iridescent lighting."
+   },
+   
+   'P': {
+     color: '#4682B4',
+     number: 16,
+     fn: fnP,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Pixel cell size" }],
+     functionName: "diagonal-pixelate",
+-    documentation: "Pixelates with cell size n+1, diagonal split: top-left = average, bottom-right = most saturated"
++    documentation: "Pixelate with diagonal split using average/saturated colors."
+   },
+   
+   'Q': {
+     color: '#32CD32',
+     number: 17,
+     fn: fnQ,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "prism",
+-    documentation: "Creates negative prism: diagonal split with inversion, then mirrors into 4 quadrants (h-flip right, v-flip bottom)"
++    documentation: "Negative prism with diagonal inversion and mirroring."
+   },
+   
+   'R': {
+     color: '#DA70D6',
+     number: 18,
+     fn: fnR,
+-    arity: 0,
+-    argTypes: [],
++    args: [],
+     functionName: "room",
+-    documentation: "3D room with three walls, ceiling, and floor textured with prev, lit from center"
++    documentation: "3D room with textured walls, ceiling, and floor."
+   },
+   
+   'S': {
+     color: '#87CEEB',
+     number: 19,
+     fn: fnS,
+-    arity: 2,
+-    argTypes: ['index', 'int'],
++    args: [
++      { type: INDEX, documentation: "Old image for triangle interior" },
++      { type: INT, documentation: "Fractal detail level (1-68)" }
++    ],
+     functionName: "sierpinski",
+-    documentation: "Sierpiński triangle fractal: first arg=old image for interior, second=detail level (1-68); outer shells get hue shifts, invert, grayscale"
++    documentation: "Sierpiński triangle fractal with color effects."
+   },
+   
+   'T': {
+     color: '#F0E68C',
+     number: 20,
+     fn: fnT,
+-    arity: 1,
+-    argTypes: ['int'],
++    args: [{ type: INT, documentation: "Number of 3D cubes (n+1)" }],
+     functionName: "cubes",
+-    documentation: "n+1 3D cubes protrude from prev plane toward camera, tops textured from prev, sides use edge pixels, lit from front"
++    documentation: "3D cubes protruding from image plane."
+   },
+\ No newline at end of file
+
+</tool.toolu_011E5cw2jhmbegxkbS324HuD>
+
+# TOOL RESULT
+
+ID: toolu_011E5cw2jhmbegxkbS324HuD
+
+<tool.toolu_011E5cw2jhmbegxkbS324HuD>
+
+</tool.toolu_011E5cw2jhmbegxkbS324HuD>
