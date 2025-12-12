@@ -395,6 +395,15 @@
       return program;
     }
     
+    function numToChar(num) {
+      if (num >= 1 && num <= 26) return String.fromCharCode('A'.charCodeAt(0) + num - 1);
+      if (num >= 27 && num <= 36) return String.fromCharCode('0'.charCodeAt(0) + num - 27);
+      const symbols = '<>^!"#$%&\'()*+,-./:;=?@[\\]_`{|}~';
+      const idx = num - 37;
+      if (idx >= 0 && idx < symbols.length) return symbols[idx];
+      return '?';
+    }
+    
     function updateHelpDisplay() {
       const program = input.value || '';
       if (!program) {
@@ -422,11 +431,19 @@
       
       for (let i = 0; i < def.args.length; i++) {
         const arg = def.args[i];
-        let typeDisplay = arg.type.name;
-        if (arg.type instanceof ChoiceType && arg.type.choices.length <= 10) {
-          typeDisplay = `choice(${arg.type.choices.slice(0, 5).join(',')})`;
+        let argDoc = arg.documentation;
+        
+        if (arg.type instanceof ChoiceType) {
+          const choices = arg.type.choices;
+          const showLimit = choices.length < 68 ? choices.length : 5;
+          const mappings = choices.slice(0, showLimit).map((choice, idx) => {
+            return `${numToChar(idx + 1)}=&gt;${choice}`;
+          }).join(',');
+          const suffix = choices.length > showLimit ? ',[etc.]' : '';
+          argDoc += ` ${mappings}${suffix}`;
         }
-        html += `<div class="arg-line">(${i + 1}) :${typeDisplay} -- ${arg.documentation}</div>`;
+        
+        html += `<div class="arg-line">(${i + 1}) :${arg.type.name} -- ${argDoc}</div>`;
       }
       
       helpContainer.innerHTML = html;
