@@ -10545,5 +10545,59 @@ Add WebGL state reset to fnOpenBrace
 ID: toolu_01F7LHmxnBqZ3YDaeGsy7oLD
 
 <tool.toolu_01F7LHmxnBqZ3YDaeGsy7oLD>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add WebGL state reset to fnOpenBrace
 </tool.toolu_01F7LHmxnBqZ3YDaeGsy7oLD>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015UNv2TwsuB4FrTjtfsLXAk
+
+## path
+
+<tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
+character-defs.ts
+</tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
+
+## git-commit-message
+
+<tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
+Add WebGL state reset to fnCloseBrace
+</tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
+
+## diff
+
+<tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
+ function fnCloseBrace(ctx: FnContext): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE0);
++  
+   const vertexShader = `
+     attribute vec2 position;
+     varying vec2 vUV;
+     void main() {
+       vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+       gl_Position = vec4(position, 0.0, 1.0);
+     }
+   `;
+   
+   const fragmentShader = `
+     precision mediump float;
+     uniform sampler2D texture;
+\ No newline at end of file
+
+</tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
+
+# TOOL RESULT
+
+ID: toolu_015UNv2TwsuB4FrTjtfsLXAk
+
+<tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
+
+</tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
