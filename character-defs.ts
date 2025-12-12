@@ -4699,7 +4699,7 @@ function fnImageHistory(ctx: FnContext): Image {
     
     // Draw text below thumbnail on single line
     // Display with 1-based numbering to match access keys
-    const textY = thumbY + thumbSize + fontSize + 2;
+    const textY = thumbY + thumbSize + fontSize + 1;
     tempCtx.fillStyle = '#00FF00';
     tempCtx.textAlign = 'center';
     tempCtx.fillText(`#${i} [${accessKey}] ${displayOp}`, thumbX + thumbSize / 2, textY);
