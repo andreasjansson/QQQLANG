@@ -2207,7 +2207,7 @@ function fnT(ctx: FnContext, n: number): Image {
       
       for (let i = 0; i < uvs.count; i++) {
         if (normals.getZ(i) > 0.9) {
-          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY1 : texY0);
+          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY0 : texY1);
         }
       }
       
