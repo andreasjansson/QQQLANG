@@ -5764,10 +5764,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#CD853F',
     number: 54,
     fn: fnSlash,
-    arity: 1,
-    argTypes: ['color'],
-    functionName: "diagonal-lines",
-    documentation: "Diagonal lines top-left to bottom-right in color c, spacing based on luminance (bright=sparse)"
+    arity: 4,
+    argTypes: ['int', 'int', 'int', 'int'],
+    functionName: "circle-stamp",
+    documentation: "Stamps a circle from center of prev at offset (x,y) with size; args: x, y, size, blend (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, I=darken, J=lighten, K=diff, L=excl, M=add, N=sub, O=hard, P=soft)"
   },
   
   ':': {
