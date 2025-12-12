@@ -5881,220 +5881,216 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#228B22',
     number: 42,
     fn: (ctx: FnContext, old: Image) => cloneImage(old),
-    arity: 1,
-    argTypes: ['index'],
+    args: [{ type: INDEX, documentation: "Old image index to insert" }],
     functionName: "insert",
-    documentation: "Replaces prev with old image specified by index argument"
+    documentation: "Replaces current image with specified old image."
   },
   
   '$': {
     color: '#FFD700',
     number: 43,
     fn: fnDollar,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "segment-hue-sort",
-    documentation: "Color-based flood-fill segmentation, then sorts pixels within each segment by hue vertically"
+    documentation: "Color-based segmentation, then sorts pixels by hue within each segment."
   },
   
   '%': {
     color: '#8B0000',
     number: 44,
     fn: fnPercent,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: Choice('horizontal','vertical'), documentation: "Flip direction (even=horizontal, odd=vertical)" }],
     functionName: "flip",
-    documentation: "Flips image horizontally if n is even, vertically if n is odd"
+    documentation: "Flips image horizontally or vertically based on argument parity."
   },
   
   '&': {
     color: '#4169E1',
     number: 45,
     fn: fnAmpersand,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "dither",
-    documentation: "Aggressive ordered dither using 8x8 Bayer matrix with chromatic channel offsets for RGB separation"
+    documentation: "Ordered dither with 8×8 Bayer matrix and chromatic offsets."
   },
   
   "'": {
     color: '#FF1493',
     number: 46,
     fn: fnJ,
-    arity: 1,
-    argTypes: ['index'],
+    args: [{ type: INDEX, documentation: "Old image to checkerboard with" }],
     functionName: "variable-checkerboard",
-    documentation: "Checkerboard blend where square size increases from top-left (2px) to bottom-right (52px)"
+    documentation: "Checkerboard blend with increasing square size from corner to corner."
   },
   
   '(': {
     color: '#00CED1',
     number: 47,
     fn: fnOpenParen,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Pinch strength (÷10)" }],
     functionName: "pinch",
-    documentation: "Pinch distortion toward center with strength n/10, brightens pixels near center"
+    documentation: "Pinch distortion toward center with brightening."
   },
   
   ')': {
     color: '#FF69B4',
     number: 48,
     fn: fnCloseParen,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Bulge strength (÷10)" }],
     functionName: "bulge",
-    documentation: "Bulge distortion from center with strength n/10, darkens pixels near edge"
+    documentation: "Bulge distortion from center with darkening."
   },
   
   '*': {
     color: '#FFD700',
     number: 49,
     fn: fnExclaim,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "fur",
-    documentation: "Fur/hair effect: strands grow from each pixel with direction based on hue plus turbulence and swirl"
+    documentation: "Fur/hair strands growing from pixels based on hue and noise."
   },
   
   '+': {
     color: '#32CD32',
     number: 50,
     fn: fnPlus,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "zoom",
-    documentation: "Zooms in 1.2x from center, can be repeated for more zoom"
+    documentation: "Zoom in 1.2× from center."
   },
   
   ',': {
     color: '#BA55D3',
     number: 51,
     fn: fnComma,
-    arity: 1,
-    argTypes: ['color'],
+    args: [{ type: COLOR, documentation: "Stipple dot color" }],
     functionName: "stipple",
-    documentation: "Stipples prev with dots of color c at positions where (x*13+y*7) % (1+luminance/32) == 0"
+    documentation: "Stipple dots at luminance-based positions."
   },
   
   '-': {
     color: '#708090',
     number: 52,
     fn: fnMinus,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "scanlines",
-    documentation: "CRT scanline effect: every 2nd row darkened 50%, every 4th row samples from 2 pixels above"
+    documentation: "CRT scanline effect with darkening and displacement."
   },
   
   '.': {
     color: '#20B2AA',
     number: 53,
     fn: fnDot,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Dot radius base (mod 8 + 2)" }],
     functionName: "pointillism",
-    documentation: "Rebuilds prev from circles of radius (n%8)+2, color from center with +10% saturation"
+    documentation: "Pointillism effect with saturated circular dots."
   },
   
   '/': {
     color: '#CD853F',
     number: 54,
     fn: fnSlash,
-    arity: 5,
-    argTypes: ['index', 'int', 'int', 'int', 'int'],
+    args: [
+      { type: INDEX, documentation: "Old image source" },
+      { type: INT, documentation: "X position (normalized 0-1)" },
+      { type: INT, documentation: "Y position (normalized 0-1)" },
+      { type: INT, documentation: "Circle size (normalized 0-1)" },
+      { type: Choice('normal','xor','nand','and','or','multiply','screen','overlay','darken','lighten','difference','exclusion','add','subtract','hardlight','softlight'), documentation: "Blend mode (cycles through 16)" }
+    ],
     functionName: "circle-stamp",
-    documentation: "Stamps a circle from center of old image onto prev; args: old_idx, x, y, size, blend (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, I=darken, J=lighten, K=diff, L=excl, M=add, N=sub, O=hard, P=soft)"
+    documentation: "Stamp circular region from old image center onto current."
   },
   
   ':': {
     color: '#6B8E23',
     number: 55,
     fn: fnColon,
-    arity: 1,
-    argTypes: ['index'],
+    args: [{ type: INDEX, documentation: "Old image to show in porthole" }],
     functionName: "porthole",
-    documentation: "Shows old image in a center circle (radius 90% of half-size), prev image outside"
+    documentation: "Circular window showing old image with current image outside."
   },
   
   ';': {
     color: '#DB7093',
     number: 56,
     fn: fnSemicolon,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "semicircle-reflect",
-    documentation: "Semicircle arc (top half) crops prev, bottom half is reflection with wave distortion"
+    documentation: "Top semicircle preserved, bottom reflected with wave distortion."
   },
   
   '=': {
     color: '#5F9EA0',
     number: 57,
     fn: fnEquals,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Stripe height in pixels" }],
     functionName: "shifted-stripes",
-    documentation: "Horizontal stripes of height n, even stripes are prev, odd stripes shifted left by stripe_index*5 pixels"
+    documentation: "Horizontal stripes with alternating shifts."
   },
   
   '?': {
     color: '#D2691E',
     number: 58,
     fn: fnHelp,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Page number (1=intro, 2+=reference, 42=history)" }],
     functionName: "help",
-    documentation: "Displays help text; ?? or ?A shows intro, ?B/?C/etc show character reference pages, ?# shows image history table with thumbnails, invalid pages show index"
+    documentation: "Display help text or image history table."
   },
   
   '@': {
     color: '#7B68EE',
     number: 59,
     fn: fnHoles,
-    arity: 1,
-    argTypes: ['index'],
+    args: [{ type: INDEX, documentation: "Old image to reveal in midtones" }],
     functionName: "midtone-reveal",
-    documentation: "Shows old image where prev has mid-range (35-65%) saturation or lightness; extremes show prev"
+    documentation: "Show old image where saturation/lightness is mid-range."
   },
   
   '[': {
     color: '#48D1CC',
     number: 60,
     fn: fnOpenBracket,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "rotate-left",
-    documentation: "Rotates prev 20 degrees counter-clockwise"
+    documentation: "Rotate 20° counter-clockwise."
   },
   
   '\\': {
     color: '#C71585',
     number: 61,
     fn: fnBackslash,
-    arity: 11,
-    argTypes: ['index', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int'],
+    args: [
+      { type: INDEX, documentation: "Old image source" },
+      { type: INT, documentation: "Source X (normalized 0-1)" },
+      { type: INT, documentation: "Source Y (normalized 0-1)" },
+      { type: INT, documentation: "Source width (normalized 0-1)" },
+      { type: INT, documentation: "Source height (normalized 0-1)" },
+      { type: INT, documentation: "Dest X (normalized 0-1)" },
+      { type: INT, documentation: "Dest Y (normalized 0-1)" },
+      { type: INT, documentation: "Dest width (normalized 0-1)" },
+      { type: INT, documentation: "Dest height (normalized 0-1)" },
+      { type: INT, documentation: "Rotation (normalized 0-1 → 0-360°)" },
+      { type: Choice('normal','xor','nand','and','or','multiply','screen','overlay','darken','lighten','difference','exclusion','add','subtract','hardlight','softlight'), documentation: "Blend mode (cycles through 16)" }
+    ],
     functionName: "composite",
-    documentation: "Composites a region from old image onto prev; args: old_idx, src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h, rotation, blend (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, I=darken, J=lighten, K=difference, L=exclusion, M=add, N=subtract, O=hardlight, P=softlight)"
+    documentation: "Composite transformed region from old image onto current."
   },
   
   ']': {
     color: '#00FA9A',
     number: 62,
     fn: fnCloseBracket,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "left-half-offset",
-    documentation: "Offsets the left half of the image vertically by 20% with wraparound"
+    documentation: "Shift left half vertically by 20% with wraparound."
   },
   
   '_': {
     color: '#FF7F50',
     number: 63,
     fn: fnBlend,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: Choice('multiply','screen','overlay','darken','lighten','dodge','burn','hardlight','softlight','difference','exclusion','add','subtract','xor','and','or','nand','nor','xnor','average','divide','grain-extract','grain-merge','vivid','linear','pin','hardmix','hue','saturation','color','luminosity','replace-dark-third','replace-mid-third','replace-light-third','???'), documentation: "Blend mode (cycles through 34)" }],
     functionName: "blend",
-    documentation: "Blends prev with prev-1 using mode n%34: A=multiply, B=screen, C=overlay, D=darken, E=lighten, F=dodge, G=burn, H=hardlight, I=softlight, J=difference, K=exclusion, L=add, M=subtract, N=xor, O=and, P=or, Q=nand, R=nor, S=xnor, T=average, U=divide, V=grain-extract, W=grain-merge, X=vivid, Y=linear, Z=pin, 0=hardmix, 1=hue, 2=saturation, 3=color, 4=luminosity, 5=replace-dark-third, 6=replace-mid-third, 7=replace-light-third"
+    documentation: "Blend current with previous using specified mode."
   },
   
   '`': {
