@@ -4052,16 +4052,18 @@ function fnBackslash(
   const norm = (n: number) => Math.max(0, Math.min(1, (n - 1) / 67));
   
   // Source crop region in old image
+  // X and Y use full range, W and H use remaining space after offset
   const sourceCropX = Math.floor(norm(srcX) * old.width);
   const sourceCropY = Math.floor(norm(srcY) * old.height);
-  const sourceCropW = Math.max(1, Math.round(norm(srcW) * old.width));
-  const sourceCropH = Math.max(1, Math.round(norm(srcH) * old.height));
+  const sourceCropW = Math.max(1, Math.round(norm(srcW) * (old.width - sourceCropX)));
+  const sourceCropH = Math.max(1, Math.round(norm(srcH) * (old.height - sourceCropY)));
   
   // Destination region in output image
+  // X and Y use full range, W and H use remaining space after offset
   const destX = Math.floor(norm(dstX) * ctx.width);
   const destY = Math.floor(norm(dstY) * ctx.height);
-  const destW = Math.max(1, Math.round(norm(dstW) * ctx.width));
-  const destH = Math.max(1, Math.round(norm(dstH) * ctx.height));
+  const destW = Math.max(1, Math.round(norm(dstW) * (ctx.width - destX)));
+  const destH = Math.max(1, Math.round(norm(dstH) * (ctx.height - destY)));
   
   // Rotation angle (0-360 degrees)
   const rotation = norm(rot) * 2 * Math.PI;
