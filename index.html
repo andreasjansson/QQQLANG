@@ -817,7 +817,7 @@
       
       await preloadUploadedImages(canvas.width, canvas.height);
       
-      const images = runProgram(program, canvas.width, canvas.height);
+      const images = await runProgram(program, canvas.width, canvas.height);
       const finalImage = images[images.length - 1];
       
       const imageData = new ImageData(finalImage.data, finalImage.width, finalImage.height);
