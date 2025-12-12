@@ -2801,7 +2801,25 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
   const fgData = fgCtx.getImageData(0, 0, ctx.width, ctx.height);
   
   for (let i = 0; i < fgData.data.length; i += 4) {
-    fgData.data[i + 3] = scaledMaskData.data[i + 3];
+    const alpha = scaledMaskData.data[i + 3];
+    fgData.data[i + 3] = alpha;
+    
+    // Boost saturation and lightness for foreground pixels
+    if (alpha > 0) {
+      const r = fgData.data[i];
+      const g = fgData.data[i + 1];
+      const b = fgData.data[i + 2];
+      
+      // Convert to HSL, boost, convert back
+      const [h, s, l] = rgbToHsl(r, g, b);
+      const boostedS = Math.min(1, s * 1.15);
+      const boostedL = Math.min(0.95, l * 1.08);
+      const [nr, ng, nb] = hslToRgb(h, boostedS, boostedL);
+      
+      fgData.data[i] = nr;
+      fgData.data[i + 1] = ng;
+      fgData.data[i + 2] = nb;
+    }
   }
   
   fgCtx.putImageData(fgData, 0, 0);
