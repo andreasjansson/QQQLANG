@@ -6331,9 +6331,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#4169E1',
     number: 45,
     fn: fnAmpersand,
-    args: [],
+    args: [{ type: INT, documentation: "Dithering mode (1-16: ordered, B&W ordered, threshold, 2bit RGB, Floyd-Steinberg RGB, Floyd-Steinberg B&W, Atkinson 4-level, Atkinson B&W, Stucki 6-level, Burkes, Sierra, random threshold B&W, cluster dot 2-bit, blue noise B&W, 2x2 Bayer 2-bit, aggressive noise 2-bit)" }],
     functionName: "dither",
-    documentation: "Ordered dither with 8×8 Bayer matrix and chromatic offsets."
+    documentation: "Apply one of 16 dithering algorithms, from subtle to aggressive 2-color modes."
   },
   
   "'": {
