@@ -4638,6 +4638,12 @@ function fnImageHistory(ctx: FnContext): Image {
     const img = ctx.images[i];
     const accessKey = numToChar(i + 1);
     
+    // Get operation info for this image
+    const opInfo = ctx.opInfos[i];
+    const prevOpIdentifier = i > 0 ? ctx.opInfos[i - 1].identifier : '';
+    const opChars = opInfo.identifier.substring(prevOpIdentifier.length);
+    const displayOp = opChars || (i === 0 ? 'init' : '?');
+    
     // Draw thumbnail
     const thumbX = x + (cellWidth - thumbSize) / 2;
     const thumbY = y + 5;
@@ -4670,12 +4676,12 @@ function fnImageHistory(ctx: FnContext): Image {
     // Draw thumbnail
     tempCtx.drawImage(thumbCanvas, thumbX, thumbY);
     
-    // Draw text below thumbnail
+    // Draw text below thumbnail - now 3 lines
     const textY = thumbY + thumbSize + fontSize + 2;
     tempCtx.fillStyle = '#00FF00';
     tempCtx.textAlign = 'center';
-    tempCtx.fillText(`#${i}`, thumbX + thumbSize / 2, textY);
-    tempCtx.fillText(`[${accessKey}]`, thumbX + thumbSize / 2, textY + fontSize + 2);
+    tempCtx.fillText(`#${i} [${accessKey}]`, thumbX + thumbSize / 2, textY);
+    tempCtx.fillText(displayOp, thumbX + thumbSize / 2, textY + fontSize + 2);
   }
   
   const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
