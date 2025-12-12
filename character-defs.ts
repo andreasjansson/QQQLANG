@@ -2192,6 +2192,27 @@ function fnT(ctx: FnContext, n: number): Image {
     }
   }
   
+  // Shadow map shaders
+  const shadowVertexShader = `
+    attribute vec3 aPosition;
+    uniform mat4 uLightProjection;
+    uniform mat4 uLightView;
+    uniform mat4 uModel;
+    
+    void main() {
+      gl_Position = uLightProjection * uLightView * uModel * vec4(aPosition, 1.0);
+    }
+  `;
+  
+  const shadowFragmentShader = `
+    precision highp float;
+    
+    void main() {
+      gl_FragColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+    }
+  `;
+  
+  // Main render shaders
   const vertexShader = `
     attribute vec3 aPosition;
     attribute vec3 aNormal;
@@ -2200,18 +2221,20 @@ function fnT(ctx: FnContext, n: number): Image {
     uniform mat4 uProjection;
     uniform mat4 uView;
     uniform mat4 uModel;
+    uniform mat4 uLightProjection;
+    uniform mat4 uLightView;
     
     varying vec3 vNormal;
     varying vec2 vTexCoord;
     varying vec3 vWorldPos;
-    varying float vHeight;
+    varying vec4 vLightSpacePos;
     
     void main() {
       vec4 worldPos = uModel * vec4(aPosition, 1.0);
       vWorldPos = worldPos.xyz;
       vNormal = mat3(uModel) * aNormal;
       vTexCoord = aTexCoord;
-      vHeight = aPosition.z;
+      vLightSpacePos = uLightProjection * uLightView * worldPos;
       gl_Position = uProjection * uView * worldPos;
     }
   `;
@@ -2220,65 +2243,70 @@ function fnT(ctx: FnContext, n: number): Image {
     precision highp float;
     
     uniform sampler2D uTexture;
+    uniform sampler2D uShadowMap;
     uniform float uIsBackground;
+    uniform vec3 uLightDir;
     
     varying vec3 vNormal;
     varying vec2 vTexCoord;
     varying vec3 vWorldPos;
-    varying float vHeight;
+    varying vec4 vLightSpacePos;
+    
+    float calculateShadow() {
+      vec3 projCoords = vLightSpacePos.xyz / vLightSpacePos.w;
+      projCoords = projCoords * 0.5 + 0.5;
+      
+      if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0) {
+        return 0.0;
+      }
+      
+      float currentDepth = projCoords.z;
+      float bias = 0.005;
+      
+      // PCF soft shadows
+      float shadow = 0.0;
+      float texelSize = 1.0 / 1024.0;
+      for (int x = -2; x <= 2; x++) {
+        for (int y = -2; y <= 2; y++) {
+          float pcfDepth = texture2D(uShadowMap, projCoords.xy + vec2(float(x), float(y)) * texelSize).r;
+          shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+      }
+      shadow /= 25.0;
+      
+      return shadow;
+    }
     
     void main() {
       vec3 color = texture2D(uTexture, vTexCoord).rgb;
       
       if (uIsBackground > 0.5) {
-        // Darken background to simulate being in shadow
-        gl_FragColor = vec4(color * 0.5, 1.0);
+        float shadow = calculateShadow();
+        float lighting = 1.0 - shadow * 0.6;
+        gl_FragColor = vec4(color * lighting, 1.0);
       } else {
         vec3 normal = normalize(vNormal);
-        
-        // Light coming from upper-right-front (behind camera)
-        vec3 lightDir = normalize(vec3(0.5, -0.3, 1.0));
+        vec3 lightDir = normalize(uLightDir);
         vec3 viewDir = vec3(0.0, 0.0, 1.0);
         
-        // Check which face we're on
-        bool isTopFace = normal.z > 0.9;
-        bool isRightFace = normal.x > 0.9;
-        bool isLeftFace = normal.x < -0.9;
-        bool isFrontFace = normal.y > 0.9;
-        bool isBackFace = normal.y < -0.9;
+        // Ambient
+        float ambient = 0.3;
         
-        float lighting = 0.0;
+        // Diffuse
+        float diff = max(dot(normal, lightDir), 0.0);
+        float diffuse = diff * 0.6;
         
-        if (isTopFace) {
-          // Top faces are bright - fully lit by sun
-          float diffuse = max(dot(normal, lightDir), 0.0);
-          lighting = 0.7 + diffuse * 0.5;
-          
-          // Specular highlight
-          vec3 reflectDir = reflect(-lightDir, normal);
-          float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-          lighting += spec * 0.3;
-        } else if (isRightFace) {
-          // Right faces catch some light
-          lighting = 0.5 + max(dot(normal, lightDir), 0.0) * 0.3;
-        } else if (isLeftFace) {
-          // Left faces are in shadow
-          lighting = 0.25;
-        } else if (isFrontFace) {
-          // Front faces (bottom of screen) - partial light
-          lighting = 0.4;
-        } else if (isBackFace) {
-          // Back faces (top of screen) - darker
-          lighting = 0.3;
-        }
+        // Specular
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+        float specular = spec * 0.4;
         
-        // Height-based ambient boost - taller buildings catch more light
-        lighting += vHeight * 0.2;
+        // Shadow
+        float shadow = calculateShadow();
         
-        // Warm sunlight tint for lit areas
-        vec3 tint = mix(vec3(0.8, 0.85, 1.0), vec3(1.1, 1.05, 0.95), lighting);
+        float lighting = ambient + (1.0 - shadow * 0.7) * (diffuse + specular);
         
-        gl_FragColor = vec4(color * lighting * tint, 1.0);
+        gl_FragColor = vec4(color * lighting, 1.0);
       }
     }
   `;
