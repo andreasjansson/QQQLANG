@@ -2501,71 +2501,7 @@ function fnT(ctx: FnContext, n: number): Image {
   
   const ortho = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,0, -1,-1,0,1]);
   
-  // === PASS 2: Render environment/reflection map ===
-  gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.clearColor(0, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  
-  gl.useProgram(envProgram);
-  
-  const envPosLoc = gl.getAttribLocation(envProgram, 'aPosition');
-  const envNormLoc = gl.getAttribLocation(envProgram, 'aNormal');
-  const envTexLoc = gl.getAttribLocation(envProgram, 'aTexCoord');
-  
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.uniform1i(gl.getUniformLocation(envProgram, 'uTexture'), 0);
-  gl.uniform3f(gl.getUniformLocation(envProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
-  
-  // Draw background
-  gl.disable(gl.DEPTH_TEST);
-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uProjection'), false, ortho);
-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uView'), false, identity);
-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uModel'), false, identity);
-  gl.uniform1f(gl.getUniformLocation(envProgram, 'uIsBackground'), 1.0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, bgPosBuf);
-  gl.enableVertexAttribArray(envPosLoc);
-  gl.vertexAttribPointer(envPosLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, bgNormBuf);
-  gl.enableVertexAttribArray(envNormLoc);
-  gl.vertexAttribPointer(envNormLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, bgTexBuf);
-  gl.enableVertexAttribArray(envTexLoc);
-  gl.vertexAttribPointer(envTexLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-  
-  // Draw buildings for reflection map
-  gl.enable(gl.DEPTH_TEST);
-  gl.clear(gl.DEPTH_BUFFER_BIT);
-  
-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uProjection'), false, perspective);
-  gl.uniformMatrix4fv(gl.getUniformLocation(envProgram, 'uView'), false, view);
-  gl.uniform1f(gl.getUniformLocation(envProgram, 'uIsBackground'), 0.0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-  gl.enableVertexAttribArray(envPosLoc);
-  gl.vertexAttribPointer(envPosLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
-  gl.enableVertexAttribArray(envNormLoc);
-  gl.vertexAttribPointer(envNormLoc, 3, gl.FLOAT, false, 0, 0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
-  gl.enableVertexAttribArray(envTexLoc);
-  gl.vertexAttribPointer(envTexLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
-  
-  gl.disableVertexAttribArray(envPosLoc);
-  gl.disableVertexAttribArray(envNormLoc);
-  gl.disableVertexAttribArray(envTexLoc);
-  
-  // === PASS 3: Render main scene with reflections ===
+  // === PASS 2: Render main scene ===
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, ctx.width, ctx.height);
   gl.clearColor(0, 0, 0, 1);
@@ -2582,14 +2518,10 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-  gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
   
   gl.uniform1i(gl.getUniformLocation(mainProgram, 'uTexture'), 0);
   gl.uniform1i(gl.getUniformLocation(mainProgram, 'uShadowMap'), 1);
-  gl.uniform1i(gl.getUniformLocation(mainProgram, 'uReflectionMap'), 2);
   gl.uniform3f(gl.getUniformLocation(mainProgram, 'uLightDir'), lightDir[0], lightDir[1], lightDir[2]);
-  gl.uniform2f(gl.getUniformLocation(mainProgram, 'uResolution'), ctx.width, ctx.height);
   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightProjection'), false, lightOrtho);
   gl.uniformMatrix4fv(gl.getUniformLocation(mainProgram, 'uLightView'), false, lightView);
   
