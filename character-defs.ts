@@ -2177,9 +2177,9 @@ function fnT(ctx: FnContext, n: number): Image {
   const fov = 50;
   const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100);
   
-  const frustumHeight = 2 * Math.tan((fov * Math.PI / 180) / 2);
+  const frustumHeight = 2;
   const frustumWidth = frustumHeight * aspect;
-  const camZ = 1 / Math.tan((fov * Math.PI / 180) / 2);
+  const camZ = frustumHeight / (2 * Math.tan((fov * Math.PI / 180) / 2));
   camera.position.set(0, 0, camZ);
   camera.lookAt(0, 0, 0);
   
