@@ -2722,7 +2722,7 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
   }
   
   // Run inference
-  const feeds = { 'input': new ort.Tensor('float32', inputTensor, [1, 3, SINET_INPUT_SIZE, SINET_INPUT_SIZE]) };
+  const feeds = { 'data': new ort.Tensor('float32', inputTensor, [1, 3, SINET_INPUT_SIZE, SINET_INPUT_SIZE]) };
   const results = await sinetSession.run(feeds);
   
   // Get output mask (assuming output is named 'output' and is [1, 1, 224, 224] or [1, 2, 224, 224])
