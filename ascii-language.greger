@@ -14688,5 +14688,66 @@ Remove reflection pass and simplify to 2-pass rendering
 ID: toolu_01HUxvTEejvcPFR5mDkN63v4
 
 <tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Remove reflection pass and simplify to 2-pass rendering
 </tool.toolu_01HUxvTEejvcPFR5mDkN63v4>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01A1FNhtYRh1cX4ooQvDwSVV
+
+## path
+
+<tool.toolu_01A1FNhtYRh1cX4ooQvDwSVV>
+character-defs.ts
+</tool.toolu_01A1FNhtYRh1cX4ooQvDwSVV>
+
+## git-commit-message
+
+<tool.toolu_01A1FNhtYRh1cX4ooQvDwSVV>
+Fix cleanup to remove reflection resources
+</tool.toolu_01A1FNhtYRh1cX4ooQvDwSVV>
+
+## diff
+
+<tool.toolu_01A1FNhtYRh1cX4ooQvDwSVV>
+   // Cleanup
+   gl.disableVertexAttribArray(posLoc);
+   gl.disableVertexAttribArray(normLoc);
+   gl.disableVertexAttribArray(texLoc);
+   gl.disable(gl.DEPTH_TEST);
+   
+-  gl.activeTexture(gl.TEXTURE2);
+-  gl.bindTexture(gl.TEXTURE_2D, null);
+   gl.activeTexture(gl.TEXTURE1);
+   gl.bindTexture(gl.TEXTURE_2D, null);
+   gl.activeTexture(gl.TEXTURE0);
+   gl.bindTexture(gl.TEXTURE_2D, null);
+   
+   gl.deleteTexture(texture);
+   gl.deleteTexture(shadowTexture);
+-  gl.deleteTexture(reflectionTexture);
+   gl.deleteFramebuffer(shadowFramebuffer);
+-  gl.deleteFramebuffer(reflectionFramebuffer);
+   gl.deleteRenderbuffer(shadowDepthBuffer);
+-  gl.deleteRenderbuffer(reflectionDepthBuffer);
+   gl.deleteBuffer(bgPosBuf);
+   gl.deleteBuffer(bgNormBuf);
+   gl.deleteBuffer(bgTexBuf);
+   gl.deleteBuffer(posBuf);
+   gl.deleteBuffer(normBuf);
+   gl.deleteBuffer(texBuf);
+   gl.deleteProgram(shadowProgram);
+-  gl.deleteProgram(envProgram);
+   gl.deleteProgram(mainProgram);
+\ No newline at end of file
+
+</tool.toolu_01A1FNhtYRh1cX4ooQvDwSVV>
+
+# TOOL RESULT
+
+ID: toolu_01A1FNhtYRh1cX4ooQvDwSVV
+
+<tool.toolu_01A1FNhtYRh1cX4ooQvDwSVV>
+
+</tool.toolu_01A1FNhtYRh1cX4ooQvDwSVV>
