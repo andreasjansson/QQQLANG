@@ -5761,9 +5761,13 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#98D8C8',
     number: 29,
     fn: fn2,
-    args: [],
-    functionName: "time-echo",
-    documentation: "Three vertical strips showing recent image history."
+    args: [
+      { type: INDEX, documentation: "Old image to extract third from" },
+      { type: INT, documentation: "Old image third (1=top, 2=mid, 3=bottom, cycling)" },
+      { type: INT, documentation: "Current image third to replace (1=top, 2=mid, 3=bottom, cycling)" }
+    ],
+    functionName: "third-stamp",
+    documentation: "Replace a third of current image with a third from old image."
   },
   
   '3': {
