@@ -60,7 +60,7 @@ export interface ArgDef {
 export interface CharDef {
   color: string;
   number: number;
-  fn: (ctx: FnContext, ...args: any[]) => Image;
+  fn: (ctx: FnContext, ...args: any[]) => Image | Promise<Image>;
   args: ArgDef[];
   functionName: string;
   documentation: string;

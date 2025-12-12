@@ -9197,5 +9197,46 @@ Add @imgly/background-removal import to character-defs.ts
 ID: toolu_01827By5wEmmMfabDDC4ZKCK
 
 <tool.toolu_01827By5wEmmMfabDDC4ZKCK>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add @imgly/background-removal import to character-defs.ts
 </tool.toolu_01827By5wEmmMfabDDC4ZKCK>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Hj8YSLeTNootvMW8FkQ3ye
+
+## path
+
+<tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
+character-defs.ts
+</tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
+
+## git-commit-message
+
+<tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
+Update CharDef to support async functions
+</tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
+
+## diff
+
+<tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
+ export interface CharDef {
+   color: string;
+   number: number;
+-  fn: (ctx: FnContext, ...args: any[]) => Image;
++  fn: (ctx: FnContext, ...args: any[]) => Image | Promise<Image>;
+   args: ArgDef[];
+   functionName: string;
+   documentation: string;
+ }
+\ No newline at end of file
+
+</tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
+
+# TOOL RESULT
+
+ID: toolu_01Hj8YSLeTNootvMW8FkQ3ye
+
+<tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
+
+</tool.toolu_01Hj8YSLeTNootvMW8FkQ3ye>
