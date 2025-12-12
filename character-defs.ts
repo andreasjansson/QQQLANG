@@ -2118,7 +2118,8 @@ function fnT(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
-  const baseGridSize = Math.max(2, Math.min(n + 2, 20));
+  const baseGridSize = 8;
+  const maxHeight = 0.05 + (n / 68) * 0.4;
   const seed = ctx.images.length * 137.5 + n * 17.0;
   const hash = (i: number) => {
     const x = Math.sin(i + seed) * 43758.5453;
@@ -2142,20 +2143,20 @@ function fnT(ctx: FnContext, n: number): Image {
       
       const x0 = col * cellSize;
       const y0 = row * cellSize;
-      const x1 = Math.min((col + 1) * cellSize, ctx.width);
-      const y1 = Math.min((row + 1) * cellSize, ctx.height);
+      const x1 = (col + 1) * cellSize;
+      const y1 = (row + 1) * cellSize;
       
       const cx = (x0 + x1) / 2 / ctx.width;
       const cy = (y0 + y1) / 2 / ctx.height;
-      const hw = (x1 - x0) / 2 / ctx.width;
-      const hh = (y1 - y0) / 2 / ctx.height;
+      const hw = cellSize / 2 / ctx.width;
+      const hh = cellSize / 2 / ctx.height;
       
-      const depth = 0.05 + hash(idx * 127.1) * 0.25;
+      const depth = 0.02 + hash(idx * 127.1) * maxHeight;
       
-      const texX0 = x0 / ctx.width;
-      const texY0 = y0 / ctx.height;
-      const texX1 = x1 / ctx.width;
-      const texY1 = y1 / ctx.height;
+      const texX0 = Math.max(0, Math.min(1, x0 / ctx.width));
+      const texY0 = Math.max(0, Math.min(1, y0 / ctx.height));
+      const texX1 = Math.max(0, Math.min(1, x1 / ctx.width));
+      const texY1 = Math.max(0, Math.min(1, y1 / ctx.height));
       
       cubesData.push({
         cx, cy, hw, hh, depth,
