@@ -3433,11 +3433,11 @@ function fnDollar(ctx: FnContext): Image {
   return out;
 }
 
-function fnPercent(ctx: FnContext, n: number): Image {
+function fnPercent(ctx: FnContext, direction: string): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const horizontal = n % 2 === 0;
+  const horizontal = direction === 'horizontal';
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
