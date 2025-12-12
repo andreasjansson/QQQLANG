@@ -5760,10 +5760,10 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#C71585',
     number: 61,
     fn: fnBackslash,
-    arity: 10,
-    argTypes: ['index', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int'],
+    arity: 11,
+    argTypes: ['index', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int'],
     functionName: "composite",
-    documentation: "Composites a region from old image onto prev; args: old_idx, src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h, rotation (A=0°, ~=360°)"
+    documentation: "Composites a region from old image onto prev; args: old_idx, src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h, rotation, blend (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, I=darken, J=lighten, K=difference, L=exclusion, M=add, N=subtract, O=hardlight, P=softlight)"
   },
   
   ']': {
