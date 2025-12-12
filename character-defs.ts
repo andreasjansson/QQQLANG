@@ -2211,7 +2211,7 @@ function fnT(ctx: FnContext, n: number): Image {
   scene.add(rimLight);
   
   const floorGeometry = new THREE.PlaneGeometry(frustumWidth * 1.2, frustumHeight * 1.2);
-  const floorMaterial = new THREE.ShadowMaterial({ opacity: 0.4 });
+  const floorMaterial = new THREE.ShadowMaterial({ opacity: 0.25 });
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.position.z = -0.01;
   floor.receiveShadow = true;
