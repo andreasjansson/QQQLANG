@@ -2355,12 +2355,11 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.depthFunc(gl.LESS);
   gl.clear(gl.DEPTH_BUFFER_BIT);
   
-  const aspect = ctx.width / ctx.height;
   const fov = Math.PI / 2.5;
   const near = 0.1, far = 10.0;
   const f = 1.0 / Math.tan(fov / 2);
   const perspective = new Float32Array([
-    f/aspect, 0, 0, 0,
+    f, 0, 0, 0,
     0, f, 0, 0,
     0, 0, (far+near)/(near-far), -1,
     0, 0, (2*far*near)/(near-far), 0
