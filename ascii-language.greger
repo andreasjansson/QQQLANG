@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-144426217395>
+${greger-prompt-code-style<eval-result-144633133720>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-144426217395>}
+</eval-result-144633133720>}
 
 # IMPORTANT
 
@@ -8537,5 +8537,83 @@ Update characterDefs for '&' with dithering mode argument
 ID: toolu_01QhTSBQWZSaBr392E2qVtRv
 
 <tool.toolu_01QhTSBQWZSaBr392E2qVtRv>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update characterDefs for '&' with dithering mode argument
 </tool.toolu_01QhTSBQWZSaBr392E2qVtRv>
+
+# ASSISTANT
+
+Done! I've updated the `&` character to cycle through 16 different dithering algorithms:
+
+**Subtle/Color modes (1-10):**
+1. Original ordered dither (5 levels, chromatic offsets)
+2. Black & white ordered dither (Bayer 8×8)
+3. Black & white threshold
+4. 2-bit RGB ordered dither (8 colors total)
+5. Floyd-Steinberg RGB dithering (2-bit per channel)
+6. Floyd-Steinberg black & white
+7. Atkinson RGB dithering (4 levels per channel)
+8. Atkinson black & white
+9. Stucki RGB dithering (6 levels per channel)
+10. Burkes RGB dithering
+
+**Aggressive modes (11-16):**
+11. Random threshold B&W (deterministic noise-based)
+12. Clustered dot 2-bit RGB (8 colors)
+13. Blue noise B&W (deterministic multi-frequency)
+14. 2×2 Bayer 2-bit RGB (harsh)
+15. Aggressive random noise 2-bit RGB (very harsh)
+
+All randomness is **deterministic** and seeded on `ctx.images.length`, so the same program at the same point always produces the same result. The aggressive modes (especially 11-16) reduce to just 2 colors per channel or total black/white.
+
+# USER
+
+That should take Choice as the arg
+
+# THINKING
+
+Signature: Eq8DCkYIChgCKkC5GxbQeM2o6cl7OzMrnHI8sFPUotPX9ynaDdAh1SeMi3VIjpQUfatYaf1osTDFRAVw/XnBb23qxH5xc9GckxQJEgy/scRApnId6mHuMo4aDBs7aRf6sgvLCHV6PSIw/e3X7dGQUteYKoaAttnbo+RRgSKXp1DuRq7suo0xi4Dc6SU3tG2tazOc6izJDrFXKpYCV9VBMfTMUOileZI+DKC9lNX1+DCEwlAmwoDAwS37COlJGqD7UG1HzbPIr90MBtyZU7zQL2sfPWZ9/NK1Nedur1VmAm9EYvjYdlZRP1KiBCg7c5y8vIR+9Yjrxb/fAP+6FgSuYBV8gtvBkLrkijtFFiP9EhIT6hheCBdRnXvTz/8NkIQYgWVqmHaIStX/6OVMzhxHHITfhJpu3+rP6XqZ0K/FqQyH3TXj8NU35tSFlsSCS5PYfx9RvMj/KhijOf38bIvTnz9/7JkKw0tbp5xc+tHBZbxvlE48OHYMj05JYaflaTuZwes8KxHR4sWnMB8zTz0NJ0HkWQWmJs5kAL7i+QjdKUMGujGy55ozGrnpYo5YB+MJGAgYAQ==
+
+The user wants the dithering mode to use a Choice type instead of INT, so that the modes cycle through named options rather than just numbers. This makes sense for better usability.
+
+Let me update the characterDefs for '&' to use Choice with 16 named mode options.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015vET9mo5un68RjR2VhqmYx
+
+## path
+
+<tool.toolu_015vET9mo5un68RjR2VhqmYx>
+character-defs.ts
+</tool.toolu_015vET9mo5un68RjR2VhqmYx>
+
+## git-commit-message
+
+<tool.toolu_015vET9mo5un68RjR2VhqmYx>
+Change '&' dithering mode argument to use Choice type
+</tool.toolu_015vET9mo5un68RjR2VhqmYx>
+
+## diff
+
+<tool.toolu_015vET9mo5un68RjR2VhqmYx>
+   '&': {
+     color: '#4169E1',
+     number: 45,
+     fn: fnAmpersand,
+-    args: [{ type: INT, documentation: "Dithering mode (1-16: ordered, B&W ordered, threshold, 2bit RGB, Floyd-Steinberg RGB, Floyd-Steinberg B&W, Atkinson 4-level, Atkinson B&W, Stucki 6-level, Burkes, Sierra, random threshold B&W, cluster dot 2-bit, blue noise B&W, 2x2 Bayer 2-bit, aggressive noise 2-bit)" }],
++    args: [{ type: Choice('ordered-5level','bayer-bw','threshold-bw','ordered-2bit','floyd-rgb','floyd-bw','atkinson-4level','atkinson-bw','stucki-6level','burkes','sierra','random-bw','cluster-2bit','bluenoise-bw','bayer2x2-2bit','noise-2bit'), documentation: "Dithering algorithm" }],
+     functionName: "dither",
+     documentation: "Apply one of 16 dithering algorithms, from subtle to aggressive 2-color modes."
+   },
+\ No newline at end of file
+
+</tool.toolu_015vET9mo5un68RjR2VhqmYx>
+
+# TOOL RESULT
+
+ID: toolu_015vET9mo5un68RjR2VhqmYx
+
+<tool.toolu_015vET9mo5un68RjR2VhqmYx>
+
+</tool.toolu_015vET9mo5un68RjR2VhqmYx>
