@@ -1510,17 +1510,28 @@ function loadEmeraldModel(): Promise<void> {
 // Start loading immediately when module loads
 export const emeraldReady = loadEmeraldModel();
 
-// Background removal model preload
-let bgRemovalModelReady = false;
-export const bgRemovalReady = preloadBgRemoval({
-  model: 'isnet_quint8',
-  progress: (key, current, total) => {
-    console.log(`BG Removal: ${key} ${current}/${total}`);
+// SINet background removal model
+// Model: https://github.com/anilsathyan7/Portrait-Segmentation/tree/master/SINet
+// 86.9K params, ~350KB, runs at 100 FPS on mobile
+let sinetSession: ort.InferenceSession | null = null;
+const SINET_INPUT_SIZE = 224;
+const SINET_MEAN = [102.890434, 111.25247, 126.91212];
+const SINET_STD = [62.93292, 62.82138, 66.355705];
+
+async function loadSinetModel(): Promise<void> {
+  try {
+    console.log('Loading SINet model...');
+    sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
+      executionProviders: ['webgl', 'wasm'],
+      graphOptimizationLevel: 'all',
+    });
+    console.log('SINet model loaded successfully');
+  } catch (error) {
+    console.error('Failed to load SINet model:', error);
   }
-}).then(() => {
-  bgRemovalModelReady = true;
-  console.log('Background removal model ready');
-});
+}
+
+export const bgRemovalReady = loadSinetModel();
 
 function fnE(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
