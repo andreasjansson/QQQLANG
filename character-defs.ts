@@ -4338,49 +4338,49 @@ function fnBlend(ctx: FnContext, modeName: string): Image {
           b = (bb * tb) / 255;
           break;
           
-        case 1: // Screen
+        case 'screen':
           r = 255 - ((255 - br) * (255 - tr)) / 255;
           g = 255 - ((255 - bg) * (255 - tg)) / 255;
           b = 255 - ((255 - bb) * (255 - tb)) / 255;
           break;
           
-        case 2: // Overlay
+        case 'overlay':
           r = br < 128 ? (2 * br * tr) / 255 : 255 - (2 * (255 - br) * (255 - tr)) / 255;
           g = bg < 128 ? (2 * bg * tg) / 255 : 255 - (2 * (255 - bg) * (255 - tg)) / 255;
           b = bb < 128 ? (2 * bb * tb) / 255 : 255 - (2 * (255 - bb) * (255 - tb)) / 255;
           break;
           
-        case 3: // Darken
+        case 'darken':
           r = Math.min(br, tr);
           g = Math.min(bg, tg);
           b = Math.min(bb, tb);
           break;
           
-        case 4: // Lighten
+        case 'lighten':
           r = Math.max(br, tr);
           g = Math.max(bg, tg);
           b = Math.max(bb, tb);
           break;
           
-        case 5: // Color Dodge
+        case 'dodge':
           r = tr === 255 ? 255 : Math.min(255, (br * 255) / (255 - tr));
           g = tg === 255 ? 255 : Math.min(255, (bg * 255) / (255 - tg));
           b = tb === 255 ? 255 : Math.min(255, (bb * 255) / (255 - tb));
           break;
           
-        case 6: // Color Burn
+        case 'burn':
           r = tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * 255) / tr);
           g = tg === 0 ? 0 : Math.max(0, 255 - ((255 - bg) * 255) / tg);
           b = tb === 0 ? 0 : Math.max(0, 255 - ((255 - bb) * 255) / tb);
           break;
           
-        case 7: // Hard Light
+        case 'hardlight':
           r = tr < 128 ? (2 * br * tr) / 255 : 255 - (2 * (255 - br) * (255 - tr)) / 255;
           g = tg < 128 ? (2 * bg * tg) / 255 : 255 - (2 * (255 - bg) * (255 - tg)) / 255;
           b = tb < 128 ? (2 * bb * tb) / 255 : 255 - (2 * (255 - bb) * (255 - tb)) / 255;
           break;
           
-        case 8: { // Soft Light
+        case 'softlight': {
           const softLight = (b: number, t: number) => {
             const tb = t / 255, bb = b / 255;
             return (tb < 0.5 
@@ -4393,91 +4393,91 @@ function fnBlend(ctx: FnContext, modeName: string): Image {
           break;
         }
           
-        case 9: // Difference
+        case 'difference':
           r = Math.abs(br - tr);
           g = Math.abs(bg - tg);
           b = Math.abs(bb - tb);
           break;
           
-        case 10: // Exclusion
+        case 'exclusion':
           r = br + tr - (2 * br * tr) / 255;
           g = bg + tg - (2 * bg * tg) / 255;
           b = bb + tb - (2 * bb * tb) / 255;
           break;
           
-        case 11: // Add
+        case 'add':
           r = Math.min(255, br + tr);
           g = Math.min(255, bg + tg);
           b = Math.min(255, bb + tb);
           break;
           
-        case 12: // Subtract
+        case 'subtract':
           r = Math.max(0, br - tr);
           g = Math.max(0, bg - tg);
           b = Math.max(0, bb - tb);
           break;
           
-        case 13: // XOR
+        case 'xor':
           r = br ^ tr;
           g = bg ^ tg;
           b = bb ^ tb;
           break;
           
-        case 14: // AND
+        case 'and':
           r = br & tr;
           g = bg & tg;
           b = bb & tb;
           break;
           
-        case 15: // OR
+        case 'or':
           r = br | tr;
           g = bg | tg;
           b = bb | tb;
           break;
           
-        case 16: // NAND
+        case 'nand':
           r = 255 - (br & tr);
           g = 255 - (bg & tg);
           b = 255 - (bb & tb);
           break;
           
-        case 17: // NOR
+        case 'nor':
           r = 255 - (br | tr);
           g = 255 - (bg | tg);
           b = 255 - (bb | tb);
           break;
           
-        case 18: // XNOR
+        case 'xnor':
           r = 255 - (br ^ tr);
           g = 255 - (bg ^ tg);
           b = 255 - (bb ^ tb);
           break;
           
-        case 19: // Average
+        case 'average':
           r = (br + tr) / 2;
           g = (bg + tg) / 2;
           b = (bb + tb) / 2;
           break;
           
-        case 20: // Divide
+        case 'divide':
           r = tr === 0 ? 255 : Math.min(255, (br * 255) / tr);
           g = tg === 0 ? 255 : Math.min(255, (bg * 255) / tg);
           b = tb === 0 ? 255 : Math.min(255, (bb * 255) / tb);
           break;
           
-        case 21: // Grain Extract
+        case 'grain-extract':
           r = Math.max(0, Math.min(255, br - tr + 128));
           g = Math.max(0, Math.min(255, bg - tg + 128));
           b = Math.max(0, Math.min(255, bb - tb + 128));
           break;
           
-        case 22: // Grain Merge
+        case 'grain-merge':
           r = Math.max(0, Math.min(255, br + tr - 128));
           g = Math.max(0, Math.min(255, bg + tg - 128));
           b = Math.max(0, Math.min(255, bb + tb - 128));
           break;
           
-        case 23: // Vivid Light
+        case 'vivid':
           r = tr < 128 
             ? (tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * 255) / (2 * tr)))
             : (tr === 255 ? 255 : Math.min(255, (br * 255) / (2 * (255 - tr))));
@@ -4489,53 +4489,53 @@ function fnBlend(ctx: FnContext, modeName: string): Image {
             : (tb === 255 ? 255 : Math.min(255, (bb * 255) / (2 * (255 - tb))));
           break;
           
-        case 24: // Linear Light
+        case 'linear':
           r = Math.max(0, Math.min(255, br + 2 * tr - 255));
           g = Math.max(0, Math.min(255, bg + 2 * tg - 255));
           b = Math.max(0, Math.min(255, bb + 2 * tb - 255));
           break;
           
-        case 25: // Pin Light
+        case 'pin':
           r = tr < 128 ? Math.min(br, 2 * tr) : Math.max(br, 2 * tr - 255);
           g = tg < 128 ? Math.min(bg, 2 * tg) : Math.max(bg, 2 * tg - 255);
           b = tb < 128 ? Math.min(bb, 2 * tb) : Math.max(bb, 2 * tb - 255);
           break;
           
-        case 26: // Hard Mix
+        case 'hardmix':
           r = br + tr < 255 ? 0 : 255;
           g = bg + tg < 255 ? 0 : 255;
           b = bb + tb < 255 ? 0 : 255;
           break;
           
-        case 27: { // Hue - hue from top, sat/lum from base
+        case 'hue': {
           const [bh, bs, bl] = rgbToHsl(br, bg, bb);
           const [th] = rgbToHsl(tr, tg, tb);
           [r, g, b] = hslToRgb(th, bs, bl);
           break;
         }
           
-        case 28: { // Saturation - sat from top, hue/lum from base
+        case 'saturation': {
           const [bh, , bl] = rgbToHsl(br, bg, bb);
           const [, ts] = rgbToHsl(tr, tg, tb);
           [r, g, b] = hslToRgb(bh, ts, bl);
           break;
         }
           
-        case 29: { // Color - hue/sat from top, lum from base
+        case 'color': {
           const [, , bl] = rgbToHsl(br, bg, bb);
           const [th, ts] = rgbToHsl(tr, tg, tb);
           [r, g, b] = hslToRgb(th, ts, bl);
           break;
         }
           
-        case 30: { // Luminosity - lum from top, hue/sat from base
+        case 'luminosity': {
           const [bh, bs] = rgbToHsl(br, bg, bb);
           const [, , tl] = rgbToHsl(tr, tg, tb);
           [r, g, b] = hslToRgb(bh, bs, tl);
           break;
         }
         
-        case 31: { // Replace Dark Third - replace darkest 33% with prev
+        case 'replace-dark-third': {
           const [, , bl] = rgbToHsl(br, bg, bb);
           if (bl < 0.333) {
             r = tr; g = tg; b = tb;
