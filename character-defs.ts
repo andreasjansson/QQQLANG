@@ -1529,6 +1529,8 @@ async function loadSinetModel(): Promise<void> {
       graphOptimizationLevel: 'all',
     });
     console.log('SINet model loaded successfully');
+    console.log('Input names:', sinetSession.inputNames);
+    console.log('Output names:', sinetSession.outputNames);
   } catch (error) {
     console.error('Failed to load SINet model:', error);
   }
