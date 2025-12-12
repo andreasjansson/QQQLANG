@@ -234,15 +234,16 @@ function parseProgram(program: string): ParseResult {
     const args: (number | string | UploadedImageRef)[] = [];
     let argsConsumed = 0;
 
-    console.log(`[${i}] '${char}' -> ${def.functionName}, arity ${def.arity}`);
+    console.log(`[${i}] '${char}' -> ${def.functionName}, arity ${def.args.length}`);
 
-    for (let argIdx = 0; argIdx < def.arity; argIdx++) {
-      const argType = def.argTypes[argIdx];
+    for (let argIdx = 0; argIdx < def.args.length; argIdx++) {
+      const argDef = def.args[argIdx];
+      const argType = argDef.type;
       let nextCharIdx = i + 1 + argsConsumed;
       
       // Skip any upload chars in non-index positions
-      while (nextCharIdx < chars.length && isUploadChar(chars[nextCharIdx]) && argType !== 'index') {
-        console.log(`  arg[${argIdx}] (${argType}): upload char invalid here -> SKIPPING`);
+      while (nextCharIdx < chars.length && isUploadChar(chars[nextCharIdx]) && !(argType instanceof IndexType)) {
+        console.log(`  arg[${argIdx}] (${argType.name}): upload char invalid here -> SKIPPING`);
         invalidUploadIndices.add(uploadIndexCounter++);
         argsConsumed++;
         nextCharIdx = i + 1 + argsConsumed;
@@ -254,37 +255,37 @@ function parseProgram(program: string): ParseResult {
         if (isUploadChar(argChar)) {
           // argType must be 'index' here (others were skipped above)
           args.push({ type: 'uploaded', index: uploadIndexCounter++ });
-          console.log(`  arg[${argIdx}] (${argType}): upload char -> uploaded image`);
+          console.log(`  arg[${argIdx}] (${argType.name}): upload char -> uploaded image`);
           argsConsumed++;
         } else {
-          const argDef = characterDefs[argChar];
+          const charDef = characterDefs[argChar];
           
-          if (argDef) {
-            if (argType === 'int' || argType === 'index') {
-              args.push(argDef.number);
-              console.log(`  arg[${argIdx}] (${argType}): '${argChar}' -> ${argDef.number}`);
+          if (charDef) {
+            if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
+              args.push(charDef.number);
+              console.log(`  arg[${argIdx}] (${argType.name}): '${argChar}' -> ${charDef.number}`);
             } else {
-              args.push(argDef.color);
-              console.log(`  arg[${argIdx}] (${argType}): '${argChar}' -> ${argDef.color}`);
+              args.push(charDef.color);
+              console.log(`  arg[${argIdx}] (${argType.name}): '${argChar}' -> ${charDef.color}`);
             }
             argsConsumed++;
           } else {
-            if (argType === 'int' || argType === 'index') {
+            if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
               args.push(def.number);
-              console.log(`  arg[${argIdx}] (${argType}): '${argChar}' undefined, using default ${def.number}`);
+              console.log(`  arg[${argIdx}] (${argType.name}): '${argChar}' undefined, using default ${def.number}`);
             } else {
               args.push(def.color);
-              console.log(`  arg[${argIdx}] (${argType}): '${argChar}' undefined, using default ${def.color}`);
+              console.log(`  arg[${argIdx}] (${argType.name}): '${argChar}' undefined, using default ${def.color}`);
             }
           }
         }
       } else {
-        if (argType === 'int' || argType === 'index') {
+        if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
           args.push(def.number);
-          console.log(`  arg[${argIdx}] (${argType}): EOF, using default ${def.number}`);
+          console.log(`  arg[${argIdx}] (${argType.name}): EOF, using default ${def.number}`);
         } else {
           args.push(def.color);
-          console.log(`  arg[${argIdx}] (${argType}): EOF, using default ${def.color}`);
+          console.log(`  arg[${argIdx}] (${argType.name}): EOF, using default ${def.color}`);
         }
       }
     }
