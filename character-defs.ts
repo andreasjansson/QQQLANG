@@ -2185,36 +2185,17 @@ function fnT(ctx: FnContext, n: number): Image {
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambientLight);
   
-  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
-  mainLight.position.set(2, 3, 4);
-  mainLight.castShadow = true;
-  mainLight.shadow.mapSize.width = 2048;
-  mainLight.shadow.mapSize.height = 2048;
-  mainLight.shadow.camera.near = 0.1;
-  mainLight.shadow.camera.far = 15;
-  const shadowSize = Math.max(frustumWidth, frustumHeight) * 0.6;
-  mainLight.shadow.camera.left = -shadowSize;
-  mainLight.shadow.camera.right = shadowSize;
-  mainLight.shadow.camera.top = shadowSize;
-  mainLight.shadow.camera.bottom = -shadowSize;
-  mainLight.shadow.bias = -0.0005;
-  mainLight.shadow.radius = 4;
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.8);
+  mainLight.position.set(3, 2, 5);
   scene.add(mainLight);
   
-  const fillLight = new THREE.DirectionalLight(0x8899ff, 0.3);
+  const fillLight = new THREE.DirectionalLight(0x8899ff, 0.4);
   fillLight.position.set(-2, 1, 2);
   scene.add(fillLight);
   
-  const rimLight = new THREE.DirectionalLight(0xffeedd, 0.4);
+  const rimLight = new THREE.DirectionalLight(0xffeedd, 0.5);
   rimLight.position.set(0, -2, 3);
   scene.add(rimLight);
-  
-  const floorGeometry = new THREE.PlaneGeometry(frustumWidth * 1.2, frustumHeight * 1.2);
-  const floorMaterial = new THREE.ShadowMaterial({ opacity: 0.25 });
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.position.z = -0.01;
-  floor.receiveShadow = true;
-  scene.add(floor);
   
   const cellWidth = frustumWidth / cols;
   const cellHeight = frustumHeight / rows;
