@@ -5257,7 +5257,7 @@ function fnImageHistory(ctx: FnContext): Image {
     srcCanvas.width = img.width;
     srcCanvas.height = img.height;
     const srcCtx = srcCanvas.getContext('2d')!;
-    const srcImageData = new ImageData(img.data, img.width, img.height);
+    const srcImageData = new ImageData(new Uint8ClampedArray(img.data), img.width, img.height);
     srcCtx.putImageData(srcImageData, 0, 0);
     
     thumbCtx.drawImage(srcCanvas, srcX, srcY, srcSize, srcSize, 0, 0, thumbSize, thumbSize);
