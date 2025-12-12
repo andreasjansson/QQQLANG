@@ -11722,5 +11722,46 @@ Add better lighting and shadows to fnT city function
 ID: toolu_01V46GC2EKkp5GbFqVNtKudK
 
 <tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add better lighting and shadows to fnT city function
 </tool.toolu_01V46GC2EKkp5GbFqVNtKudK>
+
+# ASSISTANT
+
+Now update the uniform to pass the full light direction:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_012uMQxFi6N6oBBWJVeaou5c
+
+## path
+
+<tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+character-defs.ts
+</tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+
+## git-commit-message
+
+<tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+Update light direction uniform in fnT
+</tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+
+## original-content
+
+<tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, 1.0);
+</tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+
+## new-content
+
+<tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, lightDirZ);
+</tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+
+# TOOL RESULT
+
+ID: toolu_012uMQxFi6N6oBBWJVeaou5c
+
+<tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+
+</tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
