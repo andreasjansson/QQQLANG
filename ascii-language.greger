@@ -8615,5 +8615,50 @@ Change '&' dithering mode argument to use Choice type
 ID: toolu_015vET9mo5un68RjR2VhqmYx
 
 <tool.toolu_015vET9mo5un68RjR2VhqmYx>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Change '&' dithering mode argument to use Choice type
 </tool.toolu_015vET9mo5un68RjR2VhqmYx>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01F1GmDkGQdrDVa9jaVr9ttQ
+
+## path
+
+<tool.toolu_01F1GmDkGQdrDVa9jaVr9ttQ>
+character-defs.ts
+</tool.toolu_01F1GmDkGQdrDVa9jaVr9ttQ>
+
+## git-commit-message
+
+<tool.toolu_01F1GmDkGQdrDVa9jaVr9ttQ>
+Update fnAmpersand to accept string mode from Choice
+</tool.toolu_01F1GmDkGQdrDVa9jaVr9ttQ>
+
+## diff
+
+<tool.toolu_01F1GmDkGQdrDVa9jaVr9ttQ>
+-function fnAmpersand(ctx: FnContext, mode: number): Image {
++function fnAmpersand(ctx: FnContext, mode: string): Image {
+   const prev = getPrevImage(ctx);
+   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+-  const ditherMode = ((mode - 1) % 16 + 16) % 16;
++  const modes = [
++    'ordered-5level','bayer-bw','threshold-bw','ordered-2bit','floyd-rgb','floyd-bw',
++    'atkinson-4level','atkinson-bw','stucki-6level','burkes','sierra','random-bw',
++    'cluster-2bit','bluenoise-bw','bayer2x2-2bit','noise-2bit'
++  ];
++  const ditherMode = modes.indexOf(mode);
+   const seed = ctx.images.length * 137.5;
+\ No newline at end of file
+
+</tool.toolu_01F1GmDkGQdrDVa9jaVr9ttQ>
+
+# TOOL RESULT
+
+ID: toolu_01F1GmDkGQdrDVa9jaVr9ttQ
+
+<tool.toolu_01F1GmDkGQdrDVa9jaVr9ttQ>
+
+</tool.toolu_01F1GmDkGQdrDVa9jaVr9ttQ>
