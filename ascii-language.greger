@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-151749103319>
+${greger-prompt-code-style<eval-result-151940886878>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-151749103319>}
+</eval-result-151940886878>}
 
 # IMPORTANT
 
@@ -11746,16 +11746,14 @@ character-defs.ts
 Update light direction uniform in fnT
 </tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
 
-## original-content
+## diff
 
 <tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
-  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, 1.0);
-</tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+-  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, 1.0);
+\ No newline at end of file
++  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, lightDirZ);
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
-  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, lightDirZ);
 </tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
 
 # TOOL RESULT
@@ -11763,5 +11761,281 @@ Update light direction uniform in fnT
 ID: toolu_012uMQxFi6N6oBBWJVeaou5c
 
 <tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update light direction uniform in fnT
 </tool.toolu_012uMQxFi6N6oBBWJVeaou5c>
+
+# ASSISTANT
+
+Done! I've added several lighting and shadow effects to the city function:
+
+1. **Diffuse lighting** - Buildings are lit from a directional light coming from the upper-right
+2. **Specular highlights** - Top faces of buildings get a subtle specular shine
+3. **Height-based ambient** - Taller buildings receive more ambient light (appear brighter)
+4. **Ambient occlusion** - Side faces are darker near the ground, simulating shadows in crevices between buildings
+5. **Rim lighting** - Subtle edge highlighting to make buildings pop
+6. **Shadow on background** - The ground/background is darkened to simulate being in shadow from the buildings
+7. **Color temperature** - Lit areas are slightly warm-tinted, shadows are slightly cool-tinted for a more realistic look
+
+# USER
+
+Hmm I'm not seeing any light or shadows. Make sure the light source is behind the camera
+
+# THINKING
+
+Signature: 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
+
+The user says they're not seeing any light or shadows. The issue might be that the light direction is not correct relative to the camera. Let me think about the coordinate system:
+
+- The camera is looking down the -Z axis (from positive Z towards negative Z)
+- The buildings are rendered with Z as the "up" direction (height)
+- The light direction should be coming from behind the camera, so it should have a positive Z component pointing towards the scene
+
+Currently I have:
+- lightDirX = 0.4
+- lightDirY = -0.5
+- lightDirZ = 0.8
+
+But the issue might be that the light direction in the shader represents the direction FROM the light TO the surface, or the direction TO the light FROM the surface. Let me check the shader code:
+
+```glsl
+float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
+```
+
+This uses `dot(normal, lightDir)` which means lightDir should be the direction TO the light (i.e., the direction light is coming FROM). So if the camera is at positive Z looking at negative Z, and we want light coming from behind the camera, lightDir should point in the same general direction as the view direction - from behind towards the scene.
+
+Actually wait, let me think about this more carefully. The view is set up with:
+```javascript
+const view = new Float32Array([
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  -0.5, -0.5, -camZ, 1
+]);
+```
+
+This translates the world by (-0.5, -0.5, -camZ), meaning the camera is effectively at (0.5, 0.5, camZ) looking towards (0.5, 0.5, 0).
+
+So the camera is at positive Z, looking towards negative Z (into the scene). 
+
+I'm investigating the light direction's interaction with the building's normals. The top face has a normal of (0, 0, 1), pointing directly upward. With a light direction vector having a positive Z component, the dot product calculation in the shader should produce a positive value, indicating proper illumination. This suggests the normal setup looks correct for generating lighting effects.
+
+The potential problem might stem from how lighting uniforms are configured during the rendering process, particularly across two distinct passes - one for the background and another for cube rendering.
+
+I'll need to examine the specific uniform configuration to pinpoint where the lighting calculation might be breaking down.
+
+The light direction seems like a critical variable. I want to experiment with a more dynamic angle to create enhanced visual depth and shadowing for the cubes.
+
+My next step is to adjust the light vector to create more dramatic directional illumination, potentially introducing more pronounced shadowing and dimensionality to the scene.
+
+I'll focus on three key modifications: adjusting the light angle, increasing contrast between lit and shadowed surfaces, and ensuring proper light direction normalization in the shader implementation.
+
+The flat geometry of the buildings might be limiting the lighting's visual impact, so I'll need to consider ways to amplify the base lighting effect to make surface variations more apparent.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01F7pm6ZmwfKTdLgKXmvyGKR
+
+## path
+
+<tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+character-defs.ts
+</tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+
+## git-commit-message
+
+<tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+Fix lighting in fnT - stronger contrast, light from behind camera
+</tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+
+## original-content
+
+<tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+  const lightDirX = 0.4;
+  const lightDirY = -0.5;
+  const lightDirZ = 0.8;
+  
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying float vHeight;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      vHeight = aPosition.z;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform vec3 uLightDir;
+    uniform float uIsBackground;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying float vHeight;
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        // Darken background slightly to simulate shadows from buildings
+        float shadowFactor = 0.7;
+        gl_FragColor = vec4(color * shadowFactor, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        vec3 lightDir = normalize(uLightDir);
+        vec3 viewDir = vec3(0.0, 0.0, 1.0);
+        
+        // Ambient with height-based variation (taller = brighter ambient)
+        float ambient = 0.35 + vHeight * 0.3;
+        
+        // Diffuse lighting
+        float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
+        
+        // Specular highlight for top faces
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
+        float specular = spec * 0.3 * step(0.9, normal.z); // Only on top faces
+        
+        // Fake ambient occlusion - darker at bottom of side faces
+        float ao = 1.0;
+        if (abs(normal.z) < 0.1) { // Side faces
+          ao = 0.6 + 0.4 * (vHeight / 0.5); // Darker near ground
+        }
+        
+        // Rim lighting for edges
+        float rim = 1.0 - max(dot(viewDir, normal), 0.0);
+        rim = pow(rim, 3.0) * 0.15;
+        
+        float lighting = (ambient + diffuse) * ao + specular + rim;
+        
+        // Slightly warm the lit areas, cool the shadows
+        vec3 warmLight = vec3(1.05, 1.0, 0.95);
+        vec3 coolShadow = vec3(0.9, 0.95, 1.05);
+        vec3 tint = mix(coolShadow, warmLight, lighting);
+        
+        gl_FragColor = vec4(color * lighting * tint, 1.0);
+      }
+    }
+  `;
+</tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+
+## new-content
+
+<tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying float vHeight;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      vHeight = aPosition.z;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform float uIsBackground;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying float vHeight;
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        // Darken background to simulate being in shadow
+        gl_FragColor = vec4(color * 0.5, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        
+        // Light coming from upper-right-front (behind camera)
+        vec3 lightDir = normalize(vec3(0.5, -0.3, 1.0));
+        vec3 viewDir = vec3(0.0, 0.0, 1.0);
+        
+        // Check which face we're on
+        bool isTopFace = normal.z > 0.9;
+        bool isRightFace = normal.x > 0.9;
+        bool isLeftFace = normal.x < -0.9;
+        bool isFrontFace = normal.y > 0.9;
+        bool isBackFace = normal.y < -0.9;
+        
+        float lighting = 0.0;
+        
+        if (isTopFace) {
+          // Top faces are bright - fully lit by sun
+          float diffuse = max(dot(normal, lightDir), 0.0);
+          lighting = 0.7 + diffuse * 0.5;
+          
+          // Specular highlight
+          vec3 reflectDir = reflect(-lightDir, normal);
+          float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+          lighting += spec * 0.3;
+        } else if (isRightFace) {
+          // Right faces catch some light
+          lighting = 0.5 + max(dot(normal, lightDir), 0.0) * 0.3;
+        } else if (isLeftFace) {
+          // Left faces are in shadow
+          lighting = 0.25;
+        } else if (isFrontFace) {
+          // Front faces (bottom of screen) - partial light
+          lighting = 0.4;
+        } else if (isBackFace) {
+          // Back faces (top of screen) - darker
+          lighting = 0.3;
+        }
+        
+        // Height-based ambient boost - taller buildings catch more light
+        lighting += vHeight * 0.2;
+        
+        // Warm sunlight tint for lit areas
+        vec3 tint = mix(vec3(0.8, 0.85, 1.0), vec3(1.1, 1.05, 0.95), lighting);
+        
+        gl_FragColor = vec4(color * lighting * tint, 1.0);
+      }
+    }
+  `;
+</tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+
+# TOOL RESULT
+
+ID: toolu_01F7pm6ZmwfKTdLgKXmvyGKR
+
+<tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
+
+</tool.toolu_01F7pm6ZmwfKTdLgKXmvyGKR>
