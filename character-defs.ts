@@ -51,13 +51,16 @@ export function Choice(...choices: string[]): ChoiceType {
   return new ChoiceType(choices);
 }
 
+export interface ArgDef {
+  type: ArgType;
+  documentation: string;
+}
+
 export interface CharDef {
   color: string;
   number: number;
   fn: (ctx: FnContext, ...args: any[]) => Image;
-  arity: number;
-  argTypes: ArgType[];
-  argDocs: string[];
+  args: ArgDef[];
   functionName: string;
   documentation: string;
 }
