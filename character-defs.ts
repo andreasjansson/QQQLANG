@@ -3851,7 +3851,7 @@ function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: n
   // Destination position and size
   const dstX = norm(offX) * ctx.width;
   const dstY = norm(offY) * ctx.height;
-  const dstRadius = Math.max(1, norm(size) * Math.min(ctx.width, ctx.height) / 2);
+  const dstRadius = Math.max(1, norm(size) * Math.min(ctx.width, ctx.height));
   
   // Blend mode (0-15)
   const NUM_BLEND_MODES = 16;
