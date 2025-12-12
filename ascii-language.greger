@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-155846664936>
+${greger-prompt-code-style<eval-result-155944903551>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-155846664936>}
+</eval-result-155944903551>}
 
 # IMPORTANT
 
@@ -12421,5 +12421,61 @@ Add shadow blur radius for VSM
 ID: toolu_01X5kcLnn1XmKWVeWU82xiBa
 
 <tool.toolu_01X5kcLnn1XmKWVeWU82xiBa>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add shadow blur radius for VSM
 </tool.toolu_01X5kcLnn1XmKWVeWU82xiBa>
+
+# ASSISTANT
+
+Now let me fix the sides to stretch the edge pixels:
+
+# USER
+
+Something is seriously wrong now. Weird halos around the shadows, and weird checkerboard artifacts.
+
+# THINKING
+
+Signature: EqYDCkYIChgCKkCb2EI3ShQxuekRgKBnm+Ddp74M6hOd8bbndijSLAz4i1U4q9o5sHn5F6x0GAJCIwqd/6Wr2oIF1zPpC83in1cuEgxRz95mS3ZW/XIeNQMaDDQH15DrXvtt+Cl4JiIw7OS1Lxs2SUjHPhK2vZ4UohcUwpdRpTovF1ALrO+r+n1B+f80/oi5A8wfP60J7bbbKo0CCZqMyRb0+VJeKm2LhczMdC4T312YB+P7zvIPswA32gZliUcN6gqtDJNDiWJLxIGMzFWs4ta6QqB8Ja98qCHio93r0QVe5lPSHkOur669EA3cy84cl83L7CLqY+3rBeqPllb7JAE55IQR793G+i3fjOEtNRuLL32WkLNsb6hjPI2fpSDeXGoX9F/7gzZeLGD0Lm7M7VC77XHRaZeZqZ3tl7QFhaAo3D7z7WnYievxfgIV6gPOFhfYWSBSFZhvavcZFGJfiIftImoGi2ZHI8a6cZMNXJlC7DFYjUFcf6J+eDESz+5eSLRonLDPsqwgJ51woZ/m5CfU7e2jfYse9YMP9jPoJBBz+HbjufU1MsMYAQ==
+
+VSM shadows are causing artifacts again. Let me go back to PCFSoftShadowMap and just accept that the shadows won't be very blurry. The user will have to live with slightly harder shadows.
+
+Let me revert to PCFSoftShadowMap and remove the radius setting.
+
+# ASSISTANT
+
+VSM is too buggy. Let me go back to PCFSoftShadowMap - it won't be as blurry but at least it'll be clean:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01U1aNQCo5qxU8bxNALxygT6
+
+## path
+
+<tool.toolu_01U1aNQCo5qxU8bxNALxygT6>
+character-defs.ts
+</tool.toolu_01U1aNQCo5qxU8bxNALxygT6>
+
+## git-commit-message
+
+<tool.toolu_01U1aNQCo5qxU8bxNALxygT6>
+Revert to PCFSoftShadowMap - VSM has too many artifacts
+</tool.toolu_01U1aNQCo5qxU8bxNALxygT6>
+
+## diff
+
+<tool.toolu_01U1aNQCo5qxU8bxNALxygT6>
+   renderer.shadowMap.enabled = true;
+-  renderer.shadowMap.type = THREE.VSMShadowMap;
+\ No newline at end of file
++  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+\ No newline at end of file
+
+</tool.toolu_01U1aNQCo5qxU8bxNALxygT6>
+
+# TOOL RESULT
+
+ID: toolu_01U1aNQCo5qxU8bxNALxygT6
+
+<tool.toolu_01U1aNQCo5qxU8bxNALxygT6>
+
+</tool.toolu_01U1aNQCo5qxU8bxNALxygT6>
