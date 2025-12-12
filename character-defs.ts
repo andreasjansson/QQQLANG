@@ -2192,8 +2192,9 @@ function fnT(ctx: FnContext, n: number): Image {
     }
   }
   
-  const lightDirX = -0.3;
-  const lightDirY = -0.4;
+  const lightDirX = 0.4;
+  const lightDirY = -0.5;
+  const lightDirZ = 0.8;
   
   const vertexShader = `
     attribute vec3 aPosition;
@@ -2207,12 +2208,14 @@ function fnT(ctx: FnContext, n: number): Image {
     varying vec3 vNormal;
     varying vec2 vTexCoord;
     varying vec3 vWorldPos;
+    varying float vHeight;
     
     void main() {
       vec4 worldPos = uModel * vec4(aPosition, 1.0);
       vWorldPos = worldPos.xyz;
       vNormal = mat3(uModel) * aNormal;
       vTexCoord = aTexCoord;
+      vHeight = aPosition.z;
       gl_Position = uProjection * uView * worldPos;
     }
   `;
@@ -2227,21 +2230,49 @@ function fnT(ctx: FnContext, n: number): Image {
     varying vec3 vNormal;
     varying vec2 vTexCoord;
     varying vec3 vWorldPos;
+    varying float vHeight;
     
     void main() {
       vec3 color = texture2D(uTexture, vTexCoord).rgb;
       
       if (uIsBackground > 0.5) {
-        gl_FragColor = vec4(color, 1.0);
+        // Darken background slightly to simulate shadows from buildings
+        float shadowFactor = 0.7;
+        gl_FragColor = vec4(color * shadowFactor, 1.0);
       } else {
         vec3 normal = normalize(vNormal);
         vec3 lightDir = normalize(uLightDir);
+        vec3 viewDir = vec3(0.0, 0.0, 1.0);
         
-        float ambient = 0.5;
+        // Ambient with height-based variation (taller = brighter ambient)
+        float ambient = 0.35 + vHeight * 0.3;
+        
+        // Diffuse lighting
         float diffuse = max(dot(normal, lightDir), 0.0) * 0.5;
-        float lighting = ambient + diffuse;
         
-        gl_FragColor = vec4(color * lighting, 1.0);
+        // Specular highlight for top faces
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
+        float specular = spec * 0.3 * step(0.9, normal.z); // Only on top faces
+        
+        // Fake ambient occlusion - darker at bottom of side faces
+        float ao = 1.0;
+        if (abs(normal.z) < 0.1) { // Side faces
+          ao = 0.6 + 0.4 * (vHeight / 0.5); // Darker near ground
+        }
+        
+        // Rim lighting for edges
+        float rim = 1.0 - max(dot(viewDir, normal), 0.0);
+        rim = pow(rim, 3.0) * 0.15;
+        
+        float lighting = (ambient + diffuse) * ao + specular + rim;
+        
+        // Slightly warm the lit areas, cool the shadows
+        vec3 warmLight = vec3(1.05, 1.0, 0.95);
+        vec3 coolShadow = vec3(0.9, 0.95, 1.05);
+        vec3 tint = mix(coolShadow, warmLight, lighting);
+        
+        gl_FragColor = vec4(color * lighting * tint, 1.0);
       }
     }
   `;
