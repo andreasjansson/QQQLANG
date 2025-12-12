@@ -10404,5 +10404,48 @@ Add WebGL state reset to fnR
 ID: toolu_01DvtxmW6AHWQQq26v82h88H
 
 <tool.toolu_01DvtxmW6AHWQQq26v82h88H>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add WebGL state reset to fnR
 </tool.toolu_01DvtxmW6AHWQQq26v82h88H>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01KSMZvbnMfbuc9qTTfZUG67
+
+## path
+
+<tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
+character-defs.ts
+</tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
+
+## git-commit-message
+
+<tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
+Add WebGL state reset to fnT
+</tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
+
+## diff
+
+<tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
+ function fnT(ctx: FnContext, n: number): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE0);
++  
+   const baseGridSize = 8;
+\ No newline at end of file
+
+</tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
+
+# TOOL RESULT
+
+ID: toolu_01KSMZvbnMfbuc9qTTfZUG67
+
+<tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>
+
+</tool.toolu_01KSMZvbnMfbuc9qTTfZUG67>

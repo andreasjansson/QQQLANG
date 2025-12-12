@@ -2136,6 +2136,12 @@ function fnT(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE0);
+  
   const baseGridSize = 8;
   const maxHeight = 0.05 + (n / 68) * 0.4;
   const seed = ctx.images.length * 137.5 + n * 17.0;
