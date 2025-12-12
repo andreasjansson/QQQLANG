@@ -10891,5 +10891,46 @@ Update backslash blend mode to INT
 ID: toolu_016ek8FzPhyPRXvZ7fs5t89q
 
 <tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update backslash blend mode to INT
 </tool.toolu_016ek8FzPhyPRXvZ7fs5t89q>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_019TkrTExvf61d2kNCPUNAqU
+
+## path
+
+<tool.toolu_019TkrTExvf61d2kNCPUNAqU>
+character-defs.ts
+</tool.toolu_019TkrTExvf61d2kNCPUNAqU>
+
+## git-commit-message
+
+<tool.toolu_019TkrTExvf61d2kNCPUNAqU>
+Update _ blend mode to INT
+</tool.toolu_019TkrTExvf61d2kNCPUNAqU>
+
+## diff
+
+<tool.toolu_019TkrTExvf61d2kNCPUNAqU>
+   '_': {
+     color: '#FF7F50',
+     number: 63,
+     fn: fnBlend,
+-    args: [{ type: Choice('multiply','screen','overlay','darken','lighten','dodge','burn','hardlight','softlight','difference','exclusion','add','subtract','xor','and','or','nand','nor','xnor','average','divide','grain-extract','grain-merge','vivid','linear','pin','hardmix','hue','saturation','color','luminosity','replace-dark-third','replace-mid-third','replace-light-third','???'), documentation: "Blend mode (cycles through 34)" }],
++    args: [{ type: INT, documentation: "Blend mode (mod 34: multiply, screen, overlay, darken, lighten, dodge, burn, hardlight, softlight, difference, exclusion, add, subtract, xor, and, or, nand, nor, xnor, average, divide, grain-extract, grain-merge, vivid, linear, pin, hardmix, hue, saturation, color, luminosity, replace-dark-third, replace-mid-third, replace-light-third)" }],
+     functionName: "blend",
+     documentation: "Blend current with previous using specified mode."
+   },
+\ No newline at end of file
+
+</tool.toolu_019TkrTExvf61d2kNCPUNAqU>
+
+# TOOL RESULT
+
+ID: toolu_019TkrTExvf61d2kNCPUNAqU
+
+<tool.toolu_019TkrTExvf61d2kNCPUNAqU>
+
+</tool.toolu_019TkrTExvf61d2kNCPUNAqU>
