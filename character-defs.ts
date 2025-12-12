@@ -2186,20 +2186,18 @@ function fnT(ctx: FnContext, n: number): Image {
   scene.add(ambientLight);
   
   const mainLight = new THREE.DirectionalLight(0xffffff, 1.8);
-  mainLight.position.set(3, 2, 5);
+  mainLight.position.set(2, 2, 5);
   mainLight.castShadow = true;
-  mainLight.shadow.mapSize.width = 512;
-  mainLight.shadow.mapSize.height = 512;
-  mainLight.shadow.camera.near = 0.5;
+  mainLight.shadow.mapSize.width = 1024;
+  mainLight.shadow.mapSize.height = 1024;
+  mainLight.shadow.camera.near = 0.1;
   mainLight.shadow.camera.far = 20;
-  const shadowSize = Math.max(frustumWidth, frustumHeight) * 0.7;
+  const shadowSize = Math.max(frustumWidth, frustumHeight);
   mainLight.shadow.camera.left = -shadowSize;
   mainLight.shadow.camera.right = shadowSize;
   mainLight.shadow.camera.top = shadowSize;
   mainLight.shadow.camera.bottom = -shadowSize;
-  mainLight.shadow.radius = 8;
-  mainLight.shadow.blurSamples = 16;
-  mainLight.shadow.bias = 0.0001;
+  mainLight.shadow.bias = -0.001;
   scene.add(mainLight);
   
   const fillLight = new THREE.DirectionalLight(0x8899ff, 0.4);
