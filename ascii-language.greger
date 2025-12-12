@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-131701812879>
+${greger-prompt-code-style<eval-result-131838889018>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-131701812879>}
+</eval-result-131838889018>}
 
 # IMPORTANT
 
@@ -11236,5 +11236,122 @@ Improve help display formatting for Choice types
 ID: toolu_01Vwc9NBSCELM2ssvzmwerr5
 
 <tool.toolu_01Vwc9NBSCELM2ssvzmwerr5>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Improve help display formatting for Choice types
 </tool.toolu_01Vwc9NBSCELM2ssvzmwerr5>
+
+# ASSISTANT
+
+Perfect! Now the implementation is complete. Let me create a summary of what was accomplished:
+
+## Summary
+
+I've successfully refactored the QQQLANG type system and added inline function documentation:
+
+### 1. **New Type System**
+- Created proper type classes: `IntType`, `ColorType`, `IndexType`, and `ChoiceType`
+- Added constants: `INT`, `COLOR`, `INDEX` 
+- Added `Choice()` factory function for creating choice types with specific options
+
+### 2. **Refactored CharDef Structure**
+```typescript
+interface CharDef {
+  color: string;
+  number: number;
+  fn: (ctx: FnContext, ...args: any[]) => Image;
+  args: ArgDef[];  // Replaced arity and argTypes
+  functionName: string;
+  documentation: string;  // Now only general docs, not arg-specific
+}
+
+interface ArgDef {
+  type: ArgType;
+  documentation: string;  // Argument-specific docs
+}
+```
+
+### 3. **Updated All Character Definitions**
+- Converted all 68 characters from `arity`/`argTypes` to `args` array
+- Separated general documentation from argument documentation
+- Made documentation more concise since arg details are now separate
+
+### 4. **Runtime Updates**
+- Updated `parseProgram` to use `args` array and type instances
+- Updated `runProgram` to resolve `ChoiceType` arguments by mapping numbers to choice strings
+- Updated `getExpectedNextType` to handle type instances
+
+### 5. **Inline Help Display**
+- Added `#help-container` below the input showing function documentation when typing
+- Displays function name, character, and general description
+- Shows each argument with its type and documentation
+- For `ChoiceType` arguments with < 68 choices, shows all mappings (e.g., `A=>★,B=>●,C=>■,...`)
+- For `ChoiceType` with ≥ 68 choices, shows first 5 mappings with `[etc.]`
+
+### 6. **Example Display**
+When typing a function like `X`, the help would show:
+```
+shape-overlay [X] -- Draws unicode shape at the center with a specific color.
+ (1) :choice -- Unicode shape (cycles through 64 symbols) A=>★,B=>●,C=>■,D=>▲,...
+ (2) :color -- Shape color
+```
+
+The system is now more maintainable, self-documenting, and provides better user feedback when composing programs.
+
+# USER
+
+I still see this:
+
+blend [_] -- Blend current with previous using specified mode.
+(1) :int -- Blend mode (mod 34: multiply, screen, overlay, darken, lighten, dodge, burn, hardlight, softlight, difference, exclusion, add, subtract, xor, and, or, nand, nor, xnor, average, divide, grain-extract, grain-merge, vivid, linear, pin, hardmix, hue, saturation, color, luminosity, replace-dark-third, replace-mid-third, replace-light-third)
+
+# THINKING
+
+Signature: EscECkYIChgCKkAds1eXgBxA7edXhrOeF6MTLoYITyJPH6pFzNsl1daEzOKdiqxIeLvT+ym79tuobJOSygc7CKrO+l+RlkUAdyPvEgy10zoqmRn8UsTuMMAaDMSdJjOuvqUkmK+yNSIwk5ykoBhgjyU9OXumRI1i9XD3CLn4Y2m5RMRLf1OnY699CPpQFXHHq/CCHOjFGf9SKq4D/ynwfvz9drmZYY1jVHwx6dbIVcdI0xshQD9penHisRZfzY8nysQl9lz5Tmr9rro339uDl36eLPSWuSr15dG/XhehNxXDDPJFRDfnVMnEIi6/HJ7CR3OQdwl7mYC68nZni2PhSOaG87MGZ9+9Plt1PMtkKystxG3sqUCFaqNKYr1PRt6IuH5ySEljBZL/vP/30pFh1/QoCw/vai9JISFmR6+6wguWg51H42sOPJIKsdcZYiz7Y6FsbBc50jmE6QD+I7I7/hdE05esS0aFaWA3oFfKurrsfe/KK+m53t3vE7J32+NNX0vJFB4FPUGQMheHBrTjyeGMAQM/rbdvpeE7/1m1Lltp+84HE+cUfUaV/gbG+b/oTtLm4JJ59owROawiyhAi06UFLEE9CUU+et7nKFsCTwtGlxomVNjClVnS4Qdlxz4alUEcRwilZcxnC25BUBqULyoGFzVX5krIIkZBZOfqWL9z9XvZ6ODIU0RMUh+e9aPXBudg/xCPuEFo7vLWrnfPZy8kKgX7bcrv5vSeEiGAOkNUmF+hIsGg71Nt53764y5uJQ3fZj6EdEDGSRgB
+
+The user is pointing out that the blend function (_) is still showing `:int` with a long list of mode names in the documentation, instead of using a `Choice` type. They want me to convert it to use `Choice` so it shows the character mappings like `A=>multiply,B=>screen,C=>overlay,[etc.]`
+
+Let me update the `_` character definition to use `Choice` and then update the `fnBlend` function to handle the choice string.
+
+# ASSISTANT
+
+You're right! Let me convert the `_` (blend) function to use a proper `Choice` type:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Pia7mhq11xb4Lo5i486MVN
+
+## path
+
+<tool.toolu_01Pia7mhq11xb4Lo5i486MVN>
+character-defs.ts
+</tool.toolu_01Pia7mhq11xb4Lo5i486MVN>
+
+## git-commit-message
+
+<tool.toolu_01Pia7mhq11xb4Lo5i486MVN>
+Convert blend function to use Choice type
+</tool.toolu_01Pia7mhq11xb4Lo5i486MVN>
+
+## diff
+
+<tool.toolu_01Pia7mhq11xb4Lo5i486MVN>
+   '_': {
+     color: '#FF7F50',
+     number: 63,
+     fn: fnBlend,
+-    args: [{ type: INT, documentation: "Blend mode (mod 34: multiply, screen, overlay, darken, lighten, dodge, burn, hardlight, softlight, difference, exclusion, add, subtract, xor, and, or, nand, nor, xnor, average, divide, grain-extract, grain-merge, vivid, linear, pin, hardmix, hue, saturation, color, luminosity, replace-dark-third, replace-mid-third, replace-light-third)" }],
++    args: [{ type: Choice('multiply','screen','overlay','darken','lighten','dodge','burn','hardlight','softlight','difference','exclusion','add','subtract','xor','and','or','nand','nor','xnor','average','divide','grain-extract','grain-merge','vivid','linear','pin','hardmix','hue','saturation','color','luminosity','replace-dark-third','replace-mid-third','replace-light-third'), documentation: "Blend mode" }],
+     functionName: "blend",
+     documentation: "Blend current with previous using specified mode."
+   },
+\ No newline at end of file
+
+</tool.toolu_01Pia7mhq11xb4Lo5i486MVN>
+
+# TOOL RESULT
+
+ID: toolu_01Pia7mhq11xb4Lo5i486MVN
+
+<tool.toolu_01Pia7mhq11xb4Lo5i486MVN>
+
+</tool.toolu_01Pia7mhq11xb4Lo5i486MVN>
