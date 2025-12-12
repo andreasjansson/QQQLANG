@@ -10195,5 +10195,87 @@ Update fnPercent to use direction string directly
 ID: toolu_01XDGKrgyL3jn3SWkB4cXKgK
 
 <tool.toolu_01XDGKrgyL3jn3SWkB4cXKgK>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update fnPercent to use direction string directly
 </tool.toolu_01XDGKrgyL3jn3SWkB4cXKgK>
+
+# ASSISTANT
+
+Now let me update the help generation function to use the new structure:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01N3StABXjTNRdapBoUskMFW
+
+## pattern
+
+<tool.toolu_01N3StABXjTNRdapBoUskMFW>
+function generateCharacterRefLines
+</tool.toolu_01N3StABXjTNRdapBoUskMFW>
+
+## path
+
+<tool.toolu_01N3StABXjTNRdapBoUskMFW>
+character-defs.ts
+</tool.toolu_01N3StABXjTNRdapBoUskMFW>
+
+# TOOL RESULT
+
+ID: toolu_01N3StABXjTNRdapBoUskMFW
+
+<tool.toolu_01N3StABXjTNRdapBoUskMFW>
+5326:function generateCharacterRefLines(char: string, def: CharDef, charsPerLine: number): string[] {
+
+</tool.toolu_01N3StABXjTNRdapBoUskMFW>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_012P12jSogWKRkY39NwnBiEA
+
+## path
+
+<tool.toolu_012P12jSogWKRkY39NwnBiEA>
+character-defs.ts
+</tool.toolu_012P12jSogWKRkY39NwnBiEA>
+
+## git-commit-message
+
+<tool.toolu_012P12jSogWKRkY39NwnBiEA>
+Update help generation to show arg documentation
+</tool.toolu_012P12jSogWKRkY39NwnBiEA>
+
+## diff
+
+<tool.toolu_012P12jSogWKRkY39NwnBiEA>
+ function generateCharacterRefLines(char: string, def: CharDef, charsPerLine: number): string[] {
+   const lines: string[] = [];
+   
+-  const argsStr = def.arity > 0 ? ` [${def.argTypes.join(', ')}]` : '';
++  const argsStr = def.args.length > 0 ? ` [${def.args.map(a => a.type.name).join(', ')}]` : '';
+   const header = `${char} (${def.number}) ${def.color} - ${def.functionName}${argsStr}`;
+   lines.push(header);
+   
+   const docLines = wrapText('  ' + def.documentation, charsPerLine);
+   lines.push(...docLines);
+   
++  for (let i = 0; i < def.args.length; i++) {
++    const arg = def.args[i];
++    const argLine = `  (${i + 1}) :${arg.type.name} -- ${arg.documentation}`;
++    const argDocLines = wrapText(argLine, charsPerLine);
++    lines.push(...argDocLines);
++  }
++  
+   return lines;
+ }
+\ No newline at end of file
+
+</tool.toolu_012P12jSogWKRkY39NwnBiEA>
+
+# TOOL RESULT
+
+ID: toolu_012P12jSogWKRkY39NwnBiEA
+
+<tool.toolu_012P12jSogWKRkY39NwnBiEA>
+
+</tool.toolu_012P12jSogWKRkY39NwnBiEA>

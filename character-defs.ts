@@ -5326,12 +5326,19 @@ The question mark character '?' is also a function that displays help text. '?1'
 function generateCharacterRefLines(char: string, def: CharDef, charsPerLine: number): string[] {
   const lines: string[] = [];
   
-  const argsStr = def.arity > 0 ? ` [${def.argTypes.join(', ')}]` : '';
+  const argsStr = def.args.length > 0 ? ` [${def.args.map(a => a.type.name).join(', ')}]` : '';
   const header = `${char} (${def.number}) ${def.color} - ${def.functionName}${argsStr}`;
   lines.push(header);
   
   const docLines = wrapText('  ' + def.documentation, charsPerLine);
   lines.push(...docLines);
+  
+  for (let i = 0; i < def.args.length; i++) {
+    const arg = def.args[i];
+    const argLine = `  (${i + 1}) :${arg.type.name} -- ${arg.documentation}`;
+    const argDocLines = wrapText(argLine, charsPerLine);
+    lines.push(...argDocLines);
+  }
   
   return lines;
 }
