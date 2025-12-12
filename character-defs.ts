@@ -2288,7 +2288,7 @@ function fnT(ctx: FnContext, n: number): Image {
       const box = new THREE.Mesh(boxGeometry, materials);
       box.position.set(cx, cy, depth / 2);
       box.castShadow = true;
-      box.receiveShadow = false;
+      box.receiveShadow = true;
       scene.add(box);
     }
   }
