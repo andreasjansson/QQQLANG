@@ -13066,5 +13066,78 @@ Move help-container outside of app flow for absolute positioning
 ID: toolu_01Br8tb3swMpGYoFFYEokPNP
 
 <tool.toolu_01Br8tb3swMpGYoFFYEokPNP>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/index.html. Successfully staged 2 file(s) and committed with message: Move help-container outside of app flow for absolute positioning
 </tool.toolu_01Br8tb3swMpGYoFFYEokPNP>
+
+# ASSISTANT
+
+Now let me update the JavaScript to use unicode symbols:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01BwxqM6Gor8FqY9bAvs8cEb
+
+## path
+
+<tool.toolu_01BwxqM6Gor8FqY9bAvs8cEb>
+index.html
+</tool.toolu_01BwxqM6Gor8FqY9bAvs8cEb>
+
+## git-commit-message
+
+<tool.toolu_01BwxqM6Gor8FqY9bAvs8cEb>
+Use unicode emdash and arrow symbols in help display
+</tool.toolu_01BwxqM6Gor8FqY9bAvs8cEb>
+
+## diff
+
+<tool.toolu_01BwxqM6Gor8FqY9bAvs8cEb>
+       const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
+       
+-      // Format first line: C name -- doc
+-      const firstLine = `${char} ${def.functionName} -- ${def.documentation}`;
++      // Format first line: C name — doc
++      const firstLine = `${char} ${def.functionName} — ${def.documentation}`;
+       let html = `<div>${firstLine}</div>`;
+       
+-      // Format arg lines: (n) argDoc [type] -- choices
++      // Format arg lines: (n) argDoc [type] — choices
+       for (let i = 0; i < def.args.length; i++) {
+         const arg = def.args[i];
+         let argLine = `(${i + 1}) ${arg.documentation} [${arg.type.name}]`;
+         
+         if (arg.type instanceof ChoiceType) {
+           const choices = arg.type.choices;
+           let mappings;
+           if (choices.length < 68) {
+             mappings = choices.map((choice, idx) => {
+-              return `${numToChar(idx + 1)}=&gt;${choice}`;
++              return `${numToChar(idx + 1)}→${choice}`;
+             }).join(',');
+           } else {
+             mappings = choices.slice(0, 5).map((choice, idx) => {
+-              return `${numToChar(idx + 1)}=&gt;${choice}`;
++              return `${numToChar(idx + 1)}→${choice}`;
+             }).join(',') + ',[etc.]';
+           }
+-          argLine += ` -- ${mappings}`;
++          argLine += ` — ${mappings}`;
+         }
+         
+         html += `<div>${argLine}</div>`;
+       }
+       
+       helpContainer.innerHTML = html;
+     }
+\ No newline at end of file
+
+</tool.toolu_01BwxqM6Gor8FqY9bAvs8cEb>
+
+# TOOL RESULT
+
+ID: toolu_01BwxqM6Gor8FqY9bAvs8cEb
+
+<tool.toolu_01BwxqM6Gor8FqY9bAvs8cEb>
+
+</tool.toolu_01BwxqM6Gor8FqY9bAvs8cEb>
