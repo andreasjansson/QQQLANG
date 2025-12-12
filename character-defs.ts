@@ -6130,9 +6130,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#F0E68C',
     number: 20,
     fn: fnT,
-    args: [{ type: INT, documentation: "Grid density (char+2, 2-20)" }],
+    args: [{ type: INT, documentation: "Maximum building height (normalized 0-1)" }],
     functionName: "city",
-    documentation: "Grid of square 3D buildings with varying heights, textured with image squares."
+    documentation: "8×8 grid of square 3D buildings with varying heights, textured with image squares."
   },
   
   'U': {
