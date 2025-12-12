@@ -5664,7 +5664,7 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnS,
     args: [
       { type: INDEX, documentation: "Old image for triangle interior" },
-      { type: INT, documentation: "Fractal detail level (1-68)" }
+      { type: INT, documentation: "Fractal detail level (A-~)" }
     ],
     functionName: "sierpinski",
     documentation: "Sierpiński triangle fractal with color effects."
