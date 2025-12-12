@@ -2399,6 +2399,7 @@ function fnT(ctx: FnContext, n: number): Image {
   `;
   
   const shadowProgram = createShaderProgram(gl, shadowVertexShader, shadowFragmentShader);
+  const envProgram = createShaderProgram(gl, envVertexShader, envFragmentShader);
   const mainProgram = createShaderProgram(gl, vertexShader, fragmentShader);
   
   const texture = gl.createTexture();
@@ -2429,6 +2430,26 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.bindRenderbuffer(gl.RENDERBUFFER, shadowDepthBuffer);
   gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, shadowMapSize, shadowMapSize);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, shadowDepthBuffer);
+  
+  // Create reflection map framebuffer and texture
+  const reflectionFramebuffer = gl.createFramebuffer();
+  const reflectionTexture = gl.createTexture();
+  
+  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ctx.width, ctx.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  
+  gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, reflectionTexture, 0);
+  
+  // Create depth renderbuffer for reflection pass
+  const reflectionDepthBuffer = gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER, reflectionDepthBuffer);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, ctx.width, ctx.height);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, reflectionDepthBuffer);
   
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   
