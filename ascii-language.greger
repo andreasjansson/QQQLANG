@@ -10599,5 +10599,48 @@ Add WebGL state reset to fnCloseBrace
 ID: toolu_015UNv2TwsuB4FrTjtfsLXAk
 
 <tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add WebGL state reset to fnCloseBrace
 </tool.toolu_015UNv2TwsuB4FrTjtfsLXAk>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TeyuSLRXRfXn3xSiNx2W4p
+
+## path
+
+<tool.toolu_01TeyuSLRXRfXn3xSiNx2W4p>
+character-defs.ts
+</tool.toolu_01TeyuSLRXRfXn3xSiNx2W4p>
+
+## git-commit-message
+
+<tool.toolu_01TeyuSLRXRfXn3xSiNx2W4p>
+Add WebGL state reset to fnOilSlick
+</tool.toolu_01TeyuSLRXRfXn3xSiNx2W4p>
+
+## diff
+
+<tool.toolu_01TeyuSLRXRfXn3xSiNx2W4p>
+ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
+   const prev = getPrevImage(ctx);
+   const gl = initWebGL(ctx.width, ctx.height);
+   
++  gl.activeTexture(gl.TEXTURE0);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE1);
++  gl.bindTexture(gl.TEXTURE_2D, null);
++  gl.activeTexture(gl.TEXTURE0);
++  
+   const seed = ctx.images.length * 137.5 + warpN * 17.3 + iridN * 7.1;
+\ No newline at end of file
+
+</tool.toolu_01TeyuSLRXRfXn3xSiNx2W4p>
+
+# TOOL RESULT
+
+ID: toolu_01TeyuSLRXRfXn3xSiNx2W4p
+
+<tool.toolu_01TeyuSLRXRfXn3xSiNx2W4p>
+
+</tool.toolu_01TeyuSLRXRfXn3xSiNx2W4p>

@@ -5548,6 +5548,12 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE0);
+  
   const seed = ctx.images.length * 137.5 + warpN * 17.3 + iridN * 7.1;
   const depth = 1 + Math.floor(iridN / 4);
   const warpStrength = 0.05 + warpN * 0.025;
