@@ -5674,7 +5674,7 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#F0E68C',
     number: 20,
     fn: fnT,
-    args: [{ type: INT, documentation: "Number of 3D cubes (n+1)" }],
+    args: [{ type: INT, documentation: "Number of 3D cubes (char+1)" }],
     functionName: "cubes",
     documentation: "3D cubes protruding from image plane."
   },
