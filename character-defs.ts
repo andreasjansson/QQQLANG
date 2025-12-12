@@ -5689,210 +5689,192 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#DDA0DD',
     number: 21,
     fn: fnU,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Intensity and angle multiplier" }],
     functionName: "undertone",
-    documentation: "HSL color shift with three gradient directions 120° apart: hue rotation, saturation multiply, lightness adjust (midtone-weighted); n controls angle and intensity"
+    documentation: "HSL shift with three gradient directions for hue, saturation, and lightness."
   },
   
   'V': {
     color: '#40E0D0',
     number: 22,
     fn: fnB,
-    arity: 1,
-    argTypes: ['index'],
+    args: [{ type: INDEX, documentation: "Old image to alternate with" }],
     functionName: "voronoi",
-    documentation: "Breaks image into 36 voronoi cells, alternating between prev and old image"
+    documentation: "36 voronoi cells alternating between current and old image."
   },
   
   'W': {
     color: '#EE82EE',
     number: 23,
     fn: fnW,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Rotation multiplier (×20°)" }],
     functionName: "swirl",
-    documentation: "Swirl distortion from center, rotation = n*45°, quadratic falloff"
+    documentation: "Swirl distortion from center with quadratic falloff."
   },
   
   'X': {
     color: '#F5DEB3',
     number: 24,
     fn: fnX,
-    arity: 2,
-    argTypes: ['int', 'color'],
+    args: [
+      { type: Choice('★','●','■','▲','◆','♥','✦','⬡','✚','◐','☽','⚡','∞','☀','✿','⬢','◯','△','□','◇','♦','♣','♠','⬟','⬠','▽','◁','▷','⊕','⊗','⊛','⊚','▣','▤','▥','▦','▧','▨','▩','⬣','⬤','◉','◎','◈','◊','○','◌','◍','◢','◣','◤','◥','♯','♮','♩','♪','✶','✴','✳','✲','✱','✰','✯','✮'), documentation: "Unicode shape (cycles through 64 symbols)" },
+      { type: COLOR, documentation: "Shape color" }
+    ],
     functionName: "shape-overlay",
-    documentation: "Draws unicode shape k%64 at center in color c (★●■▲◆♥✦⬡✚◐☽⚡∞☀✿⬢...)"
+    documentation: "Draws unicode shape at center with gradient to average color."
   },
   
   'Y': {
     color: '#98FB98',
     number: 25,
     fn: fnY,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Number of radial sections" }],
     functionName: "radial-hue",
-    documentation: "Splits into n radial sections, each hue-rotated by i*(360/n)°"
+    documentation: "Radial sections with progressive hue rotation."
   },
   
   'Z': {
     color: '#AFEEEE',
     number: 26,
     fn: fnZ,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Blur strength multiplier (×4px)" }],
     functionName: "zoom-blur",
-    documentation: "Radial motion blur from center, blur amount n*4px, center 20% stays sharp"
+    documentation: "Radial motion blur from center with sharp center."
   },
   
   '0': {
     color: '#E6E6FA',
     number: 27,
     fn: fn0,
-    arity: 1,
-    argTypes: ['index'],
+    args: [{ type: INDEX, documentation: "Old image to overlay blend" }],
     functionName: "overlay",
-    documentation: "Overlay blend mode: combines prev with old_image, darkening darks and lightening lights"
+    documentation: "Overlay blend mode darkening darks and lightening lights."
   },
   
   '1': {
     color: '#FFA07A',
     number: 28,
     fn: fn1,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "center-bar",
-    documentation: "Middle third of image shows prev sharpened and contrast-boosted, rest is desaturated"
+    documentation: "Middle third sharpened and boosted, rest desaturated."
   },
   
   '2': {
     color: '#98D8C8',
     number: 29,
     fn: fn2,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "time-echo",
-    documentation: "Left third shows 3rd previous image, middle shows 2nd previous, right shows prev - recent history triptych"
+    documentation: "Three vertical strips showing recent image history."
   },
   
   '3': {
     color: '#F7DC6F',
     number: 30,
     fn: fn3,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "triple-rotate",
-    documentation: "Divides into 3 vertical strips; left rotated 90° CW, middle unchanged, right rotated 90° CCW"
+    documentation: "Three vertical strips with different rotations."
   },
   
   '4': {
     color: '#BB8FCE',
     number: 31,
     fn: fn4,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "quad-rotate",
-    documentation: "Divides into 2x2 quadrants, each rotated (0°, 90°, 180°, 270°)"
+    documentation: "Four quadrants each rotated 0°, 90°, 180°, 270°."
   },
   
   '5': {
     color: '#85C1E9',
     number: 32,
     fn: fn5,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Cell size multiplier" }],
     functionName: "triangular-split",
-    documentation: "Splits prev into triangles based on cell width, each with hue shift and lightness variation"
+    documentation: "Triangular grid with hue shifts and lightness variation."
   },
   
   '6': {
     color: '#F1948A',
     number: 33,
     fn: fn6,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "posterize",
-    documentation: "Posterizes prev to 4 levels per channel"
+    documentation: "Posterize to 4 levels per channel."
   },
   
   '7': {
     color: '#82E0AA',
     number: 34,
     fn: fn7,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "chromatic",
-    documentation: "Chromatic aberration: R shifted left 4px, G centered, B shifted right 4px"
+    documentation: "Chromatic aberration with RGB channel shifts."
   },
   
   '8': {
     color: '#F8C471',
     number: 35,
     fn: fn8,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Distortion strength" }],
     functionName: "lemniscate",
-    documentation: "Infinity-loop/lemniscate distortion centered on image with strength n/5, pixels flow along curve"
+    documentation: "Infinity-loop lemniscate distortion."
   },
   
   '9': {
     color: '#D7BDE2',
     number: 36,
     fn: fn9,
-    arity: 1,
-    argTypes: ['index'],
+    args: [{ type: INDEX, documentation: "Old image to XOR with" }],
     functionName: "xor-blend",
-    documentation: "XORs prev with old_image, creating glitchy digital artifacts"
+    documentation: "XOR blend creating glitchy digital artifacts."
   },
   
   '<': {
     color: '#E74C3C',
     number: 37,
     fn: fnLessThan,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "shift-left",
-    documentation: "Shifts prev 1/3 of the width to the left with wraparound"
+    documentation: "Horizontal shift 1/3 width left with wraparound."
   },
   
   '>': {
     color: '#3498DB',
     number: 38,
     fn: fnGreaterThan,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "rotate-90",
-    documentation: "Rotates prev 90 degrees clockwise"
+    documentation: "Rotate 90 degrees clockwise."
   },
   
   '^': {
     color: '#2ECC71',
     number: 39,
     fn: fnCaret,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "shift-up",
-    documentation: "Shifts prev 1/3 of the height up with wraparound"
+    documentation: "Vertical shift 1/3 height up with wraparound."
   },
   
   '!': {
     color: '#FF4500',
     number: 40,
     fn: fnAsterisk,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "godrays",
-    documentation: "Volumetric light scattering (god rays) effect from center, additively blended with prev"
+    documentation: "Volumetric light scattering from center."
   },
   
   '"': {
     color: '#9932CC',
     number: 41,
     fn: fnDoubleQuote,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Number of horizontal bands" }],
     functionName: "band-transform",
-    documentation: "Splits into n horizontal bands; odd bands hue-rotated 180°, even bands have saturation inverted"
+    documentation: "Horizontal bands with alternating hue/saturation transforms."
   },
   
   '#': {
