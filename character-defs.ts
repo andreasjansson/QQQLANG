@@ -4546,10 +4546,10 @@ function fnColon(ctx: FnContext, old: Image): Image {
       const dist = Math.sqrt(dx * dx + dy * dy);
       
       if (dist < radius) {
-        const [r, g, b] = getPixel(old, x, y);
+        const [r, g, b] = getPixel(prev, x, y);
         setPixel(out, x, y, r, g, b);
       } else {
-        const [r, g, b] = getPixel(prev, x, y);
+        const [r, g, b] = getPixel(old, x, y);
         setPixel(out, x, y, r, g, b);
       }
     }
