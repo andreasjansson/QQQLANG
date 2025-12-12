@@ -6025,7 +6025,7 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#D2691E',
     number: 58,
     fn: fnHelp,
-    args: [{ type: INT, documentation: "Page number (1=intro, 2+=reference, 42=history)" }],
+    args: [{ type: INT, documentation: "Page number (A=intro, B+=reference, #=history)" }],
     functionName: "help",
     documentation: "Display help text or image history table."
   },
