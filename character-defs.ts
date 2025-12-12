@@ -2204,16 +2204,9 @@ function fnT(ctx: FnContext, n: number): Image {
       const texX0 = col / cols, texX1 = (col + 1) / cols;
       const texY0 = 1 - (row + 1) / rows, texY1 = 1 - row / rows;
       
-      const halfW = cellWidth / 2;
-      const halfH = cellHeight / 2;
-      
       for (let i = 0; i < uvs.count; i++) {
         if (normals.getZ(i) > 0.9) {
-          const px = positions.getX(i);
-          const py = positions.getY(i);
-          const u = texX0 + (px + halfW) / cellWidth * (texX1 - texX0);
-          const v = texY0 + (py + halfH) / cellHeight * (texY1 - texY0);
-          uvs.setXY(i, u, v);
+          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY0 : texY1);
         }
       }
       
