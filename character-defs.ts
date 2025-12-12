@@ -4297,7 +4297,7 @@ function fnBlend(ctx: FnContext, mode: number): Image {
   const prev1 = ctx.images.length >= 2 ? ctx.images[ctx.images.length - 2] : prev;
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const NUM_MODES = 32;
+  const NUM_MODES = 34;
   const blendMode = ((mode - 1) % NUM_MODES + NUM_MODES) % NUM_MODES;
   
   for (let y = 0; y < ctx.height; y++) {
@@ -4308,11 +4308,7 @@ function fnBlend(ctx: FnContext, mode: number): Image {
       let r: number, g: number, b: number;
       
       switch (blendMode) {
-        case 0: // Normal - top replaces base
-          r = tr; g = tg; b = tb;
-          break;
-          
-        case 1: // Multiply
+        case 0: // Multiply
           r = (br * tr) / 255;
           g = (bg * tg) / 255;
           b = (bb * tb) / 255;
