@@ -6097,49 +6097,44 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#6495ED',
     number: 64,
     fn: fnBacktick,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Iterations and smear strength" }],
     functionName: "gradient-smear",
-    documentation: "Iteratively smears pixels along image gradients; edges create directional streaks, n controls iterations and strength"
+    documentation: "Iterative gradient-based pixel smearing creating directional streaks."
   },
   
   '{': {
     color: '#DC143C',
     number: 65,
     fn: fnSkewLeft,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "skew-left",
-    documentation: "Skews image 20 degrees left (top shifts left, bottom shifts right) with wraparound"
+    documentation: "Skew 20° left with wraparound (top left, bottom right)."
   },
   
   '|': {
     color: '#00BFFF',
     number: 66,
     fn: fnPipe,
-    arity: 1,
-    argTypes: ['index'],
+    args: [{ type: INDEX, documentation: "Old image for right half" }],
     functionName: "vertical-split",
-    documentation: "Left=prev, right=old image; 20% wavy blend zone uses screen/difference/xor in alternating horizontal bands"
+    documentation: "Vertical split with wavy blend zone using multiple blend modes."
   },
   
   '}': {
     color: '#9400D3',
     number: 67,
     fn: fnSkewRight,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "skew-right",
-    documentation: "Skews image 20 degrees right (top shifts right, bottom shifts left) with wraparound"
+    documentation: "Skew 20° right with wraparound (top right, bottom left)."
   },
   
   '~': {
     color: '#FF6347',
     number: 68,
     fn: fnTilde,
-    arity: 1,
-    argTypes: ['int'],
+    args: [{ type: INT, documentation: "Wave amplitude and chromatic shift" }],
     functionName: "wave-chromatic",
-    documentation: "Horizontal wave distortion with amplitude = sin(y*0.05)*n*8, chromatic aberration (R +n px, B -n px)"
+    documentation: "Horizontal wave distortion with chromatic aberration."
   },
 };
