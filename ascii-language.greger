@@ -13470,5 +13470,126 @@ Debug: use tiny height and fix UV mapping
 ID: toolu_01WGtxdTQzHdxXPUgmJuVpyH
 
 <tool.toolu_01WGtxdTQzHdxXPUgmJuVpyH>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Debug: use tiny height and fix UV mapping
 </tool.toolu_01WGtxdTQzHdxXPUgmJuVpyH>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01CoCR1tXc2vrkCaVVZvYkER
+
+## path
+
+<tool.toolu_01CoCR1tXc2vrkCaVVZvYkER>
+character-defs.ts
+</tool.toolu_01CoCR1tXc2vrkCaVVZvYkER>
+
+## start-line
+
+<tool.toolu_01CoCR1tXc2vrkCaVVZvYkER>
+2195
+</tool.toolu_01CoCR1tXc2vrkCaVVZvYkER>
+
+## end-line
+
+<tool.toolu_01CoCR1tXc2vrkCaVVZvYkER>
+2230
+</tool.toolu_01CoCR1tXc2vrkCaVVZvYkER>
+
+# TOOL RESULT
+
+ID: toolu_01CoCR1tXc2vrkCaVVZvYkER
+
+<tool.toolu_01CoCR1tXc2vrkCaVVZvYkER>
+      const depth = 0.001; // DEBUG: (0.05 + hash(idx * 127.1) * 0.4) * heightMultiplier;
+      const cx = (col + 0.5) * cellWidth - frustumWidth / 2;
+      const cy = (row + 0.5) * cellHeight - frustumHeight / 2;
+      
+      const geometry = new THREE.BoxGeometry(cellWidth, cellHeight, depth);
+      
+      const uvs = geometry.attributes.uv;
+      const positions = geometry.attributes.position;
+      const normals = geometry.attributes.normal;
+      const texX0 = col / cols, texX1 = (col + 1) / cols;
+      const texY0 = 1 - (row + 1) / rows, texY1 = 1 - row / rows;
+      
+      for (let i = 0; i < uvs.count; i++) {
+        if (normals.getZ(i) > 0.9) {
+          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY0 : texY1);
+        }
+      }
+      
+      const hue = hash(idx * 311.7);
+      const sideColor = new THREE.Color().setHSL(hue, 0.2, 0.55);
+      
+      const topMat = new THREE.MeshStandardMaterial({ map: bgTexture, roughness: 0.4 });
+      const sideMat = new THREE.MeshStandardMaterial({ color: sideColor, roughness: 0.7 });
+      
+      const box = new THREE.Mesh(geometry, [sideMat, sideMat, sideMat, sideMat, topMat, sideMat]);
+      box.position.set(cx, cy, depth / 2);
+      box.castShadow = true;
+      box.receiveShadow = true;
+      scene.add(box);
+    }
+  }
+  
+  renderer.render(scene, camera);
+  
+  const gl = renderer.getContext();
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+</tool.toolu_01CoCR1tXc2vrkCaVVZvYkER>
+
+# ASSISTANT
+
+The issue is that the UV coordinates only set corner values (texX0/texX1, texY0/texY1) but don't interpolate properly. The BoxGeometry vertices aren't at exactly 0 or > 0 - they're at -halfWidth and +halfWidth. Let me fix this to properly interpolate:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01GVMv5mMy9iHaepa1JDiLf5
+
+## path
+
+<tool.toolu_01GVMv5mMy9iHaepa1JDiLf5>
+character-defs.ts
+</tool.toolu_01GVMv5mMy9iHaepa1JDiLf5>
+
+## git-commit-message
+
+<tool.toolu_01GVMv5mMy9iHaepa1JDiLf5>
+Fix UV mapping to properly interpolate based on vertex positions
+</tool.toolu_01GVMv5mMy9iHaepa1JDiLf5>
+
+## diff
+
+<tool.toolu_01GVMv5mMy9iHaepa1JDiLf5>
+       const uvs = geometry.attributes.uv;
+       const positions = geometry.attributes.position;
+       const normals = geometry.attributes.normal;
+       const texX0 = col / cols, texX1 = (col + 1) / cols;
+       const texY0 = 1 - (row + 1) / rows, texY1 = 1 - row / rows;
+       
++      const halfW = cellWidth / 2;
++      const halfH = cellHeight / 2;
++      
+       for (let i = 0; i < uvs.count; i++) {
+         if (normals.getZ(i) > 0.9) {
+-          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY0 : texY1);
++          const px = positions.getX(i);
++          const py = positions.getY(i);
++          const u = texX0 + (px + halfW) / cellWidth * (texX1 - texX0);
++          const v = texY0 + (py + halfH) / cellHeight * (texY1 - texY0);
++          uvs.setXY(i, u, v);
+         }
+       }
+\ No newline at end of file
+
+</tool.toolu_01GVMv5mMy9iHaepa1JDiLf5>
+
+# TOOL RESULT
+
+ID: toolu_01GVMv5mMy9iHaepa1JDiLf5
+
+<tool.toolu_01GVMv5mMy9iHaepa1JDiLf5>
+
+</tool.toolu_01GVMv5mMy9iHaepa1JDiLf5>
