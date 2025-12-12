@@ -4212,7 +4212,7 @@ function fnDot(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: number, blend: number): Image {
+function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: number, blend: string): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   
@@ -4228,33 +4228,29 @@ function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: n
   const dstY = norm(offY) * ctx.height;
   const dstRadius = Math.max(1, norm(size) * Math.min(ctx.width, ctx.height));
   
-  // Blend mode (0-15)
-  const NUM_BLEND_MODES = 16;
-  const blendMode = (blend - 1) % NUM_BLEND_MODES;
-  
-  const blendFuncs: ((b: number, t: number) => number)[] = [
-    (b, t) => t,
-    (b, t) => b ^ t,
-    (b, t) => 255 - (b & t),
-    (b, t) => b & t,
-    (b, t) => b | t,
-    (b, t) => (b * t) / 255,
-    (b, t) => 255 - ((255 - b) * (255 - t)) / 255,
-    (b, t) => b < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
-    (b, t) => Math.min(b, t),
-    (b, t) => Math.max(b, t),
-    (b, t) => Math.abs(b - t),
-    (b, t) => b + t - (2 * b * t) / 255,
-    (b, t) => Math.min(255, b + t),
-    (b, t) => Math.max(0, b - t),
-    (b, t) => t < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
-    (b, t) => {
+  const blendFuncs: Record<string, (b: number, t: number) => number> = {
+    'normal': (b, t) => t,
+    'xor': (b, t) => b ^ t,
+    'nand': (b, t) => 255 - (b & t),
+    'and': (b, t) => b & t,
+    'or': (b, t) => b | t,
+    'multiply': (b, t) => (b * t) / 255,
+    'screen': (b, t) => 255 - ((255 - b) * (255 - t)) / 255,
+    'overlay': (b, t) => b < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
+    'darken': (b, t) => Math.min(b, t),
+    'lighten': (b, t) => Math.max(b, t),
+    'difference': (b, t) => Math.abs(b - t),
+    'exclusion': (b, t) => b + t - (2 * b * t) / 255,
+    'add': (b, t) => Math.min(255, b + t),
+    'subtract': (b, t) => Math.max(0, b - t),
+    'hardlight': (b, t) => t < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
+    'softlight': (b, t) => {
       const tb = t / 255, bb = b / 255;
       return Math.round((tb < 0.5 ? bb - (1 - 2 * tb) * bb * (1 - bb) : bb + (2 * tb - 1) * (bb < 0.25 ? ((16 * bb - 12) * bb + 4) * bb : Math.sqrt(bb) - bb)) * 255);
     },
-  ];
+  };
   
-  const blendFunc = blendFuncs[blendMode];
+  const blendFunc = blendFuncs[blend] || blendFuncs['normal'];
   
   // Scale factor from destination to source
   const scale = srcRadius / dstRadius;
