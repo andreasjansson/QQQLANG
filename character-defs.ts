@@ -5500,10 +5500,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#78A10F',
     number: 1,
     fn: fnA,
-    arity: 0,
-    argTypes: [],
+    args: [],
     functionName: "flip-and-sphere",
-    documentation: "Flips prev horizontally, then renders as texture on two 3D spheres with lighting in top-right and bottom-left quadrants"
+    documentation: "Flips prev horizontally, then renders as texture on two 3D spheres with lighting."
   },
   
   'B': {
