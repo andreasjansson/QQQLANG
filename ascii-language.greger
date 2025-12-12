@@ -9558,5 +9558,48 @@ Await async function results in runProgram
 ID: toolu_011f7iYwMHVdkKutRgDZMw6P
 
 <tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Await async function results in runProgram
 </tool.toolu_011f7iYwMHVdkKutRgDZMw6P>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01EtF9NWDoa4FvpsDFrjAvsc
+
+## path
+
+<tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+runtime.ts
+</tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+
+## git-commit-message
+
+<tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+Make getFinalImage async
+</tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+
+## original-content
+
+<tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+export function getFinalImage(program: string, width: number, height: number): Image {
+  const images = runProgram(program, width, height);
+  return images[images.length - 1];
+}
+</tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+
+## new-content
+
+<tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+export async function getFinalImage(program: string, width: number, height: number): Promise<Image> {
+  const images = await runProgram(program, width, height);
+  return images[images.length - 1];
+}
+</tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+
+# TOOL RESULT
+
+ID: toolu_01EtF9NWDoa4FvpsDFrjAvsc
+
+<tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
+
+</tool.toolu_01EtF9NWDoa4FvpsDFrjAvsc>
