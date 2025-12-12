@@ -334,6 +334,7 @@ export function runProgram(program: string, width: number, height: number): Imag
   }
 
   const images: Image[] = [createSolidImage(width, height, '#000000')];
+  const opInfos: OpInfo[] = [{ identifier: '', type: 'solid' }];
   let cacheHits = 0;
   let cacheMisses = 0;
   
@@ -345,6 +346,10 @@ export function runProgram(program: string, width: number, height: number): Imag
     if (cached) {
       console.log(`  ✓ CACHE HIT`);
       images.push(cached);
+      opInfos.push({
+        identifier: op.identifier,
+        type: op.type
+      });
       cacheHits++;
       continue;
     }
@@ -367,6 +372,7 @@ export function runProgram(program: string, width: number, height: number): Imag
         height,
         images: [...images],
         currentIndex: images.length,
+        opInfos: [...opInfos],
       };
       
       const resolvedArgs = op.args.map((arg, idx) => {
