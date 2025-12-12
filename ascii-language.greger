@@ -10938,5 +10938,43 @@ Configure DirectionalLight with proper VSM shadow settings
 ID: toolu_011xqd1grcKqAToFceDNBYTb
 
 <tool.toolu_011xqd1grcKqAToFceDNBYTb>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Configure DirectionalLight with proper VSM shadow settings
 </tool.toolu_011xqd1grcKqAToFceDNBYTb>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01WZ8Asn3nNog32aFZvJKDTu
+
+## path
+
+<tool.toolu_01WZ8Asn3nNog32aFZvJKDTu>
+character-defs.ts
+</tool.toolu_01WZ8Asn3nNog32aFZvJKDTu>
+
+## git-commit-message
+
+<tool.toolu_01WZ8Asn3nNog32aFZvJKDTu>
+Enable castShadow on building meshes
+</tool.toolu_01WZ8Asn3nNog32aFZvJKDTu>
+
+## diff
+
+<tool.toolu_01WZ8Asn3nNog32aFZvJKDTu>
+       const box = new THREE.Mesh(boxGeometry, materials);
+       box.position.set(cx, cy, depth / 2);
+       box.castShadow = true;
+-      box.receiveShadow = true;
++      box.receiveShadow = false;
+       scene.add(box);
+\ No newline at end of file
+
+</tool.toolu_01WZ8Asn3nNog32aFZvJKDTu>
+
+# TOOL RESULT
+
+ID: toolu_01WZ8Asn3nNog32aFZvJKDTu
+
+<tool.toolu_01WZ8Asn3nNog32aFZvJKDTu>
+
+</tool.toolu_01WZ8Asn3nNog32aFZvJKDTu>
