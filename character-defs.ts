@@ -4613,12 +4613,13 @@ function fnImageHistory(ctx: FnContext): Image {
     const cellWidth = availWidth / cols;
     const cellHeight = availHeight / rows;
     
-    // Reserve space for text (1 line: #n [C] AAA) - minimal
+    // Reserve space for text (1 line: #n [C] AAA) - minimal, plus bottom margin
     const textHeight = Math.min(cellHeight * 0.15, 14);
     const fontSize = Math.max(6, Math.min(10, textHeight));
+    const bottomMargin = 3;
     
     // Thumbnail gets remaining space with minimal padding
-    const thumbSize = Math.min(cellWidth - 2, cellHeight - textHeight - 2);
+    const thumbSize = Math.min(cellWidth - 2, cellHeight - textHeight - bottomMargin - 2);
     
     if (thumbSize > 8 && fontSize >= 6) {
       // Score based on thumbnail size and font readability
