@@ -5288,6 +5288,12 @@ function fnOpenBrace(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.activeTexture(gl.TEXTURE0);
+  
   const vertexShader = `
     attribute vec2 position;
     varying vec2 vUV;
