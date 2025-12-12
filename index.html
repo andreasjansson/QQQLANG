@@ -404,6 +404,17 @@
       return '?';
     }
     
+    function wrapAtCharLevel(text, maxWidth) {
+      if (text.length <= maxWidth) return [text];
+      const lines = [];
+      let i = 0;
+      while (i < text.length) {
+        lines.push(text.substring(i, i + maxWidth));
+        i += maxWidth;
+      }
+      return lines;
+    }
+    
     function updateHelpDisplay() {
       const program = input.value || '';
       const cursorPos = input.selectionStart ?? program.length;
@@ -447,28 +458,40 @@
       
       const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
       
-      let html = `<div><span class="fn-name">${def.functionName}</span> <span class="fn-char">[${char}]</span> -- ${def.documentation}</div>`;
+      // Calculate max width based on container (rough estimate: ~80 chars for 11px font)
+      const maxWidth = Math.floor(helpContainer.clientWidth / 7);
       
+      // Format first line: C name -- doc
+      const firstLine = `${char} ${def.functionName} -- ${def.documentation}`;
+      const firstLineWrapped = wrapAtCharLevel(firstLine, maxWidth);
+      let html = firstLineWrapped.map(line => `<div>${line}</div>`).join('');
+      
+      // Format arg lines: (n) argDoc [type] -- choices
       for (let i = 0; i < def.args.length; i++) {
         const arg = def.args[i];
-        let argDoc = arg.documentation;
+        let argLine = ` (${i + 1}) ${arg.documentation} [${arg.type.name}]`;
         
         if (arg.type instanceof ChoiceType) {
           const choices = arg.type.choices;
+          let mappings;
           if (choices.length < 68) {
-            const mappings = choices.map((choice, idx) => {
+            mappings = choices.map((choice, idx) => {
               return `${numToChar(idx + 1)}=&gt;${choice}`;
             }).join(',');
-            argDoc += ` ${mappings}`;
           } else {
-            const mappings = choices.slice(0, 5).map((choice, idx) => {
+            mappings = choices.slice(0, 5).map((choice, idx) => {
               return `${numToChar(idx + 1)}=&gt;${choice}`;
-            }).join(',');
-            argDoc += ` ${mappings},[etc.]`;
+            }).join(',') + ',[etc.]';
           }
+          argLine += ` -- ${mappings}`;
         }
         
-        html += `<div class="arg-line">(${i + 1}) :${arg.type.name} -- ${argDoc}</div>`;
+        const argLineWrapped = wrapAtCharLevel(argLine, maxWidth);
+        html += argLineWrapped.map((line, idx) => {
+          // Indent continuation lines
+          const prefix = idx > 0 ? '    ' : '';
+          return `<div class="arg-line">${prefix}${line}</div>`;
+        }).join('');
       }
       
       helpContainer.innerHTML = html;
