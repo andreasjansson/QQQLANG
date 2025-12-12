@@ -395,6 +395,43 @@
       return program;
     }
     
+    function updateHelpDisplay() {
+      const program = input.value || '';
+      if (!program) {
+        helpContainer.innerHTML = '';
+        return;
+      }
+      
+      const ops = getParsedOperations(program);
+      if (ops.length === 0) {
+        helpContainer.innerHTML = '';
+        return;
+      }
+      
+      const lastOp = ops[ops.length - 1];
+      
+      if (lastOp.type !== 'function') {
+        helpContainer.innerHTML = '';
+        return;
+      }
+      
+      const def = lastOp.fnDef;
+      const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
+      
+      let html = `<div><span class="fn-name">${def.functionName}</span> <span class="fn-char">[${char}]</span> -- ${def.documentation}</div>`;
+      
+      for (let i = 0; i < def.args.length; i++) {
+        const arg = def.args[i];
+        let typeDisplay = arg.type.name;
+        if (arg.type instanceof ChoiceType && arg.type.choices.length <= 10) {
+          typeDisplay = `choice(${arg.type.choices.slice(0, 5).join(',')})`;
+        }
+        html += `<div class="arg-line">(${i + 1}) :${typeDisplay} -- ${arg.documentation}</div>`;
+      }
+      
+      helpContainer.innerHTML = html;
+    }
+    
     function updateUploadButtonState() {
       const cursorPos = input.selectionStart ?? input.value.length;
       const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
