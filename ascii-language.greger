@@ -8740,5 +8740,66 @@ Replace ( and ) with WebGL fisheye distortion and blur functions
 ID: toolu_01Gkg9h7DSXrwtZEXh24fED2
 
 <tool.toolu_01Gkg9h7DSXrwtZEXh24fED2>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Replace ( and ) with WebGL fisheye distortion and blur functions
 </tool.toolu_01Gkg9h7DSXrwtZEXh24fED2>
+
+# ASSISTANT
+
+Now let me update the characterDefs entries to reference the new functions and update documentation:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01GBDwxajqYNoogcenvf6CDz
+
+## path
+
+<tool.toolu_01GBDwxajqYNoogcenvf6CDz>
+character-defs.ts
+</tool.toolu_01GBDwxajqYNoogcenvf6CDz>
+
+## git-commit-message
+
+<tool.toolu_01GBDwxajqYNoogcenvf6CDz>
+Update ( and ) character definitions with new function names and docs
+</tool.toolu_01GBDwxajqYNoogcenvf6CDz>
+
+## diff
+
+<tool.toolu_01GBDwxajqYNoogcenvf6CDz>
+   '(': {
+     color: '#00CED1',
+     number: 47,
+-    fn: fnOpenParen,
+-    args: [{ type: INT, documentation: "Pinch strength (÷10)" }],
+-    functionName: "pinch",
+-    documentation: "Pinch distortion toward center with brightening."
++    fn: fnFisheye,
++    args: [{ type: INT, documentation: "Distortion (A-Q=pinch/concave, R-~=bulge/convex)" }],
++    functionName: "fisheye",
++    documentation: "Fisheye lens distortion. Low values pinch inward, high values bulge outward. Edges stay fixed."
+   },
+   
+   ')': {
+     color: '#FF69B4',
+     number: 48,
+-    fn: fnCloseParen,
+-    args: [{ type: INT, documentation: "Bulge strength (÷10)" }],
+-    functionName: "bulge",
+-    documentation: "Bulge distortion from center with darkening."
++    fn: fnBlur,
++    args: [{ type: INT, documentation: "Blur radius (A=subtle, ~=heavy)" }],
++    functionName: "blur",
++    documentation: "Gaussian blur with adjustable radius using two-pass convolution."
+   },
+\ No newline at end of file
+
+</tool.toolu_01GBDwxajqYNoogcenvf6CDz>
+
+# TOOL RESULT
+
+ID: toolu_01GBDwxajqYNoogcenvf6CDz
+
+<tool.toolu_01GBDwxajqYNoogcenvf6CDz>
+
+</tool.toolu_01GBDwxajqYNoogcenvf6CDz>
