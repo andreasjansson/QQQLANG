@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-151940886878>
+${greger-prompt-code-style<eval-result-152151739655>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-151940886878>}
+</eval-result-152151739655>}
 
 # IMPORTANT
 
@@ -12061,25 +12061,17 @@ character-defs.ts
 Remove unused uLightDir uniform from fnT
 </tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
 
-## original-content
+## diff
 
 <tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
-  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, lightDirZ);
-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
-</tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
+   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
+   gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
+-  gl.uniform3f(gl.getUniformLocation(program, 'uLightDir'), lightDirX, lightDirY, lightDirZ);
+   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+   gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uProjection'), false, ortho);
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uView'), false, identity);
-  gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModel'), false, identity);
-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform1f(gl.getUniformLocation(program, 'uIsBackground'), 1.0);
 </tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
 
 # TOOL RESULT
@@ -12087,5 +12079,287 @@ Remove unused uLightDir uniform from fnT
 ID: toolu_01Up85QkLrcMepjyRJy8ZEny
 
 <tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Remove unused uLightDir uniform from fnT
 </tool.toolu_01Up85QkLrcMepjyRJy8ZEny>
+
+# ASSISTANT
+
+Done! I've rewritten the lighting to be much more visible:
+
+1. **Background is now darkened to 50%** - This makes the buildings stand out as they're "in shadow"
+
+2. **Face-specific lighting:**
+   - **Top faces** - Bright (70-120%) with diffuse + specular highlights
+   - **Right faces** - Partially lit (50-80%) since light comes from upper-right
+   - **Left faces** - In shadow (25%)
+   - **Front faces** - Partial light (40%)
+   - **Back faces** - Darker (30%)
+
+3. **Height bonus** - Taller buildings get extra brightness (+20% at full height)
+
+4. **Color temperature** - Lit areas have warm sunlight tint, shadows are cooler/bluer
+
+The light direction is now hardcoded in the shader as `vec3(0.5, -0.3, 1.0)` - coming from the upper-right and behind the camera (positive Z).
+
+# USER
+
+No revert all that. I want actual lighting and shadows with proper 3D graphics, not some stupid approximation!
+
+# THINKING
+
+Signature: EukFCkYIChgCKkD15/laQXOzwCNWxxiPACWrKomrejMI56NWJzLJg2OqOvSKOmLNgwLKhtAJHHZjAMFXbIPUdMRSMopiZamEe/NpEgyiAHEwvGmzFKiEjtUaDPscT53FzHHGloXXUSIwLqTGhj14Nk5+C1Y86NR266Citg/X/y4IiE3UI859ykBm/CRYm6mcrU6CzRtzN24gKtAECahM+qAGCf4DZI+rTO9DUGRKvlSlQFOh9CksJiYIICzCBttj47kVm5h+bazcBIG66sen7qmL7bH0rWYdpswcWxTqyXEqyzX+oiwgCPvoUhQOV/REDrUlS/07kqJEDtPrLk6OK05oq8AY6pN9bGKOWqDoDtKID1QFKYILyLeSXsNiicMQlJkVwLO6ovs33PQM9SCEhhlWZCR+/yDxfMdWxhTYFX5C1l1irBIGm3pfpU0fkMbKbCRVF+guYnS5wCA1a989EkisUBxNrLpPQLly/YiRKZGYD1/3SD1X7vk/sqCcVFXB38n5FHXj00QsBJUZJUivBDLKhQ6EFX9tL5Fi56ln8oWS9U/nACcowCnIPCwUS7RK4y5d9PxxtI0o3xKVuJCnFbFsgXDLsupE+UKL9ayJ7lxfiU2ndPEm6FCVQhWbN9ywD4mF/h8Mjnz3kI/4WBs6FJoco5DNJaQT42LPmj5jjlu1mJG1ACZKBAfh4eiRkYaIhkrjt+zDL03uBnlHAHBbl2YbiflioqJW+jEWJGCYREHncWyOLnTwyN0IGvwP3IdmbybeRo9qreVE3gZpFFTYPugcD4GmZbBCTvIEg1qNU/HFzXHFNO8X1CAKZRYouECyUuG8l9L1MxvZFbaczIslnNoqg0CrE6UtNyVmSfZrFPEbkgNvXq0TSezqNZ+QMedxt0jyHJbC8Iwu1mO4qow5pKKC7XqiVVkLZJsbUVr3wrU0GhMBW4VAWtlgkmm8A2zvoTWNf9xISjYP6lw4waLUJTngtZCaatCaCOocjRgB
+
+The user wants proper 3D lighting with real shadow mapping, not the fake per-face lighting I implemented. I need to implement proper shadow mapping:
+
+1. Render the scene from the light's perspective to create a shadow map (depth texture)
+2. When rendering the main scene, sample the shadow map to determine if each pixel is in shadow
+
+This requires:
+- A framebuffer with a depth texture for the shadow map
+- Two rendering passes: shadow pass and main pass
+- Transforming coordinates to light space in the fragment shader
+
+Let me implement proper shadow mapping for the city function.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RQ3o8XH3nQwAmgZSWo227h
+
+## path
+
+<tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+character-defs.ts
+</tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+
+## git-commit-message
+
+<tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+Implement proper shadow mapping for fnT city function
+</tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+
+## original-content
+
+<tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying float vHeight;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      vHeight = aPosition.z;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform float uIsBackground;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying float vHeight;
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        // Darken background to simulate being in shadow
+        gl_FragColor = vec4(color * 0.5, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        
+        // Light coming from upper-right-front (behind camera)
+        vec3 lightDir = normalize(vec3(0.5, -0.3, 1.0));
+        vec3 viewDir = vec3(0.0, 0.0, 1.0);
+        
+        // Check which face we're on
+        bool isTopFace = normal.z > 0.9;
+        bool isRightFace = normal.x > 0.9;
+        bool isLeftFace = normal.x < -0.9;
+        bool isFrontFace = normal.y > 0.9;
+        bool isBackFace = normal.y < -0.9;
+        
+        float lighting = 0.0;
+        
+        if (isTopFace) {
+          // Top faces are bright - fully lit by sun
+          float diffuse = max(dot(normal, lightDir), 0.0);
+          lighting = 0.7 + diffuse * 0.5;
+          
+          // Specular highlight
+          vec3 reflectDir = reflect(-lightDir, normal);
+          float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+          lighting += spec * 0.3;
+        } else if (isRightFace) {
+          // Right faces catch some light
+          lighting = 0.5 + max(dot(normal, lightDir), 0.0) * 0.3;
+        } else if (isLeftFace) {
+          // Left faces are in shadow
+          lighting = 0.25;
+        } else if (isFrontFace) {
+          // Front faces (bottom of screen) - partial light
+          lighting = 0.4;
+        } else if (isBackFace) {
+          // Back faces (top of screen) - darker
+          lighting = 0.3;
+        }
+        
+        // Height-based ambient boost - taller buildings catch more light
+        lighting += vHeight * 0.2;
+        
+        // Warm sunlight tint for lit areas
+        vec3 tint = mix(vec3(0.8, 0.85, 1.0), vec3(1.1, 1.05, 0.95), lighting);
+        
+        gl_FragColor = vec4(color * lighting * tint, 1.0);
+      }
+    }
+  `;
+</tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+
+## new-content
+
+<tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+  // Shadow map shaders
+  const shadowVertexShader = `
+    attribute vec3 aPosition;
+    uniform mat4 uLightProjection;
+    uniform mat4 uLightView;
+    uniform mat4 uModel;
+    
+    void main() {
+      gl_Position = uLightProjection * uLightView * uModel * vec4(aPosition, 1.0);
+    }
+  `;
+  
+  const shadowFragmentShader = `
+    precision highp float;
+    
+    void main() {
+      gl_FragColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+    }
+  `;
+  
+  // Main render shaders
+  const vertexShader = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    
+    uniform mat4 uProjection;
+    uniform mat4 uView;
+    uniform mat4 uModel;
+    uniform mat4 uLightProjection;
+    uniform mat4 uLightView;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying vec4 vLightSpacePos;
+    
+    void main() {
+      vec4 worldPos = uModel * vec4(aPosition, 1.0);
+      vWorldPos = worldPos.xyz;
+      vNormal = mat3(uModel) * aNormal;
+      vTexCoord = aTexCoord;
+      vLightSpacePos = uLightProjection * uLightView * worldPos;
+      gl_Position = uProjection * uView * worldPos;
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    
+    uniform sampler2D uTexture;
+    uniform sampler2D uShadowMap;
+    uniform float uIsBackground;
+    uniform vec3 uLightDir;
+    
+    varying vec3 vNormal;
+    varying vec2 vTexCoord;
+    varying vec3 vWorldPos;
+    varying vec4 vLightSpacePos;
+    
+    float calculateShadow() {
+      vec3 projCoords = vLightSpacePos.xyz / vLightSpacePos.w;
+      projCoords = projCoords * 0.5 + 0.5;
+      
+      if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0) {
+        return 0.0;
+      }
+      
+      float currentDepth = projCoords.z;
+      float bias = 0.005;
+      
+      // PCF soft shadows
+      float shadow = 0.0;
+      float texelSize = 1.0 / 1024.0;
+      for (int x = -2; x <= 2; x++) {
+        for (int y = -2; y <= 2; y++) {
+          float pcfDepth = texture2D(uShadowMap, projCoords.xy + vec2(float(x), float(y)) * texelSize).r;
+          shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+      }
+      shadow /= 25.0;
+      
+      return shadow;
+    }
+    
+    void main() {
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      
+      if (uIsBackground > 0.5) {
+        float shadow = calculateShadow();
+        float lighting = 1.0 - shadow * 0.6;
+        gl_FragColor = vec4(color * lighting, 1.0);
+      } else {
+        vec3 normal = normalize(vNormal);
+        vec3 lightDir = normalize(uLightDir);
+        vec3 viewDir = vec3(0.0, 0.0, 1.0);
+        
+        // Ambient
+        float ambient = 0.3;
+        
+        // Diffuse
+        float diff = max(dot(normal, lightDir), 0.0);
+        float diffuse = diff * 0.6;
+        
+        // Specular
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+        float specular = spec * 0.4;
+        
+        // Shadow
+        float shadow = calculateShadow();
+        
+        float lighting = ambient + (1.0 - shadow * 0.7) * (diffuse + specular);
+        
+        gl_FragColor = vec4(color * lighting, 1.0);
+      }
+    }
+  `;
+</tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+
+# TOOL RESULT
+
+ID: toolu_01RQ3o8XH3nQwAmgZSWo227h
+
+<tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
+
+</tool.toolu_01RQ3o8XH3nQwAmgZSWo227h>
