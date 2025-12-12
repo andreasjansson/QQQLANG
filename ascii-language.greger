@@ -9895,5 +9895,44 @@ Update loop to iterate from index 1, adjusting image numbering
 ID: toolu_01XtejtaACkUKYT2q5Ny6EbA
 
 <tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Update loop to iterate from index 1, adjusting image numbering
 </tool.toolu_01XtejtaACkUKYT2q5Ny6EbA>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01EQG2c6Qp8hBPsYVmXCJkHu
+
+## path
+
+<tool.toolu_01EQG2c6Qp8hBPsYVmXCJkHu>
+character-defs.ts
+</tool.toolu_01EQG2c6Qp8hBPsYVmXCJkHu>
+
+## git-commit-message
+
+<tool.toolu_01EQG2c6Qp8hBPsYVmXCJkHu>
+Fix displayed image number to show actual index (1-based)
+</tool.toolu_01EQG2c6Qp8hBPsYVmXCJkHu>
+
+## diff
+
+<tool.toolu_01EQG2c6Qp8hBPsYVmXCJkHu>
+     // Draw text below thumbnail on single line
++    // Display with 1-based numbering to match access keys
+     const textY = thumbY + thumbSize + fontSize + 2;
+     tempCtx.fillStyle = '#00FF00';
+     tempCtx.textAlign = 'center';
+     tempCtx.fillText(`#${i} [${accessKey}] ${displayOp}`, thumbX + thumbSize / 2, textY);
+   }
+\ No newline at end of file
+
+</tool.toolu_01EQG2c6Qp8hBPsYVmXCJkHu>
+
+# TOOL RESULT
+
+ID: toolu_01EQG2c6Qp8hBPsYVmXCJkHu
+
+<tool.toolu_01EQG2c6Qp8hBPsYVmXCJkHu>
+
+</tool.toolu_01EQG2c6Qp8hBPsYVmXCJkHu>
