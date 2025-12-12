@@ -13321,5 +13321,47 @@ Fix texture mapping - remove flipY and correct UV coordinates
 ID: toolu_011CgojSJComvMbabnZoMtmZ
 
 <tool.toolu_011CgojSJComvMbabnZoMtmZ>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix texture mapping - remove flipY and correct UV coordinates
 </tool.toolu_011CgojSJComvMbabnZoMtmZ>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RuQacai2M83JBdTAo7RsF1
+
+## path
+
+<tool.toolu_01RuQacai2M83JBdTAo7RsF1>
+character-defs.ts
+</tool.toolu_01RuQacai2M83JBdTAo7RsF1>
+
+## git-commit-message
+
+<tool.toolu_01RuQacai2M83JBdTAo7RsF1>
+Adjust UV coordinates for non-flipped texture
+</tool.toolu_01RuQacai2M83JBdTAo7RsF1>
+
+## diff
+
+<tool.toolu_01RuQacai2M83JBdTAo7RsF1>
+       const texX0 = col / cols, texX1 = (col + 1) / cols;
+-      const texY0 = row / rows, texY1 = (row + 1) / rows;
++      const texY0 = 1 - (row + 1) / rows, texY1 = 1 - row / rows;
+       
+       for (let i = 0; i < uvs.count; i++) {
+         if (normals.getZ(i) > 0.9) {
+-          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY1 : texY0);
++          uvs.setXY(i, positions.getX(i) > 0 ? texX1 : texX0, positions.getY(i) > 0 ? texY0 : texY1);
+         }
+       }
+\ No newline at end of file
+
+</tool.toolu_01RuQacai2M83JBdTAo7RsF1>
+
+# TOOL RESULT
+
+ID: toolu_01RuQacai2M83JBdTAo7RsF1
+
+<tool.toolu_01RuQacai2M83JBdTAo7RsF1>
+
+</tool.toolu_01RuQacai2M83JBdTAo7RsF1>
