@@ -4943,14 +4943,13 @@ function fnCloseBracket(ctx: FnContext): Image {
   return out;
 }
 
-function fnBlend(ctx: FnContext, modeName: string): Image {
+function fnBlend(ctx: FnContext, old: Image, modeName: string): Image {
   const prev = getPrevImage(ctx);
-  const prev1 = ctx.images.length >= 2 ? ctx.images[ctx.images.length - 2] : prev;
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [br, bg, bb] = getPixel(prev1, x, y);
+      const [br, bg, bb] = getPixel(old, x, y);
       const [tr, tg, tb] = getPixel(prev, x, y);
       
       let r: number, g: number, b: number;
