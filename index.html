@@ -406,6 +406,14 @@
     
     function updateHelpDisplay() {
       const program = input.value || '';
+      const cursorPos = input.selectionStart ?? program.length;
+      
+      // Only show help if cursor is at the end of the program
+      if (cursorPos !== program.length) {
+        helpContainer.innerHTML = '';
+        return;
+      }
+      
       if (!program) {
         helpContainer.innerHTML = '';
         return;
@@ -425,6 +433,18 @@
       }
       
       const def = lastOp.fnDef;
+      
+      // Check if function is complete (has all arguments)
+      const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
+      const currentOpChars = [...lastOp.identifier.substring(prevIdentifier.length)];
+      const argsProvided = currentOpChars.length - 1; // Subtract 1 for the function character itself
+      
+      if (argsProvided >= def.args.length) {
+        // Function is complete, don't show help
+        helpContainer.innerHTML = '';
+        return;
+      }
+      
       const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
       
       let html = `<div><span class="fn-name">${def.functionName}</span> <span class="fn-char">[${char}]</span> -- ${def.documentation}</div>`;
