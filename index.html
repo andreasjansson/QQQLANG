@@ -40,18 +40,25 @@
     }
     
     #help-container {
-      flex-shrink: 0;
-      padding: 5px 10px 10px 10px;
-      background: #000;
+      position: absolute;
+      top: 80px;
+      left: 10px;
+      right: 10px;
+      padding: 5px;
       font-family: monospace;
-      font-size: 11px;
+      font-size: 9px;
       color: #0f0;
-      min-height: 20px;
       line-height: 1.3;
-      width: 100%;
-      box-sizing: border-box;
       word-break: break-all;
       overflow-wrap: anywhere;
+      text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        0 0 3px #000;
+      pointer-events: none;
+      z-index: 10;
     }
     
     #help-container .fn-name {
@@ -60,6 +67,18 @@
     
     #help-container .fn-char {
       color: #888;
+      text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        0 0 3px #000;
+    }
+    
+    @media (max-width: 600px) {
+      #help-container {
+        display: none;
+      }
     }
     
     #input-wrapper {
