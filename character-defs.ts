@@ -4545,7 +4545,7 @@ function fnBlend(ctx: FnContext, modeName: string): Image {
           break;
         }
         
-        case 32: { // Replace Mid Third - replace middle 33% with prev
+        case 'replace-mid-third': {
           const [, , bl] = rgbToHsl(br, bg, bb);
           if (bl >= 0.333 && bl < 0.667) {
             r = tr; g = tg; b = tb;
@@ -4555,7 +4555,7 @@ function fnBlend(ctx: FnContext, modeName: string): Image {
           break;
         }
         
-        case 33: { // Replace Light Third - replace lightest 33% with prev
+        case 'replace-light-third': {
           const [, , bl] = rgbToHsl(br, bg, bb);
           if (bl >= 0.667) {
             r = tr; g = tg; b = tb;
