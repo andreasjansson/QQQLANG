@@ -2172,7 +2172,6 @@ function fnT(ctx: FnContext, n: number): Image {
   bgTexture.colorSpace = THREE.SRGBColorSpace;
   bgTexture.needsUpdate = true;
   bgTexture.flipY = true;
-  scene.background = bgTexture;
   
   const fov = 50;
   const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100);
