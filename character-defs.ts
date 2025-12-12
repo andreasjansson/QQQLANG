@@ -24,12 +24,40 @@ export interface FnContext {
   opInfos: OpInfo[];
 }
 
+export class ArgType {
+  constructor(public name: string) {}
+}
+
+export class IntType extends ArgType {
+  constructor() { super('int'); }
+}
+
+export class ColorType extends ArgType {
+  constructor() { super('color'); }
+}
+
+export class IndexType extends ArgType {
+  constructor() { super('index'); }
+}
+
+export class ChoiceType extends ArgType {
+  constructor(public choices: string[]) { super('choice'); }
+}
+
+export const INT = new IntType();
+export const COLOR = new ColorType();
+export const INDEX = new IndexType();
+export function Choice(...choices: string[]): ChoiceType {
+  return new ChoiceType(choices);
+}
+
 export interface CharDef {
   color: string;
   number: number;
   fn: (ctx: FnContext, ...args: any[]) => Image;
   arity: number;
-  argTypes: ('int' | 'color' | 'index')[];
+  argTypes: ArgType[];
+  argDocs: string[];
   functionName: string;
   documentation: string;
 }
