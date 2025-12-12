@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-010329607942>
+${greger-prompt-code-style<eval-result-011137480296>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-010329607942>}
+</eval-result-011137480296>}
 
 # IMPORTANT
 
@@ -7650,5 +7650,394 @@ Adjust composite function to dynamically scale width/height based on remaining s
 ID: toolu_017zSaaZGvEbZKLgHVDpwwht
 
 <tool.toolu_017zSaaZGvEbZKLgHVDpwwht>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Adjust composite function to dynamically scale width/height based on remaining space
 </tool.toolu_017zSaaZGvEbZKLgHVDpwwht>
+
+# ASSISTANT
+
+Done. Now the width and height parameters dynamically scale based on the remaining space after the offset:
+
+- **src_x**: Maps to 0% - 100% of old image width
+- **src_w**: Maps to 0% - 100% of *remaining* width (old.width - src_x)
+- **src_y**: Maps to 0% - 100% of old image height
+- **src_h**: Maps to 0% - 100% of *remaining* height (old.height - src_y)
+
+Same for destination:
+- **dst_x**: Maps to 0% - 100% of canvas width
+- **dst_w**: Maps to 0% - 100% of *remaining* width (canvas.width - dst_x)
+- **dst_y**: Maps to 0% - 100% of canvas height
+- **dst_h**: Maps to 0% - 100% of *remaining* height (canvas.height - dst_y)
+
+This means:
+- If `dst_x = A` (0%), then `dst_w = ~` gives full canvas width
+- If `dst_x = ~` (100%), then `dst_w` can only be 1 pixel regardless of value
+- Any combination always stays within canvas bounds
+
+# USER
+
+add one more argument that controls blend mode, where the argument is % number of blend modes. include normal as the first one (A), and XOR, NAND, along with the usual ones
+
+# THINKING
+
+Signature: EskGCkYIChgCKkDRtVcAWqiW+MyOF0aqaOtaB8sWtrcPyGXgeefPgtt6/0LFBtjyog9u6BVCRAEN10j4b8N8MdXBhkB+rU8p0tccEgyjAWVPVAA5e+JpmtUaDJEiOaQrw99BEETsMyIwOX8lIE0Y3vNq9mJG+A90x9uTbVJijAWo4jAZcMrFM2i5lKizGuazkxOQeNIWWdsyKrAFn3KwzN2samJy0OMzHHWdbRweXfN6N7/JkIhw3tKTxmHabyiceT3vtPvJi9C+ZFHJlh++IuIhhh4dUOSkcKmOgvQJ0UXRHMzdbPg/s+v10OZhctHueUKLE19ps53CuDjk4TtTsbxOpkbY8TnSiHP47VWUnhy6Wx7h60u2u9WMPyjT0QM2/3rKyqw3BhjhkkUlXVLpio6MpVv+DAoGlTVWqu9RIPyyU0M1i8HCF78F+oqwUOQFQ0cli2zb/HCtN/lSjYiJ72l55AXKiUrIoZHrSRlbcZYvJ5PC9Y6lyv7+BfRc4Duq4aAHGX+QXAdJT3Rl836S1br3WJtINKJYu6uYc3HYwyXukGPHcC8lm7kg2KRwATBxuCWKYYw1GU1f39pN9A9WYhb6NqAW+3jCoXrENMkrM1h7ncN1i8ixh7DVz7ACkH9ryXlMRLOhPLHhsCpr5OAl/1IumZWp35lkjjAlxok0Mlcpbft7vXua9Ole/RI1/9Z5hd+NSxQFbOx3vZvLa9hYdq1S+GZKa/kd/SihDK4gHXLqWYLAY1H19hcup3G6yzF5HMT2ITbWjKCLDhYZSaJbSTp7Ahd5No7UN0YoCnxYmbAs9NK0DyoiALpFok6fA9mNxYHdIy7Wiv1eo1mkBkhk97BtvgS2eRdYY32+pinAGq4xlTrA5oubHsmk7kwhvAyFjKZpBllyjo1ciZAHhy/q4miY/MJL7KBlZFHqB4nZ9Pa3OB33e+OdIfLD9uTudhS0adGUcIjI4cH23otqcAJhFh/lpsXSetSCNnP1C5WLfPcmyK0/D3e1w+1lk+k7kdNGm95JWYyJf3ag4bOOGdhPY/1qE2wvz9O/oskXNEHgUnDNEfZqS0G5sdpwMYQsfE4cj6Cjlq9Jt6c5FxW/05BBqu0QtUVq0gta7qmYRxgB
+
+The user wants me to add another argument for blend mode. The blend mode should be selected by taking the argument value modulo the number of blend modes.
+
+Common blend modes include:
+1. Normal (A) - just copy
+2. XOR
+3. NAND
+4. Multiply
+5. Screen
+6. Overlay
+7. Darken
+8. Lighten
+9. Color Dodge
+10. Color Burn
+11. Hard Light
+12. Soft Light
+13. Difference
+14. Exclusion
+15. Add (Linear Dodge)
+16. Subtract
+
+Let me implement this with a good selection of blend modes. The argument will be `blendMode % numberOfBlendModes`.
+
+I need to:
+1. Add the blend mode parameter to the function
+2. Implement the blend modes
+3. Update the argTypes to include another 'int'
+4. Update the documentation
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01NsWSERfX7pLmwLP6PGEoft
+
+## path
+
+<tool.toolu_01NsWSERfX7pLmwLP6PGEoft>
+character-defs.ts
+</tool.toolu_01NsWSERfX7pLmwLP6PGEoft>
+
+## start-line
+
+<tool.toolu_01NsWSERfX7pLmwLP6PGEoft>
+4035
+</tool.toolu_01NsWSERfX7pLmwLP6PGEoft>
+
+## end-line
+
+<tool.toolu_01NsWSERfX7pLmwLP6PGEoft>
+4140
+</tool.toolu_01NsWSERfX7pLmwLP6PGEoft>
+
+# TOOL RESULT
+
+ID: toolu_01NsWSERfX7pLmwLP6PGEoft
+
+<tool.toolu_01NsWSERfX7pLmwLP6PGEoft>
+function fnBackslash(
+  ctx: FnContext,
+  old: Image,
+  srcX: number,
+  srcY: number,
+  srcW: number,
+  srcH: number,
+  dstX: number,
+  dstY: number,
+  dstW: number,
+  dstH: number,
+  rot: number
+): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  
+  // Map integer values (1-68) to normalized 0-1 range
+  const norm = (n: number) => Math.max(0, Math.min(1, (n - 1) / 67));
+  
+  // Source crop region in old image
+  // X and Y use full range, W and H use remaining space after offset
+  const sourceCropX = Math.floor(norm(srcX) * old.width);
+  const sourceCropY = Math.floor(norm(srcY) * old.height);
+  const sourceCropW = Math.max(1, Math.round(norm(srcW) * (old.width - sourceCropX)));
+  const sourceCropH = Math.max(1, Math.round(norm(srcH) * (old.height - sourceCropY)));
+  
+  // Destination region in output image
+  // X and Y use full range, W and H use remaining space after offset
+  const destX = Math.floor(norm(dstX) * ctx.width);
+  const destY = Math.floor(norm(dstY) * ctx.height);
+  const destW = Math.max(1, Math.round(norm(dstW) * (ctx.width - destX)));
+  const destH = Math.max(1, Math.round(norm(dstH) * (ctx.height - destY)));
+  
+  // Rotation angle (0-360 degrees)
+  const rotation = norm(rot) * 2 * Math.PI;
+  
+  const destCenterX = destX + destW / 2;
+  const destCenterY = destY + destH / 2;
+  const cosR = Math.cos(-rotation);
+  const sinR = Math.sin(-rotation);
+  
+  // Calculate bounding box of rotated rectangle
+  const halfW = destW / 2;
+  const halfH = destH / 2;
+  const corners = [
+    [-halfW, -halfH],
+    [halfW, -halfH],
+    [halfW, halfH],
+    [-halfW, halfH]
+  ];
+  
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const [cx, cy] of corners) {
+    const rx = cx * Math.cos(rotation) - cy * Math.sin(rotation) + destCenterX;
+    const ry = cx * Math.sin(rotation) + cy * Math.cos(rotation) + destCenterY;
+    minX = Math.min(minX, rx);
+    maxX = Math.max(maxX, rx);
+    minY = Math.min(minY, ry);
+    maxY = Math.max(maxY, ry);
+  }
+  
+  const startX = Math.max(0, Math.floor(minX));
+  const endX = Math.min(ctx.width, Math.ceil(maxX));
+  const startY = Math.max(0, Math.floor(minY));
+  const endY = Math.min(ctx.height, Math.ceil(maxY));
+  
+  for (let py = startY; py < endY; py++) {
+    for (let px = startX; px < endX; px++) {
+      // Inverse rotation to find source coordinates
+      const relX = px - destCenterX;
+      const relY = py - destCenterY;
+      const rotX = relX * cosR - relY * sinR;
+      const rotY = relX * sinR + relY * cosR;
+      
+      // Map to normalized coordinates in destination rect
+      const normX = (rotX + halfW) / destW;
+      const normY = (rotY + halfH) / destH;
+      
+      // Check if within the destination rectangle (0-1 range)
+      if (normX < 0 || normX >= 1 || normY < 0 || normY >= 1) continue;
+      
+      // Map to source coordinates with bilinear sampling
+      const srcPxF = sourceCropX + normX * sourceCropW;
+      const srcPyF = sourceCropY + normY * sourceCropH;
+      
+      const x0 = Math.floor(srcPxF);
+      const y0 = Math.floor(srcPyF);
+      const x1 = Math.min(old.width - 1, x0 + 1);
+      const y1 = Math.min(old.height - 1, y0 + 1);
+      const fx = srcPxF - x0;
+      const fy = srcPyF - y0;
+      
+      const [r00, g00, b00] = getPixel(old, x0, y0);
+      const [r10, g10, b10] = getPixel(old, x1, y0);
+      const [r01, g01, b01] = getPixel(old, x0, y1);
+      const [r11, g11, b11] = getPixel(old, x1, y1);
+      
+      const r = Math.round(r00 * (1 - fx) * (1 - fy) + r10 * fx * (1 - fy) + r01 * (1 - fx) * fy + r11 * fx * fy);
+      const g = Math.round(g00 * (1 - fx) * (1 - fy) + g10 * fx * (1 - fy) + g01 * (1 - fx) * fy + g11 * fx * fy);
+      const b = Math.round(b00 * (1 - fx) * (1 - fy) + b10 * fx * (1 - fy) + b01 * (1 - fx) * fy + b11 * fx * fy);
+      
+      setPixel(out, px, py, r, g, b);
+    }
+  }
+  
+  return out;
+</tool.toolu_01NsWSERfX7pLmwLP6PGEoft>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Ae7vftux5ZgwPTb6hAScnu
+
+## path
+
+<tool.toolu_01Ae7vftux5ZgwPTb6hAScnu>
+character-defs.ts
+</tool.toolu_01Ae7vftux5ZgwPTb6hAScnu>
+
+## git-commit-message
+
+<tool.toolu_01Ae7vftux5ZgwPTb6hAScnu>
+Add blend mode argument to composite function with 16 blend modes
+</tool.toolu_01Ae7vftux5ZgwPTb6hAScnu>
+
+## diff
+
+<tool.toolu_01Ae7vftux5ZgwPTb6hAScnu>
+ function fnBackslash(
+   ctx: FnContext,
+   old: Image,
+   srcX: number,
+   srcY: number,
+   srcW: number,
+   srcH: number,
+   dstX: number,
+   dstY: number,
+   dstW: number,
+   dstH: number,
+-  rot: number
++  rot: number,
++  blend: number
+ ): Image {
+   const prev = getPrevImage(ctx);
+   const out = cloneImage(prev);
+   
+   // Map integer values (1-68) to normalized 0-1 range
+   const norm = (n: number) => Math.max(0, Math.min(1, (n - 1) / 67));
+   
+   // Source crop region in old image
+   // X and Y use full range, W and H use remaining space after offset
+   const sourceCropX = Math.floor(norm(srcX) * old.width);
+   const sourceCropY = Math.floor(norm(srcY) * old.height);
+   const sourceCropW = Math.max(1, Math.round(norm(srcW) * (old.width - sourceCropX)));
+   const sourceCropH = Math.max(1, Math.round(norm(srcH) * (old.height - sourceCropY)));
+   
+   // Destination region in output image
+   // X and Y use full range, W and H use remaining space after offset
+   const destX = Math.floor(norm(dstX) * ctx.width);
+   const destY = Math.floor(norm(dstY) * ctx.height);
+   const destW = Math.max(1, Math.round(norm(dstW) * (ctx.width - destX)));
+   const destH = Math.max(1, Math.round(norm(dstH) * (ctx.height - destY)));
+   
+   // Rotation angle (0-360 degrees)
+   const rotation = norm(rot) * 2 * Math.PI;
+   
++  // Blend mode (0-15)
++  const NUM_BLEND_MODES = 16;
++  const blendMode = (blend - 1) % NUM_BLEND_MODES;
++  
++  // Blend mode functions: (base, top) => result (all values 0-255)
++  const blendFuncs: ((b: number, t: number) => number)[] = [
++    // 0: Normal - replace
++    (b, t) => t,
++    // 1: XOR
++    (b, t) => b ^ t,
++    // 2: NAND
++    (b, t) => 255 - (b & t),
++    // 3: AND
++    (b, t) => b & t,
++    // 4: OR
++    (b, t) => b | t,
++    // 5: Multiply
++    (b, t) => (b * t) / 255,
++    // 6: Screen
++    (b, t) => 255 - ((255 - b) * (255 - t)) / 255,
++    // 7: Overlay
++    (b, t) => b < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
++    // 8: Darken
++    (b, t) => Math.min(b, t),
++    // 9: Lighten
++    (b, t) => Math.max(b, t),
++    // 10: Difference
++    (b, t) => Math.abs(b - t),
++    // 11: Exclusion
++    (b, t) => b + t - (2 * b * t) / 255,
++    // 12: Add (clamped)
++    (b, t) => Math.min(255, b + t),
++    // 13: Subtract (clamped)
++    (b, t) => Math.max(0, b - t),
++    // 14: Hard Light
++    (b, t) => t < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
++    // 15: Soft Light
++    (b, t) => {
++      const tb = t / 255, bb = b / 255;
++      return Math.round((tb < 0.5 ? bb - (1 - 2 * tb) * bb * (1 - bb) : bb + (2 * tb - 1) * (bb < 0.25 ? ((16 * bb - 12) * bb + 4) * bb : Math.sqrt(bb) - bb)) * 255);
++    },
++  ];
++  
++  const blendFunc = blendFuncs[blendMode];
++  
+   const destCenterX = destX + destW / 2;
+   const destCenterY = destY + destH / 2;
+   const cosR = Math.cos(-rotation);
+   const sinR = Math.sin(-rotation);
+   
+   // Calculate bounding box of rotated rectangle
+   const halfW = destW / 2;
+   const halfH = destH / 2;
+   const corners = [
+     [-halfW, -halfH],
+     [halfW, -halfH],
+     [halfW, halfH],
+     [-halfW, halfH]
+   ];
+   
+   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+   for (const [cx, cy] of corners) {
+     const rx = cx * Math.cos(rotation) - cy * Math.sin(rotation) + destCenterX;
+     const ry = cx * Math.sin(rotation) + cy * Math.cos(rotation) + destCenterY;
+     minX = Math.min(minX, rx);
+     maxX = Math.max(maxX, rx);
+     minY = Math.min(minY, ry);
+     maxY = Math.max(maxY, ry);
+   }
+   
+   const startX = Math.max(0, Math.floor(minX));
+   const endX = Math.min(ctx.width, Math.ceil(maxX));
+   const startY = Math.max(0, Math.floor(minY));
+   const endY = Math.min(ctx.height, Math.ceil(maxY));
+   
+   for (let py = startY; py < endY; py++) {
+     for (let px = startX; px < endX; px++) {
+       // Inverse rotation to find source coordinates
+       const relX = px - destCenterX;
+       const relY = py - destCenterY;
+       const rotX = relX * cosR - relY * sinR;
+       const rotY = relX * sinR + relY * cosR;
+       
+       // Map to normalized coordinates in destination rect
+       const normX = (rotX + halfW) / destW;
+       const normY = (rotY + halfH) / destH;
+       
+       // Check if within the destination rectangle (0-1 range)
+       if (normX < 0 || normX >= 1 || normY < 0 || normY >= 1) continue;
+       
+       // Map to source coordinates with bilinear sampling
+       const srcPxF = sourceCropX + normX * sourceCropW;
+       const srcPyF = sourceCropY + normY * sourceCropH;
+       
+       const x0 = Math.floor(srcPxF);
+       const y0 = Math.floor(srcPyF);
+       const x1 = Math.min(old.width - 1, x0 + 1);
+       const y1 = Math.min(old.height - 1, y0 + 1);
+       const fx = srcPxF - x0;
+       const fy = srcPyF - y0;
+       
+       const [r00, g00, b00] = getPixel(old, x0, y0);
+       const [r10, g10, b10] = getPixel(old, x1, y0);
+       const [r01, g01, b01] = getPixel(old, x0, y1);
+       const [r11, g11, b11] = getPixel(old, x1, y1);
+       
+-      const r = Math.round(r00 * (1 - fx) * (1 - fy) + r10 * fx * (1 - fy) + r01 * (1 - fx) * fy + r11 * fx * fy);
+-      const g = Math.round(g00 * (1 - fx) * (1 - fy) + g10 * fx * (1 - fy) + g01 * (1 - fx) * fy + g11 * fx * fy);
+-      const b = Math.round(b00 * (1 - fx) * (1 - fy) + b10 * fx * (1 - fy) + b01 * (1 - fx) * fy + b11 * fx * fy);
++      // Bilinear interpolation for source pixel
++      const srcR = Math.round(r00 * (1 - fx) * (1 - fy) + r10 * fx * (1 - fy) + r01 * (1 - fx) * fy + r11 * fx * fy);
++      const srcG = Math.round(g00 * (1 - fx) * (1 - fy) + g10 * fx * (1 - fy) + g01 * (1 - fx) * fy + g11 * fx * fy);
++      const srcB = Math.round(b00 * (1 - fx) * (1 - fy) + b10 * fx * (1 - fy) + b01 * (1 - fx) * fy + b11 * fx * fy);
+       
++      // Get base pixel from prev
++      const [baseR, baseG, baseB] = getPixel(prev, px, py);
++      
++      // Apply blend mode
++      const r = Math.round(blendFunc(baseR, srcR));
++      const g = Math.round(blendFunc(baseG, srcG));
++      const b = Math.round(blendFunc(baseB, srcB));
++      
+       setPixel(out, px, py, r, g, b);
+     }
+   }
+   
+   return out;
+\ No newline at end of file
+
+</tool.toolu_01Ae7vftux5ZgwPTb6hAScnu>
+
+# TOOL RESULT
+
+ID: toolu_01Ae7vftux5ZgwPTb6hAScnu
+
+<tool.toolu_01Ae7vftux5ZgwPTb6hAScnu>
+
+</tool.toolu_01Ae7vftux5ZgwPTb6hAScnu>
