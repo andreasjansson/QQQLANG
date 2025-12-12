@@ -2156,6 +2156,8 @@ function fnT(ctx: FnContext, n: number): Image {
   const scene = new THREE.Scene();
   
   const bgTexture = new THREE.DataTexture(prev.data, prev.width, prev.height, THREE.RGBAFormat);
+  bgTexture.minFilter = THREE.LinearFilter;
+  bgTexture.magFilter = THREE.LinearFilter;
   bgTexture.needsUpdate = true;
   scene.background = bgTexture;
   
