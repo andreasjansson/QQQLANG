@@ -3837,21 +3837,95 @@ function fnDot(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnSlash(ctx: FnContext, c: string): Image {
+function fnSlash(ctx: FnContext, offX: number, offY: number, size: number, blend: number): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
-  const [cr, cg, cb] = hexToRgb(c);
   
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-      const spacing = Math.max(2, Math.floor(2 + luminance * 15));
+  const norm = (n: number) => Math.max(0, Math.min(1, (n - 1) / 67));
+  
+  // Source: full circle from center of prev
+  const srcCenterX = prev.width / 2;
+  const srcCenterY = prev.height / 2;
+  const srcRadius = Math.min(prev.width, prev.height) / 2;
+  
+  // Destination position and size
+  const dstX = norm(offX) * ctx.width;
+  const dstY = norm(offY) * ctx.height;
+  const dstRadius = Math.max(1, norm(size) * Math.min(ctx.width, ctx.height) / 2);
+  
+  // Blend mode (0-15)
+  const NUM_BLEND_MODES = 16;
+  const blendMode = (blend - 1) % NUM_BLEND_MODES;
+  
+  const blendFuncs: ((b: number, t: number) => number)[] = [
+    (b, t) => t,
+    (b, t) => b ^ t,
+    (b, t) => 255 - (b & t),
+    (b, t) => b & t,
+    (b, t) => b | t,
+    (b, t) => (b * t) / 255,
+    (b, t) => 255 - ((255 - b) * (255 - t)) / 255,
+    (b, t) => b < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
+    (b, t) => Math.min(b, t),
+    (b, t) => Math.max(b, t),
+    (b, t) => Math.abs(b - t),
+    (b, t) => b + t - (2 * b * t) / 255,
+    (b, t) => Math.min(255, b + t),
+    (b, t) => Math.max(0, b - t),
+    (b, t) => t < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
+    (b, t) => {
+      const tb = t / 255, bb = b / 255;
+      return Math.round((tb < 0.5 ? bb - (1 - 2 * tb) * bb * (1 - bb) : bb + (2 * tb - 1) * (bb < 0.25 ? ((16 * bb - 12) * bb + 4) * bb : Math.sqrt(bb) - bb)) * 255);
+    },
+  ];
+  
+  const blendFunc = blendFuncs[blendMode];
+  
+  // Scale factor from destination to source
+  const scale = srcRadius / dstRadius;
+  
+  // Iterate over bounding box of destination circle
+  const startX = Math.max(0, Math.floor(dstX - dstRadius));
+  const endX = Math.min(ctx.width, Math.ceil(dstX + dstRadius));
+  const startY = Math.max(0, Math.floor(dstY - dstRadius));
+  const endY = Math.min(ctx.height, Math.ceil(dstY + dstRadius));
+  
+  for (let py = startY; py < endY; py++) {
+    for (let px = startX; px < endX; px++) {
+      const dx = px - dstX;
+      const dy = py - dstY;
+      const distSq = dx * dx + dy * dy;
       
-      const diag = (x + y) % spacing;
-      if (diag === 0) {
-        setPixel(out, x, y, cr, cg, cb);
-      }
+      if (distSq > dstRadius * dstRadius) continue;
+      
+      // Map to source coordinates
+      const srcPxF = srcCenterX + dx * scale;
+      const srcPyF = srcCenterY + dy * scale;
+      
+      // Bilinear interpolation
+      const x0 = Math.floor(srcPxF);
+      const y0 = Math.floor(srcPyF);
+      const x1 = Math.min(prev.width - 1, x0 + 1);
+      const y1 = Math.min(prev.height - 1, y0 + 1);
+      const fx = srcPxF - x0;
+      const fy = srcPyF - y0;
+      
+      const [r00, g00, b00] = getPixel(prev, x0, y0);
+      const [r10, g10, b10] = getPixel(prev, x1, y0);
+      const [r01, g01, b01] = getPixel(prev, x0, y1);
+      const [r11, g11, b11] = getPixel(prev, x1, y1);
+      
+      const srcR = Math.round(r00 * (1 - fx) * (1 - fy) + r10 * fx * (1 - fy) + r01 * (1 - fx) * fy + r11 * fx * fy);
+      const srcG = Math.round(g00 * (1 - fx) * (1 - fy) + g10 * fx * (1 - fy) + g01 * (1 - fx) * fy + g11 * fx * fy);
+      const srcB = Math.round(b00 * (1 - fx) * (1 - fy) + b10 * fx * (1 - fy) + b01 * (1 - fx) * fy + b11 * fx * fy);
+      
+      const [baseR, baseG, baseB] = getPixel(prev, px, py);
+      
+      const r = Math.round(blendFunc(baseR, srcR));
+      const g = Math.round(blendFunc(baseG, srcG));
+      const b = Math.round(blendFunc(baseB, srcB));
+      
+      setPixel(out, px, py, r, g, b);
     }
   }
   
