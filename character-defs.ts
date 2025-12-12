@@ -2495,20 +2495,10 @@ function fnW(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnX(ctx: FnContext, k: number, c: string): Image {
+function fnX(ctx: FnContext, symbol: string, c: string): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   const [cr, cg, cb] = hexToRgb(c);
-  
-  const shapes = [
-    '★', '●', '■', '▲', '◆', '♥', '✦', '⬡', '✚', '◐', '☽', '⚡', '∞', '☀', '✿', '⬢',
-    '◯', '△', '□', '◇', '♦', '♣', '♠', '⬟', '⬠', '▽', '◁', '▷', '⊕', '⊗', '⊛', '⊚',
-    '▣', '▤', '▥', '▦', '▧', '▨', '▩', '⬣', '⬤', '◉', '◎', '◈', '◊', '○', '◌', '◍',
-    '◢', '◣', '◤', '◥', '♯', '♮', '♩', '♪', '✶', '✴', '✳', '✲', '✱', '✰', '✯', '✮'
-  ];
-  
-  const shapeIdx = Math.abs(k) % 64;
-  const symbol = shapes[shapeIdx];
   
   const size = Math.min(ctx.width, ctx.height) * 0.9;
   const tempCanvas = document.createElement('canvas');
