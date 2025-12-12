@@ -2311,8 +2311,6 @@ function fnT(ctx: FnContext, n: number): Image {
   }
   
   bgTexture.dispose();
-  floorGeometry.dispose();
-  floorMaterial.dispose();
   scene.traverse((obj) => {
     if (obj instanceof THREE.Mesh) {
       obj.geometry.dispose();
