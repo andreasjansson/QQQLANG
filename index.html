@@ -435,12 +435,17 @@
         
         if (arg.type instanceof ChoiceType) {
           const choices = arg.type.choices;
-          const showLimit = choices.length < 68 ? choices.length : 5;
-          const mappings = choices.slice(0, showLimit).map((choice, idx) => {
-            return `${numToChar(idx + 1)}=&gt;${choice}`;
-          }).join(',');
-          const suffix = choices.length > showLimit ? ',[etc.]' : '';
-          argDoc += ` ${mappings}${suffix}`;
+          if (choices.length < 68) {
+            const mappings = choices.map((choice, idx) => {
+              return `${numToChar(idx + 1)}=&gt;${choice}`;
+            }).join(',');
+            argDoc += ` ${mappings}`;
+          } else {
+            const mappings = choices.slice(0, 5).map((choice, idx) => {
+              return `${numToChar(idx + 1)}=&gt;${choice}`;
+            }).join(',');
+            argDoc += ` ${mappings},[etc.]`;
+          }
         }
         
         html += `<div class="arg-line">(${i + 1}) :${arg.type.name} -- ${argDoc}</div>`;
