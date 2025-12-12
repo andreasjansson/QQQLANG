@@ -900,7 +900,7 @@
       loadProgramFromURL();
     });
     
-    emeraldReady.then(() => {
+    Promise.all([emeraldReady, bgRemovalReady]).then(() => {
       if (shouldShowIntro()) {
         showIntro();
         resize();
