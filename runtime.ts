@@ -377,12 +377,18 @@ export function runProgram(program: string, width: number, height: number): Imag
       };
       
       const resolvedArgs = op.args.map((arg, idx) => {
-        const argType = op.fnDef.argTypes[idx];
-        if (argType === 'index') {
+        const argDef = op.fnDef.args[idx];
+        const argType = argDef.type;
+        if (argType instanceof IndexType) {
           if (typeof arg === 'object' && arg.type === 'uploaded') {
             return getUploadedImage(arg.index, width, height);
           } else if (typeof arg === 'number') {
             return getOldImage(ctx, arg);
+          }
+        } else if (argType instanceof ChoiceType) {
+          if (typeof arg === 'number') {
+            const choiceIndex = (arg - 1) % argType.choices.length;
+            return argType.choices[choiceIndex];
           }
         }
         return arg;

@@ -7903,5 +7903,56 @@ Update parseProgram to use args array
 ID: toolu_01LphAmPx61GN2PGg5bfL6xu
 
 <tool.toolu_01LphAmPx61GN2PGg5bfL6xu>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/runtime.ts. Successfully staged 2 file(s) and committed with message: Update parseProgram to use args array
 </tool.toolu_01LphAmPx61GN2PGg5bfL6xu>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01MYxsMQ75mHdqJXfeC5havD
+
+## path
+
+<tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
+runtime.ts
+</tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
+
+## git-commit-message
+
+<tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
+Update runProgram to resolve args using new structure
+</tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
+
+## diff
+
+<tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
+       const resolvedArgs = op.args.map((arg, idx) => {
+-        const argType = op.fnDef.argTypes[idx];
+-        if (argType === 'index') {
++        const argDef = op.fnDef.args[idx];
++        const argType = argDef.type;
++        if (argType instanceof IndexType) {
+           if (typeof arg === 'object' && arg.type === 'uploaded') {
+             return getUploadedImage(arg.index, width, height);
+           } else if (typeof arg === 'number') {
+             return getOldImage(ctx, arg);
+           }
++        } else if (argType instanceof ChoiceType) {
++          if (typeof arg === 'number') {
++            const choiceIndex = (arg - 1) % argType.choices.length;
++            return argType.choices[choiceIndex];
++          }
+         }
+         return arg;
+       });
+\ No newline at end of file
+
+</tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
+
+# TOOL RESULT
+
+ID: toolu_01MYxsMQ75mHdqJXfeC5havD
+
+<tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
+
+</tool.toolu_01MYxsMQ75mHdqJXfeC5havD>
