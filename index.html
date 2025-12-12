@@ -469,7 +469,7 @@
       // Format arg lines: (n) argDoc [type] -- choices
       for (let i = 0; i < def.args.length; i++) {
         const arg = def.args[i];
-        let argLine = ` (${i + 1}) ${arg.documentation} [${arg.type.name}]`;
+        let argLine = `(${i + 1}) ${arg.documentation} [${arg.type.name}]`;
         
         if (arg.type instanceof ChoiceType) {
           const choices = arg.type.choices;
