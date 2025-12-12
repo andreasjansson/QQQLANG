@@ -3868,9 +3868,9 @@ function fnFisheye(ctx: FnContext, n: number): Image {
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, null);
   
-  // Strength: negative = pinch (concave), positive = bulge (convex)
-  // Map n from 1-68 to strength: 1-34 = pinch (-1 to 0), 35-68 = bulge (0 to 1)
-  const strength = (n - 34.5) / 34.5;
+  // Map n from 1-68 to height: 1-34 = push back (concave), 35-68 = pull forward (convex)
+  // Range roughly -0.8 to +0.8
+  const height = (n - 34.5) / 43;
   
   const vertexShader = `
     attribute vec2 position;
@@ -3885,41 +3885,52 @@ function fnFisheye(ctx: FnContext, n: number): Image {
     precision highp float;
     uniform sampler2D uTexture;
     uniform vec2 uResolution;
-    uniform float uStrength;
+    uniform float uHeight;
     varying vec2 vUV;
     
     void main() {
       vec2 center = vec2(0.5, 0.5);
-      vec2 coord = vUV - center;
+      vec2 delta = vUV - center;
       
-      // Account for aspect ratio
+      // Account for aspect ratio to make distortion circular
       float aspect = uResolution.x / uResolution.y;
-      coord.x *= aspect;
+      delta.x *= aspect;
       
-      float r = length(coord);
-      float maxR = 0.5 * max(aspect, 1.0);
-      float normR = r / maxR;
+      float r = length(delta);
+      float maxR = 0.5 * sqrt(aspect * aspect + 1.0);
+      float normR = clamp(r / maxR, 0.0, 1.0);
       
-      // Smooth falloff - edges stay fixed, center gets maximum distortion
-      // Uses a quadratic falloff: (1 - r^2) means 0 distortion at edges, max at center
-      float falloff = 1.0 - normR * normR;
+      // Surface height: paraboloid that's max at center, zero at edges
+      // z = height * (1 - r²)
+      float surfaceZ = uHeight * (1.0 - normR * normR);
       
-      // Apply fisheye distortion
-      // For bulge (strength > 0): sample from closer to center (zoom in middle)
-      // For pinch (strength < 0): sample from further from center (zoom out middle)
-      float distortionFactor = 1.0 + uStrength * falloff * 0.8;
+      // Perspective projection from camera at z = cameraDist
+      // A point at (x, y, z) projects to screen at:
+      // screenX = x * cameraDist / (cameraDist - z)
+      // 
+      // We have screen position (vUV), need to find original texture coord
+      // Solving backwards: original = screen * (cameraDist - z) / cameraDist
+      float cameraDist = 1.5;
+      float perspectiveScale = (cameraDist - surfaceZ) / cameraDist;
       
-      vec2 distortedCoord = coord / distortionFactor;
+      // Apply perspective - this "pulls" or "pushes" based on surface height
+      vec2 originalDelta = delta * perspectiveScale;
       
       // Undo aspect ratio correction
-      distortedCoord.x /= aspect;
+      originalDelta.x /= aspect;
       
-      vec2 sampleUV = distortedCoord + center;
+      vec2 sampleUV = center + originalDelta;
       
-      // Clamp to valid range
-      sampleUV = clamp(sampleUV, 0.0, 1.0);
-      
-      gl_FragColor = texture2D(uTexture, sampleUV);
+      // For pixels that would sample outside, use edge color with fade
+      if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) {
+        // Clamp and darken edges that go out of bounds
+        sampleUV = clamp(sampleUV, 0.0, 1.0);
+        vec4 edgeColor = texture2D(uTexture, sampleUV);
+        float edgeFade = 1.0 - smoothstep(0.4, 0.5, normR);
+        gl_FragColor = vec4(edgeColor.rgb * edgeFade, 1.0);
+      } else {
+        gl_FragColor = texture2D(uTexture, sampleUV);
+      }
     }
   `;
   
@@ -3945,7 +3956,7 @@ function fnFisheye(ctx: FnContext, n: number): Image {
   
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
   gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
-  gl.uniform1f(gl.getUniformLocation(program, 'uStrength'), strength);
+  gl.uniform1f(gl.getUniformLocation(program, 'uHeight'), height);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
