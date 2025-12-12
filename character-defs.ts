@@ -2151,6 +2151,7 @@ function fnT(ctx: FnContext, n: number): Image {
   const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(ctx.width, ctx.height);
   renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   
   const scene = new THREE.Scene();
   
