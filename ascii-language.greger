@@ -9286,5 +9286,101 @@ Add background removal preload and ready promise
 ID: toolu_018Xvp2qbiXfXxCWgrFKTEfh
 
 <tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Add background removal preload and ready promise
 </tool.toolu_018Xvp2qbiXfXxCWgrFKTEfh>
+
+# ASSISTANT
+
+Now let me replace the fn0 function with an async background removal function:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01AvhYxe49QsgRzBb2Nv5BSC
+
+## path
+
+<tool.toolu_01AvhYxe49QsgRzBb2Nv5BSC>
+character-defs.ts
+</tool.toolu_01AvhYxe49QsgRzBb2Nv5BSC>
+
+## git-commit-message
+
+<tool.toolu_01AvhYxe49QsgRzBb2Nv5BSC>
+Replace fn0 with async background removal function
+</tool.toolu_01AvhYxe49QsgRzBb2Nv5BSC>
+
+## diff
+
+<tool.toolu_01AvhYxe49QsgRzBb2Nv5BSC>
+-function fn0(ctx: FnContext, old: Image): Image {
++async function fn0(ctx: FnContext, old: Image): Promise<Image> {
+   const prev = getPrevImage(ctx);
+-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+   
+-  for (let y = 0; y < ctx.height; y++) {
+-    for (let x = 0; x < ctx.width; x++) {
+-      const [pr, pg, pb] = getPixel(prev, x, y);
+-      const [or, og, ob] = getPixel(old, x, y);
+-      
+-      const nr = pr < 128 ? (2 * pr * or) / 255 : 255 - (2 * (255 - pr) * (255 - or)) / 255;
+-      const ng = pg < 128 ? (2 * pg * og) / 255 : 255 - (2 * (255 - pg) * (255 - og)) / 255;
+-      const nb = pb < 128 ? (2 * pb * ob) / 255 : 255 - (2 * (255 - pb) * (255 - ob)) / 255;
+-      
+-      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
+-    }
++  if (!bgRemovalModelReady) {
++    console.warn('Background removal model not ready, returning placeholder');
++    return cloneImage(prev);
+   }
+   
+-  return out;
++  const canvas = document.createElement('canvas');
++  canvas.width = prev.width;
++  canvas.height = prev.height;
++  const canvasCtx = canvas.getContext('2d')!;
++  
++  const imageData = new ImageData(new Uint8ClampedArray(prev.data), prev.width, prev.height);
++  canvasCtx.putImageData(imageData, 0, 0);
++  
++  const blob = await new Promise<Blob>((resolve) => {
++    canvas.toBlob((b) => resolve(b!), 'image/png');
++  });
++  
++  const resultBlob = await imglyRemoveBackground(blob, {
++    model: 'isnet_quint8',
++    output: { format: 'image/png' }
++  });
++  
++  const resultImg = new window.Image();
++  resultImg.src = URL.createObjectURL(resultBlob);
++  await new Promise((resolve) => { resultImg.onload = resolve; });
++  
++  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
++  
++  const oldImageData = new ImageData(new Uint8ClampedArray(old.data), old.width, old.height);
++  canvasCtx.putImageData(oldImageData, 0, 0);
++  
++  canvasCtx.drawImage(resultImg, 0, 0, canvas.width, canvas.height);
++  
++  const finalImageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
++  
++  URL.revokeObjectURL(resultImg.src);
++  
++  return {
++    width: canvas.width,
++    height: canvas.height,
++    data: new Uint8ClampedArray(finalImageData.data)
++  };
+ }
+\ No newline at end of file
+
+</tool.toolu_01AvhYxe49QsgRzBb2Nv5BSC>
+
+# TOOL RESULT
+
+ID: toolu_01AvhYxe49QsgRzBb2Nv5BSC
+
+<tool.toolu_01AvhYxe49QsgRzBb2Nv5BSC>
+
+</tool.toolu_01AvhYxe49QsgRzBb2Nv5BSC>

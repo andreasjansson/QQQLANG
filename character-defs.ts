@@ -2661,24 +2661,51 @@ function fnQ(ctx: FnContext): Image {
   return out;
 }
 
-function fn0(ctx: FnContext, old: Image): Image {
+async function fn0(ctx: FnContext, old: Image): Promise<Image> {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const [or, og, ob] = getPixel(old, x, y);
-      
-      const nr = pr < 128 ? (2 * pr * or) / 255 : 255 - (2 * (255 - pr) * (255 - or)) / 255;
-      const ng = pg < 128 ? (2 * pg * og) / 255 : 255 - (2 * (255 - pg) * (255 - og)) / 255;
-      const nb = pb < 128 ? (2 * pb * ob) / 255 : 255 - (2 * (255 - pb) * (255 - ob)) / 255;
-      
-      setPixel(out, x, y, Math.round(nr), Math.round(ng), Math.round(nb));
-    }
+  if (!bgRemovalModelReady) {
+    console.warn('Background removal model not ready, returning placeholder');
+    return cloneImage(prev);
   }
   
-  return out;
+  const canvas = document.createElement('canvas');
+  canvas.width = prev.width;
+  canvas.height = prev.height;
+  const canvasCtx = canvas.getContext('2d')!;
+  
+  const imageData = new ImageData(new Uint8ClampedArray(prev.data), prev.width, prev.height);
+  canvasCtx.putImageData(imageData, 0, 0);
+  
+  const blob = await new Promise<Blob>((resolve) => {
+    canvas.toBlob((b) => resolve(b!), 'image/png');
+  });
+  
+  const resultBlob = await imglyRemoveBackground(blob, {
+    model: 'isnet_quint8',
+    output: { format: 'image/png' }
+  });
+  
+  const resultImg = new window.Image();
+  resultImg.src = URL.createObjectURL(resultBlob);
+  await new Promise((resolve) => { resultImg.onload = resolve; });
+  
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  const oldImageData = new ImageData(new Uint8ClampedArray(old.data), old.width, old.height);
+  canvasCtx.putImageData(oldImageData, 0, 0);
+  
+  canvasCtx.drawImage(resultImg, 0, 0, canvas.width, canvas.height);
+  
+  const finalImageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+  
+  URL.revokeObjectURL(resultImg.src);
+  
+  return {
+    width: canvas.width,
+    height: canvas.height,
+    data: new Uint8ClampedArray(finalImageData.data)
+  };
 }
 
 function fn1(ctx: FnContext): Image {
