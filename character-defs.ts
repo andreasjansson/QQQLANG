@@ -2812,6 +2812,8 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
   const endTime = performance.now();
   console.log(`SINet inference took ${(endTime - startTime).toFixed(1)}ms`);
   
+  sinetInferenceInProgress = false;
+  
   return {
     width: ctx.width,
     height: ctx.height,
