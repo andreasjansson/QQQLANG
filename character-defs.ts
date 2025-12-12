@@ -2192,7 +2192,7 @@ function fnT(ctx: FnContext, n: number): Image {
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const idx = row * cols + col;
-      const depth = (0.05 + hash(idx * 127.1) * 0.4) * heightMultiplier;
+      const depth = 0; // DEBUG: (0.05 + hash(idx * 127.1) * 0.4) * heightMultiplier;
       const cx = (col + 0.5) * cellWidth - frustumWidth / 2;
       const cy = (row + 0.5) * cellHeight - frustumHeight / 2;
       
