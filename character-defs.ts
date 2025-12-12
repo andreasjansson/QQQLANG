@@ -5896,7 +5896,7 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#8B0000',
     number: 44,
     fn: fnPercent,
-    args: [{ type: Choice('horizontal','vertical'), documentation: "Flip direction (even=horizontal, odd=vertical)" }],
+    args: [{ type: INT, documentation: "Flip direction (even=horizontal, odd=vertical)" }],
     functionName: "flip",
     documentation: "Flips image horizontally or vertically based on argument parity."
   },
