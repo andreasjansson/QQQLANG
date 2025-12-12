@@ -4043,7 +4043,8 @@ function fnBackslash(
   dstY: number,
   dstW: number,
   dstH: number,
-  rot: number
+  rot: number,
+  blend: number
 ): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
@@ -4067,6 +4068,51 @@ function fnBackslash(
   
   // Rotation angle (0-360 degrees)
   const rotation = norm(rot) * 2 * Math.PI;
+  
+  // Blend mode (0-15)
+  const NUM_BLEND_MODES = 16;
+  const blendMode = (blend - 1) % NUM_BLEND_MODES;
+  
+  // Blend mode functions: (base, top) => result (all values 0-255)
+  const blendFuncs: ((b: number, t: number) => number)[] = [
+    // 0: Normal - replace
+    (b, t) => t,
+    // 1: XOR
+    (b, t) => b ^ t,
+    // 2: NAND
+    (b, t) => 255 - (b & t),
+    // 3: AND
+    (b, t) => b & t,
+    // 4: OR
+    (b, t) => b | t,
+    // 5: Multiply
+    (b, t) => (b * t) / 255,
+    // 6: Screen
+    (b, t) => 255 - ((255 - b) * (255 - t)) / 255,
+    // 7: Overlay
+    (b, t) => b < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
+    // 8: Darken
+    (b, t) => Math.min(b, t),
+    // 9: Lighten
+    (b, t) => Math.max(b, t),
+    // 10: Difference
+    (b, t) => Math.abs(b - t),
+    // 11: Exclusion
+    (b, t) => b + t - (2 * b * t) / 255,
+    // 12: Add (clamped)
+    (b, t) => Math.min(255, b + t),
+    // 13: Subtract (clamped)
+    (b, t) => Math.max(0, b - t),
+    // 14: Hard Light
+    (b, t) => t < 128 ? (2 * b * t) / 255 : 255 - (2 * (255 - b) * (255 - t)) / 255,
+    // 15: Soft Light
+    (b, t) => {
+      const tb = t / 255, bb = b / 255;
+      return Math.round((tb < 0.5 ? bb - (1 - 2 * tb) * bb * (1 - bb) : bb + (2 * tb - 1) * (bb < 0.25 ? ((16 * bb - 12) * bb + 4) * bb : Math.sqrt(bb) - bb)) * 255);
+    },
+  ];
+  
+  const blendFunc = blendFuncs[blendMode];
   
   const destCenterX = destX + destW / 2;
   const destCenterY = destY + destH / 2;
@@ -4129,9 +4175,18 @@ function fnBackslash(
       const [r01, g01, b01] = getPixel(old, x0, y1);
       const [r11, g11, b11] = getPixel(old, x1, y1);
       
-      const r = Math.round(r00 * (1 - fx) * (1 - fy) + r10 * fx * (1 - fy) + r01 * (1 - fx) * fy + r11 * fx * fy);
-      const g = Math.round(g00 * (1 - fx) * (1 - fy) + g10 * fx * (1 - fy) + g01 * (1 - fx) * fy + g11 * fx * fy);
-      const b = Math.round(b00 * (1 - fx) * (1 - fy) + b10 * fx * (1 - fy) + b01 * (1 - fx) * fy + b11 * fx * fy);
+      // Bilinear interpolation for source pixel
+      const srcR = Math.round(r00 * (1 - fx) * (1 - fy) + r10 * fx * (1 - fy) + r01 * (1 - fx) * fy + r11 * fx * fy);
+      const srcG = Math.round(g00 * (1 - fx) * (1 - fy) + g10 * fx * (1 - fy) + g01 * (1 - fx) * fy + g11 * fx * fy);
+      const srcB = Math.round(b00 * (1 - fx) * (1 - fy) + b10 * fx * (1 - fy) + b01 * (1 - fx) * fy + b11 * fx * fy);
+      
+      // Get base pixel from prev
+      const [baseR, baseG, baseB] = getPixel(prev, px, py);
+      
+      // Apply blend mode
+      const r = Math.round(blendFunc(baseR, srcR));
+      const g = Math.round(blendFunc(baseG, srcG));
+      const b = Math.round(blendFunc(baseB, srcB));
       
       setPixel(out, px, py, r, g, b);
     }
