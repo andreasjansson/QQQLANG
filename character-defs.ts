@@ -2118,25 +2118,51 @@ function fnT(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
-  const numCubes = Math.max(1, n + 1);
+  const gridSize = Math.max(2, Math.min(n + 2, 20));
   const seed = ctx.images.length * 137.5 + n * 17.0;
   const hash = (i: number) => {
     const x = Math.sin(i + seed) * 43758.5453;
     return x - Math.floor(x);
   };
   
+  const size = Math.min(ctx.width, ctx.height);
+  const offsetX = (ctx.width - size) / 2;
+  const offsetY = (ctx.height - size) / 2;
+  
+  const cellSize = size / gridSize;
+  
   interface CubeData {
     cx: number; cy: number; hw: number; hh: number; depth: number;
+    texX0: number; texY0: number; texX1: number; texY1: number;
   }
   const cubesData: CubeData[] = [];
-  for (let i = 0; i < numCubes; i++) {
-    cubesData.push({
-      cx: hash(i * 127.1),
-      cy: hash(i * 311.7),
-      hw: 0.03 + hash(i * 74.3) * 0.08,
-      hh: 0.025 + hash(i * 183.9) * 0.06,
-      depth: 0.1 + hash(i * 271.3) * 0.2
-    });
+  
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
+      const idx = row * gridSize + col;
+      
+      const x0 = offsetX + col * cellSize;
+      const y0 = offsetY + row * cellSize;
+      const x1 = offsetX + (col + 1) * cellSize;
+      const y1 = offsetY + (row + 1) * cellSize;
+      
+      const cx = (x0 + x1) / 2 / ctx.width;
+      const cy = (y0 + y1) / 2 / ctx.height;
+      const hw = cellSize / 2 / ctx.width;
+      const hh = cellSize / 2 / ctx.height;
+      
+      const depth = 0.05 + hash(idx * 127.1) * 0.25;
+      
+      const texX0 = x0 / ctx.width;
+      const texY0 = y0 / ctx.height;
+      const texX1 = x1 / ctx.width;
+      const texY1 = y1 / ctx.height;
+      
+      cubesData.push({
+        cx, cy, hw, hh, depth,
+        texX0, texY0, texX1, texY1
+      });
+    }
   }
   
   const lightDirX = -0.3;
