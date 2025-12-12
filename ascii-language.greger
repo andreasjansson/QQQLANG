@@ -11975,5 +11975,54 @@ Change _ blend function to take old image as first argument
 ID: toolu_01J1qbv7cx5tA8ZmuWwJCyzd
 
 <tool.toolu_01J1qbv7cx5tA8ZmuWwJCyzd>
-
+Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Change _ blend function to take old image as first argument
 </tool.toolu_01J1qbv7cx5tA8ZmuWwJCyzd>
+
+# ASSISTANT
+
+Now update the characterDefs entry:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011fNTVQLW8ntuvGFGJ2RY46
+
+## path
+
+<tool.toolu_011fNTVQLW8ntuvGFGJ2RY46>
+character-defs.ts
+</tool.toolu_011fNTVQLW8ntuvGFGJ2RY46>
+
+## git-commit-message
+
+<tool.toolu_011fNTVQLW8ntuvGFGJ2RY46>
+Update _ character definition with old image argument
+</tool.toolu_011fNTVQLW8ntuvGFGJ2RY46>
+
+## diff
+
+<tool.toolu_011fNTVQLW8ntuvGFGJ2RY46>
+   '_': {
+     color: '#FF7F50',
+     number: 63,
+     fn: fnBlend,
+-    args: [{ type: Choice('multiply','screen','overlay','darken','lighten','dodge','burn','hardlight','softlight','difference','exclusion','add','subtract','xor','and','or','nand','nor','xnor','average','divide','grain-extract','grain-merge','vivid','linear','pin','hardmix','hue','saturation','color','luminosity','replace-dark-third','replace-mid-third','replace-light-third'), documentation: "Blend mode" }],
++    args: [
++      { type: INDEX, documentation: "Old image to blend with" },
++      { type: Choice('multiply','screen','overlay','darken','lighten','dodge','burn','hardlight','softlight','difference','exclusion','add','subtract','xor','and','or','nand','nor','xnor','average','divide','grain-extract','grain-merge','vivid','linear','pin','hardmix','hue','saturation','color','luminosity','replace-dark-third','replace-mid-third','replace-light-third'), documentation: "Blend mode" }
++    ],
+     functionName: "blend",
+-    documentation: "Blend current with previous using specified mode."
++    documentation: "Blend old image with current using specified mode."
+   },
+\ No newline at end of file
+
+</tool.toolu_011fNTVQLW8ntuvGFGJ2RY46>
+
+# TOOL RESULT
+
+ID: toolu_011fNTVQLW8ntuvGFGJ2RY46
+
+<tool.toolu_011fNTVQLW8ntuvGFGJ2RY46>
+
+</tool.toolu_011fNTVQLW8ntuvGFGJ2RY46>
