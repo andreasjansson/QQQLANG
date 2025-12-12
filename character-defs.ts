@@ -2143,17 +2143,19 @@ function fnT(ctx: FnContext, n: number): Image {
   gl.activeTexture(gl.TEXTURE0);
   
   const baseGridSize = 8;
-  const maxHeight = 0.05 + (n / 68) * 0.4;
-  const seed = ctx.images.length * 137.5 + n * 17.0;
+  const heightMultiplier = 0.2 + (n / 68) * 2.0;
+  const seed = ctx.images.length * 137.5;
   const hash = (i: number) => {
     const x = Math.sin(i + seed) * 43758.5453;
     return x - Math.floor(x);
   };
   
-  const cellSize = Math.min(ctx.width, ctx.height) / baseGridSize;
+  const approxCellSize = Math.min(ctx.width, ctx.height) / baseGridSize;
+  const cols = Math.max(1, Math.round(ctx.width / approxCellSize));
+  const rows = Math.max(1, Math.round(ctx.height / approxCellSize));
   
-  const cols = Math.ceil(ctx.width / cellSize);
-  const rows = Math.ceil(ctx.height / cellSize);
+  const cellWidth = ctx.width / cols;
+  const cellHeight = ctx.height / rows;
   
   interface CubeData {
     cx: number; cy: number; hw: number; hh: number; depth: number;
@@ -2165,22 +2167,23 @@ function fnT(ctx: FnContext, n: number): Image {
     for (let col = 0; col < cols; col++) {
       const idx = row * cols + col;
       
-      const x0 = col * cellSize;
-      const y0 = row * cellSize;
-      const x1 = (col + 1) * cellSize;
-      const y1 = (row + 1) * cellSize;
+      const x0 = col * cellWidth;
+      const y0 = row * cellHeight;
+      const x1 = (col + 1) * cellWidth;
+      const y1 = (row + 1) * cellHeight;
       
       const cx = (x0 + x1) / 2 / ctx.width;
       const cy = (y0 + y1) / 2 / ctx.height;
-      const hw = cellSize / 2 / ctx.width;
-      const hh = cellSize / 2 / ctx.height;
+      const hw = cellWidth / 2 / ctx.width;
+      const hh = cellHeight / 2 / ctx.height;
       
-      const depth = 0.02 + hash(idx * 127.1) * maxHeight;
+      const baseDepth = 0.02 + hash(idx * 127.1) * 0.2;
+      const depth = baseDepth * heightMultiplier;
       
-      const texX0 = Math.max(0, Math.min(1, x0 / ctx.width));
-      const texY0 = Math.max(0, Math.min(1, y0 / ctx.height));
-      const texX1 = Math.max(0, Math.min(1, x1 / ctx.width));
-      const texY1 = Math.max(0, Math.min(1, y1 / ctx.height));
+      const texX0 = x0 / ctx.width;
+      const texY0 = y0 / ctx.height;
+      const texX1 = x1 / ctx.width;
+      const texY1 = y1 / ctx.height;
       
       cubesData.push({
         cx, cy, hw, hh, depth,
