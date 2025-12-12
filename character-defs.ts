@@ -2188,6 +2188,19 @@ function fnT(ctx: FnContext, n: number): Image {
   
   const mainLight = new THREE.DirectionalLight(0xffffff, 1.8);
   mainLight.position.set(3, 2, 5);
+  mainLight.castShadow = true;
+  mainLight.shadow.mapSize.width = 512;
+  mainLight.shadow.mapSize.height = 512;
+  mainLight.shadow.camera.near = 0.5;
+  mainLight.shadow.camera.far = 20;
+  const shadowSize = Math.max(frustumWidth, frustumHeight) * 0.7;
+  mainLight.shadow.camera.left = -shadowSize;
+  mainLight.shadow.camera.right = shadowSize;
+  mainLight.shadow.camera.top = shadowSize;
+  mainLight.shadow.camera.bottom = -shadowSize;
+  mainLight.shadow.radius = 8;
+  mainLight.shadow.blurSamples = 16;
+  mainLight.shadow.bias = 0.0001;
   scene.add(mainLight);
   
   const fillLight = new THREE.DirectionalLight(0x8899ff, 0.4);
@@ -2197,6 +2210,13 @@ function fnT(ctx: FnContext, n: number): Image {
   const rimLight = new THREE.DirectionalLight(0xffeedd, 0.5);
   rimLight.position.set(0, -2, 3);
   scene.add(rimLight);
+  
+  const floorGeometry = new THREE.PlaneGeometry(frustumWidth * 1.5, frustumHeight * 1.5);
+  const floorMaterial = new THREE.ShadowMaterial({ opacity: 0.35 });
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.position.z = -0.001;
+  floor.receiveShadow = true;
+  scene.add(floor);
   
   const cellWidth = frustumWidth / cols;
   const cellHeight = frustumHeight / rows;
