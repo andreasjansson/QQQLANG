@@ -901,11 +901,28 @@
       updateHelpDisplay();
     }
 
-    function loadProgramFromURL() {
-      const program = getProgramFromURL();
-      input.value = program;
+    async function loadProgramFromURL() {
+      const urlProgram = getProgramFromURL();
+      const { displayProgram, hashes } = parseProgram(urlProgram);
+      
+      input.value = displayProgram;
       
       clearUploadedImages();
+      uploadHashes.length = 0;
+      
+      for (const hash of hashes) {
+        uploadHashes.push(hash);
+        if (hash) {
+          const blob = await fetchImageAsBlob(hash);
+          if (blob) {
+            addUploadedBlob(blob);
+          } else {
+            addUploadedBlob(new Blob());
+          }
+        } else {
+          addUploadedBlob(new Blob());
+        }
+      }
       
       render();
     }
