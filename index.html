@@ -447,11 +447,18 @@
     let modelsReady = null;
     
     function showIntro() {
+      // Show poster immediately
+      introPoster.src = 'intro-poster.jpg';
       introOverlay.classList.remove('hidden');
       
+      // Load and fade in video
       introVideo.src = 'intro.mp4';
       introVideo.loop = true;
-      introVideo.play().catch(() => {});
+      
+      introVideo.addEventListener('canplay', () => {
+        introVideo.play().catch(() => {});
+        introVideo.classList.add('visible');
+      }, { once: true });
       
       setTimeout(() => {
         introOverlay.classList.add('fading');
@@ -460,6 +467,7 @@
           introOverlay.classList.add('hidden');
           introVideo.pause();
           introVideo.src = '';
+          introPoster.src = '';
           
           localStorage.setItem(INTRO_SEEN_KEY, 'true');
           
@@ -467,6 +475,9 @@
           if (modelsReady) {
             await modelsReady;
           }
+          
+          // Show the app
+          app.classList.remove('intro-active');
           
           const program = '???';
           input.value = program;
