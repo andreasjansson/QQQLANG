@@ -5517,8 +5517,8 @@ function fnRule110(ctx: FnContext, n: number): Image {
   
   const iterations = Math.max(1, n * 4);
   
-  // Compute initial chunk states from prev image (average luminance per chunk)
-  let chunkStates = new Uint8Array(chunksX * chunksY);
+  // Compute chunk luminance averages
+  const chunkLuminance = new Float32Array(chunksX * chunksY);
   for (let cy = 0; cy < chunksY; cy++) {
     for (let cx = 0; cx < chunksX; cx++) {
       let sum = 0, count = 0;
@@ -5534,8 +5534,18 @@ function fnRule110(ctx: FnContext, n: number): Image {
           count++;
         }
       }
-      chunkStates[cy * chunksX + cx] = (sum / count) > 128 ? 1 : 0;
+      chunkLuminance[cy * chunksX + cx] = sum / count;
     }
+  }
+  
+  // Compute threshold from image statistics (median of chunk luminances)
+  const sortedLuminance = Array.from(chunkLuminance).sort((a, b) => a - b);
+  const threshold = sortedLuminance[Math.floor(sortedLuminance.length / 2)];
+  
+  // Binarize chunk states using adaptive threshold
+  let chunkStates = new Uint8Array(chunksX * chunksY);
+  for (let i = 0; i < chunkLuminance.length; i++) {
+    chunkStates[i] = chunkLuminance[i] > threshold ? 1 : 0;
   }
   
   // Evolve chunk states using Rule 110 (horizontal neighbors per row)
