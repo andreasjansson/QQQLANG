@@ -6869,10 +6869,10 @@ export const characterDefs: Record<string, CharDef> = {
   '`': {
     color: '#6495ED',
     number: 64,
-    fn: fnBacktick,
-    args: [{ type: INT, documentation: "Iterations and smear strength" }],
-    functionName: "gradient-smear",
-    documentation: "Iterative gradient-based pixel smearing creating directional streaks."
+    fn: fnRule110,
+    args: [{ type: INT, documentation: "Number of generations (×8)" }],
+    functionName: "rule110",
+    documentation: "Rule 110 cellular automaton - a Turing-complete 1D CA applied horizontally to each row."
   },
   
   '{': {
