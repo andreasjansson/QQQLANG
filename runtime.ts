@@ -142,13 +142,7 @@ export async function preloadUploadedImages(width: number, height: number): Prom
   
   const promises = uploadedSources.map(async (source, index) => {
     if (!uploadedImagesCache[index]) {
-      if (source.blob) {
-        uploadedImagesCache[index] = await loadBlobToImage(source.blob, width, height);
-      } else if (source.url) {
-        uploadedImagesCache[index] = await loadUrlToImage(source.url, width, height);
-      } else {
-        uploadedImagesCache[index] = createPlaceholderImage(width, height);
-      }
+      uploadedImagesCache[index] = await loadBlobToImage(source.blob, width, height);
     }
   });
   await Promise.all(promises);
