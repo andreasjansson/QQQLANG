@@ -616,6 +616,7 @@
         
         // Start fading out intro and fading in app simultaneously
         introOverlay.classList.add('fading');
+        app.classList.add('intro-fading');
         app.classList.remove('intro-active');
         
         localStorage.setItem(INTRO_SEEN_KEY, 'true');
