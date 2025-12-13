@@ -103,46 +103,6 @@
       flex: 1;
     }
     
-    #input-wrapper::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      padding: 2px;
-      background: linear-gradient(
-        var(--gradient-angle, 45deg),
-        #2a2a2a 0%,
-        #555555 25%,
-        #2a2a2a 50%,
-        #555555 75%,
-        #2a2a2a 100%
-      );
-      -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-      mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      z-index: 0;
-      pointer-events: none;
-    }
-    
-    #input-wrapper:focus-within::before {
-      background: linear-gradient(
-        var(--gradient-angle, 45deg),
-        #553333 0%,
-        #335533 25%,
-        #333355 50%,
-        #553355 75%,
-        #553333 100%
-      );
-      animation: gradient-cycle 3s linear infinite;
-    }
-    
     #program-input {
       position: relative;
       width: 100%;
@@ -151,12 +111,36 @@
       font-size: 22px;
       font-family: "Inconsolata", monospace;
       font-weight: 300;
-      border: none;
-      background: transparent;
+      border: 2px solid transparent;
+      background: 
+        linear-gradient(#1a1a1a, #1a1a1a) padding-box,
+        linear-gradient(
+          45deg,
+          #FF0000 0%,
+          #00FF00 33%,
+          #0000FF 66%,
+          #FF0000 100%
+        ) border-box;
       color: transparent;
       caret-color: #fff;
       outline: none;
       z-index: 2;
+    }
+    
+    #program-input:focus {
+      background: 
+        linear-gradient(#1a1a1a, #1a1a1a) padding-box,
+        linear-gradient(
+          var(--gradient-angle, 45deg),
+          #FF0000 0%,
+          #FFFF00 16.6%,
+          #00FF00 33.3%,
+          #00FFFF 50%,
+          #0000FF 66.6%,
+          #FF00FF 83.3%,
+          #FF0000 100%
+        ) border-box;
+      animation: gradient-cycle 3s linear infinite;
     }
     
     #input-background {
