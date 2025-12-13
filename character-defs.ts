@@ -5568,8 +5568,9 @@ function fnRule110(ctx: FnContext, n: number): Image {
     chunkStates = newStates;
   }
   
-  // Render output: blend prev image content with state-based transformation
+  // Render output: displace pixels horizontally based on CA state
   const out = createSolidImage(width, height, '#000000');
+  const displacement = CHUNK_SIZE * 2;
   
   for (let cy = 0; cy < chunksY; cy++) {
     for (let cx = 0; cx < chunksX; cx++) {
@@ -5579,26 +5580,14 @@ function fnRule110(ctx: FnContext, n: number): Image {
       const endX = Math.min(startX + CHUNK_SIZE, width);
       const endY = Math.min(startY + CHUNK_SIZE, height);
       
-      // Source chunk for visual content - pull from neighbor based on state
-      // This creates visual flow while state follows Rule 110
-      const srcCx = state === 1 ? 
-        ((cx - 1 + chunksX) % chunksX) : 
-        ((cx + 1) % chunksX);
-      const srcStartX = srcCx * CHUNK_SIZE;
+      // State 1: shift pixels left, State 0: shift pixels right
+      const shift = state === 1 ? -displacement : displacement;
       
       for (let y = startY; y < endY; y++) {
         for (let x = startX; x < endX; x++) {
-          const localX = x - startX;
-          const srcX = Math.min(srcStartX + localX, width - 1);
-          
+          const srcX = ((x + shift) % width + width) % width;
           const [r, g, b] = getPixel(prev, srcX, y);
-          
-          if (state === 1) {
-            setPixel(out, x, y, r, g, b);
-          } else {
-            // Invert for state 0 to maintain visual distinction
-            setPixel(out, x, y, 255 - r, 255 - g, 255 - b);
-          }
+          setPixel(out, x, y, r, g, b);
         }
       }
     }
