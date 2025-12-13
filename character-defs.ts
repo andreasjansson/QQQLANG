@@ -5485,7 +5485,7 @@ function fnImageHistory(ctx: FnContext): Image {
     thumbCtx.drawImage(srcCanvas, srcX, srcY, srcSize, srcSize, 0, 0, thumbSize, thumbSize);
     
     // Draw thumbnail border
-    tempCtx.strokeStyle = '#00FF00';
+    tempCtx.strokeStyle = '#E8E4DC';
     tempCtx.lineWidth = 1;
     tempCtx.strokeRect(thumbX, thumbY, thumbSize, thumbSize);
     
@@ -5494,7 +5494,7 @@ function fnImageHistory(ctx: FnContext): Image {
     
     // Draw text below thumbnail on single line
     const textY = thumbY + thumbSize + fontSize + 1;
-    tempCtx.fillStyle = '#00FF00';
+    tempCtx.fillStyle = '#E8E4DC';
     tempCtx.textAlign = 'center';
     tempCtx.fillText(`[${accessKey}] ${displayOp}`, thumbX + thumbSize / 2, textY);
   }
