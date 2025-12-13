@@ -6391,7 +6391,7 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   
   let y = margin + bestFontSize;
   for (let i = 0; i < Math.min(bestLines.length, bestLinesPerPage); i++) {
-    tempCtx.fillText(bestLines[i], margin, y);
+    tempCtx.fillText(breakLigatures(bestLines[i]), margin, y);
     y += lineHeight;
   }
   
