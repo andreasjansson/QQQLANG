@@ -6315,9 +6315,9 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   const marginFraction = 0.03;
   const margin = Math.max(10, Math.floor(Math.min(ctx.width, ctx.height) * marginFraction));
   
-  const baseFontSize = Math.min(ctx.width, ctx.height) * 0.025;
-  const fontSize = Math.max(8, Math.min(16, baseFontSize));
-  const lineHeight = Math.floor(fontSize * 1.4);
+  const baseFontSize = Math.min(ctx.width, ctx.height) * 0.035;
+  const fontSize = Math.max(12, Math.min(24, baseFontSize));
+  const lineHeight = Math.floor(fontSize * 1.3);
   
   tempCtx.font = `${fontSize}px VT323, monospace`;
   tempCtx.fillStyle = '#00FF00';
