@@ -260,6 +260,10 @@
       animation: bell-flash 0.15s ease-out;
     }
     
+    #app.intro-active {
+      visibility: hidden;
+    }
+    
     #intro-overlay {
       position: fixed;
       top: 0;
@@ -280,6 +284,16 @@
       display: none;
     }
     
+    #intro-poster {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+    
     #intro-video {
       position: absolute;
       top: 0;
@@ -287,12 +301,19 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.3s ease-in;
+    }
+    
+    #intro-video.visible {
+      opacity: 1;
     }
     
   </style>
 </head>
 <body>
-  <div id="app">
+  <div id="app" class="intro-active">
     <div id="input-container">
       <div id="input-wrapper">
         <div id="input-background"></div>
