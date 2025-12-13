@@ -1,0 +1,15 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "qqqlang-upload-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-12-13",
+	"observability": {
+		"enabled": true
+	},
+	"r2_buckets": [
+		{
+			"binding": "IMAGES_BUCKET",
+			"bucket_name": "qqqlang-images"
+		}
+	]
+}
