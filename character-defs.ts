@@ -6957,15 +6957,12 @@ export const characterDefs: Record<string, CharDef> = {
   },
   
   '_': {
-    color: '#FF7F50',
+    color: '#708090',
     number: 63,
-    fn: fnBlend,
-    args: [
-      { type: INDEX, documentation: "Old image to blend with" },
-      { type: Choice('multiply','screen','overlay','darken','lighten','dodge','burn','hardlight','softlight','difference','exclusion','add','subtract','xor','and','or','nand','nor','xnor','average','divide','grain-extract','grain-merge','vivid','linear','pin','hardmix','hue','saturation','color','luminosity','replace-dark-third','replace-mid-third','replace-light-third'), documentation: "Blend mode" }
-    ],
-    functionName: "blend",
-    documentation: "Blend old image with current using specified mode."
+    fn: fnMinus,
+    args: [],
+    functionName: "scanlines",
+    documentation: "CRT scanline effect with darkening and displacement."
   },
   
   '`': {
