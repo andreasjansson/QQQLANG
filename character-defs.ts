@@ -5377,7 +5377,7 @@ function fnImageHistory(ctx: FnContext): Image {
   tempCanvas.height = ctx.height;
   const tempCtx = tempCanvas.getContext('2d')!;
   
-  tempCtx.fillStyle = '#000000';
+  tempCtx.fillStyle = '#0A0A0A';
   tempCtx.fillRect(0, 0, ctx.width, ctx.height);
   
   // Include all images including the initial black at index 0
