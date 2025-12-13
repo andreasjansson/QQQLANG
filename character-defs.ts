@@ -1525,7 +1525,7 @@ const SINET_STD = [62.93292, 62.82138, 66.355705];
 async function loadSinetModel(): Promise<void> {
   try {
     console.log('Loading SINet model...');
-    sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
+    sinetSession = await ort.InferenceSession.create('./public/sinet_224.onnx', {
       executionProviders: ['wasm'],
       graphOptimizationLevel: 'all',
     });
@@ -2814,7 +2814,8 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
     // Sharpen the mask - boost alpha values to reduce transparency
     const rawAlpha = scaledMaskData.data[i + 3];
     // Apply a curve to make edges sharper: values above threshold become more opaque
-    const sharpened = rawAlpha < 10 ? 0 : Math.min(255, Math.round(rawAlpha * 1.5 + 50));
+    //const sharpened = rawAlpha < 10 ? 0 : Math.min(255, Math.round(rawAlpha * 1.5 + 50));
+    const sharpened = rawAlpha;
     fgData.data[i + 3] = sharpened;
   }
   

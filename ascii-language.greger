@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-010843574687>
+${greger-prompt-code-style<eval-result-145003420323>
 # Code style
 
 ## Don't be overly defensive
@@ -26,7 +26,7 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-010843574687>}
+</eval-result-145003420323>}
 
 # IMPORTANT
 
@@ -76,7 +76,7 @@ Assign a random color to each character, and a number that starts at 1 at `A`, i
 
 # runtime.ts:
 
-${:sh cat runtime.ts<eval-result-010843969214>import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR, OpInfo, ArgType, IntType, ColorType, IndexType, ChoiceType, ArgDef } from './character-defs.js';
+${:sh cat runtime.ts<eval-result-144902005787>import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR, OpInfo, ArgType, IntType, ColorType, IndexType, ChoiceType, ArgDef } from './character-defs.js';
 
 interface UploadedImageRef {
   type: 'uploaded';
@@ -544,13 +544,13 @@ export function getExpectedTypeAtPosition(program: string, cursorPosition: numbe
   const beforeCursor = program.substring(0, cursorPosition);
   return getExpectedNextType(beforeCursor);
 }
-</eval-result-010843969214>}
+</eval-result-144902005787>}
 
 ---
 
 # character-defs.ts:
 
-${:sh cat character-defs.ts<eval-result-010843396378>import * as THREE from 'three';
+${:sh cat character-defs.ts<eval-result-144902086179>import * as THREE from 'three';
 import FFT from 'fft.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -3366,7 +3366,8 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
     // Sharpen the mask - boost alpha values to reduce transparency
     const rawAlpha = scaledMaskData.data[i + 3];
     // Apply a curve to make edges sharper: values above threshold become more opaque
-    const sharpened = rawAlpha < 10 ? 0 : Math.min(255, Math.round(rawAlpha * 1.5 + 50));
+    //const sharpened = rawAlpha < 10 ? 0 : Math.min(255, Math.round(rawAlpha * 1.5 + 50));
+    const sharpened = rawAlpha;
     fgData.data[i + 3] = sharpened;
   }
   
@@ -5228,7 +5229,7 @@ function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: n
   const dstRadius = Math.max(1, norm(size) * Math.min(ctx.width, ctx.height));
   
   const blendFuncs: Record<string, (b: number, t: number) => number> = {
-    'normal': (b, t) => t,
+    'normal': (b, t) => b,
     'xor': (b, t) => b ^ t,
     'nand': (b, t) => 255 - (b & t),
     'and': (b, t) => b & t,
@@ -5291,9 +5292,9 @@ function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: n
       
       const [baseR, baseG, baseB] = getPixel(prev, px, py);
       
-      const r = Math.round(blendFunc(baseR, srcR));
-      const g = Math.round(blendFunc(baseG, srcG));
-      const b = Math.round(blendFunc(baseB, srcB));
+      const r = Math.round(blendFunc(srcR, baseR));
+      const g = Math.round(blendFunc(srcG, baseG));
+      const b = Math.round(blendFunc(srcB, baseB));
       
       setPixel(out, px, py, r, g, b);
     }
@@ -7503,13 +7504,13 @@ export const characterDefs: Record<string, CharDef> = {
     documentation: "Horizontal wave distortion with chromatic aberration."
   },
 };
-</eval-result-010843396378>}
+</eval-result-144902086179>}
 
 ---
 
 # index.html:
 
-${:sh cat index.html<eval-result-010843696541><!DOCTYPE html>
+${:sh cat index.html<eval-result-144902461285><!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -8423,292 +8424,200 @@ ${:sh cat index.html<eval-result-010843696541><!DOCTYPE html>
   </script>
 </body>
 </html>
-</eval-result-010843696541>}
+</eval-result-144902461285>}
 
 
 ---
 
 # NEXT TASK
 
-in `/`, the normal blend mode should stamp the old image on, but it completely hides it instead. i think you've got it the wrong way around
+move sinet_224.onnx to public so it works on github pages
 
 # THINKING
 
-Signature: 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
+Signature: EpMYCkYIChgCKkCXKRzaqbE/BiHSkdijuYLW1p0zRRWvyhqF26FIPZMGJnxtCt4R4R3ke5EtBKlLF+55ODeIKVMGPkpWv1FRed37EgxuFSfFaukQu2+Y/ykaDCa8XZtabfUCicC/YCIw2UgV5+D61wlBnUGcH8Nxg54b4Eairxg7lgeUtiTxbtOKv5TbrA/XeygRPrVt3NmNKvoW4OIFpK5BYjDqmCH5ltg4q+O8t0bVfwnfUXSJEopWHVDS3sosQ8oNGexJPx+r9ircDOWuuBhLVtSBoPgqmBVjwkkY2Z4kRg1BLjpEzaesLHPAshWOKpsGbvx7JjdeKYp+R/196oRCdWcEy3TDJ31Qw09HldeB7A6v98RYuwuaqV9yBdEU+SUkuy24C7jIfwhCeZgr/dG40kUzuYHMOh6xcXgGmCDozLzX1Bu6D8yKGTVe8Wg1/KfjHh5y4N4CqqkIkAswAiHOmiSAxi0uueya+O9zdmStRKdHsZ/LZ6snNl/7+V6b++BuJPgwfceBLf9i1tTaPHf/ya/wYbkaxNqCADvXjqS0NehCi1ghxhpcBSCaodMl2yHtt2v5jsMPlPCx0rZsOPkprrAeQ9d+aQA3b+EiNKEiiivMyUqM8yKA1JDcI721cIlu6ADqe+j2fS+MjnEJmsnrgKSfLYm7sOcyklr7rzJGqe2LrKy1b4+PYHzkm1cZS9yP+yfRzVqvVyZs7mfBigmXP/xUgF/2ZvZ/NTzjoVb4wAXOQ7SLoZmsIkIvYX2MnwyMkgR+syUnxSLf/uN7UemvS8Hgh2XrZgQdmAF1Oh8qve59sWDQ0sj2GL76htgs27wOHYtBlU1ZItjw6OVP9hgOvcdz+Z334MKyJdeQ3x7tipraIhTn7NdfKKE28heArJxnBao3rIGdxnYJsM92zVYzDQ+DFehrzsffJmBf3G+J2p1W+Y9KiV+f8l7fUJ0zZTIr05imvobRjdJmMdqjXHp/JUQ/10TL2t10FvhPH+Sonnt+4ijBHuNuiFzlhW3nk8TMN5S09J9Pka5wHvplybVLxoY12w0PIOIjJN9LSME8KLCzuIb/EV2rWwLKzrz7cOMSmGbG4CGo7YD7fKSwSGHZHd0kmQ4sSSZ0sMdA3ioqdqbYErhsKF1yOf4x6pYj+BqA4slAwoD2S+clq+ABgFtBGxdPxUbpQMxsUsw69hlEBr6cJ+Xc5ezaAOPqxjTMo7o306VMDZb/2WyCMvcq/kbtDHzry2HCwM0uXRCoh4+odafXybYR3M2dU25eBCZL/FtrbpVBo16+241Zht/9g+e9JGeAGWdw1gYPTtv5WV39uLpblOL1opstEUeLQzbTXl7VXM2wyjSPS97KSEggc2Amrn79QCI/p2l+GTt/x3SJIkL8xZ/eZ/zo4U0aFYpPSgBU4HL/0h+PI8ObY6/a+5N9QD0UMonR2anEQBe6bgKrYhW5D6ID2DFh45K6T2T0rH41zuuoPd4Wj2F8OshrkI4h0cHe32j1wU5rxh03DXTHHAwJToytcBqt5y1aZgZsO4LwESFy+r+V/6VzEKx67w4ycFmmtYd+eTB6j6xp7EceR7ijF2zmBqIwIFS+sEfDclj8uQwtK7Y6tWQo6ZNxqiUkHXJPGKs5QzCAfBHFw1W1Q7TqoEL6N3Ke2XgHYUEn6+jNngwSAxw/Wj4HG8onnl2FvZeEGwkT5vMTJkpN/i17fimYGLQcEN9212Lazw/xls6hw7Sia0NtIAmjdRTod4Jc6wbR8LDcqobb0o4uEg5JnhpSXc2FnM7K/b2fVXIviJU5QXJlhQHXwnvCit3jW6dFve9W2L+nMy6tKl/9JXJwpRPIhm8UpAAMe3QAPGF74sUXlS+zGkMKOAXiqyp5Ipe0xjUAiJw1EY0cRRs6iR1MvBdIfuA43hHxZ9BdeMsyM+AWE9kqxrDR2S0VujzHIgB77v0nEaDVzcfs6aQ+rk4GHBNmBabObBLqHabmRQl7jHF81sf6K9JtPK17k/od/2ct7Srz0WXxqqyRHhiKrwXEngaM6xwjdHmvdKdPqVb+EMBWM3DJ4FOVEqjc9fItA9e3W2SUrWalPGGJM7eIbBrv3ZC5Gevz9spIRwUc6rt30ILvN34Qp2KQ+eHj8FCkhVlLcyAPmKnd/s7gH8heJjHotRqR7ZKYdnUdAmL5lESVNeG27WtZvbMhcf1dLDjmlXJPKJK2XYvBg8vSeN0XIZeCDOjxQ4GSIHkxcbhpR9QRQXR0WROANjif7KEeFAuix4UANUE+kFl135bZ1NsZPAl4Ym4IN+bCYUAGYdjUD0JbTGeOc8ZkDTXnjdaSWGMskHCy7UVYQdOW/Tmty/8nNmbiA6IxjuGZWnW9e7E2Rpg7+v8LiZd4cZATwZ+M68WFXlXqqoQiwHsC+ctR/qGsn4ox9NFJWqt6N0lZoK3Q/mMmRzBPHvePXgZbZk+JWQBXosLsmZn6w1YwqthJ+UVR4HVZv7j153OFDAGly8T0qra7FJlc730Bd5+7zvSniKNynDtLy/Tqs1Atht3sJh8lQPRy3U3o0a6jPCOCq0mk2KdXlmsxZ/EjfCkygEPOvh/tTKFMC+z3+/pyEHksD85hRkBvAmribUxigGLJiZ+A8WFxDEsx9S1uFtoPhJVfbCQE6RNOiOut4tABLSYbPhR1nzQzRDuaip1jrr+bL8DjpHZLILjrvTJNaYdE37yXXBvLV/QY3P8pjYmwsZ/ZtXZoqerqrF46uu3q0gEmFtgVYjsBWrjSCBh5nLYk/JIT040T8C1YA4ToeiqPYT3PajQt109ET3g7fKu6oWb9vKAvaevVYpX7gNa/nhYMGTjqGSOdALlP57il8Wqhs/Ze3ITYypyS+9Uku3WmDAi37oCshIa0aMU19Hc0AUuCwVkEenQSrRo5zbKll+4pZtpWZSz27uWg9jncw64xEuY7eK2Eg7qO+k0yFAQkO0oNtQAkTbBqGf/gDAXkkSc0a5rF36wYNZrDoJN8/iiIkuj8BW/5NGqmiFqsPOhFJ7yEufyTIrARhyZ+R11XwSB8+RBJYjLen/jt4nMvZeAHfJijrC3XeoNfNkhpRnatNtZGJwMBGskb77znfbw82pveaJrYISU4fzWiFRiRvjSfsdxgcUyYDScw43BHyo8diNrB84YXnhLu7uaxaaYp7hPXnKxk6m3jkhw28XyP1R5ND2FfcqC47DDzQJnxpdKf+Jk8UDZPDoAMhufIli4/7pFSSas3Ho1FJzwOFznbxwkYzaHPN5P7g4DWrNop68H47uLOYSu9cStBkR6kc7ORgH+8skVSpEM1uHHwCBy7CemBPuJrPyW+5ChR7tQl90d3GXjvtFWOQC15NBr7Ltw2mGxCXgjR3lPluFlrm7XUOyAeHeGghPgG/txkACwmgsOnlgh6LPsO3mVK8mL8aqCzlLr4L9yNR3aw/Rw5n2I0Ker9ls2T7jzddrQUAVeikH4QsZcu6x6KdLA0dwoT9w2ulAPv+Ojx80akVfpSg+6vHiRYv13k3Z3waAwibmpGdiPErtqQZhOddBz6PyRqEK2MSwB9/bELCh8MiIAg3l28X22IjfErCkCcvfYWo2d7xxo1f6rP2Ln3aWy7AT2kaRnA+Ral0Zfc9NzZ4TazKFqZRxoYc9ZkgIHY4IxMhZJezRgsIlVz/ZTV/o9EFCvpQm9pYm5YY4WeLDEuCCkZzqxizngkYI4X04hnh8nm95vG7scDS5nby5VVT2WPs8CidESmvNevTbsKpBohj6yHgeagDinAUyJg9Ef8mTwEzVAD6hDGbajylWNKjsjOyIqvkE9jE+JtAVPT550xK5ZXuR1+36p1ivL3o2UBXG7sI+cFawZUBgWrXTmOomiB9C5eGW7HEgI27EnxtDoYolS9bPoKmo3538usqqRtq6PHpAyy+Nm6rCVSGiHQBfAwOKi2YcV9WJevZ7mq658Ve6EPUlmXPxRio2zG+hoehMrAQ15uzC0KKBujd7oRbamduwdvd1mWu77k3fGRKbq7+KAM/UqlcI+12AgYAgjzNt3CYHwEXgv9q1V8o2IKD2MkxtDPAkxvCmCNEXt0I2PTNIaUm60wXGGy3siMruHkqSQ0boR8b3M5cq3hch39CK853C1xQLmmARgB
 
-The user is pointing out that in the `/` function (fnSlash - circle-stamp), the normal blend mode is not working correctly. They say it should stamp the old image on top but it's completely hiding it instead, suggesting the order is wrong.
+The user wants to move sinet_224.onnx to a public directory so it works on GitHub Pages. Currently, the code references './sinet_224.onnx' in the loadSinetModel function.
 
-Let me look at the fnSlash function:
+Looking at the code in character-defs.ts:
 
 ```typescript
-function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: number, blend: string): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  
-  // ... lots of setup code ...
-  
-  const blendFuncs: Record<string, (b: number, t: number) => number> = {
-    'normal': (b, t) => t,
-    // ... other blend modes
-  };
-  
-  const blendFunc = blendFuncs[blend] || blendFuncs['normal'];
-  
-  // ... sampling and coordinate transformation ...
-  
-  for (let py = startY; py < endY; py++) {
-    for (let px = startX; px < endX; px++) {
-      // ... distance check and sampling ...
-      
-      const [baseR, baseG, baseB] = getPixel(prev, px, py);
-      
-      const r = Math.round(blendFunc(baseR, srcR));
-      const g = Math.round(blendFunc(baseG, srcG));
-      const b = Math.round(blendFunc(baseB, srcB));
-      
-      setPixel(out, px, py, r, g, b);
-    }
+async function loadSinetModel(): Promise<void> {
+  try {
+    console.log('Loading SINet model...');
+    sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
+      executionProviders: ['wasm'],
+      graphOptimizationLevel: 'all',
+    });
+    console.log('SINet model loaded successfully');
+    console.log('Input names:', sinetSession.inputNames);
+    console.log('Output names:', sinetSession.outputNames);
+  } catch (error) {
+    console.error('Failed to load SINet model:', error);
   }
-  
-  return out;
 }
 ```
 
-I see the issue! The blend function signature is `(b: number, t: number)` where conventionally:
-- `b` = base (bottom/background) layer
-- `t` = top (foreground) layer
+I need to:
+1. Create a public directory (if it doesn't exist)
+2. The file should be moved there
+3. But I can't actually move files with the tools I have - I can only tell the user to do it
 
-In the code:
+Actually, looking more carefully, the user is asking me to help with this. They probably want me to update the path in the code. Since I can't move files, I should just update the reference path.
 
+Wait, let me re-read. "move sinet_224.onnx to public so it works on github pages". This is a bit ambiguous. Do they want me to:
+1. Update the code to reference a different path?
+2. Tell them to move the file?
+3. Something else?
 
-- `baseR, baseG, baseB` = from `prev` (the current image)
-- `srcR, srcG, srcB` = from `old` (the source being stamped)
+I think the most helpful thing is to:
+1. Update the code to reference the correct path for GitHub Pages (which would be in the root or a public directory)
+2. Let them know they need to move the file
 
-The call is: `blendFunc(baseR, srcR)`
+For GitHub Pages, typically you'd put static assets in the root or a public folder. If we're using a build system, we might have a public folder. But looking at the index.html, it references files like './emerald.glb', './sinet_224.onnx', which suggests everything is in the root.
+ 
+The file's location might be causing deployment issues on GitHub Pages. I'll verify the current path and suggest moving it to ensure compatibility. The relative path './sinet_224.onnx' should work if the file is in the same directory as the script, but GitHub Pages can be particular about file locations.
 
-So `b` = baseR (prev), `t` = srcR (old)
-
-For normal blend mode: `'normal': (b, t) => t`
-
-This returns `t`, which is `srcR` from the old image. That should be correct - we want the old image to replace/stamp over the prev image.
-
-The blend mode seems logically correct. The function always returns the top layer pixel value, which should overlay the previous image. However, the user reports it's completely hiding the previous image, suggesting something else might be interfering with the blending process.
-
-The parameter order in the blend function looks suspicious. I need to verify if `baseR` and `srcR` are being passed in the expected sequence. The current implementation might be inverting the expected blending behavior, potentially causing the old image to disappear instead of being visible.
-
-The blend function `(b, t) => t` suggests it should return the second parameter, which should make the old image show through. However, something seems off with how the pixels are being sampled or processed.
-
-I'll need to carefully trace the pixel sampling code, particularly focusing on how `srcR, srcG, srcB` are being calculated to understand why the old image isn't appearing as expected.
-
-The code performs bilinear interpolation, sampling pixel colors from four surrounding pixels based on fractional coordinates. This complex interpolation might be causing unexpected results in the blending process.
-
-I notice a potential bug in the blue channel calculation where `r11` is incorrectly used instead of `b11`. This subtle error could introduce color distortions during image processing.
-
-The comment suggests a deeper issue with layer blending order, potentially mixing up base and top layer parameters. Standard image editing conventions typically define layers with specific precedence, which might be reversed in this implementation.
-
-The current blend function seems structurally correct - returning the source pixel (`srcR`) for normal blending mode. However, the problem likely stems from how pixels are being cloned and modified, particularly around the circle's boundary where previous image pixels might be improperly preserved.
-
-I suspect the core issue involves incomplete pixel replacement during the blending process, where pixels outside the defined circular region retain their original values unexpectedly.
-
-The function signature reveals `old` represents the source image being stamped, which matches the intended behavior. But the implementation might not fully capture the "normal" blend mode's fundamental requirement: complete pixel replacement from the top layer.
-
-In Photoshop's normal blending mode, the top layer entirely supersedes the bottom layer, suggesting our current approach needs refinement to ensure comprehensive pixel overwriting.
-
-The blend function's current implementation returns the source pixel value, which theoretically should work. However, the user's observation implies something is preventing `old`'s pixels from rendering correctly - potentially related to coordinate mapping or an underlying blending mechanism issue.
-
-I'm suspecting two potential scenarios: either the blend operation is incorrectly defaulting back to the base image, or there's a misalignment in how pixels are being transferred between the source and destination images. The user's description of "completely hides it" suggests a fundamental rendering problem beyond simple pixel value selection.
-
-The key discrepancy seems to be between the expected behavior (stamping `old` onto `prev`) and the actual result, which might involve coordinate translation, pixel transfer, or blend function parameter interpretation.
-
-My current hypothesis is that the blend function's implementation doesn't match the user's mental model of how image blending should occur, potentially due to parameter order confusion or an incorrect blend logic implementation.
-
-The key insight is the inconsistent parameter naming between `fnBlend` and `fnSlash`. In `fnBlend`, the base layer is `old` and the top layer is `prev`, creating a specific convention that might not be consistent across all blending functions.
-
-This parameter inconsistency suggests a deeper issue with how image blending layers are being defined and processed, which could explain the unexpected visual results the user is experiencing.
-
-The normal blend mode's behavior depends critically on which layer is considered "top" - in this case, the convention flips between functions, requiring careful parameter mapping to ensure the correct visual outcome.
-
-For the circle stamp operation, the goal is to overlay pixels from the old image onto the current image's circular region. By returning the source layer (`old`), the blend function should correctly implement the intended stamping behavior.
-
-However, a potential discrepancy might exist in how the blend mode name is being interpreted or passed, which could introduce unexpected rendering results.
-
-The key insight is that the current implementation returns the base layer (`prev`) when it should return the top layer (`old`), causing the old image to be hidden instead of stamped. Reversing the blend function to return the top layer could resolve the rendering issue.
-
-The blend mode selection mechanism involves checking a predefined list of blend functions, with a default fallback to the 'normal' mode. Investigating the blend mode argument and how it's being passed might reveal why the expected blending isn't occurring.
-
-The 'normal' mode currently returns the top layer (t), but the user suggests this needs to show the old image. I'll need to carefully examine how the base and top layers are being interpreted in the blending function.
-
-The current implementation returns the top layer, which isn't displaying the desired result. I'll swap the return to ensure the old image is shown, keeping the existing parameter order but changing the return value.
-
-This means modifying the blend function to return the base layer (b) instead of the top layer (t) when in 'normal' mode, which should correctly stamp the old image as requested.
-
-The multiply blend function seems consistent with standard blending math, so the issue likely lies in how the function handles layer selection, not the mathematical calculation itself.
-
-The default blend behavior returns the top layer's values, which suggests a specific layering logic. This implies the core problem might be in how layers are being processed or ordered during blending.
-
-I need to investigate how the default case determines which layer takes precedence, especially when switching between different blend function implementations.
-
-The parameter order in `blendFunc` seems counterintuitive, with `prev` as base and `old` as source, which could lead to unexpected blending results. This subtle difference might explain the inconsistent behavior across different blend modes.
-
-I'll swap the parameters to match the expected blending logic, ensuring `old` is treated as the base layer and `prev` as the top layer. This adjustment could resolve the user's reported issue with the blending calculation.
-
-The code's current implementation suggests a non-standard approach to layer composition, where the typical expectation of layer ordering might be reversed. By flipping the parameters, we align the blending function with more conventional image compositing techniques.
-
-I'll need to verify the exact behavior by testing both parameter arrangements and comparing the visual results. The goal is to ensure the blending mode correctly prioritizes the old image's pixel values while incorporating the previous frame's information.
-
-Two potential configurations emerge:
-1. Swap function definition to `(b, t) => b`
-2. Maintain current `(b, t) => t` definition
-
-Each approach yields different pixel selection strategies. The key is confirming which precisely matches the expected rendering behavior for the normal blending mode.
-
-I'll systematically trace how each configuration impacts pixel value selection, tracking whether srcR or baseR dominates the final output.
-
-The proposed TypeScript implementation suggests aligning blend function parameters with a consistent old-then-prev ordering. This might resolve the current ambiguity by standardizing parameter sequence across blend mode calculations.
-
-Careful parameter mapping seems critical to resolving the current rendering inconsistency. I see the core issue now. The blending functions have fundamentally different intents: fnBlend aims to show the foreground, while fnSlash wants to stamp the old image onto the previous one. This means their "normal" modes must be inverses. For fnSlash, when calling `blendFunc(srcR, baseR)` with old as first parameter and prev as second, the normal mode should return the first parameter - the old image. This ensures we're stamping the old image onto the previous background, exactly matching the stamping semantic we want.
+I'll recommend double-checking the root directory placement and confirming the file is actually present. The other assets like 'emerald.glb' and 'intro.mp4' are already correctly referenced, so this seems straightforward to resolve.
 
 # ASSISTANT
 
-Looking at the `fnSlash` function, I can see the issue. Let me trace through what's happening:
+Looking at your code, the path `'./sinet_224.onnx'` in the `loadSinetModel()` function should work fine for GitHub Pages as long as the file is in the root directory of your repository (same location as `index.html`).
 
-Current code:
+The current path reference is already correct:
+
 ```typescript
-const [baseR, baseG, baseB] = getPixel(prev, px, py);
-// srcR, srcG, srcB are sampled from 'old' image
-const r = Math.round(blendFunc(baseR, srcR));
+sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
 ```
 
-With `'normal': (b, t) => t`, this returns `srcR` (from old), which should show the old image.
+**To make this work on GitHub Pages, you need to:**
 
-However, I notice that `fnBlend` uses a different convention where the first parameter is from `old`:
-```typescript
-const [br, bg, bb] = getPixel(old, x, y);
-const [tr, tg, tb] = getPixel(prev, x, y);
-```
+1. Ensure `sinet_224.onnx` is in your repository root directory (same level as `index.html`, `runtime.ts`, `character-defs.ts`, etc.)
+2. Commit and push the file to your GitHub repository
+3. Make sure the file is not in `.gitignore`
 
-To make the blend modes consistent between functions and fix the normal mode, I need to swap the parameter order in the blend function call:
+If you want to organize static assets in a subdirectory (like `public/` or `assets/`), you would need to:
+1. Create the directory: `mkdir public`
+2. Move the file: `mv sinet_224.onnx public/`
+3. Update the path in character-defs.ts to `'./public/sinet_224.onnx'`
+
+But based on your current setup (where `emerald.glb` and other assets are referenced from the root with `./`), keeping `sinet_224.onnx` in the root directory is the simplest approach.
+
+**Note:** The .onnx file is likely large (several MB). Make sure it's committed to your repository and that GitHub Pages can serve it. If it's too large, you might need to use Git LFS or host it elsewhere.
+
+# USER
+
+i already have a public/ directory, you should move sinet_224.onnx there
+
+# THINKING
+
+Signature: Eq0ECkYIChgCKkD1lTgs1jvO1HGvyy8x59OuNBPlpaSD8TIAxNEwkIT01+CS+h9Sre+KqaVJy/mMCMRfXaudC1I2MBZX6RY256bPEgydAE5z+fvIMv4WUWgaDHMu00OmhM8BD0F/hyIwN9gnERbLZl0wN9Ah+vKc8m4ViUbCWu/X+Aq7+NnMND+fOoHBunxRR/fqgdxz3PrNKpQDKY/K8joR5LRARF+NWdVYJgV9HVLe2bsT3OQr9+UPb0JKrsd+ZxJewWqzfUvMcx4T1vN8RT+vEF+Pq7S0UD8T+XkucCHEFPbaHtIhM4s0XncbHKDTHPCvW8xRG82Y7XtRr4ujKCv1RKFFWdNIbDNDD7J93Vm3sddBt7eoLn/nw84rYyjDmGZfyVJ5okfHnglchF5xxXwIS3perDIStgD2DxUtvFHysJBJfbtpoLDWrJXamyxukJPA0/VUNqW51+fdTtUIxkoaOQ+WiaOkR4DpT6YeMevMCrg67S/yvhkqkb1qaMLBSblFunWBiqya00BFdeBsnrBq7S0L2zgUV4eY+UbTWTQOdHyn68G4owbqxb4NcocbefHLjSi0ll7l1tHnTJskE6O9IjtJgeD2+waQu0djR1vlw0ritpZFmff5OlV1CkAZ0Hlv73moohIaxvoe7TgMmqv4MHbfqEzdRzephfHljOnW7Vj8/iGwTFcimeWiE3T0klsVe/6IiQBGlwnkjfDEKKmoQwk1uEt6NOHAEUvFMU4YAQ==
+
+The user wants me to move the `sinet_224.onnx` file to the `public/` directory and update the path in the code. Let me:
+
+1. First check if there's a public directory and what's in it
+2. Update the path in character-defs.ts where it loads the model
+3. The path './sinet_224.onnx' needs to be changed to './public/sinet_224.onnx'
+
+Let me look for where the model is loaded in character-defs.ts.
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01BmEuT85XM22URP61A61dJp
+
+## pattern
+
+<tool.toolu_01BmEuT85XM22URP61A61dJp>
+sinet_224\.onnx
+</tool.toolu_01BmEuT85XM22URP61A61dJp>
+
+## path
+
+<tool.toolu_01BmEuT85XM22URP61A61dJp>
+.
+</tool.toolu_01BmEuT85XM22URP61A61dJp>
+
+# TOOL RESULT
+
+ID: toolu_01BmEuT85XM22URP61A61dJp
+
+<tool.toolu_01BmEuT85XM22URP61A61dJp>
+/Users/ajansson/projects/ascii-language/character-defs.ts:1528:    sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
+/Users/ajansson/projects/ascii-language/ascii-language.greger:2080:    sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
+
+</tool.toolu_01BmEuT85XM22URP61A61dJp>
+
+# TOOL USE
+
+Name: list-directory
+ID: toolu_015zXFge2W99msSzJxgAoSp3
+
+## path
+
+<tool.toolu_015zXFge2W99msSzJxgAoSp3>
+public
+</tool.toolu_015zXFge2W99msSzJxgAoSp3>
+
+# TOOL RESULT
+
+ID: toolu_015zXFge2W99msSzJxgAoSp3
+
+<tool.toolu_015zXFge2W99msSzJxgAoSp3>
+public/:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+-rw-r--r--     31825  apple-touch-icon.png
+-rw-rw-r--   3050456  emerald.glb
+-rw-r--r--      1130  favicon-16.png
+-rw-r--r--     34647  favicon-192.png
+-rw-r--r--      2386  favicon-32.png
+-rw-r--r--  12787248  intro.mp4
+</tool.toolu_015zXFge2W99msSzJxgAoSp3>
 
 # TOOL USE
 
 Name: str-replace
-ID: toolu_01Mc7BT4nrRzvkhmomksojPp
+ID: toolu_019ycUrLq7fCbnBxGigpv8Q2
 
 ## path
 
-<tool.toolu_01Mc7BT4nrRzvkhmomksojPp>
+<tool.toolu_019ycUrLq7fCbnBxGigpv8Q2>
 character-defs.ts
-</tool.toolu_01Mc7BT4nrRzvkhmomksojPp>
+</tool.toolu_019ycUrLq7fCbnBxGigpv8Q2>
 
 ## diff
 
-<tool.toolu_01Mc7BT4nrRzvkhmomksojPp>
-       const [baseR, baseG, baseB] = getPixel(prev, px, py);
-       
--      const r = Math.round(blendFunc(baseR, srcR));
--      const g = Math.round(blendFunc(baseG, srcG));
--      const b = Math.round(blendFunc(baseB, srcB));
-+      const r = Math.round(blendFunc(srcR, baseR));
-+      const g = Math.round(blendFunc(srcG, baseG));
-+      const b = Math.round(blendFunc(srcB, baseB));
-       
-       setPixel(out, px, py, r, g, b);
+<tool.toolu_019ycUrLq7fCbnBxGigpv8Q2>
+ async function loadSinetModel(): Promise<void> {
+   try {
+     console.log('Loading SINet model...');
+-    sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
++    sinetSession = await ort.InferenceSession.create('./public/sinet_224.onnx', {
+       executionProviders: ['wasm'],
+       graphOptimizationLevel: 'all',
+     });
+     console.log('SINet model loaded successfully');
+     console.log('Input names:', sinetSession.inputNames);
+     console.log('Output names:', sinetSession.outputNames);
+   } catch (error) {
+     console.error('Failed to load SINet model:', error);
+   }
+ }
 \ No newline at end of file
 
-</tool.toolu_01Mc7BT4nrRzvkhmomksojPp>
+</tool.toolu_019ycUrLq7fCbnBxGigpv8Q2>
 
 ## git-commit-message
 
-<tool.toolu_01Mc7BT4nrRzvkhmomksojPp>
-Fix blend parameter order in fnSlash to match fnBlend convention (old first, prev second)
-</tool.toolu_01Mc7BT4nrRzvkhmomksojPp>
+<tool.toolu_019ycUrLq7fCbnBxGigpv8Q2>
+Update SINet model path to public directory
+</tool.toolu_019ycUrLq7fCbnBxGigpv8Q2>
 
 # TOOL RESULT
 
-ID: toolu_01Mc7BT4nrRzvkhmomksojPp
+ID: toolu_019ycUrLq7fCbnBxGigpv8Q2
 
-<tool.toolu_01Mc7BT4nrRzvkhmomksojPp>
-Successfully replaced content in /Users/ajansson/projects/ascii-language/character-defs.ts. Successfully staged 2 file(s) and committed with message: Fix blend parameter order in fnSlash to match fnBlend convention (old first, prev second)
-</tool.toolu_01Mc7BT4nrRzvkhmomksojPp>
+<tool.toolu_019ycUrLq7fCbnBxGigpv8Q2>
 
-# ASSISTANT
-
-Now I need to fix the `normal` blend mode to return the first parameter (old/source) instead of the second:
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_015JKdS5MxwexvzrdQiyurkT
-
-## path
-
-<tool.toolu_015JKdS5MxwexvzrdQiyurkT>
-character-defs.ts
-</tool.toolu_015JKdS5MxwexvzrdQiyurkT>
-
-## git-commit-message
-
-<tool.toolu_015JKdS5MxwexvzrdQiyurkT>
-Fix normal blend mode to return first parameter (source image) for proper stamping
-</tool.toolu_015JKdS5MxwexvzrdQiyurkT>
-
-## diff
-
-<tool.toolu_015JKdS5MxwexvzrdQiyurkT>
-   const blendFuncs: Record<string, (b: number, t: number) => number> = {
--    // 0: Normal - replace
--    (b, t) => t,
-\ No newline at end of file
-+    // 0: Normal - replace with source
-+    (b, t) => b,
-\ No newline at end of file
-
-</tool.toolu_015JKdS5MxwexvzrdQiyurkT>
-
-# TOOL RESULT
-
-ID: toolu_015JKdS5MxwexvzrdQiyurkT
-
-<tool.toolu_015JKdS5MxwexvzrdQiyurkT>
-Original content not found in file: /Users/ajansson/projects/ascii-language/character-defs.ts -- Try again!
-</tool.toolu_015JKdS5MxwexvzrdQiyurkT>
-
-# ASSISTANT
-
-Let me find the exact content:
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_0116pYnfaWyYVKpbU7X2suTb
-
-## path
-
-<tool.toolu_0116pYnfaWyYVKpbU7X2suTb>
-character-defs.ts
-</tool.toolu_0116pYnfaWyYVKpbU7X2suTb>
-
-## git-commit-message
-
-<tool.toolu_0116pYnfaWyYVKpbU7X2suTb>
-Fix normal blend mode to return first parameter (source image) for proper stamping
-</tool.toolu_0116pYnfaWyYVKpbU7X2suTb>
-
-## diff
-
-<tool.toolu_0116pYnfaWyYVKpbU7X2suTb>
-   const blendFuncs: Record<string, (b: number, t: number) => number> = {
--    'normal': (b, t) => t,
-\ No newline at end of file
-+    'normal': (b, t) => b,
-\ No newline at end of file
-
-</tool.toolu_0116pYnfaWyYVKpbU7X2suTb>
-
-# TOOL RESULT
-
-ID: toolu_0116pYnfaWyYVKpbU7X2suTb
-
-<tool.toolu_0116pYnfaWyYVKpbU7X2suTb>
-
-</tool.toolu_0116pYnfaWyYVKpbU7X2suTb>
+</tool.toolu_019ycUrLq7fCbnBxGigpv8Q2>
