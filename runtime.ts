@@ -62,8 +62,7 @@ class LRUCache<K, V> {
 }
 
 interface UploadedImageSource {
-  blob: Blob | null;
-  url: string | null;
+  blob: Blob;
 }
 
 const uploadedSources: UploadedImageSource[] = [];
@@ -80,32 +79,16 @@ export function clearUploadedImages(): void {
 
 export function addUploadedBlob(blob: Blob): number {
   const index = uploadedSources.length;
-  uploadedSources.push({ blob, url: null });
-  imageCache.clear();
-  return index;
-}
-
-export function addUploadedUrl(url: string): number {
-  const index = uploadedSources.length;
-  uploadedSources.push({ blob: null, url });
+  uploadedSources.push({ blob });
   imageCache.clear();
   return index;
 }
 
 export function setUploadedBlob(index: number, blob: Blob): void {
   while (uploadedSources.length <= index) {
-    uploadedSources.push({ blob: null, url: null });
+    uploadedSources.push({ blob: new Blob() });
   }
-  uploadedSources[index] = { blob, url: null };
-  uploadedImagesCache[index] = null as any;
-  imageCache.clear();
-}
-
-export function setUploadedUrl(index: number, url: string): void {
-  while (uploadedSources.length <= index) {
-    uploadedSources.push({ blob: null, url: null });
-  }
-  uploadedSources[index] = { blob: null, url };
+  uploadedSources[index] = { blob };
   uploadedImagesCache[index] = null as any;
   imageCache.clear();
 }
