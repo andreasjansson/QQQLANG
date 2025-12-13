@@ -6338,6 +6338,9 @@ function generateIndexPage(introPageCount: number, refPageCount: number): string
     }
   }
   
+  // Image history page
+  lines.push('?# - Image history');
+  
   lines.push('');
   lines.push('Enter a valid page code to view help.');
   lines.push('Invalid page codes show this index.');
