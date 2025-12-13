@@ -627,25 +627,33 @@
       const file = e.target.files[0];
       if (!file) return;
       
-      const blob = file;
-      
-      if (pendingUploadIndex !== null) {
-        setUploadedBlob(pendingUploadIndex, blob);
-        pendingUploadIndex = null;
-      } else {
-        addUploadedBlob(blob);
+      try {
+        const hash = await uploadImageToWorker(file);
         
-        const start = input.selectionStart;
-        const before = input.value.substring(0, start);
-        const after = input.value.substring(input.selectionEnd);
-        input.value = before + UPLOAD_CHAR + after;
-        input.selectionStart = input.selectionEnd = start + UPLOAD_CHAR.length;
+        if (pendingUploadIndex !== null) {
+          uploadHashes[pendingUploadIndex] = hash;
+          setUploadedBlob(pendingUploadIndex, file);
+          pendingUploadIndex = null;
+        } else {
+          uploadHashes.push(hash);
+          addUploadedBlob(file);
+          
+          const start = input.selectionStart;
+          const before = input.value.substring(0, start);
+          const after = input.value.substring(input.selectionEnd);
+          input.value = before + UPLOAD_CHAR + after;
+          input.selectionStart = input.selectionEnd = start + UPLOAD_CHAR.length;
+        }
+        
+        fileInput.value = '';
+        updateURL(input.value);
+        await render();
+        input.focus();
+      } catch (err) {
+        console.error('Upload failed:', err);
+        visualBell();
+        fileInput.value = '';
       }
-      
-      fileInput.value = '';
-      updateURL(input.value);
-      await render();
-      input.focus();
     });
     
     helpButton.addEventListener('click', () => {
