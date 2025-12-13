@@ -981,7 +981,7 @@
 
     async function loadProgramFromURL() {
       const urlProgram = getProgramFromURL();
-      const { displayProgram, hashes } = parseProgram(urlProgram);
+      const { displayProgram, hashes, hadInvalidChars } = parseProgram(urlProgram);
       
       input.value = displayProgram;
       
@@ -1000,6 +1000,11 @@
         } else {
           addUploadedBlob(new Blob());
         }
+      }
+      
+      // Redirect to clean URL if there were invalid characters
+      if (hadInvalidChars) {
+        updateURL(displayProgram);
       }
       
       await render();
