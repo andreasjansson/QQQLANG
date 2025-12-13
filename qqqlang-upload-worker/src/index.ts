@@ -20,14 +20,33 @@ function hashFromUrl(url: URL): string | null {
 	return match ? match[1] : null;
 }
 
+const ALLOWED_MIME_TYPES = new Set([
+	'image/png',
+	'image/jpeg',
+	'image/webp',
+	'image/gif',
+	'image/bmp',
+	'image/tiff',
+	'image/avif',
+	'image/heic',
+	'image/heif',
+]);
+
+const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+
 async function handleUpload(request: Request, env: Env): Promise<Response> {
 	if (request.method !== 'POST') {
 		return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
 	}
 
 	const contentType = request.headers.get('Content-Type') || '';
-	if (!contentType.startsWith('image/')) {
-		return new Response('Content-Type must be an image type', { status: 400, headers: CORS_HEADERS });
+	if (!ALLOWED_MIME_TYPES.has(contentType)) {
+		return new Response(`Invalid image type. Allowed: ${[...ALLOWED_MIME_TYPES].join(', ')}`, { status: 400, headers: CORS_HEADERS });
+	}
+
+	const contentLength = request.headers.get('Content-Length');
+	if (contentLength && parseInt(contentLength, 10) > MAX_SIZE_BYTES) {
+		return new Response('Image too large (max 10MB)', { status: 413, headers: CORS_HEADERS });
 	}
 
 	const body = await request.arrayBuffer();
@@ -35,7 +54,7 @@ async function handleUpload(request: Request, env: Env): Promise<Response> {
 		return new Response('Empty body', { status: 400, headers: CORS_HEADERS });
 	}
 
-	if (body.byteLength > 10 * 1024 * 1024) {
+	if (body.byteLength > MAX_SIZE_BYTES) {
 		return new Response('Image too large (max 10MB)', { status: 413, headers: CORS_HEADERS });
 	}
 
