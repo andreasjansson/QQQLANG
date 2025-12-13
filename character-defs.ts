@@ -4676,7 +4676,7 @@ function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: n
   const dstRadius = Math.max(1, norm(size) * Math.min(ctx.width, ctx.height));
   
   const blendFuncs: Record<string, (b: number, t: number) => number> = {
-    'normal': (b, t) => t,
+    'normal': (b, t) => b,
     'xor': (b, t) => b ^ t,
     'nand': (b, t) => 255 - (b & t),
     'and': (b, t) => b & t,
