@@ -215,23 +215,30 @@
       width: 100px;
     }
     
-    .toolbar-button:hover:not(:disabled)::before {
-      background: linear-gradient(
-        45deg,
-        #4a4a4a 0%,
-        #5a5a5a 25%,
-        #4a4a4a 50%,
-        #5a5a5a 75%,
-        #4a4a4a 100%
-      );
-    }
-    
     .toolbar-button:hover:not(:disabled) {
-      background: #252525;
+      background: 
+        linear-gradient(#252525, #252525) padding-box,
+        linear-gradient(
+          45deg,
+          #3a3a3a 0%,
+          #666666 25%,
+          #3a3a3a 50%,
+          #666666 75%,
+          #3a3a3a 100%
+        ) border-box;
     }
     
     .toolbar-button:active:not(:disabled) {
-      background: #333;
+      background: 
+        linear-gradient(#333, #333) padding-box,
+        linear-gradient(
+          45deg,
+          #444444 0%,
+          #777777 25%,
+          #444444 50%,
+          #777777 75%,
+          #444444 100%
+        ) border-box;
     }
     
     .toolbar-button:disabled {
