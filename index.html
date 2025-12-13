@@ -183,11 +183,12 @@
     }
     
     .toolbar-button {
+      position: relative;
       padding: 10px 15px;
       font-size: 18px;
       font-family: "Inconsolata", monospace;
       font-weight: 300;
-      border: 2px solid #444;
+      border: none;
       background: #1a1a1a;
       color: #fff;
       cursor: pointer;
@@ -195,6 +196,25 @@
       min-width: 90px;
       width: 90px;
       text-align: center;
+    }
+    
+    .toolbar-button::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(
+        45deg,
+        #3a3a3a 0%,
+        #4a4a4a 25%,
+        #3a3a3a 50%,
+        #4a4a4a 75%,
+        #3a3a3a 100%
+      );
+      z-index: -1;
+      pointer-events: none;
     }
     
     #upload-button {
