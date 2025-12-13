@@ -995,15 +995,17 @@
       await loadProgramFromURL();
     });
     
-    Promise.all([emeraldReady, bgRemovalReady]).then(async () => {
-      if (shouldShowIntro()) {
-        showIntro();
-        resize();
-      } else {
+    // Start intro immediately if needed, load models in background
+    if (shouldShowIntro()) {
+      resize();
+      showIntro();
+      modelsReady = Promise.all([emeraldReady, bgRemovalReady]);
+    } else {
+      Promise.all([emeraldReady, bgRemovalReady]).then(async () => {
         resize();
         await loadProgramFromURL();
-      }
-    });
+      });
+    }
   </script>
 </body>
 </html>
