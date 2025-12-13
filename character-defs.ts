@@ -5428,7 +5428,7 @@ function fnImageHistory(ctx: FnContext): Image {
   const cellWidth = availWidth / cols;
   const cellHeight = availHeight / Math.ceil(numImages / cols);
   
-  tempCtx.fillStyle = '#00FF00';
+  tempCtx.fillStyle = '#E8E4DC';
   tempCtx.font = `300 ${fontSize}px Inconsolata, monospace`;
   
   // Number to character mapping (same as in characterDefs)
