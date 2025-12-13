@@ -5383,7 +5383,7 @@ function fnImageHistory(ctx: FnContext): Image {
   // Include all images including the initial black at index 0
   const numImages = ctx.images.length;
   if (numImages === 0) {
-    tempCtx.fillStyle = '#00FF00';
+    tempCtx.fillStyle = '#E8E4DC';
     tempCtx.font = '300 16px Inconsolata, monospace';
     tempCtx.fillText('No images in history', 10, 30);
     const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
