@@ -604,28 +604,29 @@
       introVideo.src = 'intro.mp4';
       introVideo.load();
       
-      setTimeout(() => {
-        introOverlay.classList.add('fading');
+      setTimeout(async () => {
+        // Wait for models to be ready before starting fade
+        if (modelsReady) {
+          await modelsReady;
+        }
         
-        setTimeout(async () => {
+        // Render the app before showing it
+        input.value = '';
+        updateURL('');
+        await render();
+        
+        // Start fading out intro and fading in app simultaneously
+        introOverlay.classList.add('fading');
+        app.classList.remove('intro-active');
+        
+        localStorage.setItem(INTRO_SEEN_KEY, 'true');
+        
+        // Clean up after fade completes
+        setTimeout(() => {
           introOverlay.classList.add('hidden');
           introVideo.pause();
           introVideo.src = '';
           introPoster.src = '';
-          
-          localStorage.setItem(INTRO_SEEN_KEY, 'true');
-          
-          // Wait for models to be ready before rendering
-          if (modelsReady) {
-            await modelsReady;
-          }
-          
-          // Show the app
-          app.classList.remove('intro-active');
-          
-          input.value = '';
-          updateURL('');
-          render();
           input.focus();
         }, FADE_DURATION_MS);
       }, INTRO_DURATION_MS);
