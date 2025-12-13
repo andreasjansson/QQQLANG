@@ -6068,24 +6068,49 @@ function fnTilde(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnHoles(ctx: FnContext, old: Image): Image {
-  const prev = getPrevImage(ctx);
+function fnCond(ctx: FnContext, condImg: Image, trueImg: Image, falseImg: Image, channel: string, thresholdN: number): Image {
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  
+  const normalizedThreshold = (thresholdN - 1) / 67;
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [pr, pg, pb] = getPixel(prev, x, y);
-      const [h, s, l] = rgbToHsl(pr, pg, pb);
+      const [cr, cg, cb] = getPixel(condImg, x, y);
       
-      const midSat = s >= 0.35 && s <= 0.65;
-      const midVal = l >= 0.35 && l <= 0.65;
+      let value: number;
       
-      if (midSat || midVal) {
-        const [or, og, ob] = getPixel(old, x, y);
-        setPixel(out, x, y, or, og, ob);
-      } else {
-        setPixel(out, x, y, pr, pg, pb);
+      switch (channel) {
+        case 'hue': {
+          const [h] = rgbToHsl(cr, cg, cb);
+          value = h / 360;
+          break;
+        }
+        case 'saturation': {
+          const [, s] = rgbToHsl(cr, cg, cb);
+          value = s;
+          break;
+        }
+        case 'lightness': {
+          const [, , l] = rgbToHsl(cr, cg, cb);
+          value = l;
+          break;
+        }
+        case 'red':
+          value = cr / 255;
+          break;
+        case 'green':
+          value = cg / 255;
+          break;
+        case 'blue':
+          value = cb / 255;
+          break;
+        default:
+          value = (cr * 0.299 + cg * 0.587 + cb * 0.114) / 255;
       }
+      
+      const sourceImg = value >= normalizedThreshold ? trueImg : falseImg;
+      const [r, g, b] = getPixel(sourceImg, x, y);
+      setPixel(out, x, y, r, g, b);
     }
   }
   
