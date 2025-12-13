@@ -4739,9 +4739,9 @@ function fnSlash(ctx: FnContext, old: Image, offX: number, offY: number, size: n
       
       const [baseR, baseG, baseB] = getPixel(prev, px, py);
       
-      const r = Math.round(blendFunc(baseR, srcR));
-      const g = Math.round(blendFunc(baseG, srcG));
-      const b = Math.round(blendFunc(baseB, srcB));
+      const r = Math.round(blendFunc(srcR, baseR));
+      const g = Math.round(blendFunc(srcG, baseG));
+      const b = Math.round(blendFunc(srcB, baseB));
       
       setPixel(out, px, py, r, g, b);
     }
