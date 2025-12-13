@@ -4640,7 +4640,7 @@ function fnMinus(ctx: FnContext): Image {
 function fnDot(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
-  const radius = (n % 8) + 2;
+  const radius = Math.max(2, Math.floor(n / 2) + 1);
   const diameter = radius * 2;
   
   for (let cy = radius; cy < ctx.height; cy += diameter) {
