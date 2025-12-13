@@ -5377,7 +5377,7 @@ function fnImageHistory(ctx: FnContext): Image {
   tempCanvas.height = ctx.height;
   const tempCtx = tempCanvas.getContext('2d')!;
   
-  tempCtx.fillStyle = '#0A0A0A';
+  tempCtx.fillStyle = '#141414';
   tempCtx.fillRect(0, 0, ctx.width, ctx.height);
   
   // Include all images including the initial black at index 0
@@ -6358,7 +6358,7 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   tempCanvas.height = ctx.height;
   const tempCtx = tempCanvas.getContext('2d')!;
   
-  tempCtx.fillStyle = '#0A0A0A';
+  tempCtx.fillStyle = '#141414';
   tempCtx.fillRect(0, 0, ctx.width, ctx.height);
   
   const marginFraction = 0.025;
