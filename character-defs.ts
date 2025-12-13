@@ -6388,13 +6388,13 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
     const linesPerPage = Math.max(5, Math.floor((ctx.height - margin * 2) / lineHeight));
     
     // Generate pages at this size
-    const pages = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
+    const { pages, introPageCount, refPageCount } = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
     
     let lines: string[];
     if (page >= 1 && page <= pages.length) {
       lines = pages[page - 1];
     } else {
-      lines = generateIndexPage(pages.length);
+      lines = generateIndexPage(introPageCount, refPageCount);
     }
     
     // Check if content fits
@@ -6414,11 +6414,11 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
     const lineHeight = Math.floor(minFontSize * 1.25);
     const charsPerLine = Math.max(20, Math.floor((ctx.width - margin * 2) / charWidth));
     const linesPerPage = Math.max(5, Math.floor((ctx.height - margin * 2) / lineHeight));
-    const pages = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
+    const { pages, introPageCount, refPageCount } = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
     if (page >= 1 && page <= pages.length) {
       bestLines = pages[page - 1];
     } else {
-      bestLines = generateIndexPage(pages.length);
+      bestLines = generateIndexPage(introPageCount, refPageCount);
     }
     bestFontSize = minFontSize;
     bestLinesPerPage = linesPerPage;
