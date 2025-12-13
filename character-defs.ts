@@ -1525,7 +1525,7 @@ const SINET_STD = [62.93292, 62.82138, 66.355705];
 async function loadSinetModel(): Promise<void> {
   try {
     console.log('Loading SINet model...');
-    sinetSession = await ort.InferenceSession.create('./public/sinet_224.onnx', {
+    sinetSession = await ort.InferenceSession.create('./sinet_224.onnx', {
       executionProviders: ['wasm'],
       graphOptimizationLevel: 'all',
     });
