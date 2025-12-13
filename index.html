@@ -97,14 +97,13 @@
       flex: 1;
     }
     
-    #program-input {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      padding: 10px 15px;
-      font-size: 22px;
-      font-family: "Inconsolata", monospace;
-      font-weight: 300;
+    #input-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       border: 2px solid transparent;
       background: 
         linear-gradient(#1a1a1a, #1a1a1a) padding-box,
@@ -115,13 +114,11 @@
           #1A1AE6 66%,
           #E61A1A 100%
         ) border-box;
-      color: transparent;
-      caret-color: #fff;
-      outline: none;
-      z-index: 2;
+      pointer-events: none;
+      z-index: 0;
     }
     
-    #program-input:focus {
+    #input-wrapper:focus-within::before {
       background: 
         linear-gradient(#1a1a1a, #1a1a1a) padding-box,
         linear-gradient(
@@ -135,6 +132,22 @@
           #E61A1A 100%
         ) border-box;
       animation: gradient-rotate 8s linear infinite;
+    }
+    
+    #program-input {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 10px 15px;
+      font-size: 22px;
+      font-family: "Inconsolata", monospace;
+      font-weight: 300;
+      border: 2px solid transparent;
+      background: transparent;
+      color: transparent;
+      caret-color: #fff;
+      outline: none;
+      z-index: 2;
     }
     
     #input-background {
