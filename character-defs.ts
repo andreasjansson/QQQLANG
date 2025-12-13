@@ -5507,43 +5507,92 @@ function fnRule110(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
+  const CHUNK_SIZE = 16;
+  const chunksX = Math.ceil(width / CHUNK_SIZE);
+  const chunksY = Math.ceil(height / CHUNK_SIZE);
+  
   // Rule 110 lookup table: index = (left << 2) | (center << 1) | right
   // 111→0, 110→1, 101→1, 100→0, 011→1, 010→1, 001→1, 000→0
   const rule110 = [0, 1, 1, 1, 0, 1, 1, 0];
   
-  // Number of generations to evolve
-  const iterations = Math.max(1, n * 8);
+  const iterations = Math.max(1, n * 4);
   
-  // Initialize current state from prev image (threshold on luminance)
-  let current = cloneImage(prev);
+  // Compute initial chunk states from prev image (average luminance per chunk)
+  let chunkStates = new Uint8Array(chunksX * chunksY);
+  for (let cy = 0; cy < chunksY; cy++) {
+    for (let cx = 0; cx < chunksX; cx++) {
+      let sum = 0, count = 0;
+      const startX = cx * CHUNK_SIZE;
+      const startY = cy * CHUNK_SIZE;
+      const endX = Math.min(startX + CHUNK_SIZE, width);
+      const endY = Math.min(startY + CHUNK_SIZE, height);
+      
+      for (let y = startY; y < endY; y++) {
+        for (let x = startX; x < endX; x++) {
+          const [r, g, b] = getPixel(prev, x, y);
+          sum += r * 0.299 + g * 0.587 + b * 0.114;
+          count++;
+        }
+      }
+      chunkStates[cy * chunksX + cx] = (sum / count) > 128 ? 1 : 0;
+    }
+  }
   
+  // Evolve chunk states using Rule 110 (horizontal neighbors per row)
   for (let gen = 0; gen < iterations; gen++) {
-    const next = createSolidImage(width, height, '#000000');
+    const newStates = new Uint8Array(chunksX * chunksY);
     
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        // Get spatial neighbors from current image (horizontal Rule 110)
-        const [lr] = getPixel(current, (x - 1 + width) % width, y);
-        const [cr] = getPixel(current, x, y);
-        const [rr] = getPixel(current, (x + 1) % width, y);
+    for (let cy = 0; cy < chunksY; cy++) {
+      for (let cx = 0; cx < chunksX; cx++) {
+        const left = chunkStates[cy * chunksX + ((cx - 1 + chunksX) % chunksX)];
+        const center = chunkStates[cy * chunksX + cx];
+        const right = chunkStates[cy * chunksX + ((cx + 1) % chunksX)];
         
-        // Threshold to binary
-        const left = lr > 128 ? 1 : 0;
-        const center = cr > 128 ? 1 : 0;
-        const right = rr > 128 ? 1 : 0;
-        
-        // Apply Rule 110
         const index = (left << 2) | (center << 1) | right;
-        const v = rule110[index] * 255;
-        
-        setPixel(next, x, y, v, v, v);
+        newStates[cy * chunksX + cx] = rule110[index];
       }
     }
     
-    current = next;
+    chunkStates = newStates;
   }
   
-  return current;
+  // Render output: blend prev image content with state-based transformation
+  const out = createSolidImage(width, height, '#000000');
+  
+  for (let cy = 0; cy < chunksY; cy++) {
+    for (let cx = 0; cx < chunksX; cx++) {
+      const state = chunkStates[cy * chunksX + cx];
+      const startX = cx * CHUNK_SIZE;
+      const startY = cy * CHUNK_SIZE;
+      const endX = Math.min(startX + CHUNK_SIZE, width);
+      const endY = Math.min(startY + CHUNK_SIZE, height);
+      
+      // Source chunk for visual content - pull from neighbor based on state
+      // This creates visual flow while state follows Rule 110
+      const srcCx = state === 1 ? 
+        ((cx - 1 + chunksX) % chunksX) : 
+        ((cx + 1) % chunksX);
+      const srcStartX = srcCx * CHUNK_SIZE;
+      
+      for (let y = startY; y < endY; y++) {
+        for (let x = startX; x < endX; x++) {
+          const localX = x - startX;
+          const srcX = Math.min(srcStartX + localX, width - 1);
+          
+          const [r, g, b] = getPixel(prev, srcX, y);
+          
+          if (state === 1) {
+            setPixel(out, x, y, r, g, b);
+          } else {
+            // Invert for state 0 to maintain visual distinction
+            setPixel(out, x, y, 255 - r, 255 - g, 255 - b);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
 }
 
 function fnOpenBrace(ctx: FnContext): Image {
