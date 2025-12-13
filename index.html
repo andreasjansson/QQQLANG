@@ -225,13 +225,23 @@
       width: 100px;
     }
     
+    .toolbar-button:hover:not(:disabled)::before {
+      background: linear-gradient(
+        45deg,
+        #4a4a4a 0%,
+        #5a5a5a 25%,
+        #4a4a4a 50%,
+        #5a5a5a 75%,
+        #4a4a4a 100%
+      );
+    }
+    
     .toolbar-button:hover:not(:disabled) {
-      border-color: #888;
-      background: #333;
+      background: #252525;
     }
     
     .toolbar-button:active:not(:disabled) {
-      background: #444;
+      background: #333;
     }
     
     .toolbar-button:disabled {
