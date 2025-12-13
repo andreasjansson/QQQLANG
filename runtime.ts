@@ -115,7 +115,7 @@ export function getUploadedImageCount(): number {
 }
 
 function loadBlobToImage(blob: Blob, width: number, height: number): Promise<Image> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const img = new window.Image();
     img.onload = () => {
       const tempCanvas = document.createElement('canvas');
@@ -136,6 +136,30 @@ function loadBlobToImage(blob: Blob, width: number, height: number): Promise<Ima
       resolve(createPlaceholderImage(width, height));
     };
     img.src = URL.createObjectURL(blob);
+  });
+}
+
+function loadUrlToImage(url: string, width: number, height: number): Promise<Image> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = width;
+      tempCanvas.height = height;
+      const tempCtx = tempCanvas.getContext('2d')!;
+      tempCtx.drawImage(img, 0, 0, width, height);
+      const imageData = tempCtx.getImageData(0, 0, width, height);
+      resolve({
+        width,
+        height,
+        data: new Uint8ClampedArray(imageData.data)
+      });
+    };
+    img.onerror = () => {
+      resolve(createPlaceholderImage(width, height));
+    };
+    img.src = url;
   });
 }
 
