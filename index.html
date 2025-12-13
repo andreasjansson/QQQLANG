@@ -87,15 +87,9 @@
       }
     }
     
-    @keyframes gradient-cycle {
-      0% { --gradient-angle: 45deg; }
-      100% { --gradient-angle: 405deg; }
-    }
-    
-    @property --gradient-angle {
-      syntax: '<angle>';
-      initial-value: 45deg;
-      inherits: false;
+    @keyframes gradient-rotate {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
     }
     
     #input-wrapper {
@@ -116,10 +110,10 @@
         linear-gradient(#1a1a1a, #1a1a1a) padding-box,
         linear-gradient(
           45deg,
-          #FF0000 0%,
-          #00FF00 33%,
-          #0000FF 66%,
-          #FF0000 100%
+          #E61A1A 0%,
+          #1AE61A 33%,
+          #1A1AE6 66%,
+          #E61A1A 100%
         ) border-box;
       color: transparent;
       caret-color: #fff;
@@ -131,16 +125,16 @@
       background: 
         linear-gradient(#1a1a1a, #1a1a1a) padding-box,
         linear-gradient(
-          var(--gradient-angle, 45deg),
-          #FF0000 0%,
-          #FFFF00 16.6%,
-          #00FF00 33.3%,
-          #00FFFF 50%,
-          #0000FF 66.6%,
-          #FF00FF 83.3%,
-          #FF0000 100%
+          45deg,
+          #E61A1A 0%,
+          #E6E61A 16.6%,
+          #1AE61A 33.3%,
+          #1AE6E6 50%,
+          #1A1AE6 66.6%,
+          #E61AE6 83.3%,
+          #E61A1A 100%
         ) border-box;
-      animation: gradient-cycle 3s linear infinite;
+      animation: gradient-rotate 8s linear infinite;
     }
     
     #input-background {
