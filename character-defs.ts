@@ -6425,7 +6425,7 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   }
   
   const lineHeight = Math.floor(bestFontSize * 1.25);
-  tempCtx.font = `${bestFontSize}px VT323, monospace`;
+  tempCtx.font = `300 ${bestFontSize}px Inconsolata, monospace`;
   tempCtx.fillStyle = '#00FF00';
   
   let y = margin + bestFontSize;
