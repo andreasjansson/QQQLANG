@@ -1026,6 +1026,10 @@
       }
       
       await render();
+      
+      // Focus input at the end
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
     }
 
     window.addEventListener('resize', resize);
