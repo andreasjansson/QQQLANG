@@ -319,7 +319,7 @@
   <input type="file" id="file-input" accept="image/*" style="display: none;">
 
   <script type="module">
-    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, getInvalidUploadIndices, addUploadedBlob, setUploadedBlob, addUploadedUrl, setUploadedUrl, preloadUploadedImages, clearUploadedImages } from './runtime.ts';
+    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, getInvalidUploadIndices, addUploadedBlob, setUploadedBlob, preloadUploadedImages, clearUploadedImages } from './runtime.ts';
     import { characterDefs, emeraldReady, bgRemovalReady, UPLOAD_CHAR, ChoiceType } from './character-defs.ts';
 
     const canvas = document.getElementById('canvas');
@@ -366,16 +366,20 @@
       return data.hash;
     }
     
-    function getImageUrlFromHash(hash) {
-      return `${UPLOAD_WORKER_URL}/image/${hash}`;
+    async function fetchImageAsBlob(hash) {
+      const response = await fetch(`${UPLOAD_WORKER_URL}/image/${hash}`);
+      if (!response.ok) return null;
+      return await response.blob();
     }
     
-    function parseUploadHashes(program) {
+    function parseProgram(urlProgram) {
       const hashes = [];
-      const chars = [...program];
+      let displayProgram = '';
+      const chars = [...urlProgram];
       let i = 0;
       while (i < chars.length) {
         if (chars[i] === UPLOAD_CHAR) {
+          displayProgram += UPLOAD_CHAR;
           const hashChars = chars.slice(i + 1, i + 1 + HASH_LENGTH).join('');
           if (hashChars.length === HASH_LENGTH && /^[A-Za-z0-9_-]+$/.test(hashChars)) {
             hashes.push(hashChars);
@@ -385,43 +389,25 @@
             i++;
           }
         } else {
+          displayProgram += chars[i];
           i++;
         }
       }
-      return hashes;
+      return { displayProgram, hashes };
     }
     
-    function stripHashesFromProgram(program) {
-      const chars = [...program];
-      let result = '';
-      let i = 0;
-      while (i < chars.length) {
-        if (chars[i] === UPLOAD_CHAR) {
-          result += UPLOAD_CHAR;
-          const hashChars = chars.slice(i + 1, i + 1 + HASH_LENGTH).join('');
-          if (hashChars.length === HASH_LENGTH && /^[A-Za-z0-9_-]+$/.test(hashChars)) {
-            i += 1 + HASH_LENGTH;
-          } else {
-            i++;
-          }
-        } else {
-          result += chars[i];
-          i++;
-        }
-      }
-      return result;
-    }
-    
-    function buildProgramWithHashes(displayProgram) {
+    function buildUrlProgram(displayProgram) {
       const chars = [...displayProgram];
       let result = '';
       let uploadIdx = 0;
       for (const char of chars) {
         result += char;
-        if (char === UPLOAD_CHAR && uploadIdx < uploadHashes.length && uploadHashes[uploadIdx]) {
-          result += uploadHashes[uploadIdx];
+        if (char === UPLOAD_CHAR) {
+          if (uploadIdx < uploadHashes.length && uploadHashes[uploadIdx]) {
+            result += uploadHashes[uploadIdx];
+          }
+          uploadIdx++;
         }
-        if (char === UPLOAD_CHAR) uploadIdx++;
       }
       return result;
     }
