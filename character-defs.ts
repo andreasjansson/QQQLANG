@@ -69,7 +69,7 @@ export interface CharDef {
   documentation: string;
 }
 
-export const UPLOAD_CHAR = '🖼';
+export const UPLOAD_CHAR = '□';
 
 export function createPlaceholderImage(width: number, height: number): Image {
   const data = new Uint8ClampedArray(width * height * 4);
