@@ -404,9 +404,15 @@
       return await response.blob();
     }
     
+    function isValidProgramChar(char) {
+      const upper = char.toUpperCase();
+      return upper in characterDefs || char === UPLOAD_CHAR;
+    }
+    
     function parseProgram(urlProgram) {
       const hashes = [];
       let displayProgram = '';
+      let hadInvalidChars = false;
       const chars = [...urlProgram];
       let i = 0;
       while (i < chars.length) {
@@ -421,11 +427,16 @@
             i++;
           }
         } else {
-          displayProgram += chars[i];
+          const char = chars[i].toUpperCase();
+          if (isValidProgramChar(char)) {
+            displayProgram += char;
+          } else {
+            hadInvalidChars = true;
+          }
           i++;
         }
       }
-      return { displayProgram, hashes };
+      return { displayProgram, hashes, hadInvalidChars };
     }
     
     function buildUrlProgram(displayProgram) {
