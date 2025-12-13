@@ -6195,24 +6195,41 @@ Some functions take an image index as an argument, and uses that old image in so
   return wrapText(introText, charsPerLine);
 }
 
-function generateCharacterRefLines(char: string, def: CharDef, charsPerLine: number): string[] {
+function numToChar(num: number): string {
+  if (num >= 1 && num <= 26) return String.fromCharCode('A'.charCodeAt(0) + num - 1);
+  if (num >= 27 && num <= 36) return String.fromCharCode('0'.charCodeAt(0) + num - 27);
+  const symbols = '<>^!"#$%&\'()*+,-./:;=?@[\\]_`{|}~';
+  const idx = num - 37;
+  if (idx >= 0 && idx < symbols.length) return symbols[idx];
+  return '?';
+}
+
+export function formatFunctionHelp(char: string, def: CharDef, charsPerLine: number = 80): string[] {
   const lines: string[] = [];
   
-  const argsStr = def.args.length > 0 ? ` [${def.args.map(a => a.type.name).join(', ')}]` : '';
-  const header = `${char} (${def.number}) ${def.color} - ${def.functionName}${argsStr}`;
-  lines.push(header);
+  // First line: C fn-name — documentation
+  const firstLine = `${char} ${def.functionName} — ${def.documentation}`;
+  lines.push(...wrapText(firstLine, charsPerLine));
   
-  const docLines = wrapText('  ' + def.documentation, charsPerLine);
-  lines.push(...docLines);
-  
+  // Arg lines: (n) argDoc (A=x, B=y, ...)
   for (let i = 0; i < def.args.length; i++) {
     const arg = def.args[i];
-    const argLine = `  (${i + 1}) :${arg.type.name} -- ${arg.documentation}`;
-    const argDocLines = wrapText(argLine, charsPerLine);
-    lines.push(...argDocLines);
+    let argLine = `(${i + 1}) ${arg.documentation}`;
+    
+    if (arg.type instanceof ChoiceType) {
+      const choices = arg.type.choices;
+      const mappings = choices.map((choice, idx) => `${numToChar(idx + 1)}=${choice}`).join(', ');
+      argLine += ` (${mappings})`;
+    }
+    
+    lines.push(...wrapText(argLine, charsPerLine));
   }
   
   return lines;
+}
+
+function generateCharacterRefLines(char: string, def: CharDef, charsPerLine: number): string[] {
+  return formatFunctionHelp(char, def, charsPerLine);
 }
 
 function getPageChar(pageNum: number): string {
