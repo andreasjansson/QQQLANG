@@ -87,9 +87,51 @@
       }
     }
     
+    @keyframes gradient-cycle {
+      0% { --gradient-angle: 45deg; }
+      100% { --gradient-angle: 405deg; }
+    }
+    
+    @property --gradient-angle {
+      syntax: '<angle>';
+      initial-value: 45deg;
+      inherits: false;
+    }
+    
     #input-wrapper {
       position: relative;
       flex: 1;
+    }
+    
+    #input-wrapper::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(
+        var(--gradient-angle, 45deg),
+        #3a3a3a 0%,
+        #4a4a4a 25%,
+        #3a3a3a 50%,
+        #4a4a4a 75%,
+        #3a3a3a 100%
+      );
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    #input-wrapper:focus-within::before {
+      background: linear-gradient(
+        var(--gradient-angle, 45deg),
+        #4a3a3a 0%,
+        #3a4a3a 25%,
+        #3a3a4a 50%,
+        #4a3a4a 75%,
+        #4a3a3a 100%
+      );
+      animation: gradient-cycle 3s linear infinite;
     }
     
     #program-input {
@@ -100,16 +142,12 @@
       font-size: 22px;
       font-family: "Inconsolata", monospace;
       font-weight: 300;
-      border: 2px solid #444;
+      border: none;
       background: transparent;
       color: transparent;
       caret-color: #fff;
       outline: none;
       z-index: 2;
-    }
-    
-    #program-input:focus {
-      border-color: #888;
     }
     
     #input-background {
