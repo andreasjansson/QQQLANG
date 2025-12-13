@@ -1036,6 +1036,7 @@
       showIntro();
       modelsReady = Promise.all([emeraldReady, bgRemovalReady]);
     } else {
+      app.classList.remove('intro-active');
       Promise.all([emeraldReady, bgRemovalReady]).then(async () => {
         resize();
         await loadProgramFromURL();
