@@ -5507,7 +5507,7 @@ function fnRule110(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
-  const CHUNK_SIZE = 16;
+  const CHUNK_SIZE = 8;
   const chunksX = Math.ceil(width / CHUNK_SIZE);
   const chunksY = Math.ceil(height / CHUNK_SIZE);
   
