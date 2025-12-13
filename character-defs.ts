@@ -6380,7 +6380,7 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   let bestLinesPerPage = 20;
   
   for (let testSize = maxFontSize; testSize >= minFontSize; testSize -= 1) {
-    tempCtx.font = `${testSize}px VT323, monospace`;
+    tempCtx.font = `300 ${testSize}px Inconsolata, monospace`;
     const charWidth = tempCtx.measureText('M').width;
     const lineHeight = Math.floor(testSize * 1.25);
     
