@@ -6312,25 +6312,8 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   tempCtx.fillStyle = '#000000';
   tempCtx.fillRect(0, 0, ctx.width, ctx.height);
   
-  const marginFraction = 0.03;
-  const margin = Math.max(10, Math.floor(Math.min(ctx.width, ctx.height) * marginFraction));
-  
-  // Target roughly 60 chars per line and 30 lines per page for readable layout
-  const targetCharsPerLine = 60;
-  const targetLinesPerPage = 30;
-  
-  // Calculate font size based on available space to fit target layout
-  const fontSizeFromWidth = (ctx.width - margin * 2) / (targetCharsPerLine * 0.6); // 0.6 is approx char width ratio
-  const fontSizeFromHeight = (ctx.height - margin * 2) / (targetLinesPerPage * 1.3); // 1.3 is line height ratio
-  const fontSize = Math.max(10, Math.min(20, Math.floor(Math.min(fontSizeFromWidth, fontSizeFromHeight))));
-  const lineHeight = Math.floor(fontSize * 1.3);
-  
-  tempCtx.font = `${fontSize}px VT323, monospace`;
-  tempCtx.fillStyle = '#00FF00';
-  
-  const charWidth = tempCtx.measureText('M').width;
-  const charsPerLine = Math.max(30, Math.floor((ctx.width - margin * 2) / charWidth));
-  const linesPerPage = Math.max(10, Math.floor((ctx.height - margin * 2) / lineHeight));
+  const marginFraction = 0.025;
+  const margin = Math.max(8, Math.floor(Math.min(ctx.width, ctx.height) * marginFraction));
   
   let page: number;
   if (pageArg === 58 || pageArg === 1) {
@@ -6339,18 +6322,66 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
     page = pageArg;
   }
   
-  const pages = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
+  // Iteratively find the largest font size that fits the content
+  const minFontSize = 10;
+  const maxFontSize = 48;
+  let bestFontSize = minFontSize;
+  let bestLines: string[] = [];
+  let bestCharsPerLine = 40;
+  let bestLinesPerPage = 20;
   
-  let lines: string[];
-  if (page >= 1 && page <= pages.length) {
-    lines = pages[page - 1];
-  } else {
-    lines = generateIndexPage(pages.length);
+  for (let testSize = maxFontSize; testSize >= minFontSize; testSize -= 1) {
+    tempCtx.font = `${testSize}px VT323, monospace`;
+    const charWidth = tempCtx.measureText('M').width;
+    const lineHeight = Math.floor(testSize * 1.25);
+    
+    const charsPerLine = Math.max(20, Math.floor((ctx.width - margin * 2) / charWidth));
+    const linesPerPage = Math.max(5, Math.floor((ctx.height - margin * 2) / lineHeight));
+    
+    // Generate pages at this size
+    const pages = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
+    
+    let lines: string[];
+    if (page >= 1 && page <= pages.length) {
+      lines = pages[page - 1];
+    } else {
+      lines = generateIndexPage(pages.length);
+    }
+    
+    // Check if content fits
+    if (lines.length <= linesPerPage) {
+      bestFontSize = testSize;
+      bestLines = lines;
+      bestCharsPerLine = charsPerLine;
+      bestLinesPerPage = linesPerPage;
+      break;
+    }
   }
   
-  let y = margin + fontSize;
-  for (let i = 0; i < Math.min(lines.length, linesPerPage); i++) {
-    tempCtx.fillText(lines[i], margin, y);
+  // If we couldn't fit even at min size, just use min size
+  if (bestLines.length === 0) {
+    tempCtx.font = `${minFontSize}px VT323, monospace`;
+    const charWidth = tempCtx.measureText('M').width;
+    const lineHeight = Math.floor(minFontSize * 1.25);
+    const charsPerLine = Math.max(20, Math.floor((ctx.width - margin * 2) / charWidth));
+    const linesPerPage = Math.max(5, Math.floor((ctx.height - margin * 2) / lineHeight));
+    const pages = generateAllHelpPages(charsPerLine, linesPerPage, characterDefs);
+    if (page >= 1 && page <= pages.length) {
+      bestLines = pages[page - 1];
+    } else {
+      bestLines = generateIndexPage(pages.length);
+    }
+    bestFontSize = minFontSize;
+    bestLinesPerPage = linesPerPage;
+  }
+  
+  const lineHeight = Math.floor(bestFontSize * 1.25);
+  tempCtx.font = `${bestFontSize}px VT323, monospace`;
+  tempCtx.fillStyle = '#00FF00';
+  
+  let y = margin + bestFontSize;
+  for (let i = 0; i < Math.min(bestLines.length, bestLinesPerPage); i++) {
+    tempCtx.fillText(bestLines[i], margin, y);
     y += lineHeight;
   }
   
