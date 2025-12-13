@@ -5509,6 +5509,14 @@ function fnRule110(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
+  // Invert input image first so the state-based inversion doesn't result in a fully inverted output
+  const inverted = cloneImage(prev);
+  for (let i = 0; i < inverted.data.length; i += 4) {
+    inverted.data[i] = 255 - inverted.data[i];
+    inverted.data[i + 1] = 255 - inverted.data[i + 1];
+    inverted.data[i + 2] = 255 - inverted.data[i + 2];
+  }
+  
   const CHUNK_SIZE = 2;
   const chunksX = Math.ceil(width / CHUNK_SIZE);
   const chunksY = Math.ceil(height / CHUNK_SIZE);
@@ -5519,7 +5527,7 @@ function fnRule110(ctx: FnContext, n: number): Image {
   
   const iterations = Math.max(1, n * 4);
   
-  // Compute chunk luminance averages
+  // Compute chunk luminance averages from original (not inverted) for CA state
   const chunkLuminance = new Float32Array(chunksX * chunksY);
   for (let cy = 0; cy < chunksY; cy++) {
     for (let cx = 0; cx < chunksX; cx++) {
@@ -5568,9 +5576,8 @@ function fnRule110(ctx: FnContext, n: number): Image {
     chunkStates = newStates;
   }
   
-  // Render output: displace pixels horizontally based on CA state
+  // Render output: blend inverted image content with state-based inversion
   const out = createSolidImage(width, height, '#000000');
-  const displacement = CHUNK_SIZE * 2;
   
   for (let cy = 0; cy < chunksY; cy++) {
     for (let cx = 0; cx < chunksX; cx++) {
@@ -5580,14 +5587,25 @@ function fnRule110(ctx: FnContext, n: number): Image {
       const endX = Math.min(startX + CHUNK_SIZE, width);
       const endY = Math.min(startY + CHUNK_SIZE, height);
       
-      // State 1: shift pixels left, State 0: shift pixels right
-      const shift = state === 1 ? -displacement : displacement;
+      // Source chunk for visual content - pull from neighbor based on state
+      const srcCx = state === 1 ? 
+        ((cx - 1 + chunksX) % chunksX) : 
+        ((cx + 1) % chunksX);
+      const srcStartX = srcCx * CHUNK_SIZE;
       
       for (let y = startY; y < endY; y++) {
         for (let x = startX; x < endX; x++) {
-          const srcX = ((x + shift) % width + width) % width;
-          const [r, g, b] = getPixel(prev, srcX, y);
-          setPixel(out, x, y, r, g, b);
+          const localX = x - startX;
+          const srcX = Math.min(srcStartX + localX, width - 1);
+          
+          const [r, g, b] = getPixel(inverted, srcX, y);
+          
+          if (state === 1) {
+            setPixel(out, x, y, r, g, b);
+          } else {
+            // Invert for state 0 - since input is already inverted, this restores original colors
+            setPixel(out, x, y, 255 - r, 255 - g, 255 - b);
+          }
         }
       }
     }
