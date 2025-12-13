@@ -983,28 +983,46 @@
       const urlProgram = getProgramFromURL();
       const { displayProgram, hashes, hadInvalidChars } = parseProgram(urlProgram);
       
-      input.value = displayProgram;
-      
       clearUploadedImages();
       uploadHashes.length = 0;
       
-      for (const hash of hashes) {
-        uploadHashes.push(hash);
+      // Track which upload indices have valid hashes
+      const validUploadIndices = new Set();
+      
+      for (let i = 0; i < hashes.length; i++) {
+        const hash = hashes[i];
         if (hash) {
           const blob = await fetchImageAsBlob(hash);
           if (blob) {
+            uploadHashes.push(hash);
             addUploadedBlob(blob);
-          } else {
-            addUploadedBlob(new Blob());
+            validUploadIndices.add(i);
           }
+          // If blob is null (404), we skip this upload entirely
+        }
+        // If hash is null, we also skip this upload
+      }
+      
+      // Remove upload chars that had invalid/missing hashes
+      let cleanedProgram = '';
+      let uploadIdx = 0;
+      for (const char of displayProgram) {
+        if (char === UPLOAD_CHAR) {
+          if (validUploadIndices.has(uploadIdx)) {
+            cleanedProgram += char;
+          }
+          uploadIdx++;
         } else {
-          addUploadedBlob(new Blob());
+          cleanedProgram += char;
         }
       }
       
-      // Redirect to clean URL if there were invalid characters
-      if (hadInvalidChars) {
-        updateURL(displayProgram);
+      input.value = cleanedProgram;
+      
+      // Redirect to clean URL if there were invalid characters or invalid hashes
+      const hadInvalidHashes = validUploadIndices.size < hashes.length;
+      if (hadInvalidChars || hadInvalidHashes) {
+        updateURL(cleanedProgram);
       }
       
       await render();
