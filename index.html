@@ -558,15 +558,6 @@
       return program;
     }
     
-    function numToChar(num) {
-      if (num >= 1 && num <= 26) return String.fromCharCode('A'.charCodeAt(0) + num - 1);
-      if (num >= 27 && num <= 36) return String.fromCharCode('0'.charCodeAt(0) + num - 27);
-      const symbols = '<>^!"#$%&\'()*+,-./:;=?@[\\]_`{|}~';
-      const idx = num - 37;
-      if (idx >= 0 && idx < symbols.length) return symbols[idx];
-      return '?';
-    }
-    
     function updateHelpDisplay() {
       // Clear any pending hide timeout
       if (helpHideTimeout) {
