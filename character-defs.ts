@@ -6315,16 +6315,22 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   const marginFraction = 0.03;
   const margin = Math.max(10, Math.floor(Math.min(ctx.width, ctx.height) * marginFraction));
   
-  const baseFontSize = Math.min(ctx.width, ctx.height) * 0.035;
-  const fontSize = Math.max(12, Math.min(24, baseFontSize));
+  // Target roughly 60 chars per line and 30 lines per page for readable layout
+  const targetCharsPerLine = 60;
+  const targetLinesPerPage = 30;
+  
+  // Calculate font size based on available space to fit target layout
+  const fontSizeFromWidth = (ctx.width - margin * 2) / (targetCharsPerLine * 0.6); // 0.6 is approx char width ratio
+  const fontSizeFromHeight = (ctx.height - margin * 2) / (targetLinesPerPage * 1.3); // 1.3 is line height ratio
+  const fontSize = Math.max(10, Math.min(20, Math.floor(Math.min(fontSizeFromWidth, fontSizeFromHeight))));
   const lineHeight = Math.floor(fontSize * 1.3);
   
   tempCtx.font = `${fontSize}px VT323, monospace`;
   tempCtx.fillStyle = '#00FF00';
   
   const charWidth = tempCtx.measureText('M').width;
-  const charsPerLine = Math.max(20, Math.floor((ctx.width - margin * 2) / charWidth));
-  const linesPerPage = Math.max(5, Math.floor((ctx.height - margin * 2) / lineHeight));
+  const charsPerLine = Math.max(30, Math.floor((ctx.width - margin * 2) / charWidth));
+  const linesPerPage = Math.max(10, Math.floor((ctx.height - margin * 2) / lineHeight));
   
   let page: number;
   if (pageArg === 58 || pageArg === 1) {
