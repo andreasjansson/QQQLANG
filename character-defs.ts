@@ -6358,7 +6358,7 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   tempCanvas.height = ctx.height;
   const tempCtx = tempCanvas.getContext('2d')!;
   
-  tempCtx.fillStyle = '#000000';
+  tempCtx.fillStyle = '#0A0A0A';
   tempCtx.fillRect(0, 0, ctx.width, ctx.height);
   
   const marginFraction = 0.025;
