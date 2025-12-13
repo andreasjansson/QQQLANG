@@ -681,17 +681,18 @@
       return params.get('p') || '';
     }
 
-    function updateURL(program) {
+    function updateURL(displayProgram) {
+      const urlProgram = buildUrlProgram(displayProgram);
       const params = new URLSearchParams(window.location.search);
-      if (program) {
-        params.set('p', program);
+      if (urlProgram) {
+        params.set('p', urlProgram);
       } else {
         params.delete('p');
       }
       const newSearch = params.toString();
       const newURL = window.location.pathname + (newSearch ? '?' + newSearch : '');
       if (window.location.pathname + window.location.search !== newURL) {
-        window.history.pushState({ program }, '', newURL);
+        window.history.pushState({ program: urlProgram }, '', newURL);
       }
     }
 
