@@ -314,7 +314,7 @@ let lastWidth = 0;
 let lastHeight = 0;
 let lastUploadCount = 0;
 
-export function runProgram(program: string, width: number, height: number): Image[] {
+export async function runProgram(program: string, width: number, height: number): Promise<Image[]> {
   console.log(`\n=== EXECUTION: ${width}x${height} ===`);
   
   const currentUploadCount = uploadedSources.length;
@@ -394,7 +394,8 @@ export function runProgram(program: string, width: number, height: number): Imag
         return arg;
       });
       
-      result = op.fnDef.fn(ctx, ...resolvedArgs);
+      const fnResult = op.fnDef.fn(ctx, ...resolvedArgs);
+      result = fnResult instanceof Promise ? await fnResult : fnResult;
     }
     
     images.push(result);
@@ -412,8 +413,8 @@ export function runProgram(program: string, width: number, height: number): Imag
   return images;
 }
 
-export function getFinalImage(program: string, width: number, height: number): Image {
-  const images = runProgram(program, width, height);
+export async function getFinalImage(program: string, width: number, height: number): Promise<Image> {
+  const images = await runProgram(program, width, height);
   return images[images.length - 1];
 }
 
