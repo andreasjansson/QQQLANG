@@ -6409,7 +6409,7 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   
   // If we couldn't fit even at min size, just use min size
   if (bestLines.length === 0) {
-    tempCtx.font = `${minFontSize}px VT323, monospace`;
+    tempCtx.font = `300 ${minFontSize}px Inconsolata, monospace`;
     const charWidth = tempCtx.measureText('M').width;
     const lineHeight = Math.floor(minFontSize * 1.25);
     const charsPerLine = Math.max(20, Math.floor((ctx.width - margin * 2) / charWidth));
