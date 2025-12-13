@@ -319,7 +319,7 @@
   <input type="file" id="file-input" accept="image/*" style="display: none;">
 
   <script type="module">
-    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, getInvalidUploadIndices, addUploadedBlob, setUploadedBlob, preloadUploadedImages, clearUploadedImages } from './runtime.ts';
+    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, getInvalidUploadIndices, addUploadedBlob, setUploadedBlob, addUploadedUrl, setUploadedUrl, preloadUploadedImages, clearUploadedImages } from './runtime.ts';
     import { characterDefs, emeraldReady, bgRemovalReady, UPLOAD_CHAR, ChoiceType } from './character-defs.ts';
 
     const canvas = document.getElementById('canvas');
@@ -347,8 +347,84 @@
     const INTRO_SEEN_KEY = 'qqqlang-intro-seen';
     const INTRO_DURATION_MS = 4000;
     const FADE_DURATION_MS = 1000;
+    const UPLOAD_WORKER_URL = 'https://qqqlang-upload-worker.antonjan.workers.dev';
+    const HASH_LENGTH = 22;
     
     let pendingUploadIndex = null;
+    const uploadHashes = [];
+    
+    async function uploadImageToWorker(file) {
+      const response = await fetch(`${UPLOAD_WORKER_URL}/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.hash;
+    }
+    
+    function getImageUrlFromHash(hash) {
+      return `${UPLOAD_WORKER_URL}/image/${hash}`;
+    }
+    
+    function parseUploadHashes(program) {
+      const hashes = [];
+      const chars = [...program];
+      let i = 0;
+      while (i < chars.length) {
+        if (chars[i] === UPLOAD_CHAR) {
+          const hashChars = chars.slice(i + 1, i + 1 + HASH_LENGTH).join('');
+          if (hashChars.length === HASH_LENGTH && /^[A-Za-z0-9_-]+$/.test(hashChars)) {
+            hashes.push(hashChars);
+            i += 1 + HASH_LENGTH;
+          } else {
+            hashes.push(null);
+            i++;
+          }
+        } else {
+          i++;
+        }
+      }
+      return hashes;
+    }
+    
+    function stripHashesFromProgram(program) {
+      const chars = [...program];
+      let result = '';
+      let i = 0;
+      while (i < chars.length) {
+        if (chars[i] === UPLOAD_CHAR) {
+          result += UPLOAD_CHAR;
+          const hashChars = chars.slice(i + 1, i + 1 + HASH_LENGTH).join('');
+          if (hashChars.length === HASH_LENGTH && /^[A-Za-z0-9_-]+$/.test(hashChars)) {
+            i += 1 + HASH_LENGTH;
+          } else {
+            i++;
+          }
+        } else {
+          result += chars[i];
+          i++;
+        }
+      }
+      return result;
+    }
+    
+    function buildProgramWithHashes(displayProgram) {
+      const chars = [...displayProgram];
+      let result = '';
+      let uploadIdx = 0;
+      for (const char of chars) {
+        result += char;
+        if (char === UPLOAD_CHAR && uploadIdx < uploadHashes.length && uploadHashes[uploadIdx]) {
+          result += uploadHashes[uploadIdx];
+        }
+        if (char === UPLOAD_CHAR) uploadIdx++;
+      }
+      return result;
+    }
     
     function shouldShowIntro() {
       const params = new URLSearchParams(window.location.search);
