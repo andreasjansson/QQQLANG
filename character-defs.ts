@@ -5429,7 +5429,7 @@ function fnImageHistory(ctx: FnContext): Image {
   const cellHeight = availHeight / Math.ceil(numImages / cols);
   
   tempCtx.fillStyle = '#00FF00';
-  tempCtx.font = `${fontSize}px monospace`;
+  tempCtx.font = `${fontSize}px VT323, monospace`;
   
   // Number to character mapping (same as in characterDefs)
   // Access key is 1-based: A=1 maps to index 0, B=2 maps to index 1, etc.
@@ -6319,7 +6319,7 @@ function fnHelp(ctx: FnContext, pageArg: number): Image {
   const fontSize = Math.max(8, Math.min(16, baseFontSize));
   const lineHeight = Math.floor(fontSize * 1.4);
   
-  tempCtx.font = `${fontSize}px monospace`;
+  tempCtx.font = `${fontSize}px VT323, monospace`;
   tempCtx.fillStyle = '#00FF00';
   
   const charWidth = tempCtx.measureText('M').width;
