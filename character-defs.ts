@@ -6239,7 +6239,13 @@ function getPageChar(pageNum: number): string {
   return '?';
 }
 
-function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: Record<string, CharDef>): string[][] {
+interface HelpPagesResult {
+  pages: string[][];
+  introPageCount: number;
+  refPageCount: number;
+}
+
+function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: Record<string, CharDef>): HelpPagesResult {
   const pages: string[][] = [];
   
   const introLines = generateIntroPage(charsPerLine);
@@ -6255,6 +6261,8 @@ function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: 
   if (introPage.length > 0) {
     pages.push(introPage);
   }
+  
+  const introPageCount = pages.length;
   
   const chars = Object.keys(defs).sort((a, b) => defs[a].number - defs[b].number);
   
@@ -6284,7 +6292,9 @@ function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: 
     pages.push(currentPage);
   }
   
+  const refPageCount = pages.length - introPageCount;
   const totalPages = pages.length;
+  
   for (let i = 0; i < pages.length; i++) {
     const pageNum = i + 1;
     const nextPageChar = getPageChar(pageNum + 1);
@@ -6296,23 +6306,35 @@ function generateAllHelpPages(charsPerLine: number, linesPerPage: number, defs: 
     }
   }
   
-  return pages;
+  return { pages, introPageCount, refPageCount };
 }
 
-function generateIndexPage(numPages: number): string[] {
+function generateIndexPage(introPageCount: number, refPageCount: number): string[] {
   const lines: string[] = [];
   lines.push('=== QQQLANG HELP INDEX ===');
   lines.push('');
   lines.push('Available pages:');
   lines.push('');
-  lines.push('?? or ?A - Introduction to QQQLANG');
   
-  for (let i = 2; i <= Math.min(numPages, 26); i++) {
-    const char = String.fromCharCode('A'.charCodeAt(0) + i - 1);
-    if (i === 2) {
-      lines.push(`?${char} - Character reference`);
+  // Introduction pages
+  if (introPageCount === 1) {
+    lines.push('?? or ?A - Introduction');
+  } else {
+    const lastIntroChar = getPageChar(introPageCount);
+    lines.push(`??/?A-?${lastIntroChar} - Introduction`);
+  }
+  
+  // Character reference pages
+  if (refPageCount > 0) {
+    const firstRefPage = introPageCount + 1;
+    const lastRefPage = introPageCount + refPageCount;
+    const firstRefChar = getPageChar(firstRefPage);
+    const lastRefChar = getPageChar(lastRefPage);
+    
+    if (refPageCount === 1) {
+      lines.push(`?${firstRefChar} - Character reference`);
     } else {
-      lines.push(`?${char} - Character reference (continued)`);
+      lines.push(`?${firstRefChar}-?${lastRefChar} - Character reference`);
     }
   }
   
