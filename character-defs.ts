@@ -6895,10 +6895,16 @@ export const characterDefs: Record<string, CharDef> = {
   '@': {
     color: '#7B68EE',
     number: 59,
-    fn: fnHoles,
-    args: [{ type: INDEX, documentation: "Old image to reveal in midtones" }],
-    functionName: "midtone-reveal",
-    documentation: "Show old image where saturation/lightness is mid-range."
+    fn: fnCond,
+    args: [
+      { type: INDEX, documentation: "Condition image sampled for threshold comparison" },
+      { type: INDEX, documentation: "Source image when condition >= threshold" },
+      { type: INDEX, documentation: "Source image when condition < threshold" },
+      { type: Choice('hue', 'saturation', 'lightness', 'red', 'green', 'blue'), documentation: "Color channel to extract from condition image" },
+      { type: INT, documentation: "Threshold (A=0%, ~=100% of channel range)" }
+    ],
+    functionName: "cond",
+    documentation: "Per-pixel conditional: extracts channel from condition image, outputs true-image pixel where value >= threshold, otherwise false-image pixel."
   },
   
   '[': {
