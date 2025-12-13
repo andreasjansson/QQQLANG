@@ -165,8 +165,10 @@ function getPrevImage(ctx: FnContext): Image {
 
 export function getOldImage(ctx: FnContext, j: number): Image {
   if (ctx.images.length === 0) return createSolidImage(ctx.width, ctx.height, '#000000');
-  if (ctx.images.length === 1) return ctx.images[0];
-  const idx = Math.abs(j) % ctx.images.length;
+  // j is 1-based (A=1, B=2, etc.), convert to 0-based index
+  // A (1) -> index 0 (initial black), B (2) -> index 1, etc.
+  const adjusted = Math.abs(j) - 1;
+  const idx = ((adjusted % ctx.images.length) + ctx.images.length) % ctx.images.length;
   return ctx.images[idx];
 }
 
