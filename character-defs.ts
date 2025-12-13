@@ -5380,8 +5380,8 @@ function fnImageHistory(ctx: FnContext): Image {
   tempCtx.fillStyle = '#000000';
   tempCtx.fillRect(0, 0, ctx.width, ctx.height);
   
-  // Skip the initial black placeholder at index 0
-  const numImages = ctx.images.length - 1;
+  // Include all images including the initial black at index 0
+  const numImages = ctx.images.length;
   if (numImages === 0) {
     tempCtx.fillStyle = '#00FF00';
     tempCtx.font = '16px monospace';
@@ -5432,6 +5432,7 @@ function fnImageHistory(ctx: FnContext): Image {
   tempCtx.font = `${fontSize}px monospace`;
   
   // Number to character mapping (same as in characterDefs)
+  // Access key is 1-based: A=1 maps to index 0, B=2 maps to index 1, etc.
   const numToChar = (num: number): string => {
     if (num >= 1 && num <= 26) return String.fromCharCode('A'.charCodeAt(0) + num - 1);
     if (num >= 27 && num <= 36) return String.fromCharCode('0'.charCodeAt(0) + num - 27);
@@ -5441,23 +5442,23 @@ function fnImageHistory(ctx: FnContext): Image {
     return '?';
   };
   
-  for (let displayIdx = 0; displayIdx < numImages; displayIdx++) {
-    const col = displayIdx % cols;
-    const row = Math.floor(displayIdx / cols);
+  for (let i = 0; i < numImages; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
     
     const x = margin + col * cellWidth;
     const y = margin + row * cellHeight;
     
-    // Actual image index is displayIdx + 1 (skip index 0)
-    const i = displayIdx + 1;
     const img = ctx.images[i];
-    const accessKey = numToChar(i);
+    // Access key: A (1) maps to index 0, B (2) maps to index 1, etc.
+    const accessKey = numToChar(i + 1);
     
     // Get operation info for this image
     const opInfo = ctx.opInfos[i];
-    const prevOpIdentifier = i > 1 ? ctx.opInfos[i - 1].identifier : '';
+    const prevOpIdentifier = i > 0 ? ctx.opInfos[i - 1].identifier : '';
     const opChars = opInfo.identifier.substring(prevOpIdentifier.length);
-    const displayOp = opChars || '?';
+    // Index 0 is the initial black image
+    const displayOp = i === 0 ? '(init)' : (opChars || '?');
     
     // Draw thumbnail
     const thumbX = x + (cellWidth - thumbSize) / 2;
@@ -5492,11 +5493,10 @@ function fnImageHistory(ctx: FnContext): Image {
     tempCtx.drawImage(thumbCanvas, thumbX, thumbY);
     
     // Draw text below thumbnail on single line
-    // Display with 1-based numbering to match access keys
     const textY = thumbY + thumbSize + fontSize + 1;
     tempCtx.fillStyle = '#00FF00';
     tempCtx.textAlign = 'center';
-    tempCtx.fillText(`#${i} [${accessKey}] ${displayOp}`, thumbX + thumbSize / 2, textY);
+    tempCtx.fillText(`[${accessKey}] ${displayOp}`, thumbX + thumbSize / 2, textY);
   }
   
   const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
