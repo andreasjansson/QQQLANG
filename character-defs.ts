@@ -5384,7 +5384,7 @@ function fnImageHistory(ctx: FnContext): Image {
   const numImages = ctx.images.length;
   if (numImages === 0) {
     tempCtx.fillStyle = '#00FF00';
-    tempCtx.font = '16px VT323, monospace';
+    tempCtx.font = '300 16px Inconsolata, monospace';
     tempCtx.fillText('No images in history', 10, 30);
     const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
     out.data.set(imageData.data);
