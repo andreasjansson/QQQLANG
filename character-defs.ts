@@ -4651,8 +4651,24 @@ function fnDot(ctx: FnContext, n: number): Image {
       
       for (let dy = -radius; dy <= radius; dy++) {
         for (let dx = -radius; dx <= radius; dx++) {
-          if (dx * dx + dy * dy <= radius * radius) {
-            setPixel(out, cx + dx, cy + dy, nr, ng, nb);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist <= radius) {
+            const px = cx + dx;
+            const py = cy + dy;
+            
+            if (px >= 0 && px < ctx.width && py >= 0 && py < ctx.height) {
+              const edge = radius - 0.5;
+              const alpha = dist < edge ? 1 : Math.max(0, 1 - (dist - edge) * 2);
+              
+              if (alpha > 0) {
+                const [br, bg, bb] = getPixel(out, px, py);
+                const finalR = Math.round(br * (1 - alpha) + nr * alpha);
+                const finalG = Math.round(bg * (1 - alpha) + ng * alpha);
+                const finalB = Math.round(bb * (1 - alpha) + nb * alpha);
+                setPixel(out, px, py, finalR, finalG, finalB);
+              }
+            }
           }
         }
       }
