@@ -5503,81 +5503,40 @@ function fnImageHistory(ctx: FnContext): Image {
   return out;
 }
 
-function fnBacktick(ctx: FnContext, n: number): Image {
+function fnRule110(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
-  const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-  const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+  // Rule 110 lookup table: index = (left << 2) | (center << 1) | right
+  // 111→0, 110→1, 101→1, 100→0, 011→1, 010→1, 001→1, 000→0
+  const rule110 = [0, 1, 1, 1, 0, 1, 1, 0];
   
-  const gradX = new Float32Array(width * height);
-  const gradY = new Float32Array(width * height);
-  const gradMag = new Float32Array(width * height);
+  // Number of generations to evolve
+  const iterations = Math.max(1, n * 8);
   
-  let maxMag = 1;
-  
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      let gx = 0, gy = 0;
-      
-      for (let ky = -1; ky <= 1; ky++) {
-        for (let kx = -1; kx <= 1; kx++) {
-          const [r, g, b] = getPixel(prev, x + kx, y + ky);
-          const gray = r * 0.299 + g * 0.587 + b * 0.114;
-          const kidx = (ky + 1) * 3 + (kx + 1);
-          gx += gray * sobelX[kidx];
-          gy += gray * sobelY[kidx];
-        }
-      }
-      
-      const idx = y * width + x;
-      gradX[idx] = gx;
-      gradY[idx] = gy;
-      const mag = Math.sqrt(gx * gx + gy * gy);
-      gradMag[idx] = mag;
-      if (mag > maxMag) maxMag = mag;
-    }
-  }
-  
-  const iterations = Math.max(5, Math.min(n * 2 + 8, 30));
-  const baseStrength = 4.0 + n * 1.5;
-  const threshold = 8;
-  
+  // Initialize current state from prev image (threshold on luminance)
   let current = cloneImage(prev);
   
-  for (let iter = 0; iter < iterations; iter++) {
+  for (let gen = 0; gen < iterations; gen++) {
     const next = createSolidImage(width, height, '#000000');
-    const iterDecay = 1 - (iter / iterations) * 0.35;
-    const iterStrength = baseStrength * iterDecay;
     
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        const idx = y * width + x;
-        const mag = gradMag[idx];
+        // Get spatial neighbors from current image (horizontal Rule 110)
+        const [lr] = getPixel(current, (x - 1 + width) % width, y);
+        const [cr] = getPixel(current, x, y);
+        const [rr] = getPixel(current, (x + 1) % width, y);
         
-        if (mag < threshold) {
-          const [r, g, b] = getPixel(current, x, y);
-          setPixel(next, x, y, r, g, b);
-          continue;
-        }
+        // Threshold to binary
+        const left = lr > 128 ? 1 : 0;
+        const center = cr > 128 ? 1 : 0;
+        const right = rr > 128 ? 1 : 0;
         
-        const normMag = mag / maxMag;
-        const scale = normMag * iterStrength;
-        const dx = (gradX[idx] / mag) * scale;
-        const dy = (gradY[idx] / mag) * scale;
+        // Apply Rule 110
+        const index = (left << 2) | (center << 1) | right;
+        const v = rule110[index] * 255;
         
-        const srcX = x - dx;
-        const srcY = y - dy;
-        
-        const [r1, g1, b1] = getPixel(current, Math.floor(srcX), Math.floor(srcY));
-        const [r2, g2, b2] = getPixel(current, x, y);
-        
-        const blend = Math.min(0.95, normMag * 0.6 + 0.35);
-        setPixel(next, x, y,
-          Math.round(r1 * blend + r2 * (1 - blend)),
-          Math.round(g1 * blend + g2 * (1 - blend)),
-          Math.round(b1 * blend + b2 * (1 - blend))
-        );
+        setPixel(next, x, y, v, v, v);
       }
     }
     
