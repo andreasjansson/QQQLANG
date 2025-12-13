@@ -452,13 +452,30 @@
       introOverlay.classList.remove('hidden');
       
       // Load and fade in video
-      introVideo.src = 'intro.mp4';
-      introVideo.loop = true;
+      // Set up event listener before setting src to avoid race condition
+      const onCanPlay = () => {
+        introVideo.play().then(() => {
+          introVideo.classList.add('visible');
+        }).catch(() => {
+          // If autoplay fails, just show the poster
+          console.log('Video autoplay failed, showing poster only');
+        });
+      };
       
-      introVideo.addEventListener('canplay', () => {
-        introVideo.play().catch(() => {});
-        introVideo.classList.add('visible');
+      introVideo.addEventListener('canplay', onCanPlay, { once: true });
+      
+      // For iOS: also try playing on loadedmetadata
+      introVideo.addEventListener('loadedmetadata', () => {
+        introVideo.play().then(() => {
+          introVideo.classList.add('visible');
+        }).catch(() => {});
       }, { once: true });
+      
+      introVideo.loop = true;
+      introVideo.muted = true;
+      introVideo.playsInline = true;
+      introVideo.src = 'intro.mp4';
+      introVideo.load();
       
       setTimeout(() => {
         introOverlay.classList.add('fading');
