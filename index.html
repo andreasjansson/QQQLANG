@@ -984,16 +984,16 @@
     input.addEventListener('mousemove', handleInputMouseMove);
     input.addEventListener('mouseleave', () => { input.style.cursor = ''; });
 
-    window.addEventListener('popstate', (event) => {
-      loadProgramFromURL();
+    window.addEventListener('popstate', async (event) => {
+      await loadProgramFromURL();
     });
     
-    Promise.all([emeraldReady, bgRemovalReady]).then(() => {
+    Promise.all([emeraldReady, bgRemovalReady]).then(async () => {
       if (shouldShowIntro()) {
         showIntro();
         resize();
       } else {
-        loadProgramFromURL();
+        await loadProgramFromURL();
         resize();
       }
     });
