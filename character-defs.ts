@@ -6798,10 +6798,10 @@ export const characterDefs: Record<string, CharDef> = {
     number: 24,
     fn: fnX,
     args: [
-      { type: INT, documentation: "Lossiness (A=subtle, ~=extreme glitchy artifacts)" }
+      { type: INT, documentation: "KNN table size (A=small/subtle compression, ~=large table/better quality)" }
     ],
-    functionName: "predictive-compress",
-    documentation: "Lossy predictive coding compression with quantized residuals, creating glitchy artifacts that accumulate and propagate."
+    functionName: "knn-compress",
+    documentation: "K-nearest neighbor lossy compression using 3-pixel context to predict each pixel, with adjustable lookup table size."
   },
   
   'Y': {
