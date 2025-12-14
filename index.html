@@ -925,8 +925,45 @@
       }
     }
     
+    // Convert indexed uploads in invalid positions to filled squares for display
+    function getDisplayProgram(program) {
+      const invalidIndices = getInvalidUploadIndices(program);
+      if (invalidIndices.size === 0) return program;
+      
+      let display = '';
+      for (const char of program) {
+        const idx = getUploadIndex(char);
+        if (idx !== null && invalidIndices.has(idx)) {
+          // Replace with filled square variant
+          display += getInvalidUploadChar(idx);
+        } else {
+          display += char;
+        }
+      }
+      return display;
+    }
+    
+    // Update the input display to show invalid uploads as filled squares
+    // This is tricky because we need to preserve cursor position
+    function updateInputDisplay() {
+      const program = input.value;
+      const displayProgram = getDisplayProgram(program);
+      
+      // Only update if different (to avoid cursor jumping)
+      if (displayProgram !== program) {
+        const cursorPos = input.selectionStart;
+        const selectionEnd = input.selectionEnd;
+        input.value = displayProgram;
+        input.selectionStart = cursorPos;
+        input.selectionEnd = selectionEnd;
+      }
+    }
+    
     async function render() {
       const program = input.value || '';
+      
+      // Update display to show invalid uploads as filled squares
+      updateInputDisplay();
       
       await preloadUploadedImages(canvas.width, canvas.height);
       
