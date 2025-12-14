@@ -330,8 +330,8 @@ def build_font():
         if hasattr(table, 'cmap'):
             table.cmap.update(cmap)
     
-    # Create □ upload character and its spaced variant
-    upload_glyph_name, upload_spaced_glyph_name = create_upload_char_variants(
+    # Create □ upload character and all its variants
+    upload_variants = create_upload_char_variants(
         font, glyph_order, glyf, hmtx, cmap, pua_index
     )
     
