@@ -224,12 +224,7 @@ function isValidProgramChar(char: string): boolean {
   const isIdxUpload = isIndexedUpload(char);
   const isInvUpload = isInvalidUpload(char);
   const isUnassigned = char === UPLOAD_CHAR;
-  const result = isAscii || isIdxUpload || isInvUpload || isUnassigned;
-  
-  // Log for ALL characters to debug filtering
-  console.log(`[isValidProgramChar] char="${char}" code=${code.toString(16)} isAscii=${isAscii} isIdxUpload=${isIdxUpload} isInvUpload=${isInvUpload} result=${result}`);
-  
-  return result;
+  return isAscii || isIdxUpload || isInvUpload || isUnassigned;
 }
 
 function parseProgram(program: string): ParseResult {
