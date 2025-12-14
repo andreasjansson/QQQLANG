@@ -387,17 +387,28 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("")
     
     # Pass 2: Un-bold arguments
-    # Key insight: Process by ARG POSITION, not by arity!
-    # This ensures left-to-right processing: B consumes its arg before L can act as a function.
+    # CRITICAL: Process arg positions in DESCENDING order (highest first)!
     #
-    # For each arg position P (1, 2, 3, ...):
-    #   For each arity N >= P:
-    #     Rule: @fnN_bold [P-1 @any] @bold'
-    #     NO lookahead - we un-bold args even for incomplete calls
+    # Why? Consider "ALLLL" where L has arity 2:
+    #   Parse: A | L(L,L) | L
+    #   Positions: 0=A(initial), 1=L(fn), 2=L(arg1), 3=L(arg2), 4=L(new fn)
+    #
+    # If we process arg1 first (ascending order):
+    #   pass2_arg1: L@1 consumes L@2, then L@3 (still bold) consumes L@4
+    #   Result: A* L* L L* L (wrong - L@4 should be bold function!)
+    #
+    # If we process arg2 first (descending order):
+    #   pass2_arg2: L@1 consumes L@3 (its arg2)
+    #   pass2_arg1: L@1 consumes L@2 (its arg1), L@3 is now regular so not a fn
+    #   Result: A* L* L L L* (correct!)
+    #
+    # The key insight: By processing later arg positions first, we mark those
+    # chars as regular BEFORE earlier arg position passes can mistake them
+    # for functions.
     
-    fea_lines.append("    # Pass 2: Un-bold arguments (by arg position, not arity)")
+    fea_lines.append("    # Pass 2: Un-bold arguments (DESCENDING arg position order)")
     
-    for arg_pos in range(1, max_arity + 1):
+    for arg_pos in range(max_arity, 0, -1):  # max_arity down to 1
         fea_lines.append(f"    # Arg position {arg_pos}")
         fea_lines.append(f"    lookup pass2_arg{arg_pos} {{")
         
