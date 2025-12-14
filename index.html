@@ -1100,6 +1100,18 @@
         });
         
         thumbnailOverlay.appendChild(img);
+        
+        if (isInvalid) {
+          const xOverlay = document.createElement('span');
+          xOverlay.className = 'upload-thumbnail-x';
+          xOverlay.textContent = '✕';
+          xOverlay.style.left = left + 'px';
+          xOverlay.style.top = '10px';
+          if (left < 0 || left > input.clientWidth - 15) {
+            xOverlay.style.display = 'none';
+          }
+          thumbnailOverlay.appendChild(xOverlay);
+        }
       }
     }
     
