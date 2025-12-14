@@ -427,7 +427,7 @@ def build_font():
 def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
                        glyph_name_map, bold_first_glyph_map, bold_glyph_map,
                        bold_spaced_glyph_map, regular_spaced_glyph_map,
-                       upload_variants=None):
+                       upload_chars=None):
     """
     Build GSUB calt feature.
     
@@ -439,8 +439,12 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     Then bold_first is NOT in @fn_bold, so it won't be treated as a function
     that consumes arguments.
     
-    The □ (upload) character follows the same rules - it acts like an arity-0
-    function (produces an image, doesn't consume arguments).
+    Upload characters (□) can only appear as:
+    1. First character (initial image) - bold_first → regular_spaced
+    2. INDEX argument to a function - regular or regular_spaced
+    
+    They CANNOT be functions, so they don't need bold/bold_spaced variants.
+    Upload bold_first converts directly to regular (not bold) when not first.
     """
     from fontTools.feaLib.builder import addOpenTypeFeatures
     from io import StringIO
@@ -457,20 +461,23 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     
     fea_lines = []
     
-    # Define glyph classes - include □ variants in each class
+    # Define glyph classes for regular characters
     all_regular = [glyph_name_map[c] for c in qqqlang_chars]
     all_bold_first = [bold_first_glyph_map[c] for c in qqqlang_chars]
     all_bold = [bold_glyph_map[c] for c in qqqlang_chars]
     all_bold_spaced = [bold_spaced_glyph_map[c] for c in qqqlang_chars]
     all_regular_spaced = [regular_spaced_glyph_map[c] for c in qqqlang_chars]
     
-    # Add □ variants to the appropriate lists
-    if upload_variants:
-        all_regular.append(upload_variants['regular'])
-        all_bold_first.append(upload_variants['bold_first'])
-        all_bold.append(upload_variants['bold'])
-        all_bold_spaced.append(upload_variants['bold_spaced'])
-        all_regular_spaced.append(upload_variants['regular_spaced'])
+    # Upload characters have their own variants (no bold/bold_spaced)
+    upload_regular = upload_chars['all_regular'] if upload_chars else []
+    upload_bold_first = upload_chars['all_bold_first'] if upload_chars else []
+    upload_regular_spaced = upload_chars['all_regular_spaced'] if upload_chars else []
+    
+    # Add upload variants to the main classes
+    all_regular.extend(upload_regular)
+    all_bold_first.extend(upload_bold_first)
+    all_regular_spaced.extend(upload_regular_spaced)
+    # Note: uploads don't have bold or bold_spaced variants
     
     fea_lines.append(f"@regular = [{' '.join(all_regular)}];")
     fea_lines.append(f"@bold_first = [{' '.join(all_bold_first)}];")
