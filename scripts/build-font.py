@@ -165,7 +165,8 @@ def create_indexed_upload_chars(font, glyph_order, glyf, hmtx, cmap, pua_start):
     all_regular_spaced = []
     all_invalid = []
     
-    pua_index = pua_start
+    # Use dedicated range for upload GSUB variants to avoid collision with invalid upload range
+    pua_index = UPLOAD_GSUB_BASE
     
     print(f"  Creating {UPLOAD_COUNT} indexed upload characters...")
     
