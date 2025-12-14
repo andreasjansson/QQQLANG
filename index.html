@@ -925,8 +925,72 @@
       }
     }
     
+    // Update display to show uploads in invalid positions as filled squares
+    // Both valid (□ U+E200+i) and invalid (■ U+E300+i) map to the same index
+    function updateInvalidUploadDisplay() {
+      const program = input.value || '';
+      const invalidIndices = getInvalidUploadIndices(program);
+      
+      if (invalidIndices.size === 0) {
+        // No invalid uploads - make sure all are shown as valid (outline)
+        let needsUpdate = false;
+        let newProgram = '';
+        for (const char of program) {
+          const idx = getUploadIndex(char);
+          if (idx !== null && isInvalidUpload(char)) {
+            // Convert invalid display back to valid
+            newProgram += getUploadChar(idx);
+            needsUpdate = true;
+          } else {
+            newProgram += char;
+          }
+        }
+        if (needsUpdate) {
+          const cursorPos = input.selectionStart;
+          const selEnd = input.selectionEnd;
+          input.value = newProgram;
+          input.selectionStart = cursorPos;
+          input.selectionEnd = selEnd;
+        }
+        return;
+      }
+      
+      // Convert uploads in invalid positions to filled squares
+      let needsUpdate = false;
+      let newProgram = '';
+      for (const char of program) {
+        const idx = getUploadIndex(char);
+        if (idx !== null) {
+          if (invalidIndices.has(idx) && !isInvalidUpload(char)) {
+            // Should be invalid but showing as valid - convert to filled
+            newProgram += getInvalidUploadChar(idx);
+            needsUpdate = true;
+          } else if (!invalidIndices.has(idx) && isInvalidUpload(char)) {
+            // Should be valid but showing as invalid - convert to outline
+            newProgram += getUploadChar(idx);
+            needsUpdate = true;
+          } else {
+            newProgram += char;
+          }
+        } else {
+          newProgram += char;
+        }
+      }
+      
+      if (needsUpdate) {
+        const cursorPos = input.selectionStart;
+        const selEnd = input.selectionEnd;
+        input.value = newProgram;
+        input.selectionStart = cursorPos;
+        input.selectionEnd = selEnd;
+      }
+    }
+    
     async function render() {
       const program = input.value || '';
+      
+      // Update display to show invalid uploads as filled squares
+      updateInvalidUploadDisplay();
       
       await preloadUploadedImages(canvas.width, canvas.height);
       
