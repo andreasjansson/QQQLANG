@@ -982,6 +982,8 @@
         const opChars = [...op.identifier.substring(prevIdentifier.length)];
         const numChars = opChars.length;
         
+        html += '<span class="op-block">';
+        
         for (let j = 0; j < numChars; j++) {
           if (charIdx < chars.length) {
             const char = chars[charIdx];
@@ -1013,6 +1015,8 @@
             charIdx++;
           }
         }
+        
+        html += '</span>';
       }
       
       while (charIdx < chars.length) {
