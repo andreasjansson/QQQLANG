@@ -463,11 +463,11 @@
     const UPLOAD_WORKER_URL = 'https://qqqlang-upload-worker.andreas-s-t-jansson.workers.dev';
     const HASH_LENGTH = 22;
     
-    let pendingUploadIndex = null;
-    const uploadHashes = [];
+    // pendingReplaceIndex: when clicking upload button on existing upload, this is the index to replace
+    let pendingReplaceIndex = null;
     
     async function handleImageUpload(blob, insertAtCursor = true) {
-      console.log('[handleImageUpload] blob size:', blob.size, 'type:', blob.type, 'pendingUploadIndex:', pendingUploadIndex);
+      console.log('[handleImageUpload] blob size:', blob.size, 'type:', blob.type, 'pendingReplaceIndex:', pendingReplaceIndex);
       
       let hash = null;
       try {
@@ -477,36 +477,27 @@
         console.error('Upload to server failed:', err);
       }
       
-      if (pendingUploadIndex !== null) {
-        console.log('[handleImageUpload] REPLACING upload at index', pendingUploadIndex);
-        uploadHashes[pendingUploadIndex] = hash;
-        setUploadedBlob(pendingUploadIndex, blob);
-        pendingUploadIndex = null;
+      if (pendingReplaceIndex !== null) {
+        // Replacing existing upload at specific index
+        console.log('[handleImageUpload] REPLACING upload at index', pendingReplaceIndex);
+        setUploadedImage(pendingReplaceIndex, blob, hash);
+        pendingReplaceIndex = null;
       } else {
+        // Adding new upload
         console.log('[handleImageUpload] ADDING new upload');
+        const newIndex = getNextAvailableIndex();
+        setUploadedImage(newIndex, blob, hash);
         
         if (insertAtCursor) {
           const start = input.selectionStart;
-          // Count how many □ chars are before the cursor - this is where we insert in the arrays
-          const insertIndex = getUploadCharIndex(input.value, start);
-          console.log('[handleImageUpload] inserting at array index', insertIndex, 'cursor at', start);
-          
-          // Insert hash and blob at the correct position
-          uploadHashes.splice(insertIndex, 0, hash);
-          insertUploadedBlob(insertIndex, blob);
-          
+          const uploadChar = getUploadChar(newIndex);
           const before = input.value.substring(0, start);
           const after = input.value.substring(input.selectionEnd);
-          input.value = before + UPLOAD_CHAR + after;
-          input.selectionStart = input.selectionEnd = start + UPLOAD_CHAR.length;
-        } else {
-          // Not inserting at cursor, just append
-          uploadHashes.push(hash);
-          addUploadedBlob(blob);
+          input.value = before + uploadChar + after;
+          input.selectionStart = input.selectionEnd = start + uploadChar.length;
         }
       }
       
-      console.log('[handleImageUpload] uploadHashes:', uploadHashes);
       updateURL(input.value);
       await render();
       input.focus();
