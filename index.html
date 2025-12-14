@@ -467,18 +467,23 @@
     const uploadHashes = [];
     
     async function handleImageUpload(blob, insertAtCursor = true) {
+      console.log('[handleImageUpload] blob size:', blob.size, 'type:', blob.type, 'pendingUploadIndex:', pendingUploadIndex);
+      
       let hash = null;
       try {
         hash = await uploadImageToWorker(blob);
+        console.log('[handleImageUpload] got hash:', hash);
       } catch (err) {
         console.error('Upload to server failed:', err);
       }
       
       if (pendingUploadIndex !== null) {
+        console.log('[handleImageUpload] REPLACING upload at index', pendingUploadIndex);
         uploadHashes[pendingUploadIndex] = hash;
         setUploadedBlob(pendingUploadIndex, blob);
         pendingUploadIndex = null;
       } else {
+        console.log('[handleImageUpload] ADDING new upload');
         uploadHashes.push(hash);
         addUploadedBlob(blob);
         
@@ -491,6 +496,7 @@
         }
       }
       
+      console.log('[handleImageUpload] uploadHashes:', uploadHashes);
       updateURL(input.value);
       await render();
       input.focus();
