@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Downloads and builds opentype.js from GitHub source
- * This is needed because npm respects the `files` field even for git installs,
- * which excludes the src/ folder from opentype.js
+ * This is needed because:
+ * 1. npm respects the `files` field even for git installs, excluding src/
+ * 2. The COLR support in opentype.js master hasn't been published to npm yet
  */
 
 import { execSync } from 'child_process';
@@ -15,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 const PROJECT_DIR = path.join(__dirname, '..');
 const OPENTYPE_DIR = path.join(PROJECT_DIR, 'node_modules', 'opentype.js');
-const DIST_FILE = path.join(OPENTYPE_DIR, 'dist', 'opentype.js');
+const DIST_FILE = path.join(OPENTYPE_DIR, 'dist', 'opentype.mjs');
 
 async function setup() {
   // Check if already built
@@ -24,57 +25,61 @@ async function setup() {
     return;
   }
 
-  console.log('Setting up opentype.js with COLR support...');
+  console.log('Setting up opentype.js with COLR support from GitHub master...');
 
-  // Clone repo to temp location
-  const tempDir = path.join(PROJECT_DIR, '.opentype-temp');
-  
-  if (fs.existsSync(tempDir)) {
-    fs.rmSync(tempDir, { recursive: true });
+  // Remove existing incomplete install
+  if (fs.existsSync(OPENTYPE_DIR)) {
+    console.log('Removing existing opentype.js installation...');
+    fs.rmSync(OPENTYPE_DIR, { recursive: true });
   }
 
+  // Clone directly into node_modules
   console.log('Cloning opentype.js repository...');
-  execSync('git clone --depth 1 https://github.com/opentypejs/opentype.js.git .opentype-temp', {
-    cwd: PROJECT_DIR,
+  execSync('git clone --depth 1 https://github.com/opentypejs/opentype.js.git', {
+    cwd: path.join(PROJECT_DIR, 'node_modules'),
     stdio: 'inherit'
   });
 
+  // Verify src folder exists
+  const srcFolder = path.join(OPENTYPE_DIR, 'src');
+  if (!fs.existsSync(srcFolder)) {
+    throw new Error('src folder not found after clone - something went wrong');
+  }
+  console.log('✓ src folder exists');
+
+  // List contents to verify
+  const srcContents = fs.readdirSync(srcFolder);
+  console.log('src/ contents:', srcContents.slice(0, 10).join(', '), srcContents.length > 10 ? '...' : '');
+
+  // Check for tables folder
+  const tablesFolder = path.join(srcFolder, 'tables');
+  if (fs.existsSync(tablesFolder)) {
+    const tableContents = fs.readdirSync(tablesFolder);
+    console.log('src/tables/ contents:', tableContents.join(', '));
+    
+    // Look for COLR
+    const hasColr = tableContents.some(f => f.toLowerCase().includes('colr'));
+    console.log('Has COLR table:', hasColr ? '✓ YES' : '✗ NO');
+  }
+
   console.log('Installing opentype.js dependencies...');
   execSync('npm install', {
-    cwd: tempDir,
+    cwd: OPENTYPE_DIR,
     stdio: 'inherit'
   });
 
   console.log('Building opentype.js...');
   execSync('npm run build', {
-    cwd: tempDir,
+    cwd: OPENTYPE_DIR,
     stdio: 'inherit'
   });
 
-  // Copy dist folder to node_modules/opentype.js
-  const srcDist = path.join(tempDir, 'dist');
-  const dstDist = path.join(OPENTYPE_DIR, 'dist');
-
-  if (!fs.existsSync(OPENTYPE_DIR)) {
-    fs.mkdirSync(OPENTYPE_DIR, { recursive: true });
+  // Verify dist was created
+  if (!fs.existsSync(DIST_FILE)) {
+    throw new Error('Build failed - dist/opentype.mjs not created');
   }
 
-  console.log('Copying dist to node_modules/opentype.js...');
-  fs.cpSync(srcDist, dstDist, { recursive: true });
-
-  // Also copy package.json if needed
-  if (!fs.existsSync(path.join(OPENTYPE_DIR, 'package.json'))) {
-    fs.copyFileSync(
-      path.join(tempDir, 'package.json'),
-      path.join(OPENTYPE_DIR, 'package.json')
-    );
-  }
-
-  // Cleanup temp dir
-  console.log('Cleaning up...');
-  fs.rmSync(tempDir, { recursive: true });
-
-  console.log('opentype.js setup complete!');
+  console.log('✓ opentype.js setup complete with COLR support!');
 }
 
 setup().catch(err => {
