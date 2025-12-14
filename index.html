@@ -952,8 +952,24 @@
       let html = '';
       let charIdx = 0;
       let uploadIdx = 0;
-      let validUploadIdx = 0;
       uploadCharPositions = [];
+      
+      function renderUploadChar(isInvalid, isArgument, charColor) {
+        const thumbnail = uploadThumbnails[uploadIdx];
+        
+        if (thumbnail) {
+          let classes = ['upload-thumbnail'];
+          if (isInvalid) classes.push('upload-invalid');
+          if (isArgument) classes.push('arg-char');
+          return `<img class="${classes.join(' ')}" src="${thumbnail}" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">`;
+        } else {
+          let classes = ['upload-char'];
+          if (isInvalid) classes.push('upload-invalid');
+          if (isArgument) classes.push('arg-char');
+          const displayChar = isInvalid ? '■' : UPLOAD_CHAR;
+          return `<span class="${classes.join(' ')}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
+        }
+      }
       
       for (let i = 0; i < ops.length; i++) {
         const op = ops[i];
@@ -977,30 +993,15 @@
               charColor = characterDefs[char].color;
             }
             
-            let classes = [];
-            if (isBold) classes.push('fn-char');
-            if (isArgument) classes.push('arg-char');
-            
             if (char === UPLOAD_CHAR) {
               const isInvalid = invalidUploads.has(uploadIdx);
-              if (isInvalid) {
-                classes.push('upload-invalid');
-                classes.push('upload-char');
-                html += `<span class="${classes.join(' ')}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">■</span>`;
-              } else {
-                const thumbnail = uploadThumbnails[validUploadIdx];
-                if (thumbnail) {
-                  const argClass = isArgument ? ' arg-char' : '';
-                  html += `<img class="upload-thumbnail${argClass}" src="${thumbnail}" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">`;
-                } else {
-                  classes.push('upload-char');
-                  html += `<span class="${classes.join(' ')}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
-                }
-                validUploadIdx++;
-              }
+              html += renderUploadChar(isInvalid, isArgument, charColor);
               uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
               uploadIdx++;
             } else {
+              let classes = [];
+              if (isBold) classes.push('fn-char');
+              if (isArgument) classes.push('arg-char');
               const classAttr = classes.length > 0 ? ` class="${classes.join(' ')}"` : '';
               html += `<span${classAttr} style="color: ${charColor};">${char}</span>`;
             }
@@ -1020,17 +1021,7 @@
         
         if (char === UPLOAD_CHAR) {
           const isInvalid = invalidUploads.has(uploadIdx);
-          if (isInvalid) {
-            html += `<span class="upload-char upload-invalid" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">■</span>`;
-          } else {
-            const thumbnail = uploadThumbnails[validUploadIdx];
-            if (thumbnail) {
-              html += `<img class="upload-thumbnail" src="${thumbnail}" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">`;
-            } else {
-              html += `<span class="upload-char" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
-            }
-            validUploadIdx++;
-          }
+          html += renderUploadChar(isInvalid, false, charColor);
           uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
           uploadIdx++;
         } else {
