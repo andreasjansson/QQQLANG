@@ -50,6 +50,11 @@ def parse_character_defs():
     chars = {}
     for match in re.finditer(pattern, content):
         char = match.group(1)
+        # Handle escape sequences from TypeScript source
+        if char == '\\\\':
+            char = '\\'
+        elif char == "\\'":
+            char = "'"
         color = match.group(2)
         number = int(match.group(3))
         args_str = match.group(4)
