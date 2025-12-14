@@ -121,6 +121,8 @@ def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
         inner_top = top - stroke_width
         
         # Create glyph
+        from fontTools.ttLib.tables import ttProgram
+        
         glyph = Glyph()
         glyph.numberOfContours = 2
         
@@ -133,6 +135,7 @@ def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
         glyph.coordinates = GlyphCoordinates(coords)
         glyph.flags = [1] * 8  # All on-curve points
         glyph.endPtsOfContours = [3, 7]
+        glyph.program = ttProgram.Program()
         
         # Set bounds
         glyph.xMin = left
