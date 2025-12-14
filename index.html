@@ -1250,35 +1250,42 @@
     
 
     
-    // Custom MIME type for preserving upload hashes on copy/paste
-    const QQQLANG_MIME = 'application/x-qqqlang';
+    // Build a shareable URL for a program snippet (with upload hashes embedded)
+    function buildSnippetUrl(displayProgram) {
+      const urlProgram = buildUrlProgram(displayProgram);
+      const url = new URL(window.location.href);
+      url.search = '';
+      if (urlProgram) {
+        url.searchParams.set('p', urlProgram);
+      }
+      return url.toString();
+    }
     
-    // Copy handler: include both plain text and QQQLANG data with upload hashes
+    // Check if text looks like a QQQLANG URL and extract the program
+    function parseQqqlangUrl(text) {
+      const trimmed = text.trim();
+      try {
+        const url = new URL(trimmed);
+        const program = url.searchParams.get('p');
+        if (program && (url.hostname === window.location.hostname || url.hostname === 'localhost')) {
+          return program;
+        }
+      } catch {
+        // Not a valid URL
+      }
+      return null;
+    }
+    
+    // Copy handler: copy URL with upload hashes
     input.addEventListener('copy', (e) => {
       const start = input.selectionStart;
       const end = input.selectionEnd;
-      if (start === end) return;  // Nothing selected
+      if (start === end) return;
       
       const selectedText = input.value.substring(start, end);
+      const url = buildSnippetUrl(selectedText);
       
-      // Build upload data for the selection
-      const uploadHashes = {};
-      for (const char of selectedText) {
-        const idx = getUploadIndex(char);
-        if (idx !== null) {
-          const hash = getUploadedImageHash(idx);
-          if (hash) {
-            uploadHashes[idx] = hash;
-          }
-        }
-      }
-      
-      // Set clipboard data
-      e.clipboardData.setData('text/plain', selectedText);
-      e.clipboardData.setData(QQQLANG_MIME, JSON.stringify({
-        text: selectedText,
-        uploads: uploadHashes
-      }));
+      e.clipboardData.setData('text/plain', url);
       e.preventDefault();
     });
     
@@ -1289,23 +1296,9 @@
       if (start === end) return;
       
       const selectedText = input.value.substring(start, end);
+      const url = buildSnippetUrl(selectedText);
       
-      const uploadHashes = {};
-      for (const char of selectedText) {
-        const idx = getUploadIndex(char);
-        if (idx !== null) {
-          const hash = getUploadedImageHash(idx);
-          if (hash) {
-            uploadHashes[idx] = hash;
-          }
-        }
-      }
-      
-      e.clipboardData.setData('text/plain', selectedText);
-      e.clipboardData.setData(QQQLANG_MIME, JSON.stringify({
-        text: selectedText,
-        uploads: uploadHashes
-      }));
+      e.clipboardData.setData('text/plain', url);
       
       // Delete the selected text
       const before = input.value.substring(0, start);
@@ -1334,64 +1327,57 @@
         }
       }
       
-      // Check for QQQLANG data (from copy within the app)
-      const qqqlangData = e.clipboardData.getData(QQQLANG_MIME);
-      if (qqqlangData) {
+      // Check for QQQLANG URL
+      const plainText = e.clipboardData.getData('text/plain');
+      const urlProgram = parseQqqlangUrl(plainText);
+      
+      if (urlProgram) {
         e.preventDefault();
-        try {
-          const { text, uploads } = JSON.parse(qqqlangData);
-          
-          // Remap upload indices to avoid collisions
-          const indexRemap = new Map();  // old index -> new index
-          
-          for (const [oldIdxStr, hash] of Object.entries(uploads)) {
-            const oldIdx = parseInt(oldIdxStr, 10);
-            
-            // Check if this index is already in use
-            if (hasUploadedImage(oldIdx)) {
-              // Need to remap to a new index
-              const newIdx = getNextAvailableIndex();
-              indexRemap.set(oldIdx, newIdx);
-              
-              // Fetch and store the image at the new index
-              const blob = await fetchImageAsBlob(hash);
-              if (blob) {
-                setUploadedImage(newIdx, blob, hash);
-              }
-            } else {
-              // Can use the same index
-              indexRemap.set(oldIdx, oldIdx);
-              const blob = await fetchImageAsBlob(hash);
-              if (blob) {
-                setUploadedImage(oldIdx, blob, hash);
-              }
+        
+        // Parse the URL program to extract display program and upload data
+        const { displayProgram, uploadData } = parseUrlProgram(urlProgram);
+        
+        // Remap upload indices to avoid collisions
+        const indexRemap = new Map();
+        
+        for (const [oldIdx, hash] of uploadData.entries()) {
+          if (hasUploadedImage(oldIdx)) {
+            const newIdx = getNextAvailableIndex();
+            indexRemap.set(oldIdx, newIdx);
+            const blob = await fetchImageAsBlob(hash);
+            if (blob) {
+              setUploadedImage(newIdx, blob, hash);
+            }
+          } else {
+            indexRemap.set(oldIdx, oldIdx);
+            const blob = await fetchImageAsBlob(hash);
+            if (blob) {
+              setUploadedImage(oldIdx, blob, hash);
             }
           }
-          
-          // Remap the text
-          let remappedText = '';
-          for (const char of text) {
-            const oldIdx = getUploadIndex(char);
-            if (oldIdx !== null && indexRemap.has(oldIdx)) {
-              remappedText += getUploadChar(indexRemap.get(oldIdx));
-            } else {
-              remappedText += char;
-            }
-          }
-          
-          // Insert the remapped text
-          const start = input.selectionStart;
-          const end = input.selectionEnd;
-          const before = input.value.substring(0, start);
-          const after = input.value.substring(end);
-          input.value = before + remappedText + after;
-          input.selectionStart = input.selectionEnd = start + remappedText.length;
-          
-          updateURL(input.value);
-          await render();
-        } catch (err) {
-          console.error('Failed to parse QQQLANG paste data:', err);
         }
+        
+        // Remap the text
+        let remappedText = '';
+        for (const char of displayProgram) {
+          const oldIdx = getUploadIndex(char);
+          if (oldIdx !== null && indexRemap.has(oldIdx)) {
+            remappedText += getUploadChar(indexRemap.get(oldIdx));
+          } else {
+            remappedText += char;
+          }
+        }
+        
+        // Insert the remapped text
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        const before = input.value.substring(0, start);
+        const after = input.value.substring(end);
+        input.value = before + remappedText + after;
+        input.selectionStart = input.selectionEnd = start + remappedText.length;
+        
+        updateURL(input.value);
+        await render();
         return;
       }
       
