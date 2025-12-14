@@ -954,8 +954,10 @@
           if (charIdx < chars.length) {
             const char = chars[charIdx];
             const isFirstCharOfOp = (j === 0);
+            const isInitialColor = op.type === 'solid' || op.type === 'uploaded-image';
             const isFunction = op.type === 'function' && isFirstCharOfOp;
             const isArgument = op.type === 'function' && !isFirstCharOfOp;
+            const isBold = isInitialColor || isFunction;
             
             let charColor = '#ffffff';
             if (char === UPLOAD_CHAR) {
