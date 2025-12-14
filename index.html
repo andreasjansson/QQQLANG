@@ -1252,27 +1252,16 @@
     
     const MAX_PROGRAM_LENGTH = 64;
     
-    // Build a shareable URL for a program snippet (with upload hashes embedded)
-    function buildSnippetUrl(displayProgram) {
-      const urlProgram = buildUrlProgram(displayProgram);
-      const url = new URL(window.location.href);
-      url.search = '';
-      if (urlProgram) {
-        url.searchParams.set('p', urlProgram);
-      }
-      return url.toString();
-    }
-    
-    // Copy handler: copy URL with upload hashes
+    // Copy handler: copy program with upload hashes embedded
     input.addEventListener('copy', (e) => {
       const start = input.selectionStart;
       const end = input.selectionEnd;
       if (start === end) return;
       
       const selectedText = input.value.substring(start, end);
-      const url = buildSnippetUrl(selectedText);
+      const urlProgram = buildUrlProgram(selectedText);
       
-      e.clipboardData.setData('text/plain', url);
+      e.clipboardData.setData('text/plain', urlProgram);
       e.preventDefault();
     });
     
@@ -1283,9 +1272,9 @@
       if (start === end) return;
       
       const selectedText = input.value.substring(start, end);
-      const url = buildSnippetUrl(selectedText);
+      const urlProgram = buildUrlProgram(selectedText);
       
-      e.clipboardData.setData('text/plain', url);
+      e.clipboardData.setData('text/plain', urlProgram);
       
       // Delete the selected text
       const before = input.value.substring(0, start);
