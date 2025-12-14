@@ -6551,7 +6551,7 @@ export const characterDefs: Record<string, CharDef> = {
   },
   
   'K': {
-    color: '#4B0082',
+    color: '#9966FF',
     number: 11,
     fn: fnK,
     args: [{ type: INT, documentation: "Number of kaleidoscope segments" }],
