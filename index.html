@@ -1029,20 +1029,20 @@
       inputBackground.innerHTML = html;
     }
     
-    function isOverUploadChar(clientX) {
+    function isOverUploadElement(clientX) {
       if (uploadCharPositions.length === 0) return false;
       
       const inputRect = input.getBoundingClientRect();
       const clickX = clientX - inputRect.left;
       
-      const spans = inputBackground.querySelectorAll('.upload-char:not(.upload-invalid)');
-      for (const span of spans) {
-        const spanRect = span.getBoundingClientRect();
+      const elements = inputBackground.querySelectorAll('.upload-thumbnail, .upload-char:not(.upload-invalid)');
+      for (const el of elements) {
+        const elRect = el.getBoundingClientRect();
         const bgRect = inputBackground.getBoundingClientRect();
-        const spanLeft = spanRect.left - bgRect.left;
-        const spanRight = spanLeft + spanRect.width;
+        const elLeft = elRect.left - bgRect.left;
+        const elRight = elLeft + elRect.width;
         
-        if (clickX >= spanLeft && clickX <= spanRight) {
+        if (clickX >= elLeft && clickX <= elRight) {
           return true;
         }
       }
@@ -1055,15 +1055,15 @@
       const inputRect = input.getBoundingClientRect();
       const clickX = e.clientX - inputRect.left;
       
-      const spans = inputBackground.querySelectorAll('.upload-char:not(.upload-invalid)');
-      for (const span of spans) {
-        const spanRect = span.getBoundingClientRect();
+      const elements = inputBackground.querySelectorAll('.upload-thumbnail, .upload-char:not(.upload-invalid)');
+      for (const el of elements) {
+        const elRect = el.getBoundingClientRect();
         const bgRect = inputBackground.getBoundingClientRect();
-        const spanLeft = spanRect.left - bgRect.left;
-        const spanRight = spanLeft + spanRect.width;
+        const elLeft = elRect.left - bgRect.left;
+        const elRight = elLeft + elRect.width;
         
-        if (clickX >= spanLeft && clickX <= spanRight) {
-          const idx = parseInt(span.dataset.uploadIndex, 10);
+        if (clickX >= elLeft && clickX <= elRight) {
+          const idx = parseInt(el.dataset.uploadIndex, 10);
           pendingUploadIndex = idx;
           fileInput.click();
           e.preventDefault();
@@ -1073,7 +1073,7 @@
     }
     
     function handleInputMouseMove(e) {
-      if (isOverUploadChar(e.clientX)) {
+      if (isOverUploadElement(e.clientX)) {
         input.style.cursor = 'pointer';
       } else {
         input.style.cursor = '';
