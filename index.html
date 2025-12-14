@@ -941,6 +941,7 @@
       let html = '';
       let charIdx = 0;
       let uploadIdx = 0;
+      let validUploadIdx = 0;
       uploadCharPositions = [];
       
       for (let i = 0; i < ops.length; i++) {
@@ -969,10 +970,21 @@
             
             if (char === UPLOAD_CHAR) {
               const isInvalid = invalidUploads.has(uploadIdx);
-              if (isInvalid) classes.push('upload-invalid');
-              classes.push('upload-char');
-              const displayChar = isInvalid ? '■' : char;
-              html += `<span class="${classes.join(' ')}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
+              if (isInvalid) {
+                classes.push('upload-invalid');
+                classes.push('upload-char');
+                html += `<span class="${classes.join(' ')}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">■</span>`;
+              } else {
+                const thumbnail = uploadThumbnails[validUploadIdx];
+                if (thumbnail) {
+                  const argClass = isArgument ? ' arg-char' : '';
+                  html += `<img class="upload-thumbnail${argClass}" src="${thumbnail}" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">`;
+                } else {
+                  classes.push('upload-char');
+                  html += `<span class="${classes.join(' ')}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
+                }
+                validUploadIdx++;
+              }
               uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
               uploadIdx++;
             } else {
@@ -995,9 +1007,17 @@
         
         if (char === UPLOAD_CHAR) {
           const isInvalid = invalidUploads.has(uploadIdx);
-          const invalidClass = isInvalid ? ' upload-invalid' : '';
-          const displayChar = isInvalid ? '■' : char;
-          html += `<span class="upload-char${invalidClass}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
+          if (isInvalid) {
+            html += `<span class="upload-char upload-invalid" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">■</span>`;
+          } else {
+            const thumbnail = uploadThumbnails[validUploadIdx];
+            if (thumbnail) {
+              html += `<img class="upload-thumbnail" src="${thumbnail}" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">`;
+            } else {
+              html += `<span class="upload-char" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${char}</span>`;
+            }
+            validUploadIdx++;
+          }
           uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
           uploadIdx++;
         } else {
