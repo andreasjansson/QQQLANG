@@ -459,6 +459,9 @@ def build_font():
     
     qqqlang_chars = sorted([c for c in char_defs.keys() if len(c) == 1])
     
+    # Collect new glyphs to add
+    new_glyphs = []  # List of (glyph_name, glyph_data, width, lsb, codepoint)
+    
     for char in qqqlang_chars:
         if char not in glyph_name_map:
             continue
@@ -471,24 +474,18 @@ def build_font():
         bold_glyph_name = f"uni{bold_codepoint:04X}"
         bold_glyph_map[char] = bold_glyph_name
         
-        # Copy the bold glyph
-        if regular_glyph_name in bold_glyf:
-            glyf[bold_glyph_name] = bold_glyf[regular_glyph_name]
-            # Copy metrics from bold font
+        # Get the bold glyph data
+        if regular_glyph_name in bold_glyf.glyphs:
+            bold_glyph_data = bold_glyf[regular_glyph_name]
             if regular_glyph_name in bold_hmtx.metrics:
-                hmtx.metrics[bold_glyph_name] = bold_hmtx.metrics[regular_glyph_name]
+                width, lsb = bold_hmtx.metrics[regular_glyph_name]
             else:
-                hmtx.metrics[bold_glyph_name] = hmtx.metrics[regular_glyph_name]
+                width, lsb = hmtx.metrics[regular_glyph_name]
         else:
-            # Fallback to regular
-            glyf[bold_glyph_name] = glyf[regular_glyph_name]
-            hmtx.metrics[bold_glyph_name] = hmtx.metrics[regular_glyph_name]
+            bold_glyph_data = glyf[regular_glyph_name]
+            width, lsb = hmtx.metrics[regular_glyph_name]
         
-        # Add to glyph order
-        glyph_order.append(bold_glyph_name)
-        
-        # Add to cmap
-        cmap[bold_codepoint] = bold_glyph_name
+        new_glyphs.append((bold_glyph_name, bold_glyph_data, width, lsb, bold_codepoint))
         
         # Create spaced variant (bold + extra advance width)
         spaced_codepoint = pua_index
@@ -496,31 +493,22 @@ def build_font():
         spaced_glyph_name = f"uni{spaced_codepoint:04X}"
         spaced_glyph_map[char] = spaced_glyph_name
         
-        # Copy the bold glyph for spaced variant
-        if regular_glyph_name in bold_glyf:
-            glyf[spaced_glyph_name] = bold_glyf[regular_glyph_name]
-            if regular_glyph_name in bold_hmtx.metrics:
-                width, lsb = bold_hmtx.metrics[regular_glyph_name]
-            else:
-                width, lsb = hmtx.metrics[regular_glyph_name]
-        else:
-            glyf[spaced_glyph_name] = glyf[regular_glyph_name]
-            width, lsb = hmtx.metrics[regular_glyph_name]
-        
-        # Add extra advance width for spacing
-        hmtx.metrics[spaced_glyph_name] = (width + FUNCTION_GAP, lsb)
-        
-        # Add to glyph order
-        glyph_order.append(spaced_glyph_name)
-        
-        # Add to cmap
-        cmap[spaced_codepoint] = spaced_glyph_name
+        # Use the same bold glyph data but with extra width
+        new_glyphs.append((spaced_glyph_name, bold_glyph_data, width + FUNCTION_GAP, lsb, spaced_codepoint))
+    
+    # Now add all new glyphs at once
+    for glyph_name, glyph_data, width, lsb, codepoint in new_glyphs:
+        glyph_order.append(glyph_name)
+        glyf.glyphs[glyph_name] = glyph_data
+        hmtx.metrics[glyph_name] = (width, lsb)
+        cmap[codepoint] = glyph_name
+    
+    # Update glyph order in font and glyf table
+    font.setGlyphOrder(glyph_order)
+    glyf.glyphOrder = glyph_order
     
     print(f"Created {len(bold_glyph_map)} bold variants")
     print(f"Created {len(spaced_glyph_map)} spaced variants")
-    
-    # Update glyph order
-    font.setGlyphOrder(glyph_order)
     
     # Update cmap table
     for table in font['cmap'].tables:
