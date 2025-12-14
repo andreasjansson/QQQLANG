@@ -944,35 +944,29 @@
 
     async function loadProgramFromURL() {
       const urlProgram = getProgramFromURL();
-      const { displayProgram, hashes, hadInvalidChars } = parseProgram(urlProgram);
+      const { displayProgram, uploadData, hadInvalidChars } = parseUrlProgram(urlProgram);
       
       clearUploadedImages();
-      uploadHashes.length = 0;
       
-      // Track which upload indices have valid hashes
-      const validUploadIndices = new Set();
-      
-      for (let i = 0; i < hashes.length; i++) {
-        const hash = hashes[i];
-        if (hash) {
-          const blob = await fetchImageAsBlob(hash);
-          if (blob) {
-            uploadHashes.push(hash);
-            addUploadedBlob(blob);
-            validUploadIndices.add(i);
-          }
+      // Load images for each indexed upload
+      const validIndices = new Set();
+      for (const [index, hash] of uploadData.entries()) {
+        const blob = await fetchImageAsBlob(hash);
+        if (blob) {
+          setUploadedImage(index, blob, hash);
+          validIndices.add(index);
         }
       }
       
-      // Remove upload chars that had invalid/missing hashes
+      // Remove upload chars that couldn't be loaded
       let cleanedProgram = '';
-      let uploadIdx = 0;
       for (const char of displayProgram) {
-        if (char === UPLOAD_CHAR) {
-          if (validUploadIndices.has(uploadIdx)) {
+        const uploadIdx = getUploadIndex(char);
+        if (uploadIdx !== null) {
+          if (validIndices.has(uploadIdx)) {
             cleanedProgram += char;
           }
-          uploadIdx++;
+          // Skip uploads that failed to load
         } else {
           cleanedProgram += char;
         }
@@ -980,9 +974,9 @@
       
       input.value = cleanedProgram;
       
-      // Redirect to clean URL if there were invalid characters or invalid hashes
-      const hadInvalidHashes = validUploadIndices.size < hashes.length;
-      if (hadInvalidChars || hadInvalidHashes) {
+      // Redirect to clean URL if there were invalid characters or failed uploads
+      const hadFailedUploads = validIndices.size < uploadData.size;
+      if (hadInvalidChars || hadFailedUploads) {
         updateURL(cleanedProgram);
       }
       
