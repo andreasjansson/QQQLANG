@@ -395,40 +395,6 @@ def build_font():
     
     # Create GSUB calt feature for contextual substitution
     print("Building GSUB contextual alternates feature...")
-    
-    # Ensure GSUB table exists
-    if 'GSUB' not in font:
-        font['GSUB'] = TTFont()['GSUB']
-        font['GSUB'].table = otTables.GSUB()
-        font['GSUB'].table.Version = 0x00010000
-        
-        # Create empty script list
-        font['GSUB'].table.ScriptList = otTables.ScriptList()
-        font['GSUB'].table.ScriptList.ScriptRecord = []
-        
-        # Add DFLT script
-        dflt_script = otTables.ScriptRecord()
-        dflt_script.ScriptTag = 'DFLT'
-        dflt_script.Script = otTables.Script()
-        dflt_script.Script.DefaultLangSys = otTables.DefaultLangSys()
-        dflt_script.Script.DefaultLangSys.ReqFeatureIndex = 0xFFFF
-        dflt_script.Script.DefaultLangSys.FeatureIndex = []
-        dflt_script.Script.DefaultLangSys.FeatureCount = 0
-        dflt_script.Script.LangSysRecord = []
-        dflt_script.Script.LangSysCount = 0
-        font['GSUB'].table.ScriptList.ScriptRecord.append(dflt_script)
-        font['GSUB'].table.ScriptList.ScriptCount = 1
-        
-        # Create empty feature list
-        font['GSUB'].table.FeatureList = otTables.FeatureList()
-        font['GSUB'].table.FeatureList.FeatureRecord = []
-        font['GSUB'].table.FeatureList.FeatureCount = 0
-        
-        # Create empty lookup list
-        font['GSUB'].table.LookupList = otTables.LookupList()
-        font['GSUB'].table.LookupList.Lookup = []
-        font['GSUB'].table.LookupList.LookupCount = 0
-    
     create_calt_feature(font, char_defs, glyph_name_map, bold_glyph_map, spaced_glyph_map)
     
     # Update font names
