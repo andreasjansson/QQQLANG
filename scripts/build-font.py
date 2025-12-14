@@ -265,6 +265,31 @@ def build_font():
     print("Done!")
 
 
+def cleanup_variable_font_tables(font):
+    """
+    Remove or clean up variable font tables that can cause issues
+    when adding new glyphs to an instanced font.
+    """
+    # Tables that may have VarIdxMap or other glyph-indexed data
+    tables_to_check = ['MVAR', 'HVAR', 'VVAR', 'GDEF']
+    
+    for table_name in tables_to_check:
+        if table_name in font:
+            table = font[table_name]
+            # For GDEF, we need to be careful - it may have LigCaretList etc.
+            # But if it has VarIdxMap references, those will break
+            if table_name == 'GDEF' and hasattr(table.table, 'VarStore'):
+                # Remove the VarStore to avoid glyph indexing issues
+                del table.table.VarStore
+                if hasattr(table.table, 'GlyphClassDef'):
+                    # Keep GlyphClassDef but remove VarStore
+                    pass
+            elif table_name in ['HVAR', 'VVAR', 'MVAR']:
+                # These are specifically for variable fonts, safe to remove
+                del font[table_name]
+                print(f"  Removed {table_name} table")
+
+
 def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
                        glyph_name_map, bold_glyph_map, bold_spaced_glyph_map, regular_spaced_glyph_map):
     """
