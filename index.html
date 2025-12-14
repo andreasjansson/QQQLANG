@@ -1012,9 +1012,18 @@
         }
         const cursorPos = input.selectionStart;
         const selEnd = input.selectionEnd;
+        
+        isUpdatingDisplay = true;
         input.value = newProgram;
         input.selectionStart = cursorPos;
         input.selectionEnd = selEnd;
+        isUpdatingDisplay = false;
+        
+        console.log(`  After setting, input.value length=${input.value.length}`);
+        for (let i = 0; i < input.value.length; i++) {
+          const c = [...input.value][i];
+          console.log(`    actual[${i}]: code=${c?.codePointAt(0)?.toString(16)}`);
+        }
       }
     }
     
