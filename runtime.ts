@@ -84,6 +84,12 @@ export function addUploadedBlob(blob: Blob): number {
   return index;
 }
 
+export function insertUploadedBlob(index: number, blob: Blob): void {
+  uploadedSources.splice(index, 0, { blob });
+  uploadedImagesCache.splice(index, 0, null as any);
+  imageCache.clear();
+}
+
 export function setUploadedBlob(index: number, blob: Blob): void {
   while (uploadedSources.length <= index) {
     uploadedSources.push({ blob: new Blob() });
