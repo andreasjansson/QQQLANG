@@ -111,7 +111,8 @@ export function isAnyUpload(char: string): boolean {
 }
 
 // Get the upload index from an indexed upload character (valid or invalid)
-export function getUploadIndex(char: string): number | null {
+export function getUploadIndex(char: string | undefined | null): number | null {
+  if (!char) return null;
   const code = char.codePointAt(0);
   if (code === undefined) return null;
   
