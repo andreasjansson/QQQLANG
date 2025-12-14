@@ -92,21 +92,24 @@ export function getInvalidUploadChar(index: number): string {
 }
 
 // Check if a character is a valid indexed upload (U+E200 to U+E2FF)
-export function isIndexedUpload(char: string): boolean {
+export function isIndexedUpload(char: string | undefined | null): boolean {
+  if (!char) return false;
   const code = char.codePointAt(0);
   if (code === undefined) return false;
   return code >= UPLOAD_REGULAR_BASE && code < UPLOAD_REGULAR_BASE + UPLOAD_COUNT;
 }
 
 // Check if a character is an invalid indexed upload (U+E300 to U+E3FF)
-export function isInvalidUpload(char: string): boolean {
+export function isInvalidUpload(char: string | undefined | null): boolean {
+  if (!char) return false;
   const code = char.codePointAt(0);
   if (code === undefined) return false;
   return code >= UPLOAD_INVALID_BASE && code < UPLOAD_INVALID_BASE + UPLOAD_COUNT;
 }
 
 // Check if a character is any kind of upload (valid, invalid, or unassigned □)
-export function isAnyUpload(char: string): boolean {
+export function isAnyUpload(char: string | undefined | null): boolean {
+  if (!char) return false;
   return char === UPLOAD_CHAR || isIndexedUpload(char) || isInvalidUpload(char);
 }
 
