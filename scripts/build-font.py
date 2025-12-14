@@ -383,27 +383,29 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("")
     
     # Pass 2: Un-bold arguments
-    # CRITICAL: Process arg positions in DESCENDING order (highest first)!
+    # Process arg positions in DESCENDING order (highest first)!
     #
     # Why? Consider "ALLLL" where L has arity 2:
     #   Parse: A | L(L,L) | L
     #   Positions: 0=A(initial), 1=L(fn), 2=L(arg1), 3=L(arg2), 4=L(new fn)
     #
-    # If we process arg1 first (ascending order):
-    #   pass2_arg1: L@1 consumes L@2, then L@3 (still bold) consumes L@4
-    #   Result: A* L* L L* L (wrong - L@4 should be bold function!)
+    # If we process arg1 first, when we match L@1 with arg L@2, we skip to position 3.
+    # Then L@3 (still bold) looks like a function and consumes L@4 as its arg1!
     #
-    # If we process arg2 first (descending order):
-    #   pass2_arg2: L@1 consumes L@3 (its arg2)
-    #   pass2_arg1: L@1 consumes L@2 (its arg1), L@3 is now regular so not a fn
-    #   Result: A* L* L L L* (correct!)
+    # If we process arg2 first:
+    #   pass2_arg2: L@1 matches with L@3 as arg2 → L@3 becomes regular
+    #   pass2_arg1: L@1 matches with L@2 as arg1 → L@2 becomes regular
+    #   L@3 is now regular, so when we check it in pass2_arg1, it's not in @fn2_bold
     #
-    # NOTE: We define lookups in ASCENDING order (1, 2, 3, ...) because
-    # fontTools/HarfBuzz appears to apply lookups in reverse definition order
-    # when they're referenced from a feature block.
+    # KNOWN ISSUE: Position 4 still gets converted to regular because after
+    # pass2_arg2 matches positions 1,2,3, it continues from position 4. Then
+    # pass2_arg1 also scans from position 1, matches 1,2, continues from 3.
+    # At position 4, pass2_arg1 checks if positions 4,5 match @fn2_bold @bold.
+    # Position 5 doesn't exist, so no match - position 4 should stay bold.
+    # BUT something is still converting position 4 to regular...
     
     pass2_lookup_names = []
-    for arg_pos in range(1, max_arity + 1):  # 1 to max_arity (ASCENDING - will be reversed)
+    for arg_pos in range(max_arity, 0, -1):  # max_arity down to 1
         lookup_name = f"pass2_arg{arg_pos}"
         pass2_lookup_names.append(lookup_name)
         
