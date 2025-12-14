@@ -69,7 +69,60 @@ export interface CharDef {
   documentation: string;
 }
 
-export const UPLOAD_CHAR = '□';
+// Upload character constants - must match build-font.py
+export const UPLOAD_CHAR = '□';  // U+25A1 - unassigned upload placeholder
+export const UPLOAD_COUNT = 256;
+export const UPLOAD_REGULAR_BASE = 0xE200;  // U+E200 to U+E2FF: valid upload □
+export const UPLOAD_INVALID_BASE = 0xE300;  // U+E300 to U+E3FF: invalid upload ■
+
+// Get the upload character for a given index (0-255)
+export function getUploadChar(index: number): string {
+  if (index < 0 || index >= UPLOAD_COUNT) {
+    throw new Error(`Upload index ${index} out of range [0, ${UPLOAD_COUNT})`);
+  }
+  return String.fromCodePoint(UPLOAD_REGULAR_BASE + index);
+}
+
+// Get the invalid upload character for a given index (0-255)
+export function getInvalidUploadChar(index: number): string {
+  if (index < 0 || index >= UPLOAD_COUNT) {
+    throw new Error(`Upload index ${index} out of range [0, ${UPLOAD_COUNT})`);
+  }
+  return String.fromCodePoint(UPLOAD_INVALID_BASE + index);
+}
+
+// Check if a character is a valid indexed upload (U+E200 to U+E2FF)
+export function isIndexedUpload(char: string): boolean {
+  const code = char.codePointAt(0);
+  if (code === undefined) return false;
+  return code >= UPLOAD_REGULAR_BASE && code < UPLOAD_REGULAR_BASE + UPLOAD_COUNT;
+}
+
+// Check if a character is an invalid indexed upload (U+E300 to U+E3FF)
+export function isInvalidUpload(char: string): boolean {
+  const code = char.codePointAt(0);
+  if (code === undefined) return false;
+  return code >= UPLOAD_INVALID_BASE && code < UPLOAD_INVALID_BASE + UPLOAD_COUNT;
+}
+
+// Check if a character is any kind of upload (valid, invalid, or unassigned □)
+export function isAnyUpload(char: string): boolean {
+  return char === UPLOAD_CHAR || isIndexedUpload(char) || isInvalidUpload(char);
+}
+
+// Get the upload index from an indexed upload character (valid or invalid)
+export function getUploadIndex(char: string): number | null {
+  const code = char.codePointAt(0);
+  if (code === undefined) return null;
+  
+  if (code >= UPLOAD_REGULAR_BASE && code < UPLOAD_REGULAR_BASE + UPLOAD_COUNT) {
+    return code - UPLOAD_REGULAR_BASE;
+  }
+  if (code >= UPLOAD_INVALID_BASE && code < UPLOAD_INVALID_BASE + UPLOAD_COUNT) {
+    return code - UPLOAD_INVALID_BASE;
+  }
+  return null;
+}
 
 export function createPlaceholderImage(width: number, height: number): Image {
   const data = new Uint8ClampedArray(width * height * 4);
