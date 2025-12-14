@@ -476,6 +476,8 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("lookup regular_to_bold_first {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {glyph_name_map[char]} by {bold_first_glyph_map[char]};")
+    if upload_variants:
+        fea_lines.append(f"    sub {upload_variants['regular']} by {upload_variants['bold_first']};")
     fea_lines.append("} regular_to_bold_first;")
     fea_lines.append("")
     
@@ -483,6 +485,8 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("lookup bold_first_to_bold {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_first_glyph_map[char]} by {bold_glyph_map[char]};")
+    if upload_variants:
+        fea_lines.append(f"    sub {upload_variants['bold_first']} by {upload_variants['bold']};")
     fea_lines.append("} bold_first_to_bold;")
     fea_lines.append("")
     
@@ -490,6 +494,8 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("lookup bold_to_regular {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_glyph_map[char]} by {glyph_name_map[char]};")
+    if upload_variants:
+        fea_lines.append(f"    sub {upload_variants['bold']} by {upload_variants['regular']};")
     fea_lines.append("} bold_to_regular;")
     fea_lines.append("")
     
@@ -497,6 +503,8 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("lookup regular_to_regular_spaced {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {glyph_name_map[char]} by {regular_spaced_glyph_map[char]};")
+    if upload_variants:
+        fea_lines.append(f"    sub {upload_variants['regular']} by {upload_variants['regular_spaced']};")
     fea_lines.append("} regular_to_regular_spaced;")
     fea_lines.append("")
     
@@ -504,6 +512,8 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("lookup bold_to_bold_spaced {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_glyph_map[char]} by {bold_spaced_glyph_map[char]};")
+    if upload_variants:
+        fea_lines.append(f"    sub {upload_variants['bold']} by {upload_variants['bold_spaced']};")
     fea_lines.append("} bold_to_bold_spaced;")
     fea_lines.append("")
     
@@ -511,6 +521,8 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("lookup bold_first_to_bold_spaced {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_first_glyph_map[char]} by {bold_spaced_glyph_map[char]};")
+    if upload_variants:
+        fea_lines.append(f"    sub {upload_variants['bold_first']} by {upload_variants['bold_spaced']};")
     fea_lines.append("} bold_first_to_bold_spaced;")
     fea_lines.append("")
     
