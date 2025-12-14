@@ -220,8 +220,18 @@ interface ParseResult {
 // Check if a character is a valid program character
 function isValidProgramChar(char: string): boolean {
   const code = char.codePointAt(0)!;
-  // ASCII printable (excluding space) OR indexed upload OR invalid upload OR unassigned upload
-  return (code > 32 && code < 127) || isIndexedUpload(char) || isInvalidUpload(char) || char === UPLOAD_CHAR;
+  const isAscii = code > 32 && code < 127;
+  const isIdxUpload = isIndexedUpload(char);
+  const isInvUpload = isInvalidUpload(char);
+  const isUnassigned = char === UPLOAD_CHAR;
+  const result = isAscii || isIdxUpload || isInvUpload || isUnassigned;
+  
+  // Log for non-ASCII chars
+  if (code > 127) {
+    console.log(`[isValidProgramChar] code=${code.toString(16)} isIdxUpload=${isIdxUpload} isInvUpload=${isInvUpload} result=${result}`);
+  }
+  
+  return result;
 }
 
 function parseProgram(program: string): ParseResult {
