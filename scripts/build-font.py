@@ -454,12 +454,22 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     print(f"  Generated {rule_count} substitution rules")
     print(f"  Feature code: {len(fea_code)} bytes")
     
-    # Debug output
-    print("  Feature code preview:")
-    for i, line in enumerate(fea_lines[:100]):
-        print(f"    {line}")
-    if len(fea_lines) > 100:
-        print(f"    ... ({len(fea_lines) - 100} more lines)")
+    # Write feature code to file for inspection
+    fea_file = PROJECT_DIR / "debug_feature.fea"
+    fea_file.write_text(fea_code)
+    print(f"  Wrote feature code to {fea_file}")
+    
+    # Print key lookups for debugging
+    print("\n  === KEY LOOKUPS ===")
+    in_lookup = None
+    for line in fea_lines:
+        if line.startswith("lookup pass"):
+            in_lookup = line
+            print(f"  {line}")
+        elif in_lookup and line.startswith("} "):
+            in_lookup = None
+        elif in_lookup and "sub " in line:
+            print(f"  {line}")
     
     addOpenTypeFeatures(font, StringIO(fea_code))
 
