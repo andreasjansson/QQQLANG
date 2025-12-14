@@ -2498,166 +2498,117 @@ function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  // Parameter determines pattern and quantization
-  const patternMode = Math.floor((n - 1) / 17); // 0-3
-  const quantStep = Math.max(1, Math.floor(1 + ((n - 1) % 17) * 3.5)); // 1-60
+  // Determine table size for KNN lookup based on argument
+  const tableSize = Math.max(4, Math.min(n * 100, 10000));
   
-  // Create processing order based on pattern
-  const processOrder = new Int32Array(ctx.width * ctx.height);
-  let orderCounter = 0;
+  // Build KNN lookup table from the image
+  const lookupTable = new Map<string, number[]>(); // key: "r,g,b" -> value: [predictedR, predictedG, predictedB, count]
   
-  const cx = ctx.width >> 1;
-  const cy = ctx.height >> 1;
-  
-  if (patternMode === 0) {
-    // Diagonal stripes from corners (creates X pattern)
-    for (let sum = 0; sum < ctx.width + ctx.height; sum++) {
-      for (let y = 0; y < ctx.height; y++) {
-        const x = sum - y;
-        if (x >= 0 && x < ctx.width) {
-          processOrder[y * ctx.width + x] = orderCounter++;
-        }
+  // First pass: build lookup table from existing pixel relationships
+  for (let y = 1; y < ctx.height; y++) {
+    for (let x = 1; x < ctx.width; x++) {
+      // Get context pixels: left, top-left, top
+      const left = getPixel(prev, x - 1, y);
+      const topLeft = getPixel(prev, x - 1, y - 1);
+      const top = getPixel(prev, x, y - 1);
+      
+      // Get center (target) pixel
+      const center = getPixel(prev, x, y);
+      
+      // Create key from context
+      const key = `${left[0]},${left[1]},${left[2]},${topLeft[0]},${topLeft[1]},${topLeft[2]},${top[0]},${top[1]},${top[2]}`;
+      
+      if (!lookupTable.has(key)) {
+        lookupTable.set(key, [0, 0, 0, 0]); // [sumR, sumG, sumB, count]
       }
-    }
-  } else if (patternMode === 1) {
-    // Alternating horizontal/vertical strips from edges
-    const stripHeight = Math.max(1, ctx.height >> 3);
-    const stripWidth = Math.max(1, ctx.width >> 3);
-    
-    for (let strip = 0; strip < 8; strip++) {
-      if (strip % 2 === 0) {
-        // Horizontal strip
-        const yStart = strip * stripHeight;
-        const yEnd = Math.min(ctx.height, (strip + 1) * stripHeight);
-        for (let y = yStart; y < yEnd; y++) {
-          for (let x = 0; x < ctx.width; x++) {
-            processOrder[y * ctx.width + x] = orderCounter++;
-          }
-        }
-      } else {
-        // Vertical strip
-        const xStart = strip * stripWidth;
-        const xEnd = Math.min(ctx.width, (strip + 1) * stripWidth);
-        for (let x = xStart; x < xEnd; x++) {
-          for (let y = 0; y < ctx.height; y++) {
-            processOrder[y * ctx.width + x] = orderCounter++;
-          }
-        }
-      }
-    }
-  } else if (patternMode === 2) {
-    // Distance-based from center (spiral-like)
-    const maxDist = Math.sqrt(cx * cx + cy * cy);
-    const buckets: number[][] = Array.from({ length: 256 }, () => []);
-    
-    for (let y = 0; y < ctx.height; y++) {
-      for (let x = 0; x < ctx.width; x++) {
-        const dx = x - cx;
-        const dy = y - cy;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const bucket = Math.min(255, Math.floor((dist / maxDist) * 255));
-        buckets[bucket].push(y * ctx.width + x);
-      }
-    }
-    
-    for (const bucket of buckets) {
-      for (const idx of bucket) {
-        processOrder[idx] = orderCounter++;
-      }
-    }
-  } else {
-    // Cross/star pattern from center and edges
-    const maxDist = Math.max(cx, cy, ctx.width - cx, ctx.height - cy);
-    const buckets: number[][] = Array.from({ length: 256 }, () => []);
-    
-    for (let y = 0; y < ctx.height; y++) {
-      for (let x = 0; x < ctx.width; x++) {
-        // Distance to nearest axis or center
-        const distToCenterX = Math.abs(x - cx);
-        const distToCenterY = Math.abs(y - cy);
-        const distToAxes = Math.min(distToCenterX, distToCenterY);
-        const bucket = Math.min(255, Math.floor((distToAxes / maxDist) * 255));
-        buckets[bucket].push(y * ctx.width + x);
-      }
-    }
-    
-    for (const bucket of buckets) {
-      for (const idx of bucket) {
-        processOrder[idx] = orderCounter++;
-      }
+      
+      const entry = lookupTable.get(key)!;
+      entry[0] += center[0]; // sumR
+      entry[1] += center[1]; // sumG
+      entry[2] += center[2]; // sumB
+      entry[3] += 1;         // count
     }
   }
   
-  // Process each channel
-  for (let channel = 0; channel < 3; channel++) {
-    const residuals = new Int16Array(ctx.width * ctx.height);
-    
-    // Forward pass: calculate residuals in order
-    for (let idx = 0; idx < ctx.width * ctx.height; idx++) {
-      const y = Math.floor(idx / ctx.width);
-      const x = idx % ctx.width;
-      const pixelIdx = idx * 4 + channel;
-      const actual = prev.data[pixelIdx];
-      const thisOrder = processOrder[idx];
-      
-      // Average already-processed neighbors
-      let sum = 0, count = 0;
-      const offsets = [
-        [-1, 0], [1, 0], [0, -1], [0, 1],
-        [-1, -1], [1, -1], [-1, 1], [1, 1]
-      ];
-      
-      for (const [dx, dy] of offsets) {
-        const nx = x + dx;
-        const ny = y + dy;
-        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
-          const nidx = ny * ctx.width + nx;
-          if (processOrder[nidx] < thisOrder) {
-            sum += prev.data[nidx * 4 + channel];
-            count++;
-          }
-        }
-      }
-      
-      const predicted = count > 0 ? Math.round(sum / count) : 128;
-      const residual = actual - predicted;
-      residuals[idx] = Math.round(residual / quantStep) * quantStep;
-    }
-    
-    // Backward pass: reconstruct in order
-    for (let idx = 0; idx < ctx.width * ctx.height; idx++) {
-      const y = Math.floor(idx / ctx.width);
-      const x = idx % ctx.width;
-      const outIdx = idx * 4 + channel;
-      const thisOrder = processOrder[idx];
-      
-      let sum = 0, count = 0;
-      const offsets = [
-        [-1, 0], [1, 0], [0, -1], [0, 1],
-        [-1, -1], [1, -1], [-1, 1], [1, 1]
-      ];
-      
-      for (const [dx, dy] of offsets) {
-        const nx = x + dx;
-        const ny = y + dy;
-        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
-          const nidx = ny * ctx.width + nx;
-          if (processOrder[nidx] < thisOrder) {
-            sum += out.data[nidx * 4 + channel];
-            count++;
-          }
-        }
-      }
-      
-      const predicted = count > 0 ? Math.round(sum / count) : 128;
-      const reconstructed = predicted + residuals[idx];
-      out.data[outIdx] = Math.max(0, Math.min(255, reconstructed));
+  // Convert sums to averages in lookup table
+  for (const [key, entry] of lookupTable) {
+    if (entry[3] > 0) {
+      entry[0] = Math.round(entry[0] / entry[3]); // avgR
+      entry[1] = Math.round(entry[1] / entry[3]); // avgG
+      entry[2] = Math.round(entry[2] / entry[3]); // avgB
     }
   }
   
-  // Copy alpha channel
-  for (let i = 0; i < ctx.width * ctx.height; i++) {
-    out.data[i * 4 + 3] = 255;
+  // Limit table size by keeping most frequent entries
+  if (lookupTable.size > tableSize) {
+    const entries = Array.from(lookupTable.entries());
+    entries.sort((a, b) => b[1][3] - a[1][3]); // Sort by count descending
+    lookupTable.clear();
+    for (let i = 0; i < tableSize; i++) {
+      lookupTable.set(entries[i][0], entries[i][1]);
+    }
+  }
+  
+  // Helper function to find nearest neighbor in lookup table
+  const findNearestNeighbor = (left: number[], topLeft: number[], top: number[]): number[] => {
+    const queryKey = `${left[0]},${left[1]},${left[2]},${topLeft[0]},${topLeft[1]},${topLeft[2]},${top[0]},${top[1]},${top[2]}`;
+    
+    // Exact match
+    if (lookupTable.has(queryKey)) {
+      const entry = lookupTable.get(queryKey)!;
+      return [entry[0], entry[1], entry[2]];
+    }
+    
+    // Find nearest neighbor using Manhattan distance in RGB space
+    let minDistance = Infinity;
+    let bestMatch = [128, 128, 128]; // default gray
+    
+    for (const [key, entry] of lookupTable) {
+      const parts = key.split(',').map(Number);
+      const leftCtx = [parts[0], parts[1], parts[2]];
+      const topLeftCtx = [parts[3], parts[4], parts[5]];
+      const topCtx = [parts[6], parts[7], parts[8]];
+      
+      // Manhattan distance in 9D space (3 pixels × 3 channels)
+      const distance = 
+        Math.abs(left[0] - leftCtx[0]) + Math.abs(left[1] - leftCtx[1]) + Math.abs(left[2] - leftCtx[2]) +
+        Math.abs(topLeft[0] - topLeftCtx[0]) + Math.abs(topLeft[1] - topLeftCtx[1]) + Math.abs(topLeft[2] - topLeftCtx[2]) +
+        Math.abs(top[0] - topCtx[0]) + Math.abs(top[1] - topCtx[1]) + Math.abs(top[2] - topCtx[2]);
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        bestMatch = [entry[0], entry[1], entry[2]];
+      }
+    }
+    
+    return bestMatch;
+  };
+  
+  // Second pass: reconstruct image using KNN predictions
+  // Preserve top-left corner pixels (0,0), (1,0), (0,1)
+  setPixel(out, 0, 0, ...getPixel(prev, 0, 0));
+  if (ctx.width > 1) setPixel(out, 1, 0, ...getPixel(prev, 1, 0));
+  if (ctx.height > 1) setPixel(out, 0, 1, ...getPixel(prev, 0, 1));
+  
+  // Reconstruct from (1,1) onwards
+  for (let y = 1; y < ctx.height; y++) {
+    for (let x = 1; x < ctx.width; x++) {
+      // Skip the preserved corner at (1,1) if height > 1
+      if (y === 1 && x === 1 && ctx.height > 1) {
+        setPixel(out, x, y, ...getPixel(prev, x, y));
+        continue;
+      }
+      
+      // Get context pixels from reconstructed image
+      const left = getPixel(out, x - 1, y);
+      const topLeft = getPixel(out, x - 1, y - 1);
+      const top = getPixel(out, x, y - 1);
+      
+      // Predict using KNN
+      const prediction = findNearestNeighbor(left, topLeft, top);
+      
+      setPixel(out, x, y, prediction[0], prediction[1], prediction[2]);
+    }
   }
   
   return out;
