@@ -1,8 +1,8 @@
-import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR, OpInfo, ArgType, IntType, ColorType, IndexType, ChoiceType, ArgDef } from './character-defs.js';
+import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR, UPLOAD_COUNT, isIndexedUpload, isInvalidUpload, isAnyUpload, getUploadIndex, getUploadChar, getInvalidUploadChar, OpInfo, ArgType, IntType, ColorType, IndexType, ChoiceType, ArgDef } from './character-defs.js';
 
 interface UploadedImageRef {
   type: 'uploaded';
-  index: number;
+  index: number;  // This is now the upload character index (0-255), not positional
 }
 
 interface ParsedSolidColor {
@@ -14,7 +14,7 @@ interface ParsedSolidColor {
 interface ParsedUploadedImage {
   type: 'uploaded-image';
   identifier: string;
-  uploadIndex: number;
+  uploadIndex: number;  // The upload character index (0-255)
 }
 
 interface ParsedFunction {
@@ -61,42 +61,69 @@ class LRUCache<K, V> {
   }
 }
 
-interface UploadedImageSource {
-  blob: Blob;
-}
-
-const uploadedSources: UploadedImageSource[] = [];
-const uploadedImagesCache: Image[] = [];
+// Uploaded images are now stored by their character index (0-255), not positionally
+// This allows copy/paste to preserve image identity
+const uploadedImages: Map<number, { blob: Blob, hash: string | null }> = new Map();
+const uploadedImagesCache: Map<number, Image> = new Map();
 let uploadedCacheWidth = 0;
 let uploadedCacheHeight = 0;
+let nextUploadIndex = 0;  // Track next available index
 
 export function clearUploadedImages(): void {
-  uploadedSources.length = 0;
-  uploadedImagesCache.length = 0;
+  uploadedImages.clear();
+  uploadedImagesCache.clear();
   uploadedCacheWidth = 0;
   uploadedCacheHeight = 0;
+  nextUploadIndex = 0;
 }
 
-export function addUploadedBlob(blob: Blob): number {
-  const index = uploadedSources.length;
-  uploadedSources.push({ blob });
+// Add a new uploaded image and return its assigned index
+export function addUploadedImage(blob: Blob, hash: string | null = null): number {
+  const index = nextUploadIndex++;
+  if (index >= UPLOAD_COUNT) {
+    throw new Error(`Maximum upload count (${UPLOAD_COUNT}) exceeded`);
+  }
+  uploadedImages.set(index, { blob, hash });
   imageCache.clear();
   return index;
 }
 
-export function insertUploadedBlob(index: number, blob: Blob): void {
-  uploadedSources.splice(index, 0, { blob });
-  uploadedImagesCache.splice(index, 0, null as any);
+// Set an uploaded image at a specific index (used for URL loading and paste remapping)
+export function setUploadedImage(index: number, blob: Blob, hash: string | null = null): void {
+  if (index < 0 || index >= UPLOAD_COUNT) {
+    throw new Error(`Upload index ${index} out of range [0, ${UPLOAD_COUNT})`);
+  }
+  uploadedImages.set(index, { blob, hash });
+  uploadedImagesCache.delete(index);
+  if (index >= nextUploadIndex) {
+    nextUploadIndex = index + 1;
+  }
   imageCache.clear();
 }
 
-export function setUploadedBlob(index: number, blob: Blob): void {
-  while (uploadedSources.length <= index) {
-    uploadedSources.push({ blob: new Blob() });
+// Get the hash for an uploaded image (for URL serialization)
+export function getUploadedImageHash(index: number): string | null {
+  return uploadedImages.get(index)?.hash ?? null;
+}
+
+// Get all upload indices that are currently in use
+export function getUsedUploadIndices(): number[] {
+  return Array.from(uploadedImages.keys()).sort((a, b) => a - b);
+}
+
+// Find the next available upload index
+export function getNextAvailableIndex(): number {
+  for (let i = 0; i < UPLOAD_COUNT; i++) {
+    if (!uploadedImages.has(i)) {
+      return i;
+    }
   }
-  uploadedSources[index] = { blob };
-  uploadedImagesCache[index] = null as any;
-  imageCache.clear();
+  throw new Error(`Maximum upload count (${UPLOAD_COUNT}) exceeded`);
+}
+
+// Check if an upload index has an associated image
+export function hasUploadedImage(index: number): boolean {
+  return uploadedImages.has(index);
 }
 
 export function getUploadedImageCount(): number {
