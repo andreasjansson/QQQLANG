@@ -485,22 +485,27 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append(f"@bold_spaced = [{' '.join(all_bold_spaced)}];")
     fea_lines.append(f"@regular_spaced = [{' '.join(all_regular_spaced)}];")
     
-    # @any includes all variants
+    # Upload-specific classes (uploads don't have bold/bold_spaced)
+    if upload_chars:
+        fea_lines.append(f"@upload_regular = [{' '.join(upload_regular)}];")
+        fea_lines.append(f"@upload_bold_first = [{' '.join(upload_bold_first)}];")
+        fea_lines.append(f"@upload_regular_spaced = [{' '.join(upload_regular_spaced)}];")
+    
+    # @any includes all variants (uploads don't have bold/bold_spaced)
     all_any = all_regular + all_bold_first + all_bold + all_bold_spaced + all_regular_spaced
     fea_lines.append(f"@any = [{' '.join(all_any)}];")
     
     # @preceded_by for detecting non-first chars (bold_first or bold)
+    # Upload bold_first is included so it gets converted when not first
     all_preceded = all_bold_first + all_bold
     fea_lines.append(f"@preceded_by = [{' '.join(all_preceded)}];")
     fea_lines.append("")
     
-    # Classes by arity - @fn_bold does NOT include bold_first!
-    # □ acts like arity-0, so add its bold variant to @fn0_bold
+    # Classes by arity - @fn_bold does NOT include bold_first or uploads!
+    # Uploads cannot be functions, only first char or INDEX arguments
     for arity in sorted(by_arity.keys()):
         chars = by_arity[arity]
         bold = [bold_glyph_map[c] for c in chars]
-        if arity == 0 and upload_variants:
-            bold.append(upload_variants['bold'])
         fea_lines.append(f"@fn{arity}_bold = [{' '.join(bold)}];")
     fea_lines.append("")
     
