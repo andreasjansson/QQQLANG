@@ -66,102 +66,23 @@ def hex_to_rgb(hex_color):
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
 
-def build_gsub_rules(char_defs, glyph_name_map, bold_glyph_map, spaced_glyph_map):
-    """
-    Build GSUB calt rules for context-dependent substitution.
-    
-    The logic:
-    - At the start of text or after a complete function call, the next char is a function (bold + possibly spaced)
-    - After a function char, the next N chars are arguments (regular), where N = arity
-    - After all arguments, the last argument gets extra spacing
-    
-    We implement this using chained contextual substitution (GSUB lookup type 6).
-    """
-    qqqlang_chars = [c for c in char_defs.keys() if len(c) == 1]
-    
-    # Group characters by arity for rule generation
-    arity_groups = {}
-    for char, info in char_defs.items():
-        if len(char) != 1:
-            continue
-        arity = info['arity']
-        if arity not in arity_groups:
-            arity_groups[arity] = []
-        arity_groups[arity].append(char)
-    
-    rules = []
-    
-    # For arity 0 functions: substitute to bold+spaced variant
-    # Rule: any_qqqlang_char -> bold_spaced_char (when it's arity 0)
-    for char in arity_groups.get(0, []):
-        if char in bold_glyph_map and char in spaced_glyph_map:
-            # Use spaced variant (which is also bold)
-            rules.append({
-                'type': 'single',
-                'input': [glyph_name_map[char]],
-                'output': [spaced_glyph_map[char]],
-            })
-    
-    # For arity > 0 functions, we need contextual rules
-    # This is complex because we need to:
-    # 1. Make the function char bold (but not spaced, since args follow)
-    # 2. Keep argument chars regular
-    # 3. Make the last argument spaced
-    
-    # Since OpenType calt processes left-to-right and we can't "look back" easily,
-    # we use a different approach: enumerate all possible patterns
-    
-    return rules, arity_groups
-
-
 def create_calt_feature(font, char_defs, glyph_name_map, bold_glyph_map, spaced_glyph_map):
     """
-    Create the 'calt' feature for contextual alternates.
+    Create the 'calt' feature for contextual alternates using fontTools' feaLib.
     
-    Strategy: Use reverse chaining single substitution (GSUB lookup type 8)
-    which processes from end to start, allowing us to:
-    1. First pass: identify and mark last-argument positions with spacing
-    2. Second pass: substitute function chars to bold
+    Strategy:
+    - All glyphs start as regular
+    - Use chained contextual substitution to:
+      1. Make function chars bold
+      2. Keep argument chars regular  
+      3. Add spacing after the last char of each complete function call
     
-    Actually, let's use a simpler approach with multiple lookups:
-    - Lookup 1: Bold substitution (all qqqlang chars -> bold variants by default)
-    - Lookup 2: De-bold substitution for argument positions (bold -> regular)
-    - Lookup 3: Add spacing to end-of-function positions
+    We process patterns for each arity level separately.
     """
-    gsub = font['GSUB'].table
+    from fontTools.feaLib.builder import addOpenTypeFeatures
+    from io import StringIO
     
     qqqlang_chars = sorted([c for c in char_defs.keys() if len(c) == 1])
-    
-    # Get all glyph names
-    all_regular = [glyph_name_map[c] for c in qqqlang_chars if c in glyph_name_map]
-    all_bold = [bold_glyph_map[c] for c in qqqlang_chars if c in bold_glyph_map]
-    all_spaced = [spaced_glyph_map[c] for c in qqqlang_chars if c in spaced_glyph_map]
-    
-    # Create glyph classes
-    # Class for all regular QQQLANG chars
-    # Class for all bold QQQLANG chars
-    
-    lookups = []
-    
-    # === LOOKUP 0: Single substitution - all regular chars to bold ===
-    lookup0 = otTables.Lookup()
-    lookup0.LookupType = 1  # Single substitution
-    lookup0.LookupFlag = 0
-    lookup0.SubTableCount = 1
-    lookup0.SubTable = [otTables.SingleSubst()]
-    lookup0.SubTable[0].mapping = {}
-    
-    for char in qqqlang_chars:
-        if char in glyph_name_map and char in bold_glyph_map:
-            lookup0.SubTable[0].mapping[glyph_name_map[char]] = bold_glyph_map[char]
-    
-    lookups.append(lookup0)
-    
-    # === LOOKUP 1: Contextual substitution - de-bold argument positions ===
-    # For each function with arity > 0, we need rules like:
-    # For arity 1: FN_CHAR ARG -> FN_CHAR arg (de-bold the arg)
-    # For arity 2: FN_CHAR ARG1 ARG2 -> FN_CHAR arg1 arg2 (de-bold both args)
-    # etc.
     
     # Group by arity
     arity_groups = {}
@@ -173,225 +94,130 @@ def create_calt_feature(font, char_defs, glyph_name_map, bold_glyph_map, spaced_
             arity_groups[arity] = []
         arity_groups[arity].append(char)
     
-    # We'll create chained contextual substitution rules
-    # GSUB Lookup Type 6: Chaining Contextual Substitution
+    # Build feature file content
+    fea_lines = []
     
-    lookup1 = otTables.Lookup()
-    lookup1.LookupType = 6  # Chaining contextual substitution
-    lookup1.LookupFlag = 0
-    lookup1.SubTable = []
+    # Define glyph classes
+    all_regular = [glyph_name_map[c] for c in qqqlang_chars if c in glyph_name_map]
+    all_bold = [bold_glyph_map[c] for c in qqqlang_chars if c in bold_glyph_map]
+    all_spaced = [spaced_glyph_map[c] for c in qqqlang_chars if c in spaced_glyph_map]
     
-    # Create a nested lookup for de-bolding (bold -> regular)
-    debold_lookup = otTables.Lookup()
-    debold_lookup.LookupType = 1  # Single substitution
-    debold_lookup.LookupFlag = 0
-    debold_lookup.SubTableCount = 1
-    debold_lookup.SubTable = [otTables.SingleSubst()]
-    debold_lookup.SubTable[0].mapping = {}
+    fea_lines.append(f"@regular = [{' '.join(all_regular)}];")
+    fea_lines.append(f"@bold = [{' '.join(all_bold)}];")
+    fea_lines.append(f"@spaced = [{' '.join(all_spaced)}];")
+    fea_lines.append("")
     
+    # Define classes per arity
+    for arity, chars in sorted(arity_groups.items()):
+        regular_glyphs = [glyph_name_map[c] for c in chars if c in glyph_name_map]
+        bold_glyphs = [bold_glyph_map[c] for c in chars if c in bold_glyph_map]
+        if regular_glyphs:
+            fea_lines.append(f"@fn_arity{arity}_regular = [{' '.join(regular_glyphs)}];")
+        if bold_glyphs:
+            fea_lines.append(f"@fn_arity{arity}_bold = [{' '.join(bold_glyphs)}];")
+    fea_lines.append("")
+    
+    # Lookup: regular -> bold (for function positions)
+    fea_lines.append("lookup toBold {")
     for char in qqqlang_chars:
-        if char in bold_glyph_map and char in glyph_name_map:
-            debold_lookup.SubTable[0].mapping[bold_glyph_map[char]] = glyph_name_map[char]
+        if char in glyph_name_map and char in bold_glyph_map:
+            fea_lines.append(f"    sub {glyph_name_map[char]} by {bold_glyph_map[char]};")
+    fea_lines.append("} toBold;")
+    fea_lines.append("")
     
-    lookups.append(debold_lookup)
-    debold_lookup_index = 1
+    # Lookup: regular -> spaced (for end of function call - arity 0 or last arg)
+    fea_lines.append("lookup toSpaced {")
+    for char in qqqlang_chars:
+        if char in glyph_name_map and char in spaced_glyph_map:
+            fea_lines.append(f"    sub {glyph_name_map[char]} by {spaced_glyph_map[char]};")
+    fea_lines.append("} toSpaced;")
+    fea_lines.append("")
     
-    # Create a nested lookup for adding spacing (bold -> spaced)
-    space_lookup = otTables.Lookup()
-    space_lookup.LookupType = 1  # Single substitution
-    space_lookup.LookupFlag = 0
-    space_lookup.SubTableCount = 1
-    space_lookup.SubTable = [otTables.SingleSubst()]
-    space_lookup.SubTable[0].mapping = {}
-    
+    # Lookup: bold -> spaced (alternative path)
+    fea_lines.append("lookup boldToSpaced {")
     for char in qqqlang_chars:
         if char in bold_glyph_map and char in spaced_glyph_map:
-            space_lookup.SubTable[0].mapping[bold_glyph_map[char]] = spaced_glyph_map[char]
-        if char in glyph_name_map and char in spaced_glyph_map:
-            space_lookup.SubTable[0].mapping[glyph_name_map[char]] = spaced_glyph_map[char]
+            fea_lines.append(f"    sub {bold_glyph_map[char]} by {spaced_glyph_map[char]};")
+    fea_lines.append("} boldToSpaced;")
+    fea_lines.append("")
     
-    lookups.append(space_lookup)
-    space_lookup_index = 2
+    # Now create the calt feature with contextual rules
+    fea_lines.append("feature calt {")
     
-    # Now create chained contextual rules for each arity
-    # Format 3 (Coverage-based) is most flexible
+    # For arity 0: fn -> bold+spaced
+    # These are standalone functions that need spacing after them
+    if 0 in arity_groups:
+        fea_lines.append("    # Arity 0: standalone functions get bold+spaced")
+        for char in arity_groups[0]:
+            if char in glyph_name_map and char in spaced_glyph_map:
+                # Convert to spaced (which is bold weight)
+                fea_lines.append(f"    sub {glyph_name_map[char]}' lookup toSpaced;")
+    fea_lines.append("")
     
-    for arity, fn_chars in arity_groups.items():
+    # For arity > 0: fn -> bold, args stay regular, last arg -> spaced
+    # We need to match the full pattern and apply substitutions
+    
+    for arity in sorted(arity_groups.keys()):
         if arity == 0:
-            # Arity 0: just needs spacing (handled separately)
-            # Rule: [any bold arity-0 char] -> apply space_lookup
-            subtable = otTables.ChainContextSubst()
-            subtable.Format = 3
+            continue
             
-            # Backtrack: nothing
-            subtable.BacktrackCount = 0
-            subtable.BacktrackCoverage = []
-            
-            # Input: one glyph from arity-0 bold chars
-            arity0_bold_glyphs = [bold_glyph_map[c] for c in fn_chars if c in bold_glyph_map]
-            if not arity0_bold_glyphs:
-                continue
-                
-            input_coverage = otTables.Coverage()
-            input_coverage.glyphs = arity0_bold_glyphs
-            subtable.InputCount = 1
-            subtable.InputCoverage = [input_coverage]
-            
-            # Lookahead: nothing
-            subtable.LookAheadCount = 0
-            subtable.LookAheadCoverage = []
-            
-            # Substitution: apply space lookup to position 0
-            subtable.SubstCount = 1
-            rec = otTables.SubstLookupRecord()
-            rec.SequenceIndex = 0
-            rec.LookupListIndex = space_lookup_index
-            subtable.SubstLookupRecord = [rec]
-            
-            lookup1.SubTable.append(subtable)
-            
-        else:
-            # Arity > 0: need to de-bold arguments and add spacing to last arg
-            # Rule: [bold fn char] [bold arg1] ... [bold argN] 
-            #       -> [bold fn char] [regular arg1] ... [spaced argN]
-            
-            # Get bold glyphs for these function chars
-            fn_bold_glyphs = [bold_glyph_map[c] for c in fn_chars if c in bold_glyph_map]
-            if not fn_bold_glyphs:
+        chars = arity_groups[arity]
+        fea_lines.append(f"    # Arity {arity}: function + {arity} argument(s)")
+        
+        for char in chars:
+            if char not in glyph_name_map:
                 continue
             
-            # All bold glyphs (for arguments)
-            all_bold_glyphs = [bold_glyph_map[c] for c in qqqlang_chars if c in bold_glyph_map]
+            reg_glyph = glyph_name_map[char]
             
-            # Create rule for de-bolding each argument position
-            for arg_pos in range(arity):
-                subtable = otTables.ChainContextSubst()
-                subtable.Format = 3
-                
-                # Backtrack: the function char + previous args
-                # (we're looking at arg_pos, so backtrack is fn + args 0..arg_pos-1)
-                backtrack_coverages = []
-                
-                # First backtrack is the function char
-                fn_cov = otTables.Coverage()
-                fn_cov.glyphs = fn_bold_glyphs
-                backtrack_coverages.append(fn_cov)
-                
-                # Then previous argument positions (as bold chars that might have been de-bolded)
-                # Actually, by the time we process arg_pos, previous args are still bold
-                # because we process left-to-right... hmm, this is tricky
-                
-                # Let's use a different approach: process all args at once per function type
-                # Skip for now and handle differently
-                
-            # Actually, let's use a simpler approach:
-            # Create one rule per function character that matches the full pattern
-            # and applies multiple substitutions
+            # Build the pattern: fn arg1 arg2 ... argN
+            # We want: fn' -> bold, arg1...argN-1 stay regular, argN' -> spaced
             
-            for fn_char in fn_chars:
-                if fn_char not in bold_glyph_map:
-                    continue
-                    
-                subtable = otTables.ChainContextSubst()
-                subtable.Format = 3
-                
-                # Backtrack: nothing (or could be any non-qqqlang or start)
-                subtable.BacktrackCount = 0
-                subtable.BacktrackCoverage = []
-                
-                # Input: fn_char + arity args
-                input_coverages = []
-                
-                # First input: the specific function char (bold)
-                fn_cov = otTables.Coverage()
-                fn_cov.glyphs = [bold_glyph_map[fn_char]]
-                input_coverages.append(fn_cov)
-                
-                # Following inputs: any bold qqqlang char (the arguments)
-                for i in range(arity):
-                    arg_cov = otTables.Coverage()
-                    arg_cov.glyphs = all_bold_glyphs
-                    input_coverages.append(arg_cov)
-                
-                subtable.InputCount = 1 + arity
-                subtable.InputCoverage = input_coverages
-                
-                # Lookahead: nothing
-                subtable.LookAheadCount = 0
-                subtable.LookAheadCoverage = []
-                
-                # Substitutions:
-                # - Position 0 (fn char): keep bold (no substitution needed)
-                # - Positions 1 to arity-1: de-bold
-                # - Position arity (last arg): de-bold AND add spacing
-                subst_records = []
-                
-                for i in range(1, arity):
-                    # De-bold this argument
-                    rec = otTables.SubstLookupRecord()
-                    rec.SequenceIndex = i
-                    rec.LookupListIndex = debold_lookup_index
-                    subst_records.append(rec)
-                
-                # Last argument: de-bold then space (need two lookups, but can only apply one per position)
-                # Solution: create a combined lookup that goes bold -> spaced (not bold)
-                # Actually our space_lookup already maps bold -> spaced, so just use that
-                rec = otTables.SubstLookupRecord()
-                rec.SequenceIndex = arity  # Last argument position
-                rec.LookupListIndex = space_lookup_index
-                subst_records.append(rec)
-                
-                subtable.SubstCount = len(subst_records)
-                subtable.SubstLookupRecord = subst_records
-                
-                lookup1.SubTable.append(subtable)
+            # Pattern with N arguments following
+            # sub fn' @regular @regular ... @regular by bold_fn;  (just fn to bold)
+            # Then separately: sub @fn_arityN_bold @regular ... @regular' by spaced; (last arg to spaced)
+            
+            # First rule: make function bold when followed by N regular chars
+            if arity == 1:
+                fea_lines.append(f"    sub {reg_glyph}' lookup toBold @regular;")
+            else:
+                args_pattern = " @regular" * arity
+                fea_lines.append(f"    sub {reg_glyph}' lookup toBold{args_pattern};")
+        
+        fea_lines.append("")
+        
+        # Second set of rules: make the last argument spaced
+        # We look for: bold_fn followed by (arity-1) regular chars, then the last regular char
+        bold_glyphs_for_arity = [bold_glyph_map[c] for c in chars if c in bold_glyph_map]
+        if bold_glyphs_for_arity:
+            fea_lines.append(f"    # Arity {arity}: space the last argument")
+            class_name = f"@fn_arity{arity}_bold"
+            
+            if arity == 1:
+                # Pattern: bold_fn regular' -> bold_fn spaced
+                fea_lines.append(f"    sub {class_name} @regular' lookup toSpaced;")
+            else:
+                # Pattern: bold_fn regular regular ... regular' -> spaced
+                middle_args = " @regular" * (arity - 1)
+                fea_lines.append(f"    sub {class_name}{middle_args} @regular' lookup toSpaced;")
+        
+        fea_lines.append("")
     
-    if lookup1.SubTable:
-        lookup1.SubTableCount = len(lookup1.SubTable)
-        lookups.insert(1, lookup1)  # Insert after the initial bold substitution
-        # Adjust indices
-        debold_lookup_index = 2
-        space_lookup_index = 3
+    fea_lines.append("} calt;")
     
-    # Update the lookup list
-    if not hasattr(gsub, 'LookupList') or gsub.LookupList is None:
-        gsub.LookupList = otTables.LookupList()
-        gsub.LookupList.Lookup = []
+    # Join and apply
+    fea_code = "\n".join(fea_lines)
     
-    base_index = len(gsub.LookupList.Lookup)
-    gsub.LookupList.Lookup.extend(lookups)
+    print("Generated feature code:")
+    print("-" * 40)
+    for i, line in enumerate(fea_lines[:50]):
+        print(f"{i+1:3}: {line}")
+    if len(fea_lines) > 50:
+        print(f"... ({len(fea_lines) - 50} more lines)")
+    print("-" * 40)
     
-    # Create or update calt feature
-    calt_feature = otTables.FeatureRecord()
-    calt_feature.FeatureTag = 'calt'
-    calt_feature.Feature = otTables.Feature()
-    calt_feature.Feature.FeatureParams = None
-    calt_feature.Feature.LookupListIndex = list(range(base_index, base_index + len(lookups)))
-    calt_feature.Feature.LookupCount = len(lookups)
-    
-    # Add feature to feature list
-    if not hasattr(gsub, 'FeatureList') or gsub.FeatureList is None:
-        gsub.FeatureList = otTables.FeatureList()
-        gsub.FeatureList.FeatureRecord = []
-    
-    gsub.FeatureList.FeatureRecord.append(calt_feature)
-    gsub.FeatureList.FeatureCount = len(gsub.FeatureList.FeatureRecord)
-    
-    # Add feature to all scripts/languages
-    if hasattr(gsub, 'ScriptList') and gsub.ScriptList:
-        for script_record in gsub.ScriptList.ScriptRecord:
-            script = script_record.Script
-            if script.DefaultLangSys:
-                if script.DefaultLangSys.FeatureIndex is None:
-                    script.DefaultLangSys.FeatureIndex = []
-                script.DefaultLangSys.FeatureIndex.append(len(gsub.FeatureList.FeatureRecord) - 1)
-                script.DefaultLangSys.FeatureCount = len(script.DefaultLangSys.FeatureIndex)
-            if script.LangSysRecord:
-                for lang_sys_record in script.LangSysRecord:
-                    if lang_sys_record.LangSys.FeatureIndex is None:
-                        lang_sys_record.LangSys.FeatureIndex = []
-                    lang_sys_record.LangSys.FeatureIndex.append(len(gsub.FeatureList.FeatureRecord) - 1)
-                    lang_sys_record.LangSys.FeatureCount = len(lang_sys_record.LangSys.FeatureIndex)
+    # Apply the feature code to the font
+    addOpenTypeFeatures(font, StringIO(fea_code))
 
 
 def build_font():
