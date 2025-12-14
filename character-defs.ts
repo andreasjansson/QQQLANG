@@ -2498,13 +2498,28 @@ function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  // Determine table size for KNN lookup based on argument
+  // Determine table size for lookup based on argument
   const tableSize = Math.max(4, Math.min(n * 100, 10000));
   
-  // Build KNN lookup table from the image
-  const lookupTable = new Map<string, number[]>(); // key: "r,g,b" -> value: [predictedR, predictedG, predictedB, count]
+  // Multi-granularity lookup tables with different quantization steps
+  const granularitySteps = [2, 8, 64, 128];
+  const lookupTables: Map<string, number[]>[] = granularitySteps.map(() => new Map());
   
-  // First pass: build lookup table from existing pixel relationships
+  // Helper function to quantize a value to nearest multiple of step
+  const quantize = (value: number, step: number): number => {
+    return Math.round(value / step) * step;
+  };
+  
+  // Helper function to create key from context pixels at given granularity
+  const createKey = (left: number[], topLeft: number[], top: number[], step: number): string => {
+    const quantizedLeft = [quantize(left[0], step), quantize(left[1], step), quantize(left[2], step)];
+    const quantizedTopLeft = [quantize(topLeft[0], step), quantize(topLeft[1], step), quantize(topLeft[2], step)];
+    const quantizedTop = [quantize(top[0], step), quantize(top[1], step), quantize(top[2], step)];
+    
+    return `${quantizedLeft[0]},${quantizedLeft[1]},${quantizedLeft[2]},${quantizedTopLeft[0]},${quantizedTopLeft[1]},${quantizedTopLeft[2]},${quantizedTop[0]},${quantizedTop[1]},${quantizedTop[2]}`;
+  };
+  
+  // First pass: build lookup tables at all granularity levels
   for (let y = 1; y < ctx.height; y++) {
     for (let x = 1; x < ctx.width; x++) {
       // Get context pixels: left, top-left, top
@@ -2515,76 +2530,73 @@ function fnX(ctx: FnContext, n: number): Image {
       // Get center (target) pixel
       const center = getPixel(prev, x, y);
       
-      // Create key from context
-      const key = `${left[0]},${left[1]},${left[2]},${topLeft[0]},${topLeft[1]},${topLeft[2]},${top[0]},${top[1]},${top[2]}`;
-      
-      if (!lookupTable.has(key)) {
-        lookupTable.set(key, [0, 0, 0, 0]); // [sumR, sumG, sumB, count]
+      // Add to all granularity levels
+      for (let i = 0; i < granularitySteps.length; i++) {
+        const step = granularitySteps[i];
+        const key = createKey(left, topLeft, top, step);
+        const table = lookupTables[i];
+        
+        if (!table.has(key)) {
+          table.set(key, [0, 0, 0, 0]); // [sumR, sumG, sumB, count]
+        }
+        
+        const entry = table.get(key)!;
+        entry[0] += center[0]; // sumR
+        entry[1] += center[1]; // sumG
+        entry[2] += center[2]; // sumB
+        entry[3] += 1;         // count
       }
-      
-      const entry = lookupTable.get(key)!;
-      entry[0] += center[0]; // sumR
-      entry[1] += center[1]; // sumG
-      entry[2] += center[2]; // sumB
-      entry[3] += 1;         // count
     }
   }
   
-  // Convert sums to averages in lookup table
-  for (const [key, entry] of lookupTable) {
-    if (entry[3] > 0) {
-      entry[0] = Math.round(entry[0] / entry[3]); // avgR
-      entry[1] = Math.round(entry[1] / entry[3]); // avgG
-      entry[2] = Math.round(entry[2] / entry[3]); // avgB
-    }
-  }
-  
-  // Limit table size by keeping most frequent entries
-  if (lookupTable.size > tableSize) {
-    const entries = Array.from(lookupTable.entries());
-    entries.sort((a, b) => b[1][3] - a[1][3]); // Sort by count descending
-    lookupTable.clear();
-    for (let i = 0; i < tableSize; i++) {
-      lookupTable.set(entries[i][0], entries[i][1]);
-    }
-  }
-  
-  // Helper function to find nearest neighbor in lookup table
-  const findNearestNeighbor = (left: number[], topLeft: number[], top: number[]): number[] => {
-    const queryKey = `${left[0]},${left[1]},${left[2]},${topLeft[0]},${topLeft[1]},${topLeft[2]},${top[0]},${top[1]},${top[2]}`;
+  // Convert sums to averages and limit table sizes
+  for (let i = 0; i < lookupTables.length; i++) {
+    const table = lookupTables[i];
     
-    // Exact match
-    if (lookupTable.has(queryKey)) {
-      const entry = lookupTable.get(queryKey)!;
-      return [entry[0], entry[1], entry[2]];
-    }
-    
-    // Find nearest neighbor using Manhattan distance in RGB space
-    let minDistance = Infinity;
-    let bestMatch = [128, 128, 128]; // default gray
-    
-    for (const [key, entry] of lookupTable) {
-      const parts = key.split(',').map(Number);
-      const leftCtx = [parts[0], parts[1], parts[2]];
-      const topLeftCtx = [parts[3], parts[4], parts[5]];
-      const topCtx = [parts[6], parts[7], parts[8]];
-      
-      // Manhattan distance in 9D space (3 pixels × 3 channels)
-      const distance = 
-        Math.abs(left[0] - leftCtx[0]) + Math.abs(left[1] - leftCtx[1]) + Math.abs(left[2] - leftCtx[2]) +
-        Math.abs(topLeft[0] - topLeftCtx[0]) + Math.abs(topLeft[1] - topLeftCtx[1]) + Math.abs(topLeft[2] - topLeftCtx[2]) +
-        Math.abs(top[0] - topCtx[0]) + Math.abs(top[1] - topCtx[1]) + Math.abs(top[2] - topCtx[2]);
-      
-      if (distance < minDistance) {
-        minDistance = distance;
-        bestMatch = [entry[0], entry[1], entry[2]];
+    // Convert sums to averages
+    for (const [key, entry] of table) {
+      if (entry[3] > 0) {
+        entry[0] = Math.round(entry[0] / entry[3]); // avgR
+        entry[1] = Math.round(entry[1] / entry[3]); // avgG
+        entry[2] = Math.round(entry[2] / entry[3]); // avgB
       }
     }
     
-    return bestMatch;
+    // Limit table size by keeping most frequent entries
+    const adjustedTableSize = Math.floor(tableSize / (i + 1)); // Smaller tables for coarser granularities
+    if (table.size > adjustedTableSize) {
+      const entries = Array.from(table.entries());
+      entries.sort((a, b) => b[1][3] - a[1][3]); // Sort by count descending
+      table.clear();
+      for (let j = 0; j < adjustedTableSize; j++) {
+        table.set(entries[j][0], entries[j][1]);
+      }
+    }
+  }
+  
+  // Helper function to predict pixel using multi-granularity lookup
+  const predictPixel = (left: number[], topLeft: number[], top: number[]): number[] => {
+    // Try each granularity level from finest to coarsest
+    for (let i = 0; i < granularitySteps.length; i++) {
+      const step = granularitySteps[i];
+      const key = createKey(left, topLeft, top, step);
+      const table = lookupTables[i];
+      
+      if (table.has(key)) {
+        const entry = table.get(key)!;
+        return [entry[0], entry[1], entry[2]];
+      }
+    }
+    
+    // If no match found in any table, return average of the three input pixels
+    const avgR = Math.round((left[0] + topLeft[0] + top[0]) / 3);
+    const avgG = Math.round((left[1] + topLeft[1] + top[1]) / 3);
+    const avgB = Math.round((left[2] + topLeft[2] + top[2]) / 3);
+    
+    return [avgR, avgG, avgB];
   };
   
-  // Second pass: reconstruct image using KNN predictions
+  // Second pass: reconstruct image using multi-granularity predictions
   // Preserve top-left corner pixels (0,0), (1,0), (0,1)
   setPixel(out, 0, 0, ...getPixel(prev, 0, 0));
   if (ctx.width > 1) setPixel(out, 1, 0, ...getPixel(prev, 1, 0));
@@ -2604,8 +2616,8 @@ function fnX(ctx: FnContext, n: number): Image {
       const topLeft = getPixel(out, x - 1, y - 1);
       const top = getPixel(out, x, y - 1);
       
-      // Predict using KNN
-      const prediction = findNearestNeighbor(left, topLeft, top);
+      // Predict using multi-granularity lookup
+      const prediction = predictPixel(left, topLeft, top);
       
       setPixel(out, x, y, prediction[0], prediction[1], prediction[2]);
     }
