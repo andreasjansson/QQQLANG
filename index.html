@@ -863,38 +863,10 @@
     
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
+      fileInput.value = '';
       if (!file) return;
       
-      try {
-        const hash = await uploadImageToWorker(file);
-        const thumbnail = await generateThumbnail(file);
-        
-        if (pendingUploadIndex !== null) {
-          uploadHashes[pendingUploadIndex] = hash;
-          uploadThumbnails[pendingUploadIndex] = thumbnail;
-          setUploadedBlob(pendingUploadIndex, file);
-          pendingUploadIndex = null;
-        } else {
-          uploadHashes.push(hash);
-          uploadThumbnails.push(thumbnail);
-          addUploadedBlob(file);
-          
-          const start = input.selectionStart;
-          const before = input.value.substring(0, start);
-          const after = input.value.substring(input.selectionEnd);
-          input.value = before + UPLOAD_CHAR + after;
-          input.selectionStart = input.selectionEnd = start + UPLOAD_CHAR.length;
-        }
-        
-        fileInput.value = '';
-        updateURL(input.value);
-        await render();
-        input.focus();
-      } catch (err) {
-        console.error('Upload failed:', err);
-        visualBell();
-        fileInput.value = '';
-      }
+      await handleImageUpload(file);
     });
     
     helpButton.addEventListener('click', () => {
