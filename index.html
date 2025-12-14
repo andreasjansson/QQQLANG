@@ -1042,10 +1042,79 @@
     
 
     
+    // Custom MIME type for preserving upload hashes on copy/paste
+    const QQQLANG_MIME = 'application/x-qqqlang';
+    
+    // Copy handler: include both plain text and QQQLANG data with upload hashes
+    input.addEventListener('copy', (e) => {
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      if (start === end) return;  // Nothing selected
+      
+      const selectedText = input.value.substring(start, end);
+      
+      // Build upload data for the selection
+      const uploadHashes = {};
+      for (const char of selectedText) {
+        const idx = getUploadIndex(char);
+        if (idx !== null) {
+          const hash = getUploadedImageHash(idx);
+          if (hash) {
+            uploadHashes[idx] = hash;
+          }
+        }
+      }
+      
+      // Set clipboard data
+      e.clipboardData.setData('text/plain', selectedText);
+      e.clipboardData.setData(QQQLANG_MIME, JSON.stringify({
+        text: selectedText,
+        uploads: uploadHashes
+      }));
+      e.preventDefault();
+    });
+    
+    // Cut handler: same as copy but also delete
+    input.addEventListener('cut', (e) => {
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      if (start === end) return;
+      
+      const selectedText = input.value.substring(start, end);
+      
+      const uploadHashes = {};
+      for (const char of selectedText) {
+        const idx = getUploadIndex(char);
+        if (idx !== null) {
+          const hash = getUploadedImageHash(idx);
+          if (hash) {
+            uploadHashes[idx] = hash;
+          }
+        }
+      }
+      
+      e.clipboardData.setData('text/plain', selectedText);
+      e.clipboardData.setData(QQQLANG_MIME, JSON.stringify({
+        text: selectedText,
+        uploads: uploadHashes
+      }));
+      
+      // Delete the selected text
+      const before = input.value.substring(0, start);
+      const after = input.value.substring(end);
+      input.value = before + after;
+      input.selectionStart = input.selectionEnd = start;
+      
+      updateURL(input.value);
+      render();
+      e.preventDefault();
+    });
+    
     input.addEventListener('paste', async (e) => {
       const items = e.clipboardData?.items;
       if (!items) return;
       
+      // Check for image paste first
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           e.preventDefault();
@@ -1056,6 +1125,69 @@
           return;
         }
       }
+      
+      // Check for QQQLANG data (from copy within the app)
+      const qqqlangData = e.clipboardData.getData(QQQLANG_MIME);
+      if (qqqlangData) {
+        e.preventDefault();
+        try {
+          const { text, uploads } = JSON.parse(qqqlangData);
+          
+          // Remap upload indices to avoid collisions
+          const indexRemap = new Map();  // old index -> new index
+          
+          for (const [oldIdxStr, hash] of Object.entries(uploads)) {
+            const oldIdx = parseInt(oldIdxStr, 10);
+            
+            // Check if this index is already in use
+            if (hasUploadedImage(oldIdx)) {
+              // Need to remap to a new index
+              const newIdx = getNextAvailableIndex();
+              indexRemap.set(oldIdx, newIdx);
+              
+              // Fetch and store the image at the new index
+              const blob = await fetchImageAsBlob(hash);
+              if (blob) {
+                setUploadedImage(newIdx, blob, hash);
+              }
+            } else {
+              // Can use the same index
+              indexRemap.set(oldIdx, oldIdx);
+              const blob = await fetchImageAsBlob(hash);
+              if (blob) {
+                setUploadedImage(oldIdx, blob, hash);
+              }
+            }
+          }
+          
+          // Remap the text
+          let remappedText = '';
+          for (const char of text) {
+            const oldIdx = getUploadIndex(char);
+            if (oldIdx !== null && indexRemap.has(oldIdx)) {
+              remappedText += getUploadChar(indexRemap.get(oldIdx));
+            } else {
+              remappedText += char;
+            }
+          }
+          
+          // Insert the remapped text
+          const start = input.selectionStart;
+          const end = input.selectionEnd;
+          const before = input.value.substring(0, start);
+          const after = input.value.substring(end);
+          input.value = before + remappedText + after;
+          input.selectionStart = input.selectionEnd = start + remappedText.length;
+          
+          updateURL(input.value);
+          await render();
+        } catch (err) {
+          console.error('Failed to parse QQQLANG paste data:', err);
+        }
+        return;
+      }
+      
+      // Fall back to plain text paste (handled by browser default)
     });
 
     window.addEventListener('popstate', async (event) => {
