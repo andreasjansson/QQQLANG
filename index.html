@@ -569,18 +569,22 @@
     }
     
     // Build URL program: append hash after each indexed upload char
+    // Always use valid (outline) upload chars in URL, even if display shows invalid (filled)
     function buildUrlProgram(displayProgram) {
       const chars = [...displayProgram];
       let result = '';
       
       for (const char of chars) {
-        result += char;
         const uploadIdx = getUploadIndex(char);
         if (uploadIdx !== null) {
+          // Always use the valid (outline) char in URL
+          result += getUploadChar(uploadIdx);
           const hash = getUploadedImageHash(uploadIdx);
           if (hash) {
             result += hash;
           }
+        } else {
+          result += char;
         }
       }
       return result;
