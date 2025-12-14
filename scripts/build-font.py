@@ -541,7 +541,8 @@ def build_font():
         if color not in color_to_index:
             color_to_index[color] = len(colors)
             rgb = hex_to_rgb(color)
-            colors.append((rgb[0], rgb[1], rgb[2], 255))  # RGBA
+            # CPAL expects colors in 0-1 range
+            colors.append((rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, 1.0))
     
     # Build CPAL (Color Palette)
     cpal = buildCPAL([colors])
