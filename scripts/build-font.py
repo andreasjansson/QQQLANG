@@ -85,12 +85,14 @@ def cleanup_variable_font_tables(font):
 
 def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
     """
-    Create the □ (upload) character and its spaced variant.
+    Create the □ (upload) character and all its variants (bold_first, bold, 
+    bold_spaced, regular_spaced).
     
-    The □ character is used for uploaded images and should have extra spacing
-    when used as an initial image (like arity-0 functions).
+    The □ character is used for uploaded images and should follow the same
+    spacing rules as other characters - it acts like an arity-0 function.
+    
+    Returns a dict with glyph names for each variant.
     """
-    from fontTools.pens.t2CharStringPen import T2CharStringPen
     from fontTools.ttLib.tables._g_l_y_f import Glyph
     
     upload_codepoint = ord(UPLOAD_CHAR)
@@ -116,12 +118,11 @@ def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
         inner_bottom = bottom + stroke_width
         inner_top = top - stroke_width
         
-        # Create glyph using pen
+        # Create glyph
         glyph = Glyph()
         glyph.numberOfContours = 2
         
-        # Outer square (clockwise)
-        # Inner square (counter-clockwise for hole)
+        # Outer square (clockwise), inner square (counter-clockwise for hole)
         glyph.coordinates = [
             (left, bottom), (left, top), (right, top), (right, bottom),
             (inner_left, inner_bottom), (inner_right, inner_bottom), 
@@ -137,31 +138,67 @@ def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
         
         print(f"  Created □ glyph: {upload_glyph_name}")
     
-    # Get the existing glyph metrics
+    # Get the existing glyph metrics (use same for all variants since □ has no bold)
     upload_width, upload_lsb = hmtx.metrics[upload_glyph_name]
     upload_glyph_data = glyf[upload_glyph_name]
     
-    # Create spaced variant in PUA
-    spaced_codepoint = pua_start
-    spaced_glyph_name = f"uni{spaced_codepoint:04X}"
+    result = {
+        'regular': upload_glyph_name,
+    }
     
-    glyph_order.append(spaced_glyph_name)
-    glyf.glyphs[spaced_glyph_name] = upload_glyph_data
-    hmtx.metrics[spaced_glyph_name] = (upload_width + FUNCTION_GAP, upload_lsb)
-    cmap[spaced_codepoint] = spaced_glyph_name
+    pua_index = pua_start
     
-    # Update cmap tables
+    # Create bold_first variant
+    bf_codepoint = pua_index
+    pua_index += 1
+    bf_name = f"uni{bf_codepoint:04X}"
+    glyph_order.append(bf_name)
+    glyf.glyphs[bf_name] = upload_glyph_data
+    hmtx.metrics[bf_name] = (upload_width, upload_lsb)
+    cmap[bf_codepoint] = bf_name
+    result['bold_first'] = bf_name
+    
+    # Create bold variant
+    bold_codepoint = pua_index
+    pua_index += 1
+    bold_name = f"uni{bold_codepoint:04X}"
+    glyph_order.append(bold_name)
+    glyf.glyphs[bold_name] = upload_glyph_data
+    hmtx.metrics[bold_name] = (upload_width, upload_lsb)
+    cmap[bold_codepoint] = bold_name
+    result['bold'] = bold_name
+    
+    # Create bold_spaced variant
+    bs_codepoint = pua_index
+    pua_index += 1
+    bs_name = f"uni{bs_codepoint:04X}"
+    glyph_order.append(bs_name)
+    glyf.glyphs[bs_name] = upload_glyph_data
+    hmtx.metrics[bs_name] = (upload_width + FUNCTION_GAP, upload_lsb)
+    cmap[bs_codepoint] = bs_name
+    result['bold_spaced'] = bs_name
+    
+    # Create regular_spaced variant
+    rs_codepoint = pua_index
+    pua_index += 1
+    rs_name = f"uni{rs_codepoint:04X}"
+    glyph_order.append(rs_name)
+    glyf.glyphs[rs_name] = upload_glyph_data
+    hmtx.metrics[rs_name] = (upload_width + FUNCTION_GAP, upload_lsb)
+    cmap[rs_codepoint] = rs_name
+    result['regular_spaced'] = rs_name
+    
+    # Update font
     font.setGlyphOrder(glyph_order)
     glyf.glyphOrder = glyph_order
     
     for table in font['cmap'].tables:
         if hasattr(table, 'cmap'):
-            table.cmap[upload_codepoint] = upload_glyph_name
-            table.cmap[spaced_codepoint] = spaced_glyph_name
+            table.cmap.update(cmap)
     
-    print(f"  Created □ spaced variant: {spaced_glyph_name}")
+    print(f"  Created □ variants: {result}")
     
-    return upload_glyph_name, spaced_glyph_name
+    return result
 
 
 def build_font():
