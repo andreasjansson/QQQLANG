@@ -1127,6 +1127,11 @@
     });
     
     input.addEventListener('input', () => {
+      console.log('[input event] input.value length:', input.value.length);
+      for (let i = 0; i < input.value.length; i++) {
+        const c = [...input.value][i];
+        console.log(`  [input event] char[${i}]: code=${c?.codePointAt(0)?.toString(16)}`);
+      }
       updateURL(input.value);
       render();
       updateHelpDisplay();
