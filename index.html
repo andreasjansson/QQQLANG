@@ -467,24 +467,17 @@
     let pendingReplaceIndex = null;
     
     async function handleImageUpload(blob, insertAtCursor = true) {
-      console.log('[handleImageUpload] blob size:', blob.size, 'type:', blob.type, 'pendingReplaceIndex:', pendingReplaceIndex);
-      
       let hash = null;
       try {
         hash = await uploadImageToWorker(blob);
-        console.log('[handleImageUpload] got hash:', hash);
       } catch (err) {
         console.error('Upload to server failed:', err);
       }
       
       if (pendingReplaceIndex !== null) {
-        // Replacing existing upload at specific index
-        console.log('[handleImageUpload] REPLACING upload at index', pendingReplaceIndex);
         setUploadedImage(pendingReplaceIndex, blob, hash);
         pendingReplaceIndex = null;
       } else {
-        // Adding new upload
-        console.log('[handleImageUpload] ADDING new upload');
         const newIndex = getNextAvailableIndex();
         setUploadedImage(newIndex, blob, hash);
         
