@@ -1032,8 +1032,9 @@
     document.body.appendChild(measureSpan);
     
     function getCharacterXPosition(text, charIndex) {
-      // Measure width up to the character
-      measureSpan.textContent = text.substring(0, charIndex);
+      // Measure width up to the character (handle multi-byte chars correctly)
+      const chars = [...text];
+      measureSpan.textContent = chars.slice(0, charIndex).join('');
       return measureSpan.offsetWidth;
     }
     
