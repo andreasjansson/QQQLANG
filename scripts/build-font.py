@@ -42,6 +42,8 @@ FUNCTION_GAP = 150  # ~15px at 22px font size
 REGULAR_WEIGHT = 400
 BOLD_WEIGHT = 700
 
+UPLOAD_CHAR = '□'  # U+25A1 - special character for uploaded images
+
 
 def parse_character_defs():
     content = CHARACTER_DEFS_PATH.read_text()
