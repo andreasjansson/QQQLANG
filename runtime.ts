@@ -566,6 +566,8 @@ export function getExpectedNextType(program: string): 'function' | 'int' | 'colo
 }
 
 export function getExpectedTypeAtPosition(program: string, cursorPosition: number): 'function' | 'int' | 'color' | 'index' | 'initial' {
+  console.log(`[getExpectedTypeAtPosition] program.length=${program.length} cursorPosition=${cursorPosition}`);
   const beforeCursor = program.substring(0, cursorPosition);
+  console.log(`[getExpectedTypeAtPosition] beforeCursor.length=${beforeCursor.length}`);
   return getExpectedNextType(beforeCursor);
 }
