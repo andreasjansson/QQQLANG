@@ -511,30 +511,35 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     
     # === LOOKUPS ===
     
-    # regular → bold_first
+    # regular → bold_first (for all chars including uploads)
     fea_lines.append("lookup regular_to_bold_first {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {glyph_name_map[char]} by {bold_first_glyph_map[char]};")
-    if upload_variants:
-        fea_lines.append(f"    sub {upload_variants['regular']} by {upload_variants['bold_first']};")
+    if upload_chars:
+        for i in range(UPLOAD_COUNT):
+            fea_lines.append(f"    sub {upload_regular[i]} by {upload_bold_first[i]};")
     fea_lines.append("} regular_to_bold_first;")
     fea_lines.append("")
     
-    # bold_first → bold (for non-first chars)
+    # bold_first → bold (for non-first regular chars only, not uploads)
     fea_lines.append("lookup bold_first_to_bold {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_first_glyph_map[char]} by {bold_glyph_map[char]};")
-    if upload_variants:
-        fea_lines.append(f"    sub {upload_variants['bold_first']} by {upload_variants['bold']};")
     fea_lines.append("} bold_first_to_bold;")
     fea_lines.append("")
+    
+    # upload_bold_first → upload_regular (uploads skip bold state)
+    if upload_chars:
+        fea_lines.append("lookup upload_bold_first_to_regular {")
+        for i in range(UPLOAD_COUNT):
+            fea_lines.append(f"    sub {upload_bold_first[i]} by {upload_regular[i]};")
+        fea_lines.append("} upload_bold_first_to_regular;")
+        fea_lines.append("")
     
     # bold → regular (for arguments)
     fea_lines.append("lookup bold_to_regular {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_glyph_map[char]} by {glyph_name_map[char]};")
-    if upload_variants:
-        fea_lines.append(f"    sub {upload_variants['bold']} by {upload_variants['regular']};")
     fea_lines.append("} bold_to_regular;")
     fea_lines.append("")
     
@@ -542,28 +547,33 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("lookup regular_to_regular_spaced {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {glyph_name_map[char]} by {regular_spaced_glyph_map[char]};")
-    if upload_variants:
-        fea_lines.append(f"    sub {upload_variants['regular']} by {upload_variants['regular_spaced']};")
+    if upload_chars:
+        for i in range(UPLOAD_COUNT):
+            fea_lines.append(f"    sub {upload_regular[i]} by {upload_regular_spaced[i]};")
     fea_lines.append("} regular_to_regular_spaced;")
     fea_lines.append("")
     
-    # bold → bold_spaced (for arity-0 functions)
+    # bold → bold_spaced (for arity-0 functions, not uploads)
     fea_lines.append("lookup bold_to_bold_spaced {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_glyph_map[char]} by {bold_spaced_glyph_map[char]};")
-    if upload_variants:
-        fea_lines.append(f"    sub {upload_variants['bold']} by {upload_variants['bold_spaced']};")
     fea_lines.append("} bold_to_bold_spaced;")
     fea_lines.append("")
     
-    # bold_first → bold_spaced (for first char, which is complete)
+    # bold_first → bold_spaced (for first regular char)
     fea_lines.append("lookup bold_first_to_bold_spaced {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_first_glyph_map[char]} by {bold_spaced_glyph_map[char]};")
-    if upload_variants:
-        fea_lines.append(f"    sub {upload_variants['bold_first']} by {upload_variants['bold_spaced']};")
     fea_lines.append("} bold_first_to_bold_spaced;")
     fea_lines.append("")
+    
+    # upload_bold_first → upload_regular_spaced (for first upload char)
+    if upload_chars:
+        fea_lines.append("lookup upload_bold_first_to_regular_spaced {")
+        for i in range(UPLOAD_COUNT):
+            fea_lines.append(f"    sub {upload_bold_first[i]} by {upload_regular_spaced[i]};")
+        fea_lines.append("} upload_bold_first_to_regular_spaced;")
+        fea_lines.append("")
     
     # === PASS LOOKUPS (defined outside feature for explicit ordering) ===
     
