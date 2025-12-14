@@ -193,16 +193,26 @@
       width: 22px;
       height: 22px;
       pointer-events: none;
-      color: #E61A1A;
-      font-size: 18px;
-      font-weight: bold;
-      line-height: 22px;
-      text-align: center;
-      text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
+    }
+    
+    .upload-thumbnail-x::before,
+    .upload-thumbnail-x::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 141%;
+      height: 3px;
+      background: #E61A1A;
+      transform-origin: center;
+    }
+    
+    .upload-thumbnail-x::before {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+    
+    .upload-thumbnail-x::after {
+      transform: translate(-50%, -50%) rotate(-45deg);
     }
     
     .toolbar-button {
