@@ -778,7 +778,18 @@
       const cursorPos = input.selectionStart ?? input.value.length;
       const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
       if (expectedType === 'initial' || expectedType === 'index') {
-        pendingUploadIndex = null;
+        const chars = [...input.value];
+        const charAtCursor = chars[cursorPos];
+        const charBeforeCursor = cursorPos > 0 ? chars[cursorPos - 1] : null;
+        
+        if (charAtCursor === UPLOAD_CHAR) {
+          pendingUploadIndex = getUploadCharIndex(input.value, cursorPos + 1);
+        } else if (charBeforeCursor === UPLOAD_CHAR) {
+          pendingUploadIndex = getUploadCharIndex(input.value, cursorPos);
+        } else {
+          pendingUploadIndex = null;
+        }
+        
         fileInput.click();
       }
     });
