@@ -457,13 +457,14 @@
   <input type="file" id="file-input" accept="image/*" style="display: none;">
 
   <script type="module">
-    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, addUploadedImage, setUploadedImage, getUploadedImageHash, getNextAvailableIndex, hasUploadedImage, preloadUploadedImages, clearUploadedImages, getInvalidUploadIndices } from './runtime.ts';
+    import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, addUploadedImage, setUploadedImage, getUploadedImageHash, getUploadedBlob, getNextAvailableIndex, hasUploadedImage, preloadUploadedImages, clearUploadedImages, getInvalidUploadIndices } from './runtime.ts';
     import { characterDefs, emeraldReady, bgRemovalReady, UPLOAD_CHAR, UPLOAD_COUNT, isIndexedUpload, isInvalidUpload, isAnyUpload, getUploadIndex, getUploadChar, getInvalidUploadChar, ChoiceType, formatFunctionHelp } from './character-defs.ts';
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const input = document.getElementById('program-input');
     const inputContainer = document.getElementById('input-container');
+    const thumbnailOverlay = document.getElementById('thumbnail-overlay');
     const debugPane = document.getElementById('debug-pane');
     const helpButton = document.getElementById('help-button');
     const downloadButton = document.getElementById('download-button');
