@@ -544,6 +544,19 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("} pass5_first;")
     fea_lines.append("")
     
+    # Pass 6: Upload character □ gets spacing (it acts like an initial image)
+    has_upload_char = upload_glyph_name and upload_spaced_glyph_name
+    if has_upload_char:
+        fea_lines.append("lookup upload_to_spaced {")
+        fea_lines.append(f"    sub {upload_glyph_name} by {upload_spaced_glyph_name};")
+        fea_lines.append("} upload_to_spaced;")
+        fea_lines.append("")
+        
+        fea_lines.append("lookup pass6_upload {")
+        fea_lines.append(f"    sub {upload_glyph_name}' lookup upload_to_spaced;")
+        fea_lines.append("} pass6_upload;")
+        fea_lines.append("")
+    
     # === FEATURE (references lookups in order) ===
     fea_lines.append("feature calt {")
     fea_lines.append("    lookup pass1a;")
