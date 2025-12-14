@@ -126,6 +126,11 @@ export function hasUploadedImage(index: number): boolean {
   return uploadedImages.has(index);
 }
 
+// Get the blob for an uploaded image (for thumbnail generation)
+export function getUploadedBlob(index: number): Blob | null {
+  return uploadedImages.get(index)?.blob ?? null;
+}
+
 export function getUploadedImageCount(): number {
   return uploadedImages.size;
 }
