@@ -104,6 +104,8 @@ def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
         print(f"  Found existing □ glyph: {upload_glyph_name}")
     else:
         # Create a simple square outline for □
+        from fontTools.ttLib.tables._g_l_y_f import GlyphCoordinates
+        
         upload_glyph_name = 'uni25A1'
         
         stroke_width = int(units_per_em * 0.06)
@@ -123,13 +125,20 @@ def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
         glyph.numberOfContours = 2
         
         # Outer square (clockwise), inner square (counter-clockwise for hole)
-        glyph.coordinates = [
+        coords = [
             (left, bottom), (left, top), (right, top), (right, bottom),
             (inner_left, inner_bottom), (inner_right, inner_bottom), 
             (inner_right, inner_top), (inner_left, inner_top)
         ]
+        glyph.coordinates = GlyphCoordinates(coords)
         glyph.flags = [1] * 8  # All on-curve points
         glyph.endPtsOfContours = [3, 7]
+        
+        # Set bounds
+        glyph.xMin = left
+        glyph.yMin = bottom
+        glyph.xMax = right
+        glyph.yMax = top
         
         glyph_order.append(upload_glyph_name)
         glyf.glyphs[upload_glyph_name] = glyph
