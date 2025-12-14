@@ -7,10 +7,10 @@
     "build:font": "node scripts/build-font.js",
     "build": "npm run build:font && tsc && vite build",
     "preview": "vite preview",
-    "postinstall": "cd node_modules/opentype.js && npm install && npm run build"
+    "postinstall": "cd node_modules/opentype.js && npm install --ignore-scripts && npm run build"
   },
   "devDependencies": {
-    "opentype.js": "github:opentypejs/opentype.js",
+    "opentype.js": "git+https://github.com/opentypejs/opentype.js.git",
     "typescript": "^5.3.3",
     "vite": "^5.0.0"
   },
