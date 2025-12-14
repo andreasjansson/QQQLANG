@@ -387,23 +387,29 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("")
     
     # Pass 2: Un-bold arguments
-    # For each arg position, we look for fn_bold followed by that many @any, then @bold
-    # Each arg position is handled separately (don't require all args)
-    fea_lines.append("    # Pass 2: Un-bold arguments of functions")
+    # Key insight: Process by ARG POSITION, not by arity!
+    # This ensures left-to-right processing: B consumes its arg before L can act as a function.
+    #
+    # For each arg position P (1, 2, 3, ...):
+    #   For each arity N >= P:
+    #     Rule: @fnN_bold [P-1 @any] @bold' [N-P @any]
+    #     (Requires complete arg pattern so we don't partially consume)
     
-    for arity in sorted([a for a in by_arity.keys() if a > 0], reverse=True):
-        fea_lines.append(f"    # Arity {arity}")
-        fea_lines.append(f"    lookup pass2_arity{arity} {{")
+    fea_lines.append("    # Pass 2: Un-bold arguments (by arg position, not arity)")
+    
+    for arg_pos in range(1, max_arity + 1):
+        fea_lines.append(f"    # Arg position {arg_pos}")
+        fea_lines.append(f"    lookup pass2_arg{arg_pos} {{")
         
-        fn_class = f"@fn{arity}_bold"
+        # For each arity that has this arg position
+        for arity in sorted([a for a in by_arity.keys() if a >= arg_pos], reverse=True):
+            fn_class = f"@fn{arity}_bold"
+            # Pattern: fn, then (arg_pos-1) @any, then @bold' (target), then (arity-arg_pos) @any
+            preceding = " @any" * (arg_pos - 1)
+            following = " @any" * (arity - arg_pos)
+            fea_lines.append(f"        sub {fn_class}{preceding} @bold' lookup bold_to_regular{following};")
         
-        # For each arg position 1..arity: un-bold if present
-        for arg_pos in range(1, arity + 1):
-            # Pattern: fn_bold, then (arg_pos-1) @any, then @bold' to convert
-            preceding_any = " @any" * (arg_pos - 1)
-            fea_lines.append(f"        sub {fn_class}{preceding_any} @bold' lookup bold_to_regular;")
-        
-        fea_lines.append(f"    }} pass2_arity{arity};")
+        fea_lines.append(f"    }} pass2_arg{arg_pos};")
         fea_lines.append("")
     
     # Pass 3: Add spacing to last arg of COMPLETE calls
