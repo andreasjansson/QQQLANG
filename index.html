@@ -502,6 +502,7 @@
       }
       
       if (pendingReplaceIndex !== null) {
+        thumbnailCache.delete(pendingReplaceIndex);
         setUploadedImage(pendingReplaceIndex, blob, hash);
         pendingReplaceIndex = null;
       } else {
