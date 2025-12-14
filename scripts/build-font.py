@@ -42,7 +42,11 @@ FUNCTION_GAP = 150  # ~15px at 22px font size
 REGULAR_WEIGHT = 400
 BOLD_WEIGHT = 700
 
-UPLOAD_CHAR = '□'  # U+25A1 - special character for uploaded images
+# Upload character configuration
+UPLOAD_CHAR = '□'  # U+25A1 - unassigned upload placeholder
+UPLOAD_COUNT = 256
+UPLOAD_REGULAR_BASE = 0xE200  # U+E200 to U+E2FF: valid upload □ (256 indices)
+UPLOAD_INVALID_BASE = 0xE300  # U+E300 to U+E3FF: invalid upload ■ (256 indices)
 
 
 def parse_character_defs():
