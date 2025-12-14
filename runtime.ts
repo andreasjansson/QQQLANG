@@ -231,7 +231,6 @@ function parseProgram(program: string): ParseResult {
   const chars = [...program].filter(isValidProgramChar);
   
   if (chars.length === 0) {
-    console.log('Empty program, returning []');
     return { ops: [], invalidUploadIndices: new Set() };
   }
 
@@ -242,16 +241,12 @@ function parseProgram(program: string): ParseResult {
   const firstUploadIdx = getUploadIndex(firstChar);
   
   if (firstUploadIdx !== null) {
-    // First character is an indexed upload (valid position)
-    console.log(`[0] First char is indexed upload ${firstUploadIdx}`);
     ops.push({
       type: 'uploaded-image',
       identifier: firstChar,
       uploadIndex: firstUploadIdx
     });
   } else if (firstChar === UPLOAD_CHAR) {
-    // Unassigned upload placeholder - treat as black
-    console.log(`[0] First char is unassigned upload □ -> black`);
     ops.push({
       type: 'solid',
       identifier: firstChar,
@@ -260,8 +255,6 @@ function parseProgram(program: string): ParseResult {
   } else {
     const firstDef = characterDefs[firstChar];
     const firstColor = firstDef ? firstDef.color : '#000000';
-    
-    console.log(`[0] First char '${firstChar}' -> solid color ${firstColor}`);
     ops.push({
       type: 'solid',
       identifier: firstChar,
@@ -274,10 +267,7 @@ function parseProgram(program: string): ParseResult {
     const char = chars[i];
     const uploadIdx = getUploadIndex(char);
     
-    // Upload in function position is INVALID
     if (uploadIdx !== null || char === UPLOAD_CHAR) {
-      const idx = uploadIdx ?? -1;  // -1 for unassigned
-      console.log(`[${i}] upload ${idx} in function position -> INVALID`);
       if (uploadIdx !== null) {
         invalidUploadIndices.add(uploadIdx);
       }
@@ -288,7 +278,6 @@ function parseProgram(program: string): ParseResult {
     const def = characterDefs[char];
     
     if (!def) {
-      console.log(`[${i}] '${char}' undefined, skipping`);
       i++;
       continue;
     }
@@ -296,21 +285,17 @@ function parseProgram(program: string): ParseResult {
     const args: (number | string | UploadedImageRef)[] = [];
     let argsConsumed = 0;
 
-    console.log(`[${i}] '${char}' -> ${def.functionName}, arity ${def.args.length}`);
-
     for (let argIdx = 0; argIdx < def.args.length; argIdx++) {
       const argDef = def.args[argIdx];
       const argType = argDef.type;
       let nextCharIdx = i + 1 + argsConsumed;
       
-      // Skip any upload chars in non-index positions (they're invalid there)
       while (nextCharIdx < chars.length) {
         const nextChar = chars[nextCharIdx];
         const nextUploadIdx = getUploadIndex(nextChar);
         const isUpload = nextUploadIdx !== null || nextChar === UPLOAD_CHAR;
         
         if (isUpload && !(argType instanceof IndexType)) {
-          console.log(`  arg[${argIdx}] (${argType.name}): upload in non-INDEX position -> INVALID`);
           if (nextUploadIdx !== null) {
             invalidUploadIndices.add(nextUploadIdx);
           }
@@ -326,18 +311,13 @@ function parseProgram(program: string): ParseResult {
         const argUploadIdx = getUploadIndex(argChar);
         
         if (argUploadIdx !== null) {
-          // Indexed upload as INDEX argument (valid)
           args.push({ type: 'uploaded', index: argUploadIdx });
-          console.log(`  arg[${argIdx}] (${argType.name}): indexed upload ${argUploadIdx}`);
           argsConsumed++;
         } else if (argChar === UPLOAD_CHAR) {
-          // Unassigned upload - use default
           if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
             args.push(def.number);
-            console.log(`  arg[${argIdx}] (${argType.name}): unassigned upload, using default ${def.number}`);
           } else {
             args.push(def.color);
-            console.log(`  arg[${argIdx}] (${argType.name}): unassigned upload, using default ${def.color}`);
           }
           argsConsumed++;
         } else {
@@ -346,37 +326,29 @@ function parseProgram(program: string): ParseResult {
           if (charDef) {
             if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
               args.push(charDef.number);
-              console.log(`  arg[${argIdx}] (${argType.name}): '${argChar}' -> ${charDef.number}`);
             } else {
               args.push(charDef.color);
-              console.log(`  arg[${argIdx}] (${argType.name}): '${argChar}' -> ${charDef.color}`);
             }
             argsConsumed++;
           } else {
             if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
               args.push(def.number);
-              console.log(`  arg[${argIdx}] (${argType.name}): '${argChar}' undefined, using default ${def.number}`);
             } else {
               args.push(def.color);
-              console.log(`  arg[${argIdx}] (${argType.name}): '${argChar}' undefined, using default ${def.color}`);
             }
           }
         }
       } else {
         if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
           args.push(def.number);
-          console.log(`  arg[${argIdx}] (${argType.name}): EOF, using default ${def.number}`);
         } else {
           args.push(def.color);
-          console.log(`  arg[${argIdx}] (${argType.name}): EOF, using default ${def.color}`);
         }
       }
     }
 
     const endIndex = i + 1 + argsConsumed;
     const identifier = chars.slice(0, endIndex).join('');
-    
-    console.log(`  identifier: "${identifier}"`);
     
     ops.push({
       type: 'function',
@@ -388,7 +360,6 @@ function parseProgram(program: string): ParseResult {
     i += 1 + argsConsumed;
   }
 
-  console.log(`Parsed into ${ops.length} operations, ${invalidUploadIndices.size} invalid uploads`);
   return { ops, invalidUploadIndices };
 }
 
