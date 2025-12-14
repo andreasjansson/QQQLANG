@@ -935,101 +935,32 @@
       }
     }
     
-    // Flag to prevent re-entrancy when updating input display
-    let isUpdatingDisplay = false;
-    
-    // Update display to show uploads in invalid positions as filled squares
-    // Both valid (□ U+E200+i) and invalid (■ U+E300+i) map to the same index
-    function updateInvalidUploadDisplay() {
-      if (isUpdatingDisplay) {
-        console.log('[updateInvalidUploadDisplay] SKIPPING - already updating');
-        return;
-      }
-      
+    // Sync upload characters in input to show valid (□) or invalid (■) based on position
+    function syncUploadChars() {
       const program = input.value || '';
+      if (!program) return;
+      
       const invalidIndices = getInvalidUploadIndices(program);
       
-      console.log('[updateInvalidUploadDisplay] program:', program, 'length:', program.length);
-      console.log('[updateInvalidUploadDisplay] invalidIndices:', invalidIndices);
-      
-      // Log each character's code point
-      for (let i = 0; i < program.length; i++) {
-        const char = [...program][i];
-        const code = char?.codePointAt(0);
-        const uploadIdx = getUploadIndex(char);
-        console.log(`  char[${i}]: "${char}" code=${code?.toString(16)} uploadIdx=${uploadIdx}`);
-      }
-      
-      if (invalidIndices.size === 0) {
-        // No invalid uploads - make sure all are shown as valid (outline)
-        let needsUpdate = false;
-        let newProgram = '';
-        for (const char of program) {
-          const idx = getUploadIndex(char);
-          if (idx !== null && isInvalidUpload(char)) {
-            // Convert invalid display back to valid
-            newProgram += getUploadChar(idx);
-            needsUpdate = true;
-          } else {
-            newProgram += char;
-          }
-        }
-        if (needsUpdate) {
-          const cursorPos = input.selectionStart;
-          const selEnd = input.selectionEnd;
-          input.value = newProgram;
-          input.selectionStart = cursorPos;
-          input.selectionEnd = selEnd;
-        }
-        return;
-      }
-      
-      // Convert uploads in invalid positions to filled squares
-      let needsUpdate = false;
       let newProgram = '';
       for (const char of program) {
         const idx = getUploadIndex(char);
         if (idx !== null) {
-          if (invalidIndices.has(idx) && !isInvalidUpload(char)) {
-            // Should be invalid but showing as valid - convert to filled
-            const invalidChar = getInvalidUploadChar(idx);
-            console.log(`  Converting upload ${idx} to invalid: U+${invalidChar.codePointAt(0).toString(16)}`);
-            newProgram += invalidChar;
-            needsUpdate = true;
-          } else if (!invalidIndices.has(idx) && isInvalidUpload(char)) {
-            // Should be valid but showing as invalid - convert to outline
-            const validChar = getUploadChar(idx);
-            console.log(`  Converting upload ${idx} to valid: U+${validChar.codePointAt(0).toString(16)}`);
-            newProgram += validChar;
-            needsUpdate = true;
-          } else {
-            newProgram += char;
-          }
+          // Use invalid (filled) or valid (outline) based on position
+          newProgram += invalidIndices.has(idx) 
+            ? getInvalidUploadChar(idx) 
+            : getUploadChar(idx);
         } else {
           newProgram += char;
         }
       }
       
-      if (needsUpdate) {
-        console.log(`  Setting input.value to: length=${newProgram.length}`);
-        for (let i = 0; i < newProgram.length; i++) {
-          const c = [...newProgram][i];
-          console.log(`    newProgram[${i}]: code=${c?.codePointAt(0)?.toString(16)}`);
-        }
+      if (newProgram !== program) {
         const cursorPos = input.selectionStart;
         const selEnd = input.selectionEnd;
-        
-        isUpdatingDisplay = true;
         input.value = newProgram;
         input.selectionStart = cursorPos;
         input.selectionEnd = selEnd;
-        isUpdatingDisplay = false;
-        
-        console.log(`  After setting, input.value length=${input.value.length}`);
-        for (let i = 0; i < input.value.length; i++) {
-          const c = [...input.value][i];
-          console.log(`    actual[${i}]: code=${c?.codePointAt(0)?.toString(16)}`);
-        }
       }
     }
     
