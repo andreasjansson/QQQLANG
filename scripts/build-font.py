@@ -368,22 +368,18 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("} bold_first_to_bold_spaced;")
     fea_lines.append("")
     
-    # === FEATURE ===
-    fea_lines.append("feature calt {")
+    # === PASS LOOKUPS (defined outside feature for explicit ordering) ===
     
     # Pass 1a: Convert all regular to bold_first
-    fea_lines.append("    # Pass 1a: All chars become bold_first")
-    fea_lines.append("    lookup pass1a {")
-    fea_lines.append("        sub @regular' lookup regular_to_bold_first;")
-    fea_lines.append("    } pass1a;")
+    fea_lines.append("lookup pass1a {")
+    fea_lines.append("    sub @regular' lookup regular_to_bold_first;")
+    fea_lines.append("} pass1a;")
     fea_lines.append("")
     
     # Pass 1b: Any bold_first preceded by @preceded_by becomes bold
-    # This leaves only the FIRST char as bold_first
-    fea_lines.append("    # Pass 1b: Non-first chars become bold")
-    fea_lines.append("    lookup pass1b {")
-    fea_lines.append("        sub @preceded_by @bold_first' lookup bold_first_to_bold;")
-    fea_lines.append("    } pass1b;")
+    fea_lines.append("lookup pass1b {")
+    fea_lines.append("    sub @preceded_by @bold_first' lookup bold_first_to_bold;")
+    fea_lines.append("} pass1b;")
     fea_lines.append("")
     
     # Pass 2: Un-bold arguments
@@ -401,57 +397,55 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     #   pass2_arg2: L@1 consumes L@3 (its arg2)
     #   pass2_arg1: L@1 consumes L@2 (its arg1), L@3 is now regular so not a fn
     #   Result: A* L* L L L* (correct!)
-    #
-    # The key insight: By processing later arg positions first, we mark those
-    # chars as regular BEFORE earlier arg position passes can mistake them
-    # for functions.
     
-    fea_lines.append("    # Pass 2: Un-bold arguments (DESCENDING arg position order)")
-    
+    pass2_lookup_names = []
     for arg_pos in range(max_arity, 0, -1):  # max_arity down to 1
-        fea_lines.append(f"    # Arg position {arg_pos}")
-        fea_lines.append(f"    lookup pass2_arg{arg_pos} {{")
+        lookup_name = f"pass2_arg{arg_pos}"
+        pass2_lookup_names.append(lookup_name)
         
-        # For each arity that has this arg position
+        fea_lines.append(f"lookup {lookup_name} {{")
+        
+        # For each arity that has this arg position (highest arity first)
         for arity in sorted([a for a in by_arity.keys() if a >= arg_pos], reverse=True):
             fn_class = f"@fn{arity}_bold"
-            # Pattern: fn, then (arg_pos-1) @any, then @bold' (target)
-            # NO lookahead - handles incomplete calls too
             preceding = " @any" * (arg_pos - 1)
-            fea_lines.append(f"        sub {fn_class}{preceding} @bold' lookup bold_to_regular;")
+            fea_lines.append(f"    sub {fn_class}{preceding} @bold' lookup bold_to_regular;")
         
-        fea_lines.append(f"    }} pass2_arg{arg_pos};")
+        fea_lines.append(f"}} {lookup_name};")
         fea_lines.append("")
     
     # Pass 3: Add spacing to last arg of COMPLETE calls
-    # A call is complete if fn_bold is followed by exactly N chars (all should be @regular now)
-    # The last one gets spacing
-    fea_lines.append("    # Pass 3: Add spacing to last arg of complete calls")
-    fea_lines.append("    lookup pass3_spacing {")
-    
+    fea_lines.append("lookup pass3_spacing {")
     for arity in sorted([a for a in by_arity.keys() if a > 0], reverse=True):
         fn_class = f"@fn{arity}_bold"
-        # Pattern: fn_bold, then (arity-1) @any, then @regular' → regular_spaced
         preceding_any = " @any" * (arity - 1)
-        fea_lines.append(f"        sub {fn_class}{preceding_any} @regular' lookup regular_to_regular_spaced;")
-    
-    fea_lines.append("    } pass3_spacing;")
+        fea_lines.append(f"    sub {fn_class}{preceding_any} @regular' lookup regular_to_regular_spaced;")
+    fea_lines.append("} pass3_spacing;")
     fea_lines.append("")
     
     # Pass 4: Arity-0 functions get spacing
     if 0 in by_arity:
-        fea_lines.append("    # Pass 4: Arity-0 functions get spacing")
-        fea_lines.append("    lookup pass4_arity0 {")
-        fea_lines.append("        sub @fn0_bold' lookup bold_to_bold_spaced;")
-        fea_lines.append("    } pass4_arity0;")
+        fea_lines.append("lookup pass4_arity0 {")
+        fea_lines.append("    sub @fn0_bold' lookup bold_to_bold_spaced;")
+        fea_lines.append("} pass4_arity0;")
         fea_lines.append("")
     
     # Pass 5: First char (bold_first) gets spacing
-    fea_lines.append("    # Pass 5: First char gets spacing")
-    fea_lines.append("    lookup pass5_first {")
-    fea_lines.append("        sub @bold_first' lookup bold_first_to_bold_spaced;")
-    fea_lines.append("    } pass5_first;")
+    fea_lines.append("lookup pass5_first {")
+    fea_lines.append("    sub @bold_first' lookup bold_first_to_bold_spaced;")
+    fea_lines.append("} pass5_first;")
+    fea_lines.append("")
     
+    # === FEATURE (references lookups in order) ===
+    fea_lines.append("feature calt {")
+    fea_lines.append("    lookup pass1a;")
+    fea_lines.append("    lookup pass1b;")
+    for lookup_name in pass2_lookup_names:
+        fea_lines.append(f"    lookup {lookup_name};")
+    fea_lines.append("    lookup pass3_spacing;")
+    if 0 in by_arity:
+        fea_lines.append("    lookup pass4_arity0;")
+    fea_lines.append("    lookup pass5_first;")
     fea_lines.append("} calt;")
     
     fea_code = "\n".join(fea_lines)
