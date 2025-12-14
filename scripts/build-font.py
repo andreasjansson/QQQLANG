@@ -47,6 +47,7 @@ UPLOAD_CHAR = '□'  # U+25A1 - unassigned upload placeholder
 UPLOAD_COUNT = 256
 UPLOAD_REGULAR_BASE = 0xE200  # U+E200 to U+E2FF: valid upload □ (256 indices)
 UPLOAD_INVALID_BASE = 0xE300  # U+E300 to U+E3FF: invalid upload ■ (256 indices)
+UPLOAD_GSUB_BASE = 0xE400     # U+E400+: upload GSUB variants (bold_first, regular_spaced)
 
 
 def parse_character_defs():
