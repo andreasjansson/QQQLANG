@@ -1043,6 +1043,13 @@
       
       updateDebugPane(program);
       updateFaviconAndTitle(program);
+      
+      console.log('[render] Before updateUploadButtonState, input.value length:', input.value.length);
+      for (let i = 0; i < input.value.length; i++) {
+        const c = [...input.value][i];
+        console.log(`  [render] char[${i}]: code=${c?.codePointAt(0)?.toString(16)}`);
+      }
+      
       updateUploadButtonState();
       updateHelpDisplay();
     }
