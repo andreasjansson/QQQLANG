@@ -397,9 +397,13 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     #   pass2_arg2: L@1 consumes L@3 (its arg2)
     #   pass2_arg1: L@1 consumes L@2 (its arg1), L@3 is now regular so not a fn
     #   Result: A* L* L L L* (correct!)
+    #
+    # NOTE: We define lookups in ASCENDING order (1, 2, 3, ...) because
+    # fontTools/HarfBuzz appears to apply lookups in reverse definition order
+    # when they're referenced from a feature block.
     
     pass2_lookup_names = []
-    for arg_pos in range(max_arity, 0, -1):  # max_arity down to 1
+    for arg_pos in range(1, max_arity + 1):  # 1 to max_arity (ASCENDING - will be reversed)
         lookup_name = f"pass2_arg{arg_pos}"
         pass2_lookup_names.append(lookup_name)
         
