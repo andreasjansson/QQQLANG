@@ -2498,251 +2498,188 @@ function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  // Divide 1-68 into 8 directions + quantization within each direction
-  // Each direction gets ~8-9 values
-  const direction = Math.floor((n - 1) / 8.5) % 8; // 0-7
-  const directionStrength = ((n - 1) % 8.5) / 8.5; // 0-1 within direction
+  // Parameter determines seed pattern and quantization
+  // 1-17: corners (4 corners)
+  // 18-34: edges (4 midpoints of edges)
+  // 35-51: center (single center point)
+  // 52-68: cross (5 points: center + 4 edge midpoints)
+  const seedMode = Math.floor((n - 1) / 17); // 0-3
+  const quantStep = Math.max(1, Math.floor(1 + ((n - 1) % 17) * 3.5)); // 1-60
   
-  // Quantization step: 1 (subtle) to 60 (extreme) within each direction
-  const quantStep = Math.max(1, Math.floor(1 + directionStrength * 59));
+  // Calculate gradient magnitude for each pixel (using luminance)
+  const gradients = new Float32Array(ctx.width * ctx.height);
   
-  // Define prediction directions:
-  // 0: → (left to right) - predict from left
-  // 1: ↘ (top-left to bottom-right) - predict from top-left diagonal
-  // 2: ↓ (top to bottom) - predict from top
-  // 3: ↙ (top-right to bottom-left) - predict from top-right diagonal
-  // 4: ← (right to left) - predict from right
-  // 5: ↖ (bottom-right to top-left) - predict from bottom-right diagonal
-  // 6: ↑ (bottom to top) - predict from bottom
-  // 7: ↗ (bottom-left to top-right) - predict from bottom-left diagonal
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const idx = y * ctx.width + x;
+      
+      // Get luminance
+      const getLum = (px: number, py: number) => {
+        if (px < 0 || px >= ctx.width || py < 0 || py >= ctx.height) return 0;
+        const i = (py * ctx.width + px) * 4;
+        return prev.data[i] * 0.299 + prev.data[i + 1] * 0.587 + prev.data[i + 2] * 0.114;
+      };
+      
+      const lum = getLum(x, y);
+      const lumLeft = getLum(x - 1, y);
+      const lumRight = getLum(x + 1, y);
+      const lumTop = getLum(x, y - 1);
+      const lumBottom = getLum(x, y + 1);
+      
+      // Sobel-like gradient
+      const gx = (lumRight - lumLeft) / 2;
+      const gy = (lumBottom - lumTop) / 2;
+      gradients[idx] = Math.sqrt(gx * gx + gy * gy);
+    }
+  }
+  
+  // Define seed points based on mode
+  const seeds: [number, number][] = [];
+  
+  if (seedMode === 0) {
+    // Four corners
+    seeds.push([0, 0]);
+    seeds.push([ctx.width - 1, 0]);
+    seeds.push([0, ctx.height - 1]);
+    seeds.push([ctx.width - 1, ctx.height - 1]);
+  } else if (seedMode === 1) {
+    // Four edge midpoints
+    seeds.push([Math.floor(ctx.width / 2), 0]); // top
+    seeds.push([Math.floor(ctx.width / 2), ctx.height - 1]); // bottom
+    seeds.push([0, Math.floor(ctx.height / 2)]); // left
+    seeds.push([ctx.width - 1, Math.floor(ctx.height / 2)]); // right
+  } else if (seedMode === 2) {
+    // Center only
+    seeds.push([Math.floor(ctx.width / 2), Math.floor(ctx.height / 2)]);
+  } else {
+    // Cross pattern: center + 4 edge midpoints
+    seeds.push([Math.floor(ctx.width / 2), Math.floor(ctx.height / 2)]);
+    seeds.push([Math.floor(ctx.width / 2), 0]);
+    seeds.push([Math.floor(ctx.width / 2), ctx.height - 1]);
+    seeds.push([0, Math.floor(ctx.height / 2)]);
+    seeds.push([ctx.width - 1, Math.floor(ctx.height / 2)]);
+  }
   
   // Process each channel separately
   for (let channel = 0; channel < 3; channel++) {
     const residuals = new Int16Array(ctx.width * ctx.height);
+    const processed = new Uint8Array(ctx.width * ctx.height);
+    const order: [number, number][] = [];
     
-    // Forward pass: calculate and quantize residuals
-    // Process pixels in direction-appropriate order
-    const processPixel = (x: number, y: number) => {
+    // Priority queue: [x, y, priority (gradient)]
+    // Lower gradient = higher priority (process smooth areas first)
+    const queue: [number, number, number][] = [];
+    
+    // Initialize with seeds
+    for (const [sx, sy] of seeds) {
+      const idx = sy * ctx.width + sx;
+      if (!processed[idx]) {
+        queue.push([sx, sy, gradients[idx]]);
+        processed[idx] = 1;
+      }
+    }
+    
+    // Gradient-guided breadth-first traversal
+    while (queue.length > 0) {
+      // Find minimum gradient in queue
+      let minIdx = 0;
+      let minGrad = queue[0][2];
+      for (let i = 1; i < queue.length; i++) {
+        if (queue[i][2] < minGrad) {
+          minGrad = queue[i][2];
+          minIdx = i;
+        }
+      }
+      
+      const [x, y] = queue.splice(minIdx, 1)[0];
+      order.push([x, y]);
+      
+      // Add unprocessed neighbors to queue
+      const neighbors = [
+        [x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1],
+        [x - 1, y - 1], [x + 1, y - 1], [x - 1, y + 1], [x + 1, y + 1]
+      ];
+      
+      for (const [nx, ny] of neighbors) {
+        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
+          const nidx = ny * ctx.width + nx;
+          if (!processed[nidx]) {
+            queue.push([nx, ny, gradients[nidx]]);
+            processed[nidx] = 1;
+          }
+        }
+      }
+    }
+    
+    // Forward pass: calculate residuals in traversal order
+    for (const [x, y] of order) {
       const idx = y * ctx.width + x;
       const pixelIdx = idx * 4 + channel;
       const actual = prev.data[pixelIdx];
       
+      // Find already-processed neighbors and average them for prediction
+      const neighbors: number[] = [];
+      const offsets = [
+        [-1, 0], [1, 0], [0, -1], [0, 1],
+        [-1, -1], [1, -1], [-1, 1], [1, 1]
+      ];
+      
+      for (const [dx, dy] of offsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
+          const nidx = ny * ctx.width + nx;
+          // Check if neighbor was processed before this pixel
+          const neighborOrder = order.findIndex(([ox, oy]) => ox === nx && oy === ny);
+          const thisOrder = order.findIndex(([ox, oy]) => ox === x && oy === y);
+          if (neighborOrder < thisOrder) {
+            neighbors.push(prev.data[(ny * ctx.width + nx) * 4 + channel]);
+          }
+        }
+      }
+      
       let predicted = 128;
-      
-      const hasLeft = x > 0;
-      const hasRight = x < ctx.width - 1;
-      const hasTop = y > 0;
-      const hasBottom = y < ctx.height - 1;
-      
-      switch (direction) {
-        case 0: // → left to right
-          if (hasLeft) {
-            predicted = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
-          }
-          break;
-          
-        case 1: // ↘ top-left to bottom-right
-          if (hasLeft && hasTop) {
-            predicted = prev.data[((y - 1) * ctx.width + (x - 1)) * 4 + channel];
-          } else if (hasLeft) {
-            predicted = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
-          } else if (hasTop) {
-            predicted = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 2: // ↓ top to bottom
-          if (hasTop) {
-            predicted = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 3: // ↙ top-right to bottom-left
-          if (hasRight && hasTop) {
-            predicted = prev.data[((y - 1) * ctx.width + (x + 1)) * 4 + channel];
-          } else if (hasRight) {
-            predicted = prev.data[(y * ctx.width + (x + 1)) * 4 + channel];
-          } else if (hasTop) {
-            predicted = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 4: // ← right to left
-          if (hasRight) {
-            predicted = prev.data[(y * ctx.width + (x + 1)) * 4 + channel];
-          }
-          break;
-          
-        case 5: // ↖ bottom-right to top-left
-          if (hasRight && hasBottom) {
-            predicted = prev.data[((y + 1) * ctx.width + (x + 1)) * 4 + channel];
-          } else if (hasRight) {
-            predicted = prev.data[(y * ctx.width + (x + 1)) * 4 + channel];
-          } else if (hasBottom) {
-            predicted = prev.data[((y + 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 6: // ↑ bottom to top
-          if (hasBottom) {
-            predicted = prev.data[((y + 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 7: // ↗ bottom-left to top-right
-          if (hasLeft && hasBottom) {
-            predicted = prev.data[((y + 1) * ctx.width + (x - 1)) * 4 + channel];
-          } else if (hasLeft) {
-            predicted = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
-          } else if (hasBottom) {
-            predicted = prev.data[((y + 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
+      if (neighbors.length > 0) {
+        predicted = Math.round(neighbors.reduce((a, b) => a + b, 0) / neighbors.length);
       }
       
       const residual = actual - predicted;
       const quantized = Math.round(residual / quantStep) * quantStep;
       residuals[idx] = quantized;
-    };
-    
-    // Process in appropriate order for each direction
-    if (direction === 0 || direction === 1 || direction === 2) {
-      // Left-to-right, top-to-bottom
-      for (let y = 0; y < ctx.height; y++) {
-        for (let x = 0; x < ctx.width; x++) {
-          processPixel(x, y);
-        }
-      }
-    } else if (direction === 3) {
-      // Right-to-left, top-to-bottom
-      for (let y = 0; y < ctx.height; y++) {
-        for (let x = ctx.width - 1; x >= 0; x--) {
-          processPixel(x, y);
-        }
-      }
-    } else if (direction === 4 || direction === 5 || direction === 6) {
-      // Right-to-left, bottom-to-top
-      for (let y = ctx.height - 1; y >= 0; y--) {
-        for (let x = ctx.width - 1; x >= 0; x--) {
-          processPixel(x, y);
-        }
-      }
-    } else {
-      // Left-to-right, bottom-to-top
-      for (let y = ctx.height - 1; y >= 0; y--) {
-        for (let x = 0; x < ctx.width; x++) {
-          processPixel(x, y);
-        }
-      }
     }
     
-    // Backward pass: reconstruct from quantized residuals
-    const reconstructPixel = (x: number, y: number) => {
+    // Backward pass: reconstruct in same order
+    for (const [x, y] of order) {
       const idx = y * ctx.width + x;
       const outIdx = idx * 4 + channel;
       
+      // Find already-reconstructed neighbors
+      const neighbors: number[] = [];
+      const offsets = [
+        [-1, 0], [1, 0], [0, -1], [0, 1],
+        [-1, -1], [1, -1], [-1, 1], [1, 1]
+      ];
+      
+      for (const [dx, dy] of offsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
+          const nidx = ny * ctx.width + nx;
+          const neighborOrder = order.findIndex(([ox, oy]) => ox === nx && oy === ny);
+          const thisOrder = order.findIndex(([ox, oy]) => ox === x && oy === y);
+          if (neighborOrder < thisOrder) {
+            neighbors.push(out.data[(ny * ctx.width + nx) * 4 + channel]);
+          }
+        }
+      }
+      
       let predicted = 128;
-      
-      const hasLeft = x > 0;
-      const hasRight = x < ctx.width - 1;
-      const hasTop = y > 0;
-      const hasBottom = y < ctx.height - 1;
-      
-      switch (direction) {
-        case 0: // → left to right
-          if (hasLeft) {
-            predicted = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
-          }
-          break;
-          
-        case 1: // ↘ top-left to bottom-right
-          if (hasLeft && hasTop) {
-            predicted = out.data[((y - 1) * ctx.width + (x - 1)) * 4 + channel];
-          } else if (hasLeft) {
-            predicted = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
-          } else if (hasTop) {
-            predicted = out.data[((y - 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 2: // ↓ top to bottom
-          if (hasTop) {
-            predicted = out.data[((y - 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 3: // ↙ top-right to bottom-left
-          if (hasRight && hasTop) {
-            predicted = out.data[((y - 1) * ctx.width + (x + 1)) * 4 + channel];
-          } else if (hasRight) {
-            predicted = out.data[(y * ctx.width + (x + 1)) * 4 + channel];
-          } else if (hasTop) {
-            predicted = out.data[((y - 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 4: // ← right to left
-          if (hasRight) {
-            predicted = out.data[(y * ctx.width + (x + 1)) * 4 + channel];
-          }
-          break;
-          
-        case 5: // ↖ bottom-right to top-left
-          if (hasRight && hasBottom) {
-            predicted = out.data[((y + 1) * ctx.width + (x + 1)) * 4 + channel];
-          } else if (hasRight) {
-            predicted = out.data[(y * ctx.width + (x + 1)) * 4 + channel];
-          } else if (hasBottom) {
-            predicted = out.data[((y + 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 6: // ↑ bottom to top
-          if (hasBottom) {
-            predicted = out.data[((y + 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
-          
-        case 7: // ↗ bottom-left to top-right
-          if (hasLeft && hasBottom) {
-            predicted = out.data[((y + 1) * ctx.width + (x - 1)) * 4 + channel];
-          } else if (hasLeft) {
-            predicted = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
-          } else if (hasBottom) {
-            predicted = out.data[((y + 1) * ctx.width + x) * 4 + channel];
-          }
-          break;
+      if (neighbors.length > 0) {
+        predicted = Math.round(neighbors.reduce((a, b) => a + b, 0) / neighbors.length);
       }
       
       const reconstructed = predicted + residuals[idx];
       out.data[outIdx] = Math.max(0, Math.min(255, reconstructed));
-    };
-    
-    // Reconstruct in same order as encoding
-    if (direction === 0 || direction === 1 || direction === 2) {
-      for (let y = 0; y < ctx.height; y++) {
-        for (let x = 0; x < ctx.width; x++) {
-          reconstructPixel(x, y);
-        }
-      }
-    } else if (direction === 3) {
-      for (let y = 0; y < ctx.height; y++) {
-        for (let x = ctx.width - 1; x >= 0; x--) {
-          reconstructPixel(x, y);
-        }
-      }
-    } else if (direction === 4 || direction === 5 || direction === 6) {
-      for (let y = ctx.height - 1; y >= 0; y--) {
-        for (let x = ctx.width - 1; x >= 0; x--) {
-          reconstructPixel(x, y);
-        }
-      }
-    } else {
-      for (let y = ctx.height - 1; y >= 0; y--) {
-        for (let x = 0; x < ctx.width; x++) {
-          reconstructPixel(x, y);
-        }
-      }
     }
   }
   
