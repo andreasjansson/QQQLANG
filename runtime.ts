@@ -226,10 +226,8 @@ function isValidProgramChar(char: string): boolean {
   const isUnassigned = char === UPLOAD_CHAR;
   const result = isAscii || isIdxUpload || isInvUpload || isUnassigned;
   
-  // Log for non-ASCII chars
-  if (code > 127) {
-    console.log(`[isValidProgramChar] code=${code.toString(16)} isIdxUpload=${isIdxUpload} isInvUpload=${isInvUpload} result=${result}`);
-  }
+  // Log for ALL characters to debug filtering
+  console.log(`[isValidProgramChar] char="${char}" code=${code.toString(16)} isAscii=${isAscii} isIdxUpload=${isIdxUpload} isInvUpload=${isInvUpload} result=${result}`);
   
   return result;
 }
