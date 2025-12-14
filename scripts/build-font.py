@@ -475,9 +475,6 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     
     # Apply the feature code to the font
     addOpenTypeFeatures(font, StringIO(fea_code))
-    
-    # Clean up variable font tables that may cause issues with new glyphs
-    cleanup_variable_font_tables(font)
 
 
 if __name__ == "__main__":
