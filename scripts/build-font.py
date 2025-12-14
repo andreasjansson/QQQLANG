@@ -191,6 +191,9 @@ def build_font():
         if hasattr(table, 'cmap'):
             table.cmap.update(cmap)
     
+    # Clean up variable font tables before adding feature tables
+    cleanup_variable_font_tables(font)
+    
     # Build COLR/CPAL color tables
     print("Building color tables...")
     
