@@ -357,8 +357,8 @@ def build_font():
         if hasattr(table, 'cmap'):
             table.cmap.update(cmap)
     
-    # Create □ upload character and all its variants
-    upload_variants = create_upload_char_variants(
+    # Create 256 indexed upload characters with variants
+    upload_chars = create_indexed_upload_chars(
         font, glyph_order, glyf, hmtx, cmap, pua_index
     )
     
