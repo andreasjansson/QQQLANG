@@ -1060,12 +1060,18 @@
         const img = document.createElement('img');
         img.src = thumbnail;
         img.className = 'upload-thumbnail' + (isInvalid ? ' invalid' : '');
-        // Position: padding (15px) + scroll offset + character position
-        // Center the thumbnail on the character (char width ~13px, thumb width 20px)
-        img.style.left = (15 + xPos - input.scrollLeft + 1) + 'px';
-        img.style.top = '12px';
+        // Position: padding (15px) + character position - scroll offset
+        // Top: padding (10px) + center offset to align with text baseline
+        const left = 15 + xPos - input.scrollLeft;
+        img.style.left = left + 'px';
+        img.style.top = '10px';
         img.dataset.uploadIndex = uploadIdx;
         img.dataset.charIndex = i;
+        
+        // Hide if scrolled out of view
+        if (left < 0 || left > input.clientWidth - 15) {
+          img.style.display = 'none';
+        }
         
         // Click to replace this upload
         img.addEventListener('click', (e) => {
