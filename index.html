@@ -1054,9 +1054,7 @@
       updateHelpDisplay();
     });
     
-    input.addEventListener('click', handleInputClick);
-    input.addEventListener('mousemove', handleInputMouseMove);
-    input.addEventListener('mouseleave', () => { input.style.cursor = ''; });
+
     
     input.addEventListener('paste', async (e) => {
       const items = e.clipboardData?.items;
