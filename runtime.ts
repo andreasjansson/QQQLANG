@@ -443,12 +443,8 @@ export async function runProgram(program: string, width: number, height: number)
       type: op.type
     });
     imageCache.set(op.identifier, result);
-    console.log(`  ✓ Cached result for "${op.identifier}"`);
   }
 
-  console.log(`\n=== EXECUTION COMPLETE ===`);
-  console.log(`Cache hits: ${cacheHits}, Cache misses: ${cacheMisses}`);
-  console.log(`Total images: ${images.length}`);
   return images;
 }
 
