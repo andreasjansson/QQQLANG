@@ -2494,61 +2494,103 @@ function fnW(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnX(ctx: FnContext, symbol: string, c: string): Image {
+function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  const [cr, cg, cb] = hexToRgb(c);
+  const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const size = Math.min(ctx.width, ctx.height) * 0.9;
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = ctx.width;
-  tempCanvas.height = ctx.height;
-  const tempCtx = tempCanvas.getContext('2d')!;
+  // Lossiness: 1 (nearly lossless) to 68 (very lossy)
+  // Map to quantization step: 1 to 80
+  const quantStep = Math.max(1, Math.floor(n * 1.2));
   
-  tempCtx.fillStyle = 'black';
-  tempCtx.fillRect(0, 0, ctx.width, ctx.height);
-  
-  tempCtx.fillStyle = 'white';
-  tempCtx.font = `${size}px serif`;
-  tempCtx.textAlign = 'center';
-  tempCtx.textBaseline = 'alphabetic';
-  
-  const metrics = tempCtx.measureText(symbol);
-  const actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-  const yOffset = metrics.actualBoundingBoxAscent - actualHeight / 2;
-  
-  tempCtx.fillText(symbol, ctx.width / 2, ctx.height / 2 + yOffset);
-  
-  const maskData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
-  
-  let avgR = 0, avgG = 0, avgB = 0;
-  for (let i = 0; i < prev.data.length; i += 4) {
-    avgR += prev.data[i];
-    avgG += prev.data[i + 1];
-    avgB += prev.data[i + 2];
-  }
-  const numPixels = prev.data.length / 4;
-  avgR = Math.round(avgR / numPixels);
-  avgG = Math.round(avgG / numPixels);
-  avgB = Math.round(avgB / numPixels);
-  
-  for (let y = 0; y < ctx.height; y++) {
-    const t = y / ctx.height;
+  // Process each channel separately
+  for (let channel = 0; channel < 3; channel++) {
+    // Forward pass: calculate and quantize residuals
+    const residuals = new Int16Array(ctx.width * ctx.height);
     
-    const gr = cr * (1 - t) + avgR * t;
-    const gg = cg * (1 - t) + avgG * t;
-    const gb = cb * (1 - t) + avgB * t;
-    
-    for (let x = 0; x < ctx.width; x++) {
-      const maskIdx = (y * ctx.width + x) * 4;
-      if (maskData.data[maskIdx] > 128) {
-        const [pr, pg, pb] = getPixel(prev, x, y);
-        const nr = Math.round(gr * 0.9 + pr * 0.1);
-        const ng = Math.round(gg * 0.9 + pg * 0.1);
-        const nb = Math.round(gb * 0.9 + pb * 0.1);
-        setPixel(out, x, y, nr, ng, nb);
+    for (let y = 0; y < ctx.height; y++) {
+      for (let x = 0; x < ctx.width; x++) {
+        const idx = y * ctx.width + x;
+        const pixelIdx = idx * 4 + channel;
+        const actual = prev.data[pixelIdx];
+        
+        let predicted: number;
+        
+        if (x === 0 && y === 0) {
+          // First pixel: default to mid-gray
+          predicted = 128;
+        } else if (x === 0) {
+          // First column: predict from top
+          predicted = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
+        } else if (y === 0) {
+          // First row: predict from left
+          predicted = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
+        } else {
+          // JPEG-LS median predictor for better compression
+          const left = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
+          const top = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
+          const topLeft = prev.data[((y - 1) * ctx.width + (x - 1)) * 4 + channel];
+          
+          // Median edge detector predictor
+          if (topLeft >= Math.max(left, top)) {
+            predicted = Math.max(left, top);
+          } else if (topLeft <= Math.min(left, top)) {
+            predicted = Math.min(left, top);
+          } else {
+            predicted = left + top - topLeft;
+          }
+        }
+        
+        // Calculate residual
+        const residual = actual - predicted;
+        
+        // Quantize residual (this is where compression loss happens)
+        const quantized = Math.round(residual / quantStep) * quantStep;
+        residuals[idx] = quantized;
       }
     }
+    
+    // Backward pass: reconstruct from quantized residuals
+    // Important: use reconstructed pixels for prediction, not original
+    for (let y = 0; y < ctx.height; y++) {
+      for (let x = 0; x < ctx.width; x++) {
+        const idx = y * ctx.width + x;
+        const outIdx = idx * 4 + channel;
+        
+        let predicted: number;
+        
+        if (x === 0 && y === 0) {
+          predicted = 128;
+        } else if (x === 0) {
+          // Use reconstructed top pixel
+          predicted = out.data[((y - 1) * ctx.width + x) * 4 + channel];
+        } else if (y === 0) {
+          // Use reconstructed left pixel
+          predicted = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
+        } else {
+          // Use reconstructed neighbors
+          const left = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
+          const top = out.data[((y - 1) * ctx.width + x) * 4 + channel];
+          const topLeft = out.data[((y - 1) * ctx.width + (x - 1)) * 4 + channel];
+          
+          if (topLeft >= Math.max(left, top)) {
+            predicted = Math.max(left, top);
+          } else if (topLeft <= Math.min(left, top)) {
+            predicted = Math.min(left, top);
+          } else {
+            predicted = left + top - topLeft;
+          }
+        }
+        
+        // Reconstruct pixel from prediction + quantized residual
+        const reconstructed = predicted + residuals[idx];
+        out.data[outIdx] = Math.max(0, Math.min(255, reconstructed));
+      }
+    }
+  }
+  
+  // Copy alpha channel
+  for (let i = 0; i < ctx.width * ctx.height; i++) {
+    out.data[i * 4 + 3] = 255;
   }
   
   return out;
