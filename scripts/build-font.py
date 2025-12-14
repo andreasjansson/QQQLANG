@@ -392,8 +392,8 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     #
     # For each arg position P (1, 2, 3, ...):
     #   For each arity N >= P:
-    #     Rule: @fnN_bold [P-1 @any] @bold' [N-P @any]
-    #     (Requires complete arg pattern so we don't partially consume)
+    #     Rule: @fnN_bold [P-1 @any] @bold'
+    #     NO lookahead - we un-bold args even for incomplete calls
     
     fea_lines.append("    # Pass 2: Un-bold arguments (by arg position, not arity)")
     
@@ -404,10 +404,10 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
         # For each arity that has this arg position
         for arity in sorted([a for a in by_arity.keys() if a >= arg_pos], reverse=True):
             fn_class = f"@fn{arity}_bold"
-            # Pattern: fn, then (arg_pos-1) @any, then @bold' (target), then (arity-arg_pos) @any
+            # Pattern: fn, then (arg_pos-1) @any, then @bold' (target)
+            # NO lookahead - handles incomplete calls too
             preceding = " @any" * (arg_pos - 1)
-            following = " @any" * (arity - arg_pos)
-            fea_lines.append(f"        sub {fn_class}{preceding} @bold' lookup bold_to_regular{following};")
+            fea_lines.append(f"        sub {fn_class}{preceding} @bold' lookup bold_to_regular;")
         
         fea_lines.append(f"    }} pass2_arg{arg_pos};")
         fea_lines.append("")
