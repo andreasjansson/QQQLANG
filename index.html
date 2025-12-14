@@ -1121,6 +1121,7 @@
       
       clearUploadedImages();
       uploadHashes.length = 0;
+      uploadThumbnails.length = 0;
       
       // Track which upload indices have valid hashes
       const validUploadIndices = new Set();
@@ -1131,6 +1132,7 @@
           const blob = await fetchImageAsBlob(hash);
           if (blob) {
             uploadHashes.push(hash);
+            uploadThumbnails.push(await generateThumbnail(blob));
             addUploadedBlob(blob);
             validUploadIndices.add(i);
           }
