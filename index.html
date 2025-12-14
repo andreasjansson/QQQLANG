@@ -929,9 +929,17 @@
       }
     }
     
+    // Flag to prevent re-entrancy when updating input display
+    let isUpdatingDisplay = false;
+    
     // Update display to show uploads in invalid positions as filled squares
     // Both valid (□ U+E200+i) and invalid (■ U+E300+i) map to the same index
     function updateInvalidUploadDisplay() {
+      if (isUpdatingDisplay) {
+        console.log('[updateInvalidUploadDisplay] SKIPPING - already updating');
+        return;
+      }
+      
       const program = input.value || '';
       const invalidIndices = getInvalidUploadIndices(program);
       
