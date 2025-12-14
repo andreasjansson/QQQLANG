@@ -1259,6 +1259,22 @@
     input.addEventListener('click', handleInputClick);
     input.addEventListener('mousemove', handleInputMouseMove);
     input.addEventListener('mouseleave', () => { input.style.cursor = ''; });
+    
+    input.addEventListener('paste', async (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const blob = item.getAsFile();
+          if (blob) {
+            await handleImageUpload(blob);
+          }
+          return;
+        }
+      }
+    });
 
     window.addEventListener('popstate', async (event) => {
       await loadProgramFromURL();
