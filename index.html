@@ -965,10 +965,11 @@
     }
     
     async function render() {
-      const program = input.value || '';
+      // Sync upload display chars first
+      syncUploadChars();
       
-      // Update display to show invalid uploads as filled squares
-      updateInvalidUploadDisplay();
+      // Read program after sync
+      const program = input.value || '';
       
       await preloadUploadedImages(canvas.width, canvas.height);
       
@@ -980,13 +981,6 @@
       
       updateDebugPane(program);
       updateFaviconAndTitle(program);
-      
-      console.log('[render] Before updateUploadButtonState, input.value length:', input.value.length);
-      for (let i = 0; i < input.value.length; i++) {
-        const c = [...input.value][i];
-        console.log(`  [render] char[${i}]: code=${c?.codePointAt(0)?.toString(16)}`);
-      }
-      
       updateUploadButtonState();
       updateHelpDisplay();
     }
