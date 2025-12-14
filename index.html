@@ -484,15 +484,25 @@
         pendingUploadIndex = null;
       } else {
         console.log('[handleImageUpload] ADDING new upload');
-        uploadHashes.push(hash);
-        addUploadedBlob(blob);
         
         if (insertAtCursor) {
           const start = input.selectionStart;
+          // Count how many □ chars are before the cursor - this is where we insert in the arrays
+          const insertIndex = getUploadCharIndex(input.value, start);
+          console.log('[handleImageUpload] inserting at array index', insertIndex, 'cursor at', start);
+          
+          // Insert hash and blob at the correct position
+          uploadHashes.splice(insertIndex, 0, hash);
+          insertUploadedBlob(insertIndex, blob);
+          
           const before = input.value.substring(0, start);
           const after = input.value.substring(input.selectionEnd);
           input.value = before + UPLOAD_CHAR + after;
           input.selectionStart = input.selectionEnd = start + UPLOAD_CHAR.length;
+        } else {
+          // Not inserting at cursor, just append
+          uploadHashes.push(hash);
+          addUploadedBlob(blob);
         }
       }
       
