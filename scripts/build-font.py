@@ -383,42 +383,46 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("")
     
     # Pass 2: Un-bold arguments
-    # Process arg positions in DESCENDING order (highest first)!
     #
-    # Why? Consider "ALLLL" where L has arity 2:
-    #   Parse: A | L(L,L) | L
-    #   Positions: 0=A(initial), 1=L(fn), 2=L(arg1), 3=L(arg2), 4=L(new fn)
+    # We use a SINGLE lookup with all rules, ordered by pattern length (longest first).
+    # This ensures longer patterns match before shorter ones at each position.
     #
-    # If we process arg1 first, when we match L@1 with arg L@2, we skip to position 3.
-    # Then L@3 (still bold) looks like a function and consumes L@4 as its arg1!
+    # For example, with arity-2 functions:
+    #   sub @fn2_bold @any @bold' ...  (3-glyph pattern for arg2)
+    #   sub @fn2_bold @bold' ...        (2-glyph pattern for arg1)
     #
-    # If we process arg2 first:
-    #   pass2_arg2: L@1 matches with L@3 as arg2 → L@3 becomes regular
-    #   pass2_arg1: L@1 matches with L@2 as arg1 → L@2 becomes regular
-    #   L@3 is now regular, so when we check it in pass2_arg1, it's not in @fn2_bold
+    # When scanning "L L L L L" at position 1:
+    #   - First try 3-glyph rule: matches positions 1,2,3 → substitute position 3
+    #   - Skip to position 4
+    #   - At position 4: try 3-glyph rule (needs pos 5,6) - no match
+    #   - Try 2-glyph rule (needs pos 5) - if exists, match
     #
-    # KNOWN ISSUE: Position 4 still gets converted to regular because after
-    # pass2_arg2 matches positions 1,2,3, it continues from position 4. Then
-    # pass2_arg1 also scans from position 1, matches 1,2, continues from 3.
-    # At position 4, pass2_arg1 checks if positions 4,5 match @fn2_bold @bold.
-    # Position 5 doesn't exist, so no match - position 4 should stay bold.
-    # BUT something is still converting position 4 to regular...
+    # The key is that within a single lookup, after a match, we skip the ENTIRE
+    # matched sequence before trying rules again.
     
-    pass2_lookup_names = []
-    for arg_pos in range(max_arity, 0, -1):  # max_arity down to 1
-        lookup_name = f"pass2_arg{arg_pos}"
-        pass2_lookup_names.append(lookup_name)
-        
-        fea_lines.append(f"lookup {lookup_name} {{")
-        
-        # For each arity that has this arg position (highest arity first)
+    fea_lines.append("lookup pass2_unbold_args {")
+    
+    # Generate rules ordered by total pattern length (longest first)
+    # Pattern length = 1 (fn) + arg_pos (number of @any + @bold)
+    pass2_rules = []
+    for arg_pos in range(max_arity, 0, -1):
         for arity in sorted([a for a in by_arity.keys() if a >= arg_pos], reverse=True):
             fn_class = f"@fn{arity}_bold"
             preceding = " @any" * (arg_pos - 1)
-            fea_lines.append(f"    sub {fn_class}{preceding} @bold' lookup bold_to_regular;")
-        
-        fea_lines.append(f"}} {lookup_name};")
-        fea_lines.append("")
+            pattern_len = 1 + arg_pos  # fn + args
+            rule = f"    sub {fn_class}{preceding} @bold' lookup bold_to_regular;"
+            pass2_rules.append((pattern_len, arity, arg_pos, rule))
+    
+    # Sort by pattern length (descending), then by arity (descending)
+    pass2_rules.sort(key=lambda x: (-x[0], -x[1]))
+    
+    for _, _, _, rule in pass2_rules:
+        fea_lines.append(rule)
+    
+    fea_lines.append("} pass2_unbold_args;")
+    fea_lines.append("")
+    
+    pass2_lookup_names = ["pass2_unbold_args"]
     
     # Pass 3: Add spacing to last arg of COMPLETE calls
     fea_lines.append("lookup pass3_spacing {")
