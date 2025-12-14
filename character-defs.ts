@@ -2510,22 +2510,50 @@ function fnX(ctx: FnContext, n: number): Image {
     return Math.round(value / step) * step;
   };
   
-  // Helper function to create key from context pixels at given granularity
-  const createKey = (left: number[], topLeft: number[], top: number[], step: number): string => {
-    const quantizedLeft = [quantize(left[0], step), quantize(left[1], step), quantize(left[2], step)];
-    const quantizedTopLeft = [quantize(topLeft[0], step), quantize(topLeft[1], step), quantize(topLeft[2], step)];
-    const quantizedTop = [quantize(top[0], step), quantize(top[1], step), quantize(top[2], step)];
+  // Helper function to get context pixels (up to 6 pixels)
+  const getContextPixels = (img: Image, x: number, y: number): number[][] => {
+    const context: number[][] = [];
     
-    return `${quantizedLeft[0]},${quantizedLeft[1]},${quantizedLeft[2]},${quantizedTopLeft[0]},${quantizedTopLeft[1]},${quantizedTopLeft[2]},${quantizedTop[0]},${quantizedTop[1]},${quantizedTop[2]}`;
+    // Define context positions: (x-1,y), (x-2,y), (x,y-1), (x-1,y-1), (x-2,y-1), (x+1,y-1)
+    const positions = [
+      [x - 1, y],     // left
+      [x - 2, y],     // two left
+      [x, y - 1],     // top
+      [x - 1, y - 1], // top-left diagonal
+      [x - 2, y - 1], // two left, one up
+      [x + 1, y - 1]  // one right, one up
+    ];
+    
+    for (const [px, py] of positions) {
+      if (px >= 0 && px < img.width && py >= 0 && py < img.height) {
+        context.push([...getPixel(img, px, py)]);
+      }
+    }
+    
+    return context;
+  };
+  
+  // Helper function to create key from context pixels at given granularity
+  const createKey = (context: number[][], step: number): string => {
+    const quantizedContext: number[] = [];
+    
+    for (const pixel of context) {
+      quantizedContext.push(
+        quantize(pixel[0], step),
+        quantize(pixel[1], step),
+        quantize(pixel[2], step)
+      );
+    }
+    
+    return quantizedContext.join(',');
   };
   
   // First pass: build lookup tables at all granularity levels
-  for (let y = 1; y < ctx.height; y++) {
-    for (let x = 1; x < ctx.width; x++) {
-      // Get context pixels: left, top-left, top
-      const left = getPixel(prev, x - 1, y);
-      const topLeft = getPixel(prev, x - 1, y - 1);
-      const top = getPixel(prev, x, y - 1);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      // Skip if we don't have enough context (need at least one context pixel)
+      const context = getContextPixels(prev, x, y);
+      if (context.length === 0) continue;
       
       // Get center (target) pixel
       const center = getPixel(prev, x, y);
@@ -2533,7 +2561,7 @@ function fnX(ctx: FnContext, n: number): Image {
       // Add to all granularity levels
       for (let i = 0; i < granularitySteps.length; i++) {
         const step = granularitySteps[i];
-        const key = createKey(left, topLeft, top, step);
+        const key = createKey(context, step);
         const table = lookupTables[i];
         
         if (!table.has(key)) {
@@ -2575,11 +2603,15 @@ function fnX(ctx: FnContext, n: number): Image {
   }
   
   // Helper function to predict pixel using multi-granularity lookup
-  const predictPixel = (left: number[], topLeft: number[], top: number[]): number[] => {
+  const predictPixel = (context: number[][]): number[] => {
+    if (context.length === 0) {
+      return [128, 128, 128]; // default gray
+    }
+    
     // Try each granularity level from finest to coarsest
     for (let i = 0; i < granularitySteps.length; i++) {
       const step = granularitySteps[i];
-      const key = createKey(left, topLeft, top, step);
+      const key = createKey(context, step);
       const table = lookupTables[i];
       
       if (table.has(key)) {
@@ -2588,36 +2620,40 @@ function fnX(ctx: FnContext, n: number): Image {
       }
     }
     
-    // If no match found in any table, return average of the three input pixels
-    const avgR = Math.round((left[0] + topLeft[0] + top[0]) / 3);
-    const avgG = Math.round((left[1] + topLeft[1] + top[1]) / 3);
-    const avgB = Math.round((left[2] + topLeft[2] + top[2]) / 3);
+    // If no match found in any table, return average of all context pixels
+    let sumR = 0, sumG = 0, sumB = 0;
+    for (const pixel of context) {
+      sumR += pixel[0];
+      sumG += pixel[1];
+      sumB += pixel[2];
+    }
+    
+    const avgR = Math.round(sumR / context.length);
+    const avgG = Math.round(sumG / context.length);
+    const avgB = Math.round(sumB / context.length);
     
     return [avgR, avgG, avgB];
   };
   
   // Second pass: reconstruct image using multi-granularity predictions
-  // Preserve top-left corner pixels (0,0), (1,0), (0,1)
-  setPixel(out, 0, 0, ...getPixel(prev, 0, 0));
-  if (ctx.width > 1) setPixel(out, 1, 0, ...getPixel(prev, 1, 0));
-  if (ctx.height > 1) setPixel(out, 0, 1, ...getPixel(prev, 0, 1));
+  // Initialize with 5x5 triangle in top-left corner
+  for (let y = 0; y < Math.min(5, ctx.height); y++) {
+    for (let x = 0; x <= Math.min(y, ctx.width - 1); x++) {
+      setPixel(out, x, y, ...getPixel(prev, x, y));
+    }
+  }
   
-  // Reconstruct from (1,1) onwards
-  for (let y = 1; y < ctx.height; y++) {
-    for (let x = 1; x < ctx.width; x++) {
-      // Skip the preserved corner at (1,1) if height > 1
-      if (y === 1 && x === 1 && ctx.height > 1) {
-        setPixel(out, x, y, ...getPixel(prev, x, y));
-        continue;
-      }
+  // Reconstruct the rest of the image
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      // Skip pixels that are already initialized (5x5 triangle)
+      if (y < 5 && x <= y) continue;
       
       // Get context pixels from reconstructed image
-      const left = getPixel(out, x - 1, y);
-      const topLeft = getPixel(out, x - 1, y - 1);
-      const top = getPixel(out, x, y - 1);
+      const context = getContextPixels(out, x, y);
       
       // Predict using multi-granularity lookup
-      const prediction = predictPixel(left, topLeft, top);
+      const prediction = predictPixel(context);
       
       setPixel(out, x, y, prediction[0], prediction[1], prediction[2]);
     }
