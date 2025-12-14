@@ -413,20 +413,19 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
         fea_lines.append("")
     
     # Pass 3: Add spacing to last arg of COMPLETE calls
-    # A call is complete if fn_bold is followed by exactly N @any where N=arity
-    # The last @any should be @regular (meaning it was an arg that got un-bolded)
+    # A call is complete if fn_bold is followed by exactly N chars (all should be @regular now)
+    # The last one gets spacing
     fea_lines.append("    # Pass 3: Add spacing to last arg of complete calls")
+    fea_lines.append("    lookup pass3_spacing {")
     
     for arity in sorted([a for a in by_arity.keys() if a > 0], reverse=True):
-        fea_lines.append(f"    lookup pass3_arity{arity} {{")
         fn_class = f"@fn{arity}_bold"
-        
         # Pattern: fn_bold, then (arity-1) @any, then @regular' → regular_spaced
         preceding_any = " @any" * (arity - 1)
         fea_lines.append(f"        sub {fn_class}{preceding_any} @regular' lookup regular_to_regular_spaced;")
-        
-        fea_lines.append(f"    }} pass3_arity{arity};")
-        fea_lines.append("")
+    
+    fea_lines.append("    } pass3_spacing;")
+    fea_lines.append("")
     
     # Pass 4: Arity-0 functions get spacing
     if 0 in by_arity:
