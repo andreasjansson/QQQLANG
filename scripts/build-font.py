@@ -16,16 +16,12 @@ Strategy:
   - Add spacing after complete function calls
 """
 
-import json
 import re
 import sys
 from pathlib import Path
 from fontTools.ttLib import TTFont
 from fontTools.varLib.mutator import instantiateVariableFont
-from fontTools.ttLib.tables import otTables
 from fontTools.colorLib.builder import buildCOLR, buildCPAL
-from fontTools.pens.t2CharStringPen import T2CharStringPen
-from fontTools.fontBuilder import FontBuilder
 
 PROJECT_DIR = Path(__file__).parent.parent
 CHARACTER_DEFS_PATH = PROJECT_DIR / "character-defs.ts"
