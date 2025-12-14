@@ -4,8 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "postinstall": "node scripts/setup-opentype.js",
-    "build:font": "node scripts/build-font.js",
+    "build:font": "pip install -r requirements.txt && python scripts/build-font.py",
     "build": "npm run build:font && tsc && vite build",
     "preview": "vite preview"
   },
