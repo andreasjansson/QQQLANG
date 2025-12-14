@@ -783,10 +783,14 @@
         const charBeforeCursor = cursorPos > 0 ? chars[cursorPos - 1] : null;
         
         if (charAtCursor === UPLOAD_CHAR) {
-          pendingUploadIndex = getUploadCharIndex(input.value, cursorPos + 1);
-        } else if (charBeforeCursor === UPLOAD_CHAR) {
+          // Cursor is on a □, replace this upload
+          // getUploadCharIndex returns count of □ before position, so this gives us the 0-based index
           pendingUploadIndex = getUploadCharIndex(input.value, cursorPos);
+        } else if (charBeforeCursor === UPLOAD_CHAR) {
+          // Cursor is right after a □, replace that upload
+          pendingUploadIndex = getUploadCharIndex(input.value, cursorPos - 1);
         } else {
+          // Not on an existing upload, add new one
           pendingUploadIndex = null;
         }
         
