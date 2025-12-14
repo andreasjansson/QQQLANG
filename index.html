@@ -908,47 +908,59 @@
         const opChars = [...op.identifier.substring(prevIdentifier.length)];
         const numChars = opChars.length;
         
-        let color = '#ffffff';
-        if (op.type === 'solid') {
-          color = op.color;
-        } else if (op.type === 'uploaded-image') {
-          color = '#888888';
-        } else {
-          color = op.fnDef.color;
-        }
-        
-        const bgColor = color + '40';
-        
         for (let j = 0; j < numChars; j++) {
           if (charIdx < chars.length) {
             const char = chars[charIdx];
+            const isFirstCharOfOp = (j === 0);
+            const isFunction = op.type === 'function' && isFirstCharOfOp;
+            const isArgument = op.type === 'function' && !isFirstCharOfOp;
+            
+            let charColor = '#ffffff';
+            if (char === UPLOAD_CHAR) {
+              charColor = '#888888';
+            } else if (characterDefs[char]) {
+              charColor = characterDefs[char].color;
+            }
+            
+            let classes = [];
+            if (isFunction) classes.push('fn-char');
+            if (isArgument) classes.push('arg-char');
+            
             if (char === UPLOAD_CHAR) {
               const isInvalid = invalidUploads.has(uploadIdx);
-              const invalidClass = isInvalid ? ' upload-invalid' : '';
+              if (isInvalid) classes.push('upload-invalid');
+              classes.push('upload-char');
               const displayChar = isInvalid ? '■' : char;
-              html += `<span class="upload-char${invalidClass}" style="background-color: ${bgColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
+              html += `<span class="${classes.join(' ')}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
               uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
               uploadIdx++;
             } else {
-              html += `<span style="background-color: ${bgColor};">${char}</span>`;
+              const classAttr = classes.length > 0 ? ` class="${classes.join(' ')}"` : '';
+              html += `<span${classAttr} style="color: ${charColor};">${char}</span>`;
             }
             charIdx++;
           }
         }
       }
       
-      // Also render any remaining upload chars that weren't part of ops (invalid ones skipped)
       while (charIdx < chars.length) {
         const char = chars[charIdx];
+        let charColor = '#ffffff';
+        if (char === UPLOAD_CHAR) {
+          charColor = '#888888';
+        } else if (characterDefs[char]) {
+          charColor = characterDefs[char].color;
+        }
+        
         if (char === UPLOAD_CHAR) {
           const isInvalid = invalidUploads.has(uploadIdx);
           const invalidClass = isInvalid ? ' upload-invalid' : '';
           const displayChar = isInvalid ? '■' : char;
-          html += `<span class="upload-char${invalidClass}" style="background-color: #44444440;" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
+          html += `<span class="upload-char${invalidClass}" style="color: ${charColor};" data-upload-index="${uploadIdx}" data-char-index="${charIdx}">${displayChar}</span>`;
           uploadCharPositions.push({ charIdx, uploadIdx, isInvalid });
           uploadIdx++;
         } else {
-          html += `<span style="background-color: #44444440;">${char}</span>`;
+          html += `<span style="color: ${charColor};">${char}</span>`;
         }
         charIdx++;
       }
