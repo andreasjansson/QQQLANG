@@ -83,6 +83,87 @@ def cleanup_variable_font_tables(font):
             del table.table.VarStore
 
 
+def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
+    """
+    Create the □ (upload) character and its spaced variant.
+    
+    The □ character is used for uploaded images and should have extra spacing
+    when used as an initial image (like arity-0 functions).
+    """
+    from fontTools.pens.t2CharStringPen import T2CharStringPen
+    from fontTools.ttLib.tables._g_l_y_f import Glyph
+    
+    upload_codepoint = ord(UPLOAD_CHAR)
+    units_per_em = font['head'].unitsPerEm
+    
+    # Check if □ already exists in the font
+    if upload_codepoint in cmap:
+        upload_glyph_name = cmap[upload_codepoint]
+        print(f"  Found existing □ glyph: {upload_glyph_name}")
+    else:
+        # Create a simple square outline for □
+        upload_glyph_name = 'uni25A1'
+        
+        stroke_width = int(units_per_em * 0.06)
+        size = int(units_per_em * 0.7)
+        left = int((units_per_em - size) / 2)
+        right = left + size
+        bottom = 0
+        top = size
+        
+        inner_left = left + stroke_width
+        inner_right = right - stroke_width
+        inner_bottom = bottom + stroke_width
+        inner_top = top - stroke_width
+        
+        # Create glyph using pen
+        glyph = Glyph()
+        glyph.numberOfContours = 2
+        
+        # Outer square (clockwise)
+        # Inner square (counter-clockwise for hole)
+        glyph.coordinates = [
+            (left, bottom), (left, top), (right, top), (right, bottom),
+            (inner_left, inner_bottom), (inner_right, inner_bottom), 
+            (inner_right, inner_top), (inner_left, inner_top)
+        ]
+        glyph.flags = [1] * 8  # All on-curve points
+        glyph.endPtsOfContours = [3, 7]
+        
+        glyph_order.append(upload_glyph_name)
+        glyf.glyphs[upload_glyph_name] = glyph
+        hmtx.metrics[upload_glyph_name] = (units_per_em, left)
+        cmap[upload_codepoint] = upload_glyph_name
+        
+        print(f"  Created □ glyph: {upload_glyph_name}")
+    
+    # Get the existing glyph metrics
+    upload_width, upload_lsb = hmtx.metrics[upload_glyph_name]
+    upload_glyph_data = glyf[upload_glyph_name]
+    
+    # Create spaced variant in PUA
+    spaced_codepoint = pua_start
+    spaced_glyph_name = f"uni{spaced_codepoint:04X}"
+    
+    glyph_order.append(spaced_glyph_name)
+    glyf.glyphs[spaced_glyph_name] = upload_glyph_data
+    hmtx.metrics[spaced_glyph_name] = (upload_width + FUNCTION_GAP, upload_lsb)
+    cmap[spaced_codepoint] = spaced_glyph_name
+    
+    # Update cmap tables
+    font.setGlyphOrder(glyph_order)
+    glyf.glyphOrder = glyph_order
+    
+    for table in font['cmap'].tables:
+        if hasattr(table, 'cmap'):
+            table.cmap[upload_codepoint] = upload_glyph_name
+            table.cmap[spaced_codepoint] = spaced_glyph_name
+    
+    print(f"  Created □ spaced variant: {spaced_glyph_name}")
+    
+    return upload_glyph_name, spaced_glyph_name
+
+
 def build_font():
     print("Building QQQLANG custom font...")
     
