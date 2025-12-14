@@ -6,21 +6,22 @@ Build a custom QQQLANG font based on Inconsolata with:
 3. Context-dependent spacing after complete function calls
 
 Rules:
-- First character is always bold (initial color)
+- First character is ALWAYS bold (initial color) - special case!
 - Function characters are bold
 - Arguments are regular weight
 - After complete function calls, add extra spacing
 
 Strategy using multiple GSUB lookup passes:
-1. Make ALL characters bold unconditionally
-2. For each arity N>0: find bold function, un-bold its N arguments
-   - Arguments 1 to N-1 become regular
-   - Argument N becomes regular_spaced (adds gap after complete call)
-3. For arity 0: bold functions become bold_spaced (adds gap after complete call)
-
-This works because after pass 1, everything is bold. Then pass 2 converts
-arguments to regular (looking for bold function + bold args). Characters
-that remain bold are functions. Pass 3 adds spacing.
+1a. Make ALL characters "bold_first" (special initial variant)
+1b. Convert any bold_first preceded by bold_first/bold → bold
+    (This leaves only the FIRST character as bold_first)
+2. For each arity N>0: un-bold arguments of bold functions
+   - Each arg position is handled separately (don't require all args present)
+   - Args become regular (not spaced yet)
+3. For complete calls: add spacing to last arg
+   - For arity N: if fn_bold followed by N @any chars, last one → spaced
+4. For arity 0: bold functions → bold_spaced
+5. Convert bold_first → bold_spaced (first char gets spacing)
 """
 
 import re
@@ -36,16 +37,14 @@ INPUT_FONT_PATH = PROJECT_DIR / "fonts" / "Inconsolata-Variable.ttf"
 OUTPUT_FONT_PATH = PROJECT_DIR / "public" / "QQQLANG.ttf"
 
 PUA_START = 0xE000
-FUNCTION_GAP = 100  # Extra advance width units after complete function calls
+FUNCTION_GAP = 100
 
 REGULAR_WEIGHT = 400
 BOLD_WEIGHT = 700
 
 
 def parse_character_defs():
-    """Parse character definitions from character-defs.ts"""
     content = CHARACTER_DEFS_PATH.read_text()
-    
     pattern = r"'([^']+)':\s*\{[^}]*color:\s*'([^']+)'[^}]*number:\s*(\d+)[^}]*args:\s*\[([\s\S]*?)\][^}]*functionName"
     
     chars = {}
@@ -66,7 +65,6 @@ def hex_to_rgb(hex_color):
 
 
 def cleanup_variable_font_tables(font):
-    """Remove variable font tables that cause issues with new glyphs."""
     for table_name in ['HVAR', 'VVAR', 'MVAR']:
         if table_name in font:
             del font[table_name]
@@ -133,10 +131,12 @@ def build_font():
     print("Creating glyph variants in Private Use Area...")
     
     # Variants:
+    # - bold_first: bold weight, normal spacing (for first char before conversion)
     # - bold: bold weight, normal spacing (for functions with args following)
-    # - bold_spaced: bold weight, extra spacing (for arity-0 functions)
-    # - regular_spaced: regular weight, extra spacing (for last argument)
+    # - bold_spaced: bold weight, extra spacing (for complete arity-0 calls and first char)
+    # - regular_spaced: regular weight, extra spacing (for last argument of complete calls)
     
+    bold_first_glyph_map = {}
     bold_glyph_map = {}
     bold_spaced_glyph_map = {}
     regular_spaced_glyph_map = {}
@@ -158,6 +158,13 @@ def build_font():
         else:
             bold_glyph_data = regular_glyph_data
             bold_width, bold_lsb = regular_width, regular_lsb
+        
+        # Bold_first variant (for initial char detection)
+        bf_codepoint = pua_index
+        pua_index += 1
+        bf_name = f"uni{bf_codepoint:04X}"
+        bold_first_glyph_map[char] = bf_name
+        new_glyphs.append((bf_name, bold_glyph_data, bold_width, bold_lsb, bf_codepoint))
         
         # Bold variant
         bold_codepoint = pua_index
@@ -189,6 +196,7 @@ def build_font():
     font.setGlyphOrder(glyph_order)
     glyf.glyphOrder = glyph_order
     
+    print(f"Created {len(bold_first_glyph_map)} bold_first variants")
     print(f"Created {len(bold_glyph_map)} bold variants")
     print(f"Created {len(bold_spaced_glyph_map)} bold+spaced variants")
     print(f"Created {len(regular_spaced_glyph_map)} regular+spaced variants")
@@ -226,21 +234,12 @@ def build_font():
         color = info['color'].upper()
         color_index = color_to_index[color]
         
-        if char in glyph_name_map:
-            glyph_name = glyph_name_map[char]
-            color_glyphs[glyph_name] = [(glyph_name, color_index)]
-        
-        if char in bold_glyph_map:
-            name = bold_glyph_map[char]
-            color_glyphs[name] = [(name, color_index)]
-        
-        if char in bold_spaced_glyph_map:
-            name = bold_spaced_glyph_map[char]
-            color_glyphs[name] = [(name, color_index)]
-        
-        if char in regular_spaced_glyph_map:
-            name = regular_spaced_glyph_map[char]
-            color_glyphs[name] = [(name, color_index)]
+        # All variants get the same color
+        for gmap in [glyph_name_map, bold_first_glyph_map, bold_glyph_map, 
+                     bold_spaced_glyph_map, regular_spaced_glyph_map]:
+            if char in gmap:
+                name = gmap[char]
+                color_glyphs[name] = [(name, color_index)]
     
     colr = buildCOLR(color_glyphs)
     font['COLR'] = colr
@@ -251,7 +250,8 @@ def build_font():
     # Build GSUB
     print("Building GSUB contextual substitution rules...")
     build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
-                       glyph_name_map, bold_glyph_map, bold_spaced_glyph_map, regular_spaced_glyph_map)
+                       glyph_name_map, bold_first_glyph_map, bold_glyph_map, 
+                       bold_spaced_glyph_map, regular_spaced_glyph_map)
     
     print("Updating font names...")
     name_table = font['name']
@@ -267,19 +267,18 @@ def build_font():
 
 
 def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
-                       glyph_name_map, bold_glyph_map, bold_spaced_glyph_map, regular_spaced_glyph_map):
+                       glyph_name_map, bold_first_glyph_map, bold_glyph_map,
+                       bold_spaced_glyph_map, regular_spaced_glyph_map):
     """
-    Build GSUB calt feature using multiple lookup passes:
+    Build GSUB calt feature.
     
-    1. Make ALL characters bold (unconditionally)
-    2. For each arity N (high to low): un-bold arguments of bold functions
-       - Last arg becomes regular_spaced
-       - Other args become regular
-    3. For arity 0: bold → bold_spaced (add spacing)
+    Key insight: The first character is special (initial color). We detect it by:
+    1. Converting all chars to bold_first
+    2. Converting any bold_first PRECEDED by bold_first/bold to bold
+    3. Only the first char remains bold_first (nothing precedes it)
     
-    After pass 1, everything is bold. Pass 2 converts arguments to regular
-    (by looking for bold_fn + bold_args). Characters that remain bold after
-    pass 2 are functions. Pass 3 adds spacing to arity-0 functions.
+    Then bold_first is NOT in @fn_bold, so it won't be treated as a function
+    that consumes arguments.
     """
     from fontTools.feaLib.builder import addOpenTypeFeatures
     from io import StringIO
@@ -298,74 +297,98 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     
     # Define glyph classes
     all_regular = [glyph_name_map[c] for c in qqqlang_chars]
+    all_bold_first = [bold_first_glyph_map[c] for c in qqqlang_chars]
     all_bold = [bold_glyph_map[c] for c in qqqlang_chars]
     all_bold_spaced = [bold_spaced_glyph_map[c] for c in qqqlang_chars]
     all_regular_spaced = [regular_spaced_glyph_map[c] for c in qqqlang_chars]
     
     fea_lines.append(f"@regular = [{' '.join(all_regular)}];")
+    fea_lines.append(f"@bold_first = [{' '.join(all_bold_first)}];")
     fea_lines.append(f"@bold = [{' '.join(all_bold)}];")
     fea_lines.append(f"@bold_spaced = [{' '.join(all_bold_spaced)}];")
     fea_lines.append(f"@regular_spaced = [{' '.join(all_regular_spaced)}];")
     
-    # @any includes all variants (for lookahead that doesn't care about variant)
-    all_any = all_regular + all_bold + all_bold_spaced + all_regular_spaced
+    # @any includes all variants
+    all_any = all_regular + all_bold_first + all_bold + all_bold_spaced + all_regular_spaced
     fea_lines.append(f"@any = [{' '.join(all_any)}];")
+    
+    # @preceded_by for detecting non-first chars (bold_first or bold)
+    all_preceded = all_bold_first + all_bold
+    fea_lines.append(f"@preceded_by = [{' '.join(all_preceded)}];")
     fea_lines.append("")
     
-    # Classes by arity - only need bold class for matching functions
+    # Classes by arity - @fn_bold does NOT include bold_first!
     for arity in sorted(by_arity.keys()):
-        if arity == 0:
-            continue  # arity 0 handled separately
         chars = by_arity[arity]
         bold = [bold_glyph_map[c] for c in chars]
         fea_lines.append(f"@fn{arity}_bold = [{' '.join(bold)}];")
-    
-    # Arity 0 bold class (for spacing pass)
-    if 0 in by_arity:
-        chars = by_arity[0]
-        bold = [bold_glyph_map[c] for c in chars]
-        fea_lines.append(f"@fn0_bold = [{' '.join(bold)}];")
     fea_lines.append("")
     
-    # Lookup 1: regular → bold (make everything bold)
-    fea_lines.append("lookup make_bold {")
+    # === LOOKUPS ===
+    
+    # regular → bold_first
+    fea_lines.append("lookup regular_to_bold_first {")
     for char in qqqlang_chars:
-        fea_lines.append(f"    sub {glyph_name_map[char]} by {bold_glyph_map[char]};")
-    fea_lines.append("} make_bold;")
+        fea_lines.append(f"    sub {glyph_name_map[char]} by {bold_first_glyph_map[char]};")
+    fea_lines.append("} regular_to_bold_first;")
     fea_lines.append("")
     
-    # Lookup 2: bold → regular (for non-last arguments, arity > 1)
+    # bold_first → bold (for non-first chars)
+    fea_lines.append("lookup bold_first_to_bold {")
+    for char in qqqlang_chars:
+        fea_lines.append(f"    sub {bold_first_glyph_map[char]} by {bold_glyph_map[char]};")
+    fea_lines.append("} bold_first_to_bold;")
+    fea_lines.append("")
+    
+    # bold → regular (for arguments)
     fea_lines.append("lookup bold_to_regular {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_glyph_map[char]} by {glyph_name_map[char]};")
     fea_lines.append("} bold_to_regular;")
     fea_lines.append("")
     
-    # Lookup 3: bold → regular_spaced (for last argument)
-    fea_lines.append("lookup bold_to_regular_spaced {")
+    # regular → regular_spaced (for last arg of complete call)
+    fea_lines.append("lookup regular_to_regular_spaced {")
     for char in qqqlang_chars:
-        fea_lines.append(f"    sub {bold_glyph_map[char]} by {regular_spaced_glyph_map[char]};")
-    fea_lines.append("} bold_to_regular_spaced;")
+        fea_lines.append(f"    sub {glyph_name_map[char]} by {regular_spaced_glyph_map[char]};")
+    fea_lines.append("} regular_to_regular_spaced;")
     fea_lines.append("")
     
-    # Lookup 4: bold → bold_spaced (for arity-0 functions, add spacing)
+    # bold → bold_spaced (for arity-0 functions)
     fea_lines.append("lookup bold_to_bold_spaced {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_glyph_map[char]} by {bold_spaced_glyph_map[char]};")
     fea_lines.append("} bold_to_bold_spaced;")
     fea_lines.append("")
     
-    # The calt feature with ordered lookups
-    fea_lines.append("feature calt {")
-    
-    # Pass 1: Make all regular chars bold
-    fea_lines.append("    # Pass 1: Make all chars bold")
-    fea_lines.append("    lookup pass1 {")
-    fea_lines.append("        sub @regular' lookup make_bold;")
-    fea_lines.append("    } pass1;")
+    # bold_first → bold_spaced (for first char, which is complete)
+    fea_lines.append("lookup bold_first_to_bold_spaced {")
+    for char in qqqlang_chars:
+        fea_lines.append(f"    sub {bold_first_glyph_map[char]} by {bold_spaced_glyph_map[char]};")
+    fea_lines.append("} bold_first_to_bold_spaced;")
     fea_lines.append("")
     
-    # Pass 2: Un-bold arguments (process from highest arity to lowest)
+    # === FEATURE ===
+    fea_lines.append("feature calt {")
+    
+    # Pass 1a: Convert all regular to bold_first
+    fea_lines.append("    # Pass 1a: All chars become bold_first")
+    fea_lines.append("    lookup pass1a {")
+    fea_lines.append("        sub @regular' lookup regular_to_bold_first;")
+    fea_lines.append("    } pass1a;")
+    fea_lines.append("")
+    
+    # Pass 1b: Any bold_first preceded by @preceded_by becomes bold
+    # This leaves only the FIRST char as bold_first
+    fea_lines.append("    # Pass 1b: Non-first chars become bold")
+    fea_lines.append("    lookup pass1b {")
+    fea_lines.append("        sub @preceded_by @bold_first' lookup bold_first_to_bold;")
+    fea_lines.append("    } pass1b;")
+    fea_lines.append("")
+    
+    # Pass 2: Un-bold arguments
+    # For each arg position, we look for fn_bold followed by that many @any, then @bold
+    # Each arg position is handled separately (don't require all args)
     fea_lines.append("    # Pass 2: Un-bold arguments of functions")
     
     for arity in sorted([a for a in by_arity.keys() if a > 0], reverse=True):
@@ -374,34 +397,44 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
         
         fn_class = f"@fn{arity}_bold"
         
-        if arity == 1:
-            # Single arg: fn arg' → fn regular_spaced_arg
-            fea_lines.append(f"        sub {fn_class} @bold' lookup bold_to_regular_spaced;")
-        else:
-            # Multiple args: first N-1 become regular, last becomes regular_spaced
-            # We need multiple rules, processed left-to-right
-            
-            # First arg (and middle args): fn arg1' [args...] → regular
-            # Pattern: fn_bold @bold' @any @any ... (arity-1 @any after the target)
-            for arg_pos in range(arity - 1):
-                # Match: fn, then arg_pos @any chars, then @bold', then remaining @any chars
-                before = " @any" * arg_pos
-                after = " @any" * (arity - 1 - arg_pos)
-                fea_lines.append(f"        sub {fn_class}{before} @bold' lookup bold_to_regular{after};")
-            
-            # Last arg: fn @any... @bold' → regular_spaced
-            before = " @any" * (arity - 1)
-            fea_lines.append(f"        sub {fn_class}{before} @bold' lookup bold_to_regular_spaced;")
+        # For each arg position 1..arity: un-bold if present
+        for arg_pos in range(1, arity + 1):
+            # Pattern: fn_bold, then (arg_pos-1) @any, then @bold' to convert
+            preceding_any = " @any" * (arg_pos - 1)
+            fea_lines.append(f"        sub {fn_class}{preceding_any} @bold' lookup bold_to_regular;")
         
         fea_lines.append(f"    }} pass2_arity{arity};")
         fea_lines.append("")
     
-    # Pass 3: Add spacing to arity-0 functions (still bold after pass 2)
+    # Pass 3: Add spacing to last arg of COMPLETE calls
+    # A call is complete if fn_bold is followed by exactly N @any where N=arity
+    # The last @any should be @regular (meaning it was an arg that got un-bolded)
+    fea_lines.append("    # Pass 3: Add spacing to last arg of complete calls")
+    
+    for arity in sorted([a for a in by_arity.keys() if a > 0], reverse=True):
+        fea_lines.append(f"    lookup pass3_arity{arity} {{")
+        fn_class = f"@fn{arity}_bold"
+        
+        # Pattern: fn_bold, then (arity-1) @any, then @regular' → regular_spaced
+        preceding_any = " @any" * (arity - 1)
+        fea_lines.append(f"        sub {fn_class}{preceding_any} @regular' lookup regular_to_regular_spaced;")
+        
+        fea_lines.append(f"    }} pass3_arity{arity};")
+        fea_lines.append("")
+    
+    # Pass 4: Arity-0 functions get spacing
     if 0 in by_arity:
-        fea_lines.append("    # Pass 3: Add spacing to arity-0 functions")
-        fea_lines.append("    lookup pass3_spacing {")
+        fea_lines.append("    # Pass 4: Arity-0 functions get spacing")
+        fea_lines.append("    lookup pass4_arity0 {")
         fea_lines.append("        sub @fn0_bold' lookup bold_to_bold_spaced;")
-        fea_lines.append("    } pass3_spacing;")
+        fea_lines.append("    } pass4_arity0;")
+        fea_lines.append("")
+    
+    # Pass 5: First char (bold_first) gets spacing
+    fea_lines.append("    # Pass 5: First char gets spacing")
+    fea_lines.append("    lookup pass5_first {")
+    fea_lines.append("        sub @bold_first' lookup bold_first_to_bold_spaced;")
+    fea_lines.append("    } pass5_first;")
     
     fea_lines.append("} calt;")
     
@@ -413,10 +446,10 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     
     # Debug output
     print("  Feature code preview:")
-    for i, line in enumerate(fea_lines[:80]):
+    for i, line in enumerate(fea_lines[:100]):
         print(f"    {line}")
-    if len(fea_lines) > 80:
-        print(f"    ... ({len(fea_lines) - 80} more lines)")
+    if len(fea_lines) > 100:
+        print(f"    ... ({len(fea_lines) - 100} more lines)")
     
     addOpenTypeFeatures(font, StringIO(fea_code))
 
