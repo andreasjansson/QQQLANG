@@ -978,11 +978,15 @@
         if (idx !== null) {
           if (invalidIndices.has(idx) && !isInvalidUpload(char)) {
             // Should be invalid but showing as valid - convert to filled
-            newProgram += getInvalidUploadChar(idx);
+            const invalidChar = getInvalidUploadChar(idx);
+            console.log(`  Converting upload ${idx} to invalid: U+${invalidChar.codePointAt(0).toString(16)}`);
+            newProgram += invalidChar;
             needsUpdate = true;
           } else if (!invalidIndices.has(idx) && isInvalidUpload(char)) {
             // Should be valid but showing as invalid - convert to outline
-            newProgram += getUploadChar(idx);
+            const validChar = getUploadChar(idx);
+            console.log(`  Converting upload ${idx} to valid: U+${validChar.codePointAt(0).toString(16)}`);
+            newProgram += validChar;
             needsUpdate = true;
           } else {
             newProgram += char;
@@ -993,6 +997,11 @@
       }
       
       if (needsUpdate) {
+        console.log(`  Setting input.value to: length=${newProgram.length}`);
+        for (let i = 0; i < newProgram.length; i++) {
+          const c = [...newProgram][i];
+          console.log(`    newProgram[${i}]: code=${c?.codePointAt(0)?.toString(16)}`);
+        }
         const cursorPos = input.selectionStart;
         const selEnd = input.selectionEnd;
         input.value = newProgram;
