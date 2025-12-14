@@ -809,10 +809,8 @@
     
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
-      console.log('[fileInput.change] file:', file?.name, 'size:', file?.size, 'type:', file?.type);
       fileInput.value = '';
       if (!file) return;
-      
       await handleImageUpload(file);
     });
     
