@@ -663,7 +663,7 @@
     }
     
     function isValidChar(char) {
-      return char in characterDefs || char === UPLOAD_CHAR;
+      return char in characterDefs || isIndexedUpload(char);
     }
     
     function completeProgram(program) {
