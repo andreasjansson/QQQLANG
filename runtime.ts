@@ -127,7 +127,7 @@ export function hasUploadedImage(index: number): boolean {
 }
 
 export function getUploadedImageCount(): number {
-  return uploadedSources.length;
+  return uploadedImages.size;
 }
 
 function loadBlobToImage(blob: Blob, width: number, height: number): Promise<Image> {
@@ -158,8 +158,8 @@ function loadBlobToImage(blob: Blob, width: number, height: number): Promise<Ima
 export async function preloadUploadedImages(width: number, height: number): Promise<void> {
   if (uploadedCacheWidth === width && uploadedCacheHeight === height) {
     let allCached = true;
-    for (let i = 0; i < uploadedSources.length; i++) {
-      if (!uploadedImagesCache[i]) {
+    for (const index of uploadedImages.keys()) {
+      if (!uploadedImagesCache.has(index)) {
         allCached = false;
         break;
       }
@@ -168,14 +168,14 @@ export async function preloadUploadedImages(width: number, height: number): Prom
   }
   
   if (uploadedCacheWidth !== width || uploadedCacheHeight !== height) {
-    uploadedImagesCache.length = 0;
+    uploadedImagesCache.clear();
     uploadedCacheWidth = width;
     uploadedCacheHeight = height;
   }
   
-  const promises = uploadedSources.map(async (source, index) => {
-    if (!uploadedImagesCache[index]) {
-      uploadedImagesCache[index] = await loadBlobToImage(source.blob, width, height);
+  const promises = Array.from(uploadedImages.entries()).map(async ([index, source]) => {
+    if (!uploadedImagesCache.has(index)) {
+      uploadedImagesCache.set(index, await loadBlobToImage(source.blob, width, height));
     }
   });
   await Promise.all(promises);
