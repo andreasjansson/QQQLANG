@@ -943,8 +943,9 @@
 
     function resize() {
       const container = document.getElementById('canvas-container');
-      canvas.width = container.clientWidth;
-      canvas.height = container.clientHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(container.clientWidth * dpr);
+      canvas.height = Math.floor(container.clientHeight * dpr);
       render();
     }
 
