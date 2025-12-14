@@ -524,50 +524,63 @@
     
     function isValidProgramChar(char) {
       const upper = char.toUpperCase();
-      return upper in characterDefs || char === UPLOAD_CHAR;
+      return upper in characterDefs || isIndexedUpload(char) || isInvalidUpload(char) || char === UPLOAD_CHAR;
     }
     
-    function parseProgram(urlProgram) {
-      const hashes = [];
+    // Parse URL program format: indexed upload chars (U+E200+i) followed by their hash
+    // Example: "A" + U+E200 + "XsS5x5vLcqrN39b41wDFA" + "B"
+    function parseUrlProgram(urlProgram) {
+      const uploadData = new Map();  // index -> hash
       let displayProgram = '';
       let hadInvalidChars = false;
       const chars = [...urlProgram];
       let i = 0;
+      
       while (i < chars.length) {
-        if (chars[i] === UPLOAD_CHAR) {
-          displayProgram += UPLOAD_CHAR;
+        const char = chars[i];
+        const uploadIdx = getUploadIndex(char);
+        
+        if (uploadIdx !== null) {
+          // Indexed upload char - check for following hash
+          displayProgram += char;
           const hashChars = chars.slice(i + 1, i + 1 + HASH_LENGTH).join('');
           if (hashChars.length === HASH_LENGTH && /^[A-Za-z0-9_-]+$/.test(hashChars)) {
-            hashes.push(hashChars);
+            uploadData.set(uploadIdx, hashChars);
             i += 1 + HASH_LENGTH;
           } else {
-            hashes.push(null);
+            // No valid hash following, upload will be broken
             i++;
           }
+        } else if (char === UPLOAD_CHAR) {
+          // Unassigned upload placeholder - skip it (invalid)
+          hadInvalidChars = true;
+          i++;
         } else {
-          const char = chars[i].toUpperCase();
-          if (isValidProgramChar(char)) {
-            displayProgram += char;
-          } else {
+          const upper = char.toUpperCase();
+          if (upper in characterDefs) {
+            displayProgram += upper;
+          } else if (!isInvalidUpload(char)) {
             hadInvalidChars = true;
           }
           i++;
         }
       }
-      return { displayProgram, hashes, hadInvalidChars };
+      return { displayProgram, uploadData, hadInvalidChars };
     }
     
+    // Build URL program: append hash after each indexed upload char
     function buildUrlProgram(displayProgram) {
       const chars = [...displayProgram];
       let result = '';
-      let uploadIdx = 0;
+      
       for (const char of chars) {
         result += char;
-        if (char === UPLOAD_CHAR) {
-          if (uploadIdx < uploadHashes.length && uploadHashes[uploadIdx]) {
-            result += uploadHashes[uploadIdx];
+        const uploadIdx = getUploadIndex(char);
+        if (uploadIdx !== null) {
+          const hash = getUploadedImageHash(uploadIdx);
+          if (hash) {
+            result += hash;
           }
-          uploadIdx++;
         }
       }
       return result;
