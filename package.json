@@ -4,13 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:font": "node scripts/build-font.js",
+    "setup:opentype": "node scripts/setup-opentype.js",
+    "build:font": "node scripts/setup-opentype.js && node scripts/build-font.js",
     "build": "npm run build:font && tsc && vite build",
-    "preview": "vite preview",
-    "postinstall": "cd node_modules/opentype.js && npm install --ignore-scripts && npm run build"
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "opentype.js": "git+https://github.com/opentypejs/opentype.js.git",
+    "opentype.js": "^1.3.4",
     "typescript": "^5.3.3",
     "vite": "^5.0.0"
   },
