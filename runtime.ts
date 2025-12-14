@@ -182,24 +182,34 @@ export async function preloadUploadedImages(width: number, height: number): Prom
 }
 
 export function getUploadedImage(index: number, width: number, height: number): Image {
-  if (index >= uploadedSources.length) {
+  if (!uploadedImages.has(index)) {
     return createPlaceholderImage(width, height);
   }
   
-  if (uploadedImagesCache[index] && uploadedCacheWidth === width && uploadedCacheHeight === height) {
-    return uploadedImagesCache[index];
+  const cached = uploadedImagesCache.get(index);
+  if (cached && uploadedCacheWidth === width && uploadedCacheHeight === height) {
+    return cached;
   }
   
   return createPlaceholderImage(width, height);
 }
 
+// Count indexed uploads in a program string
 export function getUploadCount(program: string): number {
   const chars = [...program];
-  return chars.filter(c => c === UPLOAD_CHAR).length;
+  return chars.filter(c => isIndexedUpload(c)).length;
 }
 
-function isUploadChar(char: string): boolean {
-  return char === UPLOAD_CHAR;
+// Get all upload indices used in a program string
+export function getUploadIndicesInProgram(program: string): number[] {
+  const indices: number[] = [];
+  for (const char of program) {
+    const idx = getUploadIndex(char);
+    if (idx !== null) {
+      indices.push(idx);
+    }
+  }
+  return indices;
 }
 
 interface ParseResult {
