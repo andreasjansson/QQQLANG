@@ -828,13 +828,16 @@
       
       try {
         const hash = await uploadImageToWorker(file);
+        const thumbnail = await generateThumbnail(file);
         
         if (pendingUploadIndex !== null) {
           uploadHashes[pendingUploadIndex] = hash;
+          uploadThumbnails[pendingUploadIndex] = thumbnail;
           setUploadedBlob(pendingUploadIndex, file);
           pendingUploadIndex = null;
         } else {
           uploadHashes.push(hash);
+          uploadThumbnails.push(thumbnail);
           addUploadedBlob(file);
           
           const start = input.selectionStart;
