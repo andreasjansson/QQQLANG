@@ -1250,6 +1250,8 @@
     
 
     
+    const MAX_PROGRAM_LENGTH = 64;
+    
     // Build a shareable URL for a program snippet (with upload hashes embedded)
     function buildSnippetUrl(displayProgram) {
       const urlProgram = buildUrlProgram(displayProgram);
@@ -1259,21 +1261,6 @@
         url.searchParams.set('p', urlProgram);
       }
       return url.toString();
-    }
-    
-    // Check if text looks like a QQQLANG URL and extract the program
-    function parseQqqlangUrl(text) {
-      const trimmed = text.trim();
-      try {
-        const url = new URL(trimmed);
-        const program = url.searchParams.get('p');
-        if (program && (url.hostname === window.location.hostname || url.hostname === 'localhost')) {
-          return program;
-        }
-      } catch {
-        // Not a valid URL
-      }
-      return null;
     }
     
     // Copy handler: copy URL with upload hashes
@@ -1327,61 +1314,87 @@
         }
       }
       
-      // Check for QQQLANG URL
+      // Process any text as a QQQLANG program
       const plainText = e.clipboardData.getData('text/plain');
-      const urlProgram = parseQqqlangUrl(plainText);
+      if (!plainText) return;
       
-      if (urlProgram) {
-        e.preventDefault();
+      e.preventDefault();
+      
+      // Parse text, preserving hashes after indexed uploads
+      const chars = [...plainText];
+      let urlProgram = '';
+      let programLength = 0;
+      let i = 0;
+      
+      while (i < chars.length && programLength < MAX_PROGRAM_LENGTH) {
+        const char = chars[i];
+        const uploadIdx = getUploadIndex(char);
         
-        // Parse the URL program to extract display program and upload data
-        const { displayProgram, uploadData } = parseUrlProgram(urlProgram);
-        
-        // Remap upload indices to avoid collisions
-        const indexRemap = new Map();
-        
-        for (const [oldIdx, hash] of uploadData.entries()) {
-          if (hasUploadedImage(oldIdx)) {
-            const newIdx = getNextAvailableIndex();
-            indexRemap.set(oldIdx, newIdx);
-            const blob = await fetchImageAsBlob(hash);
-            if (blob) {
-              setUploadedImage(newIdx, blob, hash);
-            }
-          } else {
-            indexRemap.set(oldIdx, oldIdx);
-            const blob = await fetchImageAsBlob(hash);
-            if (blob) {
-              setUploadedImage(oldIdx, blob, hash);
-            }
+        if (uploadIdx !== null) {
+          urlProgram += char;
+          programLength++;
+          i++;
+          
+          // Grab the next HASH_LENGTH chars as-is (the hash)
+          const hashChars = chars.slice(i, i + HASH_LENGTH).join('');
+          if (hashChars.length === HASH_LENGTH && /^[A-Za-z0-9_-]+$/.test(hashChars)) {
+            urlProgram += hashChars;
+            i += HASH_LENGTH;
           }
-        }
-        
-        // Remap the text
-        let remappedText = '';
-        for (const char of displayProgram) {
-          const oldIdx = getUploadIndex(char);
-          if (oldIdx !== null && indexRemap.has(oldIdx)) {
-            remappedText += getUploadChar(indexRemap.get(oldIdx));
-          } else {
-            remappedText += char;
+        } else {
+          const upper = char.toUpperCase();
+          if (upper in characterDefs) {
+            urlProgram += upper;
+            programLength++;
           }
+          i++;
         }
-        
-        // Insert the remapped text
-        const start = input.selectionStart;
-        const end = input.selectionEnd;
-        const before = input.value.substring(0, start);
-        const after = input.value.substring(end);
-        input.value = before + remappedText + after;
-        input.selectionStart = input.selectionEnd = start + remappedText.length;
-        
-        updateURL(input.value);
-        await render();
-        return;
       }
       
-      // Fall back to plain text paste (handled by browser default)
+      // Parse the URL program to extract display program and upload data
+      const { displayProgram, uploadData } = parseUrlProgram(urlProgram);
+      
+      // Remap upload indices to avoid collisions
+      const indexRemap = new Map();
+      
+      for (const [oldIdx, hash] of uploadData.entries()) {
+        if (hasUploadedImage(oldIdx)) {
+          const newIdx = getNextAvailableIndex();
+          indexRemap.set(oldIdx, newIdx);
+          const blob = await fetchImageAsBlob(hash);
+          if (blob) {
+            setUploadedImage(newIdx, blob, hash);
+          }
+        } else {
+          indexRemap.set(oldIdx, oldIdx);
+          const blob = await fetchImageAsBlob(hash);
+          if (blob) {
+            setUploadedImage(oldIdx, blob, hash);
+          }
+        }
+      }
+      
+      // Remap the text
+      let remappedText = '';
+      for (const char of displayProgram) {
+        const oldIdx = getUploadIndex(char);
+        if (oldIdx !== null && indexRemap.has(oldIdx)) {
+          remappedText += getUploadChar(indexRemap.get(oldIdx));
+        } else {
+          remappedText += char;
+        }
+      }
+      
+      // Insert the remapped text
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const before = input.value.substring(0, start);
+      const after = input.value.substring(end);
+      input.value = before + remappedText + after;
+      input.selectionStart = input.selectionEnd = start + remappedText.length;
+      
+      updateURL(input.value);
+      await render();
     });
 
     window.addEventListener('popstate', async (event) => {
