@@ -369,12 +369,9 @@ let lastHeight = 0;
 let lastUploadCount = 0;
 
 export async function runProgram(program: string, width: number, height: number): Promise<Image[]> {
-  console.log(`\n=== EXECUTION: ${width}x${height} ===`);
-  
   const currentUploadCount = uploadedImages.size;
   
   if (width !== lastWidth || height !== lastHeight || currentUploadCount !== lastUploadCount) {
-    console.log(`Dimensions or uploads changed, clearing cache`);
     imageCache.clear();
     lastWidth = width;
     lastHeight = height;
@@ -384,44 +381,32 @@ export async function runProgram(program: string, width: number, height: number)
   const { ops } = parseProgram(program);
   
   if (ops.length === 0) {
-    console.log('No operations, returning black image');
     return [createSolidImage(width, height, '#000000')];
   }
 
   const images: Image[] = [createSolidImage(width, height, '#000000')];
   const opInfos: OpInfo[] = [{ identifier: '', type: 'solid' }];
-  let cacheHits = 0;
-  let cacheMisses = 0;
   
   for (let opIdx = 0; opIdx < ops.length; opIdx++) {
     const op = ops[opIdx];
-    console.log(`\n[Op ${opIdx}] identifier="${op.identifier}"`);
     
     const cached = imageCache.get(op.identifier);
     if (cached) {
-      console.log(`  ✓ CACHE HIT`);
       images.push(cached);
       opInfos.push({
         identifier: op.identifier,
         type: op.type
       });
-      cacheHits++;
       continue;
     }
-
-    console.log(`  ✗ CACHE MISS`);
-    cacheMisses++;
 
     let result: Image;
     
     if (op.type === 'solid') {
-      console.log(`  Creating solid image: ${op.color}`);
       result = createSolidImage(width, height, op.color);
     } else if (op.type === 'uploaded-image') {
-      console.log(`  Using uploaded image ${op.uploadIndex}`);
       result = getUploadedImage(op.uploadIndex, width, height);
     } else {
-      console.log(`  Executing function: ${op.fnDef.functionName} with args:`, op.args);
       const ctx: FnContext = {
         width,
         height,
