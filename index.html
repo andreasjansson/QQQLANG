@@ -758,13 +758,7 @@
     }
     
     function updateUploadButtonState() {
-      console.log('[updateUploadButtonState] input.value.length:', input.value.length);
-      for (let i = 0; i < input.value.length; i++) {
-        const c = [...input.value][i];
-        console.log(`  [updateUploadButtonState] char[${i}]: code=${c?.codePointAt(0)?.toString(16)}`);
-      }
       const cursorPos = input.selectionStart ?? input.value.length;
-      console.log('[updateUploadButtonState] cursorPos:', cursorPos);
       const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
       const btnText = uploadButton.querySelector('.btn-text .btn-indicator');
       const btnIcon = uploadButton.querySelector('.btn-icon');
