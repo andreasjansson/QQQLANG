@@ -37,7 +37,7 @@ INPUT_FONT_PATH = PROJECT_DIR / "fonts" / "Inconsolata-Variable.ttf"
 OUTPUT_FONT_PATH = PROJECT_DIR / "public" / "QQQLANG.ttf"
 
 PUA_START = 0xE000
-FUNCTION_GAP = 100
+FUNCTION_GAP = 150  # ~15px at 22px font size
 
 REGULAR_WEIGHT = 400
 BOLD_WEIGHT = 700
