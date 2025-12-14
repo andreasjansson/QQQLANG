@@ -212,6 +212,11 @@ def build_font():
         if hasattr(table, 'cmap'):
             table.cmap.update(cmap)
     
+    # Create □ upload character and its spaced variant
+    upload_glyph_name, upload_spaced_glyph_name = create_upload_char_variants(
+        font, glyph_order, glyf, hmtx, cmap, pua_index
+    )
+    
     cleanup_variable_font_tables(font)
     
     # Build COLR/CPAL
