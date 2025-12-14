@@ -1,5 +1,11 @@
 import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR, UPLOAD_COUNT, isIndexedUpload, isInvalidUpload, isAnyUpload, getUploadIndex, getUploadChar, getInvalidUploadChar, OpInfo, ArgType, IntType, ColorType, IndexType, ChoiceType, ArgDef } from './character-defs.js';
 
+// Debug test for isInvalidUpload
+const testE300 = String.fromCodePoint(0xE300);
+console.log(`[DEBUG TEST] isInvalidUpload(U+E300)=${isInvalidUpload(testE300)}, code=${testE300.codePointAt(0)?.toString(16)}`);
+const testE200 = String.fromCodePoint(0xE200);
+console.log(`[DEBUG TEST] isIndexedUpload(U+E200)=${isIndexedUpload(testE200)}, code=${testE200.codePointAt(0)?.toString(16)}`);
+
 interface UploadedImageRef {
   type: 'uploaded';
   index: number;  // This is now the upload character index (0-255), not positional
