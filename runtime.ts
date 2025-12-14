@@ -399,7 +399,7 @@ let lastUploadCount = 0;
 export async function runProgram(program: string, width: number, height: number): Promise<Image[]> {
   console.log(`\n=== EXECUTION: ${width}x${height} ===`);
   
-  const currentUploadCount = uploadedSources.length;
+  const currentUploadCount = uploadedImages.size;
   
   if (width !== lastWidth || height !== lastHeight || currentUploadCount !== lastUploadCount) {
     console.log(`Dimensions or uploads changed, clearing cache`);
