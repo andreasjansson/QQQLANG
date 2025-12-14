@@ -975,6 +975,109 @@
       }
     }
     
+    // Thumbnail cache: uploadIndex -> data URL
+    const thumbnailCache = new Map();
+    
+    async function generateThumbnail(blob) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const size = 40; // 2x for retina
+          const thumbCanvas = document.createElement('canvas');
+          thumbCanvas.width = size;
+          thumbCanvas.height = size;
+          const thumbCtx = thumbCanvas.getContext('2d');
+          
+          // Center crop to square
+          const minDim = Math.min(img.width, img.height);
+          const sx = (img.width - minDim) / 2;
+          const sy = (img.height - minDim) / 2;
+          
+          thumbCtx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+          resolve(thumbCanvas.toDataURL('image/jpeg', 0.8));
+          URL.revokeObjectURL(img.src);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(img.src);
+          resolve(null);
+        };
+        img.src = URL.createObjectURL(blob);
+      });
+    }
+    
+    async function getThumbnail(uploadIndex) {
+      if (thumbnailCache.has(uploadIndex)) {
+        return thumbnailCache.get(uploadIndex);
+      }
+      const blob = getUploadedBlob(uploadIndex);
+      if (!blob) return null;
+      const thumbnail = await generateThumbnail(blob);
+      if (thumbnail) {
+        thumbnailCache.set(uploadIndex, thumbnail);
+      }
+      return thumbnail;
+    }
+    
+    // Measure character position using a hidden span with same styling
+    const measureSpan = document.createElement('span');
+    measureSpan.style.cssText = `
+      position: absolute;
+      visibility: hidden;
+      white-space: pre;
+      font-family: "QQQLANG", "Inconsolata", monospace;
+      font-size: 22px;
+      font-weight: 300;
+    `;
+    document.body.appendChild(measureSpan);
+    
+    function getCharacterXPosition(text, charIndex) {
+      // Measure width up to the character
+      measureSpan.textContent = text.substring(0, charIndex);
+      return measureSpan.offsetWidth;
+    }
+    
+    async function updateThumbnails() {
+      const program = input.value || '';
+      const invalidIndices = getInvalidUploadIndices(program);
+      
+      // Clear existing thumbnails
+      thumbnailOverlay.innerHTML = '';
+      
+      // Find all upload characters and their positions
+      const chars = [...program];
+      for (let i = 0; i < chars.length; i++) {
+        const char = chars[i];
+        const uploadIdx = getUploadIndex(char);
+        if (uploadIdx === null) continue;
+        
+        const thumbnail = await getThumbnail(uploadIdx);
+        if (!thumbnail) continue;
+        
+        const isInvalid = invalidIndices.has(uploadIdx);
+        const xPos = getCharacterXPosition(program, i);
+        
+        const img = document.createElement('img');
+        img.src = thumbnail;
+        img.className = 'upload-thumbnail' + (isInvalid ? ' invalid' : '');
+        // Position: padding (15px) + scroll offset + character position
+        // Center the thumbnail on the character (char width ~13px, thumb width 20px)
+        img.style.left = (15 + xPos - input.scrollLeft + 1) + 'px';
+        img.style.top = '12px';
+        img.dataset.uploadIndex = uploadIdx;
+        img.dataset.charIndex = i;
+        
+        // Click to replace this upload
+        img.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          pendingReplaceIndex = uploadIdx;
+          fileInput.click();
+        });
+        
+        thumbnailOverlay.appendChild(img);
+      }
+    }
+    
     async function render() {
       // Sync upload display chars first
       syncUploadChars();
