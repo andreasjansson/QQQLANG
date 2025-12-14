@@ -783,17 +783,6 @@
     }
     
     
-    function getUploadCharIndex(str, charPosition) {
-      let uploadIndex = 0;
-      const chars = [...str];
-      for (let i = 0; i < charPosition && i < chars.length; i++) {
-        if (chars[i] === UPLOAD_CHAR) {
-          uploadIndex++;
-        }
-      }
-      return uploadIndex;
-    }
-    
     uploadButton.addEventListener('click', () => {
       const cursorPos = input.selectionStart ?? input.value.length;
       const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
@@ -802,16 +791,19 @@
         const charAtCursor = chars[cursorPos];
         const charBeforeCursor = cursorPos > 0 ? chars[cursorPos - 1] : null;
         
-        if (charAtCursor === UPLOAD_CHAR) {
-          // Cursor is on a □, replace this upload
-          // getUploadCharIndex returns count of □ before position, so this gives us the 0-based index
-          pendingUploadIndex = getUploadCharIndex(input.value, cursorPos);
-        } else if (charBeforeCursor === UPLOAD_CHAR) {
-          // Cursor is right after a □, replace that upload
-          pendingUploadIndex = getUploadCharIndex(input.value, cursorPos - 1);
+        // Check if cursor is on or after an existing indexed upload
+        const idxAtCursor = getUploadIndex(charAtCursor);
+        const idxBeforeCursor = getUploadIndex(charBeforeCursor);
+        
+        if (idxAtCursor !== null) {
+          // Cursor is on an indexed upload, replace it
+          pendingReplaceIndex = idxAtCursor;
+        } else if (idxBeforeCursor !== null) {
+          // Cursor is right after an indexed upload, replace it
+          pendingReplaceIndex = idxBeforeCursor;
         } else {
           // Not on an existing upload, add new one
-          pendingUploadIndex = null;
+          pendingReplaceIndex = null;
         }
         
         fileInput.click();
