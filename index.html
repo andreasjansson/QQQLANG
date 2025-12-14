@@ -935,6 +935,17 @@
       const program = input.value || '';
       const invalidIndices = getInvalidUploadIndices(program);
       
+      console.log('[updateInvalidUploadDisplay] program:', program, 'length:', program.length);
+      console.log('[updateInvalidUploadDisplay] invalidIndices:', invalidIndices);
+      
+      // Log each character's code point
+      for (let i = 0; i < program.length; i++) {
+        const char = [...program][i];
+        const code = char?.codePointAt(0);
+        const uploadIdx = getUploadIndex(char);
+        console.log(`  char[${i}]: "${char}" code=${code?.toString(16)} uploadIdx=${uploadIdx}`);
+      }
+      
       if (invalidIndices.size === 0) {
         // No invalid uploads - make sure all are shown as valid (outline)
         let needsUpdate = false;
