@@ -2,18 +2,25 @@
 """
 Build a custom QQQLANG font based on Inconsolata with:
 1. COLR/CPAL color tables for colored characters
-2. Context-dependent bolding via GSUB calt feature (function chars are bold, args are not)
-3. Context-dependent spacing via GPOS (extra space after complete function calls)
+2. Context-dependent bolding via GSUB calt feature
+3. Context-dependent spacing after complete function calls
 
-Strategy:
+Rules:
 - First character is always bold (initial color)
 - Function characters are bold
 - Arguments are regular weight
-- After a complete function call (fn + all its args), add extra spacing
+- After complete function calls, add extra spacing
 
-We use OpenType GSUB ligature-like substitution to handle this:
-- Create PUA variants: bold, bold+spaced, regular+spaced
-- Build explicit substitution rules for each possible function pattern
+Strategy using multiple GSUB lookup passes:
+1. Make ALL characters bold unconditionally
+2. For each arity N>0: find bold function, un-bold its N arguments
+   - Arguments 1 to N-1 become regular
+   - Argument N becomes regular_spaced (adds gap after complete call)
+3. For arity 0: bold functions become bold_spaced (adds gap after complete call)
+
+This works because after pass 1, everything is bold. Then pass 2 converts
+arguments to regular (looking for bold function + bold args). Characters
+that remain bold are functions. Pass 3 adds spacing.
 """
 
 import re
@@ -31,7 +38,6 @@ OUTPUT_FONT_PATH = PROJECT_DIR / "public" / "QQQLANG.ttf"
 PUA_START = 0xE000
 FUNCTION_GAP = 100  # Extra advance width units after complete function calls
 
-# Weight axis values for Inconsolata variable font
 REGULAR_WEIGHT = 400
 BOLD_WEIGHT = 700
 
@@ -40,7 +46,6 @@ def parse_character_defs():
     """Parse character definitions from character-defs.ts"""
     content = CHARACTER_DEFS_PATH.read_text()
     
-    # Match patterns like: 'A': { color: '#78A10F', number: 1, ... args: [...], functionName: "..."
     pattern = r"'([^']+)':\s*\{[^}]*color:\s*'([^']+)'[^}]*number:\s*(\d+)[^}]*args:\s*\[([\s\S]*?)\][^}]*functionName"
     
     chars = {}
@@ -56,9 +61,21 @@ def parse_character_defs():
 
 
 def hex_to_rgb(hex_color):
-    """Convert hex color to RGB tuple (0-255 range)"""
     hex_color = hex_color.lstrip('#')
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+
+def cleanup_variable_font_tables(font):
+    """Remove variable font tables that cause issues with new glyphs."""
+    for table_name in ['HVAR', 'VVAR', 'MVAR']:
+        if table_name in font:
+            del font[table_name]
+            print(f"  Removed {table_name} table")
+    
+    if 'GDEF' in font:
+        table = font['GDEF']
+        if hasattr(table.table, 'VarStore'):
+            del table.table.VarStore
 
 
 def build_font():
@@ -71,8 +88,7 @@ def build_font():
     char_defs = parse_character_defs()
     print(f"Parsed {len(char_defs)} character definitions")
     
-    # Group by arity
-    arity_map = {}  # char -> arity
+    arity_map = {}
     for char, info in char_defs.items():
         if len(char) == 1:
             arity_map[char] = info['arity']
@@ -84,27 +100,21 @@ def build_font():
     for arity, count in sorted(arity_counts.items()):
         print(f"  {count} chars with arity {arity}")
     
-    # Load the variable font
     print(f"Loading font from {INPUT_FONT_PATH}")
     var_font = TTFont(INPUT_FONT_PATH)
     
-    # Create regular weight instance
     print("Creating regular weight instance...")
     regular_font = instantiateVariableFont(var_font, {"wght": REGULAR_WEIGHT})
     
-    # Create bold weight instance  
     print("Creating bold weight instance...")
     bold_font = instantiateVariableFont(var_font, {"wght": BOLD_WEIGHT})
     
-    # We'll work with the regular font as our base
     font = regular_font
     
-    # Get the glyph order and cmap
     glyph_order = list(font.getGlyphOrder())
     cmap = dict(font.getBestCmap())
     
-    # Map characters to glyph names
-    glyph_name_map = {}  # char -> regular glyph name
+    glyph_name_map = {}
     for char in char_defs.keys():
         if len(char) != 1:
             continue
@@ -115,7 +125,6 @@ def build_font():
     qqqlang_chars = sorted([c for c in char_defs.keys() if len(c) == 1 and c in glyph_name_map])
     print(f"Found {len(qqqlang_chars)} characters in font")
     
-    # Get tables for glyph manipulation
     glyf = font['glyf']
     bold_glyf = bold_font['glyf']
     hmtx = font['hmtx']
@@ -123,14 +132,14 @@ def build_font():
     
     print("Creating glyph variants in Private Use Area...")
     
-    # Create PUA variants:
-    # - bold: bold weight, normal spacing (for function chars with args following)
-    # - bold_spaced: bold weight, extra spacing (for arity-0 functions, or function when it's the last in a call)
-    # - regular_spaced: regular weight, extra spacing (for last argument of a function)
+    # Variants:
+    # - bold: bold weight, normal spacing (for functions with args following)
+    # - bold_spaced: bold weight, extra spacing (for arity-0 functions)
+    # - regular_spaced: regular weight, extra spacing (for last argument)
     
-    bold_glyph_map = {}        # char -> bold PUA glyph name
-    bold_spaced_glyph_map = {} # char -> bold+spaced PUA glyph name  
-    regular_spaced_glyph_map = {}  # char -> regular+spaced PUA glyph name
+    bold_glyph_map = {}
+    bold_spaced_glyph_map = {}
+    regular_spaced_glyph_map = {}
     
     pua_index = PUA_START
     new_glyphs = []
@@ -140,7 +149,6 @@ def build_font():
         regular_glyph_data = glyf[regular_glyph_name]
         regular_width, regular_lsb = hmtx.metrics[regular_glyph_name]
         
-        # Get bold glyph data
         if regular_glyph_name in bold_glyf.glyphs:
             bold_glyph_data = bold_glyf[regular_glyph_name]
             if regular_glyph_name in bold_hmtx.metrics:
@@ -151,28 +159,27 @@ def build_font():
             bold_glyph_data = regular_glyph_data
             bold_width, bold_lsb = regular_width, regular_lsb
         
-        # 1. Bold variant (bold weight, normal spacing)
+        # Bold variant
         bold_codepoint = pua_index
         pua_index += 1
         bold_name = f"uni{bold_codepoint:04X}"
         bold_glyph_map[char] = bold_name
         new_glyphs.append((bold_name, bold_glyph_data, bold_width, bold_lsb, bold_codepoint))
         
-        # 2. Bold+spaced variant (bold weight, extra spacing)
+        # Bold+spaced variant
         bold_spaced_codepoint = pua_index
         pua_index += 1
         bold_spaced_name = f"uni{bold_spaced_codepoint:04X}"
         bold_spaced_glyph_map[char] = bold_spaced_name
         new_glyphs.append((bold_spaced_name, bold_glyph_data, bold_width + FUNCTION_GAP, bold_lsb, bold_spaced_codepoint))
         
-        # 3. Regular+spaced variant (regular weight, extra spacing)
+        # Regular+spaced variant
         regular_spaced_codepoint = pua_index
         pua_index += 1
         regular_spaced_name = f"uni{regular_spaced_codepoint:04X}"
         regular_spaced_glyph_map[char] = regular_spaced_name
         new_glyphs.append((regular_spaced_name, regular_glyph_data, regular_width + FUNCTION_GAP, regular_lsb, regular_spaced_codepoint))
     
-    # Add all new glyphs
     for glyph_name, glyph_data, width, lsb, codepoint in new_glyphs:
         glyph_order.append(glyph_name)
         glyf.glyphs[glyph_name] = glyph_data
@@ -186,15 +193,13 @@ def build_font():
     print(f"Created {len(bold_spaced_glyph_map)} bold+spaced variants")
     print(f"Created {len(regular_spaced_glyph_map)} regular+spaced variants")
     
-    # Update cmap table
     for table in font['cmap'].tables:
         if hasattr(table, 'cmap'):
             table.cmap.update(cmap)
     
-    # Clean up variable font tables before adding feature tables
     cleanup_variable_font_tables(font)
     
-    # Build COLR/CPAL color tables
+    # Build COLR/CPAL
     print("Building color tables...")
     
     colors = []
@@ -221,22 +226,18 @@ def build_font():
         color = info['color'].upper()
         color_index = color_to_index[color]
         
-        # Regular glyph
         if char in glyph_name_map:
             glyph_name = glyph_name_map[char]
             color_glyphs[glyph_name] = [(glyph_name, color_index)]
         
-        # Bold variant
         if char in bold_glyph_map:
-            bold_name = bold_glyph_map[char]
-            color_glyphs[bold_name] = [(bold_name, color_index)]
+            name = bold_glyph_map[char]
+            color_glyphs[name] = [(name, color_index)]
         
-        # Bold+spaced variant
         if char in bold_spaced_glyph_map:
             name = bold_spaced_glyph_map[char]
             color_glyphs[name] = [(name, color_index)]
         
-        # Regular+spaced variant
         if char in regular_spaced_glyph_map:
             name = regular_spaced_glyph_map[char]
             color_glyphs[name] = [(name, color_index)]
@@ -247,20 +248,17 @@ def build_font():
     print(f"Added {len(colors)} colors to palette")
     print(f"Added {len(color_glyphs)} colored glyphs")
     
-    # Build GSUB feature
+    # Build GSUB
     print("Building GSUB contextual substitution rules...")
     build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
                        glyph_name_map, bold_glyph_map, bold_spaced_glyph_map, regular_spaced_glyph_map)
     
-    # Update font names
     print("Updating font names...")
     name_table = font['name']
-    
     for record in name_table.names:
         if record.nameID in (1, 4, 6):
             record.string = "QQQLANG"
     
-    # Save the font
     OUTPUT_FONT_PATH.parent.mkdir(parents=True, exist_ok=True)
     print(f"Saving font to {OUTPUT_FONT_PATH}")
     font.save(str(OUTPUT_FONT_PATH))
@@ -268,66 +266,24 @@ def build_font():
     print("Done!")
 
 
-def cleanup_variable_font_tables(font):
-    """
-    Remove or clean up variable font tables that can cause issues
-    when adding new glyphs to an instanced font.
-    """
-    # Tables that may have VarIdxMap or other glyph-indexed data
-    tables_to_check = ['MVAR', 'HVAR', 'VVAR', 'GDEF']
-    
-    for table_name in tables_to_check:
-        if table_name in font:
-            table = font[table_name]
-            # For GDEF, we need to be careful - it may have LigCaretList etc.
-            # But if it has VarIdxMap references, those will break
-            if table_name == 'GDEF' and hasattr(table.table, 'VarStore'):
-                # Remove the VarStore to avoid glyph indexing issues
-                del table.table.VarStore
-                if hasattr(table.table, 'GlyphClassDef'):
-                    # Keep GlyphClassDef but remove VarStore
-                    pass
-            elif table_name in ['HVAR', 'VVAR', 'MVAR']:
-                # These are specifically for variable fonts, safe to remove
-                del font[table_name]
-                print(f"  Removed {table_name} table")
-
-
 def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
                        glyph_name_map, bold_glyph_map, bold_spaced_glyph_map, regular_spaced_glyph_map):
     """
-    Build GSUB calt feature for contextual substitution.
+    Build GSUB calt feature using multiple lookup passes:
     
-    The strategy is to enumerate all possible complete function calls and create
-    explicit substitution rules. Since we're dealing with a small character set
-    and max arity of ~11, this is tractable.
+    1. Make ALL characters bold (unconditionally)
+    2. For each arity N (high to low): un-bold arguments of bold functions
+       - Last arg becomes regular_spaced
+       - Other args become regular
+    3. For arity 0: bold → bold_spaced (add spacing)
     
-    Rules (processed in order):
-    1. First, we need to handle the sequence-based transformations
-    2. Use multiple lookups applied in sequence
-    
-    The key insight: we process left-to-right. When we see a function character,
-    we need to know if it's in "function position" (start of program, or after
-    a complete function call) vs "argument position".
-    
-    Approach:
-    - We'll use a state machine implemented via chained contextual substitution
-    - The "state" is encoded in which variant of the glyph we're using
-    - Regular glyphs = in argument position or initial
-    - After processing: bold = function, regular = arg, spaced = end of call
-    
-    Simpler approach for now:
-    - Just handle spacing after complete calls
-    - Make ALL function characters bold (can't easily distinguish first char of program)
-    
-    Even simpler first pass:
-    - Enumerate all complete function call patterns
-    - Sub the function char to bold, and last char to spaced variant
+    After pass 1, everything is bold. Pass 2 converts arguments to regular
+    (by looking for bold_fn + bold_args). Characters that remain bold after
+    pass 2 are functions. Pass 3 adds spacing to arity-0 functions.
     """
     from fontTools.feaLib.builder import addOpenTypeFeatures
     from io import StringIO
     
-    # Group functions by arity
     by_arity = {}
     for char in qqqlang_chars:
         arity = arity_map.get(char, 0)
@@ -350,130 +306,118 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append(f"@bold = [{' '.join(all_bold)}];")
     fea_lines.append(f"@bold_spaced = [{' '.join(all_bold_spaced)}];")
     fea_lines.append(f"@regular_spaced = [{' '.join(all_regular_spaced)}];")
+    
+    # @any includes all variants (for lookahead that doesn't care about variant)
+    all_any = all_regular + all_bold + all_bold_spaced + all_regular_spaced
+    fea_lines.append(f"@any = [{' '.join(all_any)}];")
     fea_lines.append("")
     
-    # Classes by arity - for functions
+    # Classes by arity - only need bold class for matching functions
     for arity in sorted(by_arity.keys()):
+        if arity == 0:
+            continue  # arity 0 handled separately
         chars = by_arity[arity]
-        reg = [glyph_name_map[c] for c in chars]
         bold = [bold_glyph_map[c] for c in chars]
-        bold_sp = [bold_spaced_glyph_map[c] for c in chars]
-        fea_lines.append(f"@fn{arity}_reg = [{' '.join(reg)}];")
         fea_lines.append(f"@fn{arity}_bold = [{' '.join(bold)}];")
-        fea_lines.append(f"@fn{arity}_bold_spaced = [{' '.join(bold_sp)}];")
+    
+    # Arity 0 bold class (for spacing pass)
+    if 0 in by_arity:
+        chars = by_arity[0]
+        bold = [bold_glyph_map[c] for c in chars]
+        fea_lines.append(f"@fn0_bold = [{' '.join(bold)}];")
     fea_lines.append("")
     
-    # Lookups for individual substitutions
-    
-    # Lookup: regular -> bold
-    fea_lines.append("lookup regular_to_bold {")
+    # Lookup 1: regular → bold (make everything bold)
+    fea_lines.append("lookup make_bold {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {glyph_name_map[char]} by {bold_glyph_map[char]};")
-    fea_lines.append("} regular_to_bold;")
+    fea_lines.append("} make_bold;")
     fea_lines.append("")
     
-    # Lookup: regular -> bold_spaced
-    fea_lines.append("lookup regular_to_bold_spaced {")
+    # Lookup 2: bold → regular (for non-last arguments, arity > 1)
+    fea_lines.append("lookup bold_to_regular {")
     for char in qqqlang_chars:
-        fea_lines.append(f"    sub {glyph_name_map[char]} by {bold_spaced_glyph_map[char]};")
-    fea_lines.append("} regular_to_bold_spaced;")
+        fea_lines.append(f"    sub {bold_glyph_map[char]} by {glyph_name_map[char]};")
+    fea_lines.append("} bold_to_regular;")
     fea_lines.append("")
     
-    # Lookup: regular -> regular_spaced
-    fea_lines.append("lookup regular_to_regular_spaced {")
+    # Lookup 3: bold → regular_spaced (for last argument)
+    fea_lines.append("lookup bold_to_regular_spaced {")
     for char in qqqlang_chars:
-        fea_lines.append(f"    sub {glyph_name_map[char]} by {regular_spaced_glyph_map[char]};")
-    fea_lines.append("} regular_to_regular_spaced;")
+        fea_lines.append(f"    sub {bold_glyph_map[char]} by {regular_spaced_glyph_map[char]};")
+    fea_lines.append("} bold_to_regular_spaced;")
     fea_lines.append("")
     
-    # Lookup: bold -> bold_spaced
+    # Lookup 4: bold → bold_spaced (for arity-0 functions, add spacing)
     fea_lines.append("lookup bold_to_bold_spaced {")
     for char in qqqlang_chars:
         fea_lines.append(f"    sub {bold_glyph_map[char]} by {bold_spaced_glyph_map[char]};")
     fea_lines.append("} bold_to_bold_spaced;")
     fea_lines.append("")
     
-    # The calt feature - contextual rules
-    # 
-    # Strategy: We'll use multiple passes
-    # Pass 1: Mark function chars as bold when followed by enough args
-    # Pass 2: Mark last char of complete calls as spaced
-    #
-    # The tricky part is that we need to process patterns correctly.
-    # We'll enumerate explicit patterns for each arity.
-    
+    # The calt feature with ordered lookups
     fea_lines.append("feature calt {")
     
-    # For clarity and correctness, we'll generate explicit rules for each arity
-    # processing from highest arity down to lowest (greedy matching)
+    # Pass 1: Make all regular chars bold
+    fea_lines.append("    # Pass 1: Make all chars bold")
+    fea_lines.append("    lookup pass1 {")
+    fea_lines.append("        sub @regular' lookup make_bold;")
+    fea_lines.append("    } pass1;")
+    fea_lines.append("")
     
-    # First: Arity 0 - function itself is bold+spaced (complete call = just the function)
-    if 0 in by_arity:
-        fea_lines.append("    # Arity 0: function char -> bold_spaced")
-        for char in by_arity[0]:
-            fea_lines.append(f"    sub {glyph_name_map[char]}' lookup regular_to_bold_spaced;")
-        fea_lines.append("")
+    # Pass 2: Un-bold arguments (process from highest arity to lowest)
+    fea_lines.append("    # Pass 2: Un-bold arguments of functions")
     
-    # For arity >= 1: function -> bold, last arg -> regular_spaced
-    # We process from high to low arity for proper precedence
     for arity in sorted([a for a in by_arity.keys() if a > 0], reverse=True):
-        fea_lines.append(f"    # Arity {arity}: fn -> bold, arg{arity} -> regular_spaced")
+        fea_lines.append(f"    # Arity {arity}")
+        fea_lines.append(f"    lookup pass2_arity{arity} {{")
         
-        # We need to be careful here. The pattern is:
-        # fn_char arg1 arg2 ... argN
-        # We want: fn_char' -> bold (when followed by N @regular)
-        #          argN' -> regular_spaced (when preceded by bold_fn and N-1 regular)
+        fn_class = f"@fn{arity}_bold"
         
-        # First rule: fn_char -> bold when followed by exactly arity @regular chars
-        # BUT: we need to ensure the chars after are actually "regular" (not already transformed)
-        # AND: the last one should become spaced
-        
-        # The approach: 
-        # Rule 1: fn followed by arity regulars -> make fn bold
-        # Rule 2: bold_fn followed by (arity-1) regulars, then 1 regular -> make last regular spaced
-        
-        fn_class = f"@fn{arity}_reg"
-        fn_bold_class = f"@fn{arity}_bold"
-        
-        # Rule 1: Transform function char to bold
         if arity == 1:
-            fea_lines.append(f"    sub {fn_class}' lookup regular_to_bold @regular;")
+            # Single arg: fn arg' → fn regular_spaced_arg
+            fea_lines.append(f"        sub {fn_class} @bold' lookup bold_to_regular_spaced;")
         else:
-            args = " @regular" * arity
-            fea_lines.append(f"    sub {fn_class}' lookup regular_to_bold{args};")
+            # Multiple args: first N-1 become regular, last becomes regular_spaced
+            # We need multiple rules, processed left-to-right
+            
+            # First arg (and middle args): fn arg1' [args...] → regular
+            # Pattern: fn_bold @bold' @any @any ... (arity-1 @any after the target)
+            for arg_pos in range(arity - 1):
+                # Match: fn, then arg_pos @any chars, then @bold', then remaining @any chars
+                before = " @any" * arg_pos
+                after = " @any" * (arity - 1 - arg_pos)
+                fea_lines.append(f"        sub {fn_class}{before} @bold' lookup bold_to_regular{after};")
+            
+            # Last arg: fn @any... @bold' → regular_spaced
+            before = " @any" * (arity - 1)
+            fea_lines.append(f"        sub {fn_class}{before} @bold' lookup bold_to_regular_spaced;")
         
-        # Rule 2: Transform last argument to spaced
-        # We look for the bold function followed by args
-        if arity == 1:
-            fea_lines.append(f"    sub {fn_bold_class} @regular' lookup regular_to_regular_spaced;")
-        else:
-            preceding_args = " @regular" * (arity - 1)
-            fea_lines.append(f"    sub {fn_bold_class}{preceding_args} @regular' lookup regular_to_regular_spaced;")
-        
+        fea_lines.append(f"    }} pass2_arity{arity};")
         fea_lines.append("")
+    
+    # Pass 3: Add spacing to arity-0 functions (still bold after pass 2)
+    if 0 in by_arity:
+        fea_lines.append("    # Pass 3: Add spacing to arity-0 functions")
+        fea_lines.append("    lookup pass3_spacing {")
+        fea_lines.append("        sub @fn0_bold' lookup bold_to_bold_spaced;")
+        fea_lines.append("    } pass3_spacing;")
     
     fea_lines.append("} calt;")
     
-    # Join feature code
     fea_code = "\n".join(fea_lines)
     
-    # Print summary
     rule_count = len([l for l in fea_lines if l.strip().startswith('sub ')])
     print(f"  Generated {rule_count} substitution rules")
     print(f"  Feature code: {len(fea_code)} bytes")
     
-    # Debug: print the feature code
-    if len(fea_lines) <= 100:
-        print("  Generated feature code:")
-        for line in fea_lines:
-            print(f"    {line}")
-    else:
-        print("  First 50 lines of feature code:")
-        for line in fea_lines[:50]:
-            print(f"    {line}")
-        print(f"    ... ({len(fea_lines) - 50} more lines)")
+    # Debug output
+    print("  Feature code preview:")
+    for i, line in enumerate(fea_lines[:80]):
+        print(f"    {line}")
+    if len(fea_lines) > 80:
+        print(f"    ... ({len(fea_lines) - 80} more lines)")
     
-    # Apply the feature code to the font
     addOpenTypeFeatures(font, StringIO(fea_code))
 
 
