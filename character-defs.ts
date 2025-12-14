@@ -2498,141 +2498,104 @@ function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  // Parameter determines seed pattern and quantization
-  const seedMode = Math.floor((n - 1) / 17); // 0-3
+  // Parameter determines pattern and quantization
+  const patternMode = Math.floor((n - 1) / 17); // 0-3
   const quantStep = Math.max(1, Math.floor(1 + ((n - 1) % 17) * 3.5)); // 1-60
   
-  // Calculate gradient magnitude (fast approximation)
-  const gradients = new Float32Array(ctx.width * ctx.height);
+  // Create processing order based on pattern
+  const processOrder = new Int32Array(ctx.width * ctx.height);
+  let orderCounter = 0;
   
-  for (let y = 1; y < ctx.height - 1; y++) {
-    for (let x = 1; x < ctx.width - 1; x++) {
-      const idx = y * ctx.width + x;
-      const i = idx * 4;
-      
-      // Fast gradient using only red channel
-      const gx = Math.abs(prev.data[i + 4] - prev.data[i - 4]);
-      const gy = Math.abs(prev.data[i + ctx.width * 4] - prev.data[i - ctx.width * 4]);
-      gradients[idx] = gx + gy; // Manhattan distance is faster than sqrt
-    }
-  }
+  const cx = ctx.width >> 1;
+  const cy = ctx.height >> 1;
   
-  // Define seed points
-  const seeds: [number, number][] = [];
-  
-  if (seedMode === 0) {
-    seeds.push([0, 0], [ctx.width - 1, 0], [0, ctx.height - 1], [ctx.width - 1, ctx.height - 1]);
-  } else if (seedMode === 1) {
-    seeds.push([ctx.width >> 1, 0], [ctx.width >> 1, ctx.height - 1], [0, ctx.height >> 1], [ctx.width - 1, ctx.height >> 1]);
-  } else if (seedMode === 2) {
-    seeds.push([ctx.width >> 1, ctx.height >> 1]);
-  } else {
-    seeds.push([ctx.width >> 1, ctx.height >> 1], [ctx.width >> 1, 0], [ctx.width >> 1, ctx.height - 1], [0, ctx.height >> 1], [ctx.width - 1, ctx.height >> 1]);
-  }
-  
-  // Simple min-heap for priority queue
-  class MinHeap {
-    heap: [number, number, number][] = [];
-    
-    push(item: [number, number, number]) {
-      this.heap.push(item);
-      this.bubbleUp(this.heap.length - 1);
-    }
-    
-    pop(): [number, number, number] | undefined {
-      if (this.heap.length === 0) return undefined;
-      const min = this.heap[0];
-      const last = this.heap.pop()!;
-      if (this.heap.length > 0) {
-        this.heap[0] = last;
-        this.bubbleDown(0);
-      }
-      return min;
-    }
-    
-    bubbleUp(idx: number) {
-      while (idx > 0) {
-        const parent = (idx - 1) >> 1;
-        if (this.heap[idx][2] >= this.heap[parent][2]) break;
-        [this.heap[idx], this.heap[parent]] = [this.heap[parent], this.heap[idx]];
-        idx = parent;
+  if (patternMode === 0) {
+    // Diagonal stripes from corners (creates X pattern)
+    for (let sum = 0; sum < ctx.width + ctx.height; sum++) {
+      for (let y = 0; y < ctx.height; y++) {
+        const x = sum - y;
+        if (x >= 0 && x < ctx.width) {
+          processOrder[y * ctx.width + x] = orderCounter++;
+        }
       }
     }
+  } else if (patternMode === 1) {
+    // Alternating horizontal/vertical strips from edges
+    const stripHeight = Math.max(1, ctx.height >> 3);
+    const stripWidth = Math.max(1, ctx.width >> 3);
     
-    bubbleDown(idx: number) {
-      const len = this.heap.length;
-      while (true) {
-        const left = (idx << 1) + 1;
-        const right = left + 1;
-        let smallest = idx;
-        
-        if (left < len && this.heap[left][2] < this.heap[smallest][2]) smallest = left;
-        if (right < len && this.heap[right][2] < this.heap[smallest][2]) smallest = right;
-        
-        if (smallest === idx) break;
-        [this.heap[idx], this.heap[smallest]] = [this.heap[smallest], this.heap[idx]];
-        idx = smallest;
-      }
-    }
-    
-    get length() { return this.heap.length; }
-  }
-  
-  // Process each channel separately
-  for (let channel = 0; channel < 3; channel++) {
-    const residuals = new Int16Array(ctx.width * ctx.height);
-    const processOrder = new Int32Array(ctx.width * ctx.height).fill(-1); // -1 = unprocessed
-    let orderCounter = 0;
-    
-    const heap = new MinHeap();
-    
-    // Initialize with seeds
-    for (const [sx, sy] of seeds) {
-      const idx = sy * ctx.width + sx;
-      if (processOrder[idx] === -1) {
-        heap.push([sx, sy, gradients[idx]]);
-        processOrder[idx] = orderCounter++;
-      }
-    }
-    
-    // Gradient-guided traversal
-    while (heap.length > 0) {
-      const item = heap.pop();
-      if (!item) break;
-      const [x, y] = item;
-      
-      // Add unprocessed neighbors
-      const neighbors = [
-        [x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1],
-        [x - 1, y - 1], [x + 1, y - 1], [x - 1, y + 1], [x + 1, y + 1]
-      ];
-      
-      for (const [nx, ny] of neighbors) {
-        if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
-          const nidx = ny * ctx.width + nx;
-          if (processOrder[nidx] === -1) {
-            heap.push([nx, ny, gradients[nidx]]);
-            processOrder[nidx] = orderCounter++;
+    for (let strip = 0; strip < 8; strip++) {
+      if (strip % 2 === 0) {
+        // Horizontal strip
+        const yStart = strip * stripHeight;
+        const yEnd = Math.min(ctx.height, (strip + 1) * stripHeight);
+        for (let y = yStart; y < yEnd; y++) {
+          for (let x = 0; x < ctx.width; x++) {
+            processOrder[y * ctx.width + x] = orderCounter++;
+          }
+        }
+      } else {
+        // Vertical strip
+        const xStart = strip * stripWidth;
+        const xEnd = Math.min(ctx.width, (strip + 1) * stripWidth);
+        for (let x = xStart; x < xEnd; x++) {
+          for (let y = 0; y < ctx.height; y++) {
+            processOrder[y * ctx.width + x] = orderCounter++;
           }
         }
       }
     }
+  } else if (patternMode === 2) {
+    // Distance-based from center (spiral-like)
+    const maxDist = Math.sqrt(cx * cx + cy * cy);
+    const buckets: number[][] = Array.from({ length: 256 }, () => []);
     
-    // Build ordered list for processing
-    const ordered: [number, number][] = new Array(ctx.width * ctx.height);
     for (let y = 0; y < ctx.height; y++) {
       for (let x = 0; x < ctx.width; x++) {
-        const idx = y * ctx.width + x;
-        const order = processOrder[idx];
-        if (order >= 0) {
-          ordered[order] = [x, y];
-        }
+        const dx = x - cx;
+        const dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const bucket = Math.min(255, Math.floor((dist / maxDist) * 255));
+        buckets[bucket].push(y * ctx.width + x);
       }
     }
     
-    // Forward pass: calculate residuals
-    for (const [x, y] of ordered) {
-      const idx = y * ctx.width + x;
+    for (const bucket of buckets) {
+      for (const idx of bucket) {
+        processOrder[idx] = orderCounter++;
+      }
+    }
+  } else {
+    // Cross/star pattern from center and edges
+    const maxDist = Math.max(cx, cy, ctx.width - cx, ctx.height - cy);
+    const buckets: number[][] = Array.from({ length: 256 }, () => []);
+    
+    for (let y = 0; y < ctx.height; y++) {
+      for (let x = 0; x < ctx.width; x++) {
+        // Distance to nearest axis or center
+        const distToCenterX = Math.abs(x - cx);
+        const distToCenterY = Math.abs(y - cy);
+        const distToAxes = Math.min(distToCenterX, distToCenterY);
+        const bucket = Math.min(255, Math.floor((distToAxes / maxDist) * 255));
+        buckets[bucket].push(y * ctx.width + x);
+      }
+    }
+    
+    for (const bucket of buckets) {
+      for (const idx of bucket) {
+        processOrder[idx] = orderCounter++;
+      }
+    }
+  }
+  
+  // Process each channel
+  for (let channel = 0; channel < 3; channel++) {
+    const residuals = new Int16Array(ctx.width * ctx.height);
+    
+    // Forward pass: calculate residuals in order
+    for (let idx = 0; idx < ctx.width * ctx.height; idx++) {
+      const y = Math.floor(idx / ctx.width);
+      const x = idx % ctx.width;
       const pixelIdx = idx * 4 + channel;
       const actual = prev.data[pixelIdx];
       const thisOrder = processOrder[idx];
@@ -2650,7 +2613,7 @@ function fnX(ctx: FnContext, n: number): Image {
         if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
           const nidx = ny * ctx.width + nx;
           if (processOrder[nidx] < thisOrder) {
-            sum += prev.data[(ny * ctx.width + nx) * 4 + channel];
+            sum += prev.data[nidx * 4 + channel];
             count++;
           }
         }
@@ -2661,9 +2624,10 @@ function fnX(ctx: FnContext, n: number): Image {
       residuals[idx] = Math.round(residual / quantStep) * quantStep;
     }
     
-    // Backward pass: reconstruct
-    for (const [x, y] of ordered) {
-      const idx = y * ctx.width + x;
+    // Backward pass: reconstruct in order
+    for (let idx = 0; idx < ctx.width * ctx.height; idx++) {
+      const y = Math.floor(idx / ctx.width);
+      const x = idx % ctx.width;
       const outIdx = idx * 4 + channel;
       const thisOrder = processOrder[idx];
       
@@ -2679,7 +2643,7 @@ function fnX(ctx: FnContext, n: number): Image {
         if (nx >= 0 && nx < ctx.width && ny >= 0 && ny < ctx.height) {
           const nidx = ny * ctx.width + nx;
           if (processOrder[nidx] < thisOrder) {
-            sum += out.data[(ny * ctx.width + nx) * 4 + channel];
+            sum += out.data[nidx * 4 + channel];
             count++;
           }
         }
