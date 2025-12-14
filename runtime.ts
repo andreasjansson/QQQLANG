@@ -233,7 +233,20 @@ function isValidProgramChar(char: string): boolean {
 }
 
 function parseProgram(program: string): ParseResult {
-  console.log(`\n=== PARSING: "${program}" ===`);
+  console.log(`\n=== PARSING: length=${program.length} ===`);
+  console.log(`  Raw characters in program:`);
+  for (let i = 0; i < program.length; i++) {
+    const c = program[i];
+    const code = c.codePointAt(0);
+    console.log(`    [${i}] char="${c}" code=${code?.toString(16)}`);
+  }
+  console.log(`  Using spread operator:`);
+  const spreadChars = [...program];
+  for (let i = 0; i < spreadChars.length; i++) {
+    const c = spreadChars[i];
+    const code = c.codePointAt(0);
+    console.log(`    spread[${i}] char="${c}" code=${code?.toString(16)}`);
+  }
   const chars = [...program].filter(isValidProgramChar);
   console.log(`Filtered chars: ${chars.length} characters`);
   
