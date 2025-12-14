@@ -583,9 +583,12 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("} pass1a;")
     fea_lines.append("")
     
-    # Pass 1b: Any bold_first preceded by @preceded_by becomes bold
+    # Pass 1b: Any bold_first preceded by @preceded_by becomes bold (regular chars)
+    # Upload bold_first goes directly to regular (skips bold state)
     fea_lines.append("lookup pass1b {")
     fea_lines.append("    sub @preceded_by @bold_first' lookup bold_first_to_bold;")
+    if upload_chars:
+        fea_lines.append("    sub @preceded_by @upload_bold_first' lookup upload_bold_first_to_regular;")
     fea_lines.append("} pass1b;")
     fea_lines.append("")
     
