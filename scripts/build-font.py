@@ -87,122 +87,125 @@ def cleanup_variable_font_tables(font):
             del table.table.VarStore
 
 
-def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
+def create_indexed_upload_chars(font, glyph_order, glyf, hmtx, cmap, pua_start):
     """
-    Create the □ (upload) character and all its variants (bold_first, bold, 
-    bold_spaced, regular_spaced).
+    Create 256 indexed upload characters, each with variants for GSUB.
     
-    The □ character is used for uploaded images and should follow the same
-    spacing rules as other characters - it acts like an arity-0 function.
+    For each index i (0-255):
+    - regular □ at U+E200+i: Base codepoint in text, used as INDEX argument
+    - invalid ■ at U+E300+i: Filled square for invalid positions (JS replaces)
+    - bold_first □ in PUA: For GSUB first-char detection
+    - regular_spaced □ in PUA: For last arg of complete call or first char
     
-    Returns a dict with glyph names for each variant.
+    Upload chars can only be:
+    1. First character (initial image) - uses bold_first → regular_spaced
+    2. INDEX argument - uses regular or regular_spaced
+    
+    They CANNOT be functions, so no bold/bold_spaced variants needed.
+    
+    Returns dict with:
+    - 'all_regular': list of all 256 regular glyph names
+    - 'all_bold_first': list of all 256 bold_first glyph names
+    - 'all_regular_spaced': list of all 256 regular_spaced glyph names
+    - 'all_invalid': list of all 256 invalid glyph names
     """
-    from fontTools.ttLib.tables._g_l_y_f import Glyph
+    from fontTools.ttLib.tables._g_l_y_f import Glyph, GlyphCoordinates
+    from fontTools.ttLib.tables import ttProgram
     
-    upload_codepoint = ord(UPLOAD_CHAR)
     units_per_em = font['head'].unitsPerEm
     
-    # Check if □ already exists in the font
-    if upload_codepoint in cmap:
-        upload_glyph_name = cmap[upload_codepoint]
-        print(f"  Found existing □ glyph: {upload_glyph_name}")
-    else:
-        # Create a simple square outline for □
-        from fontTools.ttLib.tables._g_l_y_f import GlyphCoordinates
-        
-        upload_glyph_name = 'uni25A1'
-        
-        stroke_width = int(units_per_em * 0.06)
-        size = int(units_per_em * 0.7)
-        left = int((units_per_em - size) / 2)
-        right = left + size
-        bottom = 0
-        top = size
-        
-        inner_left = left + stroke_width
-        inner_right = right - stroke_width
-        inner_bottom = bottom + stroke_width
-        inner_top = top - stroke_width
-        
-        # Create glyph
-        from fontTools.ttLib.tables import ttProgram
-        
-        glyph = Glyph()
-        glyph.numberOfContours = 2
-        
-        # Outer square (clockwise), inner square (counter-clockwise for hole)
-        coords = [
-            (left, bottom), (left, top), (right, top), (right, bottom),
-            (inner_left, inner_bottom), (inner_right, inner_bottom), 
-            (inner_right, inner_top), (inner_left, inner_top)
-        ]
-        glyph.coordinates = GlyphCoordinates(coords)
-        glyph.flags = [1] * 8  # All on-curve points
-        glyph.endPtsOfContours = [3, 7]
-        glyph.program = ttProgram.Program()
-        
-        # Set bounds
-        glyph.xMin = left
-        glyph.yMin = bottom
-        glyph.xMax = right
-        glyph.yMax = top
-        
-        glyph_order.append(upload_glyph_name)
-        glyf.glyphs[upload_glyph_name] = glyph
-        hmtx.metrics[upload_glyph_name] = (units_per_em, left)
-        cmap[upload_codepoint] = upload_glyph_name
-        
-        print(f"  Created □ glyph: {upload_glyph_name}")
+    # Create □ outline glyph (hollow square)
+    stroke_width = int(units_per_em * 0.06)
+    size = int(units_per_em * 0.7)
+    left = int((units_per_em - size) / 2)
+    right = left + size
+    bottom = 0
+    top = size
     
-    # Get the existing glyph metrics (use same for all variants since □ has no bold)
-    upload_width, upload_lsb = hmtx.metrics[upload_glyph_name]
-    upload_glyph_data = glyf[upload_glyph_name]
+    inner_left = left + stroke_width
+    inner_right = right - stroke_width
+    inner_bottom = bottom + stroke_width
+    inner_top = top - stroke_width
     
-    result = {
-        'regular': upload_glyph_name,
-    }
+    outline_glyph = Glyph()
+    outline_glyph.numberOfContours = 2
+    outline_glyph.coordinates = GlyphCoordinates([
+        (left, bottom), (left, top), (right, top), (right, bottom),
+        (inner_left, inner_bottom), (inner_right, inner_bottom), 
+        (inner_right, inner_top), (inner_left, inner_top)
+    ])
+    outline_glyph.flags = [1] * 8
+    outline_glyph.endPtsOfContours = [3, 7]
+    outline_glyph.program = ttProgram.Program()
+    outline_glyph.xMin = left
+    outline_glyph.yMin = bottom
+    outline_glyph.xMax = right
+    outline_glyph.yMax = top
+    
+    # Create ■ filled glyph (solid square)
+    filled_glyph = Glyph()
+    filled_glyph.numberOfContours = 1
+    filled_glyph.coordinates = GlyphCoordinates([
+        (left, bottom), (left, top), (right, top), (right, bottom)
+    ])
+    filled_glyph.flags = [1] * 4
+    filled_glyph.endPtsOfContours = [3]
+    filled_glyph.program = ttProgram.Program()
+    filled_glyph.xMin = left
+    filled_glyph.yMin = bottom
+    filled_glyph.xMax = right
+    filled_glyph.yMax = top
+    
+    width = units_per_em
+    lsb = left
+    
+    all_regular = []
+    all_bold_first = []
+    all_regular_spaced = []
+    all_invalid = []
     
     pua_index = pua_start
     
-    # Create bold_first variant
-    bf_codepoint = pua_index
-    pua_index += 1
-    bf_name = f"uni{bf_codepoint:04X}"
-    glyph_order.append(bf_name)
-    glyf.glyphs[bf_name] = upload_glyph_data
-    hmtx.metrics[bf_name] = (upload_width, upload_lsb)
-    cmap[bf_codepoint] = bf_name
-    result['bold_first'] = bf_name
+    print(f"  Creating {UPLOAD_COUNT} indexed upload characters...")
     
-    # Create bold variant
-    bold_codepoint = pua_index
-    pua_index += 1
-    bold_name = f"uni{bold_codepoint:04X}"
-    glyph_order.append(bold_name)
-    glyf.glyphs[bold_name] = upload_glyph_data
-    hmtx.metrics[bold_name] = (upload_width, upload_lsb)
-    cmap[bold_codepoint] = bold_name
-    result['bold'] = bold_name
-    
-    # Create bold_spaced variant
-    bs_codepoint = pua_index
-    pua_index += 1
-    bs_name = f"uni{bs_codepoint:04X}"
-    glyph_order.append(bs_name)
-    glyf.glyphs[bs_name] = upload_glyph_data
-    hmtx.metrics[bs_name] = (upload_width + FUNCTION_GAP, upload_lsb)
-    cmap[bs_codepoint] = bs_name
-    result['bold_spaced'] = bs_name
-    
-    # Create regular_spaced variant
-    rs_codepoint = pua_index
-    pua_index += 1
-    rs_name = f"uni{rs_codepoint:04X}"
-    glyph_order.append(rs_name)
-    glyf.glyphs[rs_name] = upload_glyph_data
-    hmtx.metrics[rs_name] = (upload_width + FUNCTION_GAP, upload_lsb)
-    cmap[rs_codepoint] = rs_name
-    result['regular_spaced'] = rs_name
+    for i in range(UPLOAD_COUNT):
+        # Regular □ at U+E200+i
+        reg_codepoint = UPLOAD_REGULAR_BASE + i
+        reg_name = f"upload_{i}"
+        glyph_order.append(reg_name)
+        glyf.glyphs[reg_name] = outline_glyph
+        hmtx.metrics[reg_name] = (width, lsb)
+        cmap[reg_codepoint] = reg_name
+        all_regular.append(reg_name)
+        
+        # Invalid ■ at U+E300+i
+        inv_codepoint = UPLOAD_INVALID_BASE + i
+        inv_name = f"upload_{i}_invalid"
+        glyph_order.append(inv_name)
+        glyf.glyphs[inv_name] = filled_glyph
+        hmtx.metrics[inv_name] = (width, lsb)
+        cmap[inv_codepoint] = inv_name
+        all_invalid.append(inv_name)
+        
+        # Bold_first □ in PUA (for GSUB)
+        bf_codepoint = pua_index
+        pua_index += 1
+        bf_name = f"upload_{i}_bf"
+        glyph_order.append(bf_name)
+        glyf.glyphs[bf_name] = outline_glyph
+        hmtx.metrics[bf_name] = (width, lsb)
+        cmap[bf_codepoint] = bf_name
+        all_bold_first.append(bf_name)
+        
+        # Regular_spaced □ in PUA (for GSUB)
+        rs_codepoint = pua_index
+        pua_index += 1
+        rs_name = f"upload_{i}_rs"
+        glyph_order.append(rs_name)
+        glyf.glyphs[rs_name] = outline_glyph
+        hmtx.metrics[rs_name] = (width + FUNCTION_GAP, lsb)
+        cmap[rs_codepoint] = rs_name
+        all_regular_spaced.append(rs_name)
     
     # Update font
     font.setGlyphOrder(glyph_order)
@@ -212,9 +215,17 @@ def create_upload_char_variants(font, glyph_order, glyf, hmtx, cmap, pua_start):
         if hasattr(table, 'cmap'):
             table.cmap.update(cmap)
     
-    print(f"  Created □ variants: {result}")
+    print(f"  Created {UPLOAD_COUNT} regular □ glyphs (U+E200-U+E2FF)")
+    print(f"  Created {UPLOAD_COUNT} invalid ■ glyphs (U+E300-U+E3FF)")
+    print(f"  Created {UPLOAD_COUNT} bold_first variants")
+    print(f"  Created {UPLOAD_COUNT} regular_spaced variants")
     
-    return result
+    return {
+        'all_regular': all_regular,
+        'all_bold_first': all_bold_first,
+        'all_regular_spaced': all_regular_spaced,
+        'all_invalid': all_invalid,
+    }
 
 
 def build_font():
