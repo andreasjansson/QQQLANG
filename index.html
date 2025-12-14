@@ -163,6 +163,33 @@
       z-index: 2;
     }
     
+    #thumbnail-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 10px 15px;
+      pointer-events: none;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+    }
+    
+    .upload-thumbnail {
+      width: 22px;
+      height: 22px;
+      object-fit: cover;
+      border-radius: 2px;
+      vertical-align: middle;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    
+    .upload-thumbnail.invalid {
+      filter: grayscale(100%) brightness(0.5);
+    }
+    
     .toolbar-button {
       position: relative;
       padding: 10px 15px;
