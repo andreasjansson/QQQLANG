@@ -362,7 +362,8 @@ def build_font():
 
 def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
                        glyph_name_map, bold_first_glyph_map, bold_glyph_map,
-                       bold_spaced_glyph_map, regular_spaced_glyph_map):
+                       bold_spaced_glyph_map, regular_spaced_glyph_map,
+                       upload_glyph_name=None, upload_spaced_glyph_name=None):
     """
     Build GSUB calt feature.
     
@@ -373,6 +374,9 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     
     Then bold_first is NOT in @fn_bold, so it won't be treated as a function
     that consumes arguments.
+    
+    The □ (upload) character is handled specially - it's not in the char_defs
+    but needs spacing when used as an initial image.
     """
     from fontTools.feaLib.builder import addOpenTypeFeatures
     from io import StringIO
