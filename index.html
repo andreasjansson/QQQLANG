@@ -1106,6 +1106,7 @@
       const { displayProgram, uploadData, hadInvalidChars } = parseUrlProgram(urlProgram);
       
       clearUploadedImages();
+      thumbnailCache.clear();
       
       // Load images for each indexed upload
       const validIndices = new Set();
