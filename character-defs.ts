@@ -2498,92 +2498,250 @@ function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  // Lossiness: 1 (nearly lossless) to 68 (very lossy)
-  // Map to quantization step: 1 to 80
-  const quantStep = Math.max(1, Math.floor(n * 1.2));
+  // Divide 1-68 into 8 directions + quantization within each direction
+  // Each direction gets ~8-9 values
+  const direction = Math.floor((n - 1) / 8.5) % 8; // 0-7
+  const directionStrength = ((n - 1) % 8.5) / 8.5; // 0-1 within direction
+  
+  // Quantization step: 1 (subtle) to 60 (extreme) within each direction
+  const quantStep = Math.max(1, Math.floor(1 + directionStrength * 59));
+  
+  // Define prediction directions:
+  // 0: → (left to right) - predict from left
+  // 1: ↘ (top-left to bottom-right) - predict from top-left diagonal
+  // 2: ↓ (top to bottom) - predict from top
+  // 3: ↙ (top-right to bottom-left) - predict from top-right diagonal
+  // 4: ← (right to left) - predict from right
+  // 5: ↖ (bottom-right to top-left) - predict from bottom-right diagonal
+  // 6: ↑ (bottom to top) - predict from bottom
+  // 7: ↗ (bottom-left to top-right) - predict from bottom-left diagonal
   
   // Process each channel separately
   for (let channel = 0; channel < 3; channel++) {
-    // Forward pass: calculate and quantize residuals
     const residuals = new Int16Array(ctx.width * ctx.height);
     
-    for (let y = 0; y < ctx.height; y++) {
-      for (let x = 0; x < ctx.width; x++) {
-        const idx = y * ctx.width + x;
-        const pixelIdx = idx * 4 + channel;
-        const actual = prev.data[pixelIdx];
-        
-        let predicted: number;
-        
-        if (x === 0 && y === 0) {
-          // First pixel: default to mid-gray
-          predicted = 128;
-        } else if (x === 0) {
-          // First column: predict from top
-          predicted = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
-        } else if (y === 0) {
-          // First row: predict from left
-          predicted = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
-        } else {
-          // JPEG-LS median predictor for better compression
-          const left = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
-          const top = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
-          const topLeft = prev.data[((y - 1) * ctx.width + (x - 1)) * 4 + channel];
-          
-          // Median edge detector predictor
-          if (topLeft >= Math.max(left, top)) {
-            predicted = Math.max(left, top);
-          } else if (topLeft <= Math.min(left, top)) {
-            predicted = Math.min(left, top);
-          } else {
-            predicted = left + top - topLeft;
+    // Forward pass: calculate and quantize residuals
+    // Process pixels in direction-appropriate order
+    const processPixel = (x: number, y: number) => {
+      const idx = y * ctx.width + x;
+      const pixelIdx = idx * 4 + channel;
+      const actual = prev.data[pixelIdx];
+      
+      let predicted = 128;
+      
+      const hasLeft = x > 0;
+      const hasRight = x < ctx.width - 1;
+      const hasTop = y > 0;
+      const hasBottom = y < ctx.height - 1;
+      
+      switch (direction) {
+        case 0: // → left to right
+          if (hasLeft) {
+            predicted = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
           }
+          break;
+          
+        case 1: // ↘ top-left to bottom-right
+          if (hasLeft && hasTop) {
+            predicted = prev.data[((y - 1) * ctx.width + (x - 1)) * 4 + channel];
+          } else if (hasLeft) {
+            predicted = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
+          } else if (hasTop) {
+            predicted = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 2: // ↓ top to bottom
+          if (hasTop) {
+            predicted = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 3: // ↙ top-right to bottom-left
+          if (hasRight && hasTop) {
+            predicted = prev.data[((y - 1) * ctx.width + (x + 1)) * 4 + channel];
+          } else if (hasRight) {
+            predicted = prev.data[(y * ctx.width + (x + 1)) * 4 + channel];
+          } else if (hasTop) {
+            predicted = prev.data[((y - 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 4: // ← right to left
+          if (hasRight) {
+            predicted = prev.data[(y * ctx.width + (x + 1)) * 4 + channel];
+          }
+          break;
+          
+        case 5: // ↖ bottom-right to top-left
+          if (hasRight && hasBottom) {
+            predicted = prev.data[((y + 1) * ctx.width + (x + 1)) * 4 + channel];
+          } else if (hasRight) {
+            predicted = prev.data[(y * ctx.width + (x + 1)) * 4 + channel];
+          } else if (hasBottom) {
+            predicted = prev.data[((y + 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 6: // ↑ bottom to top
+          if (hasBottom) {
+            predicted = prev.data[((y + 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 7: // ↗ bottom-left to top-right
+          if (hasLeft && hasBottom) {
+            predicted = prev.data[((y + 1) * ctx.width + (x - 1)) * 4 + channel];
+          } else if (hasLeft) {
+            predicted = prev.data[(y * ctx.width + (x - 1)) * 4 + channel];
+          } else if (hasBottom) {
+            predicted = prev.data[((y + 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+      }
+      
+      const residual = actual - predicted;
+      const quantized = Math.round(residual / quantStep) * quantStep;
+      residuals[idx] = quantized;
+    };
+    
+    // Process in appropriate order for each direction
+    if (direction === 0 || direction === 1 || direction === 2) {
+      // Left-to-right, top-to-bottom
+      for (let y = 0; y < ctx.height; y++) {
+        for (let x = 0; x < ctx.width; x++) {
+          processPixel(x, y);
         }
-        
-        // Calculate residual
-        const residual = actual - predicted;
-        
-        // Quantize residual (this is where compression loss happens)
-        const quantized = Math.round(residual / quantStep) * quantStep;
-        residuals[idx] = quantized;
+      }
+    } else if (direction === 3) {
+      // Right-to-left, top-to-bottom
+      for (let y = 0; y < ctx.height; y++) {
+        for (let x = ctx.width - 1; x >= 0; x--) {
+          processPixel(x, y);
+        }
+      }
+    } else if (direction === 4 || direction === 5 || direction === 6) {
+      // Right-to-left, bottom-to-top
+      for (let y = ctx.height - 1; y >= 0; y--) {
+        for (let x = ctx.width - 1; x >= 0; x--) {
+          processPixel(x, y);
+        }
+      }
+    } else {
+      // Left-to-right, bottom-to-top
+      for (let y = ctx.height - 1; y >= 0; y--) {
+        for (let x = 0; x < ctx.width; x++) {
+          processPixel(x, y);
+        }
       }
     }
     
     // Backward pass: reconstruct from quantized residuals
-    // Important: use reconstructed pixels for prediction, not original
-    for (let y = 0; y < ctx.height; y++) {
-      for (let x = 0; x < ctx.width; x++) {
-        const idx = y * ctx.width + x;
-        const outIdx = idx * 4 + channel;
-        
-        let predicted: number;
-        
-        if (x === 0 && y === 0) {
-          predicted = 128;
-        } else if (x === 0) {
-          // Use reconstructed top pixel
-          predicted = out.data[((y - 1) * ctx.width + x) * 4 + channel];
-        } else if (y === 0) {
-          // Use reconstructed left pixel
-          predicted = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
-        } else {
-          // Use reconstructed neighbors
-          const left = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
-          const top = out.data[((y - 1) * ctx.width + x) * 4 + channel];
-          const topLeft = out.data[((y - 1) * ctx.width + (x - 1)) * 4 + channel];
-          
-          if (topLeft >= Math.max(left, top)) {
-            predicted = Math.max(left, top);
-          } else if (topLeft <= Math.min(left, top)) {
-            predicted = Math.min(left, top);
-          } else {
-            predicted = left + top - topLeft;
+    const reconstructPixel = (x: number, y: number) => {
+      const idx = y * ctx.width + x;
+      const outIdx = idx * 4 + channel;
+      
+      let predicted = 128;
+      
+      const hasLeft = x > 0;
+      const hasRight = x < ctx.width - 1;
+      const hasTop = y > 0;
+      const hasBottom = y < ctx.height - 1;
+      
+      switch (direction) {
+        case 0: // → left to right
+          if (hasLeft) {
+            predicted = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
           }
+          break;
+          
+        case 1: // ↘ top-left to bottom-right
+          if (hasLeft && hasTop) {
+            predicted = out.data[((y - 1) * ctx.width + (x - 1)) * 4 + channel];
+          } else if (hasLeft) {
+            predicted = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
+          } else if (hasTop) {
+            predicted = out.data[((y - 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 2: // ↓ top to bottom
+          if (hasTop) {
+            predicted = out.data[((y - 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 3: // ↙ top-right to bottom-left
+          if (hasRight && hasTop) {
+            predicted = out.data[((y - 1) * ctx.width + (x + 1)) * 4 + channel];
+          } else if (hasRight) {
+            predicted = out.data[(y * ctx.width + (x + 1)) * 4 + channel];
+          } else if (hasTop) {
+            predicted = out.data[((y - 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 4: // ← right to left
+          if (hasRight) {
+            predicted = out.data[(y * ctx.width + (x + 1)) * 4 + channel];
+          }
+          break;
+          
+        case 5: // ↖ bottom-right to top-left
+          if (hasRight && hasBottom) {
+            predicted = out.data[((y + 1) * ctx.width + (x + 1)) * 4 + channel];
+          } else if (hasRight) {
+            predicted = out.data[(y * ctx.width + (x + 1)) * 4 + channel];
+          } else if (hasBottom) {
+            predicted = out.data[((y + 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 6: // ↑ bottom to top
+          if (hasBottom) {
+            predicted = out.data[((y + 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+          
+        case 7: // ↗ bottom-left to top-right
+          if (hasLeft && hasBottom) {
+            predicted = out.data[((y + 1) * ctx.width + (x - 1)) * 4 + channel];
+          } else if (hasLeft) {
+            predicted = out.data[(y * ctx.width + (x - 1)) * 4 + channel];
+          } else if (hasBottom) {
+            predicted = out.data[((y + 1) * ctx.width + x) * 4 + channel];
+          }
+          break;
+      }
+      
+      const reconstructed = predicted + residuals[idx];
+      out.data[outIdx] = Math.max(0, Math.min(255, reconstructed));
+    };
+    
+    // Reconstruct in same order as encoding
+    if (direction === 0 || direction === 1 || direction === 2) {
+      for (let y = 0; y < ctx.height; y++) {
+        for (let x = 0; x < ctx.width; x++) {
+          reconstructPixel(x, y);
         }
-        
-        // Reconstruct pixel from prediction + quantized residual
-        const reconstructed = predicted + residuals[idx];
-        out.data[outIdx] = Math.max(0, Math.min(255, reconstructed));
+      }
+    } else if (direction === 3) {
+      for (let y = 0; y < ctx.height; y++) {
+        for (let x = ctx.width - 1; x >= 0; x--) {
+          reconstructPixel(x, y);
+        }
+      }
+    } else if (direction === 4 || direction === 5 || direction === 6) {
+      for (let y = ctx.height - 1; y >= 0; y--) {
+        for (let x = ctx.width - 1; x >= 0; x--) {
+          reconstructPixel(x, y);
+        }
+      }
+    } else {
+      for (let y = ctx.height - 1; y >= 0; y--) {
+        for (let x = 0; x < ctx.width; x++) {
+          reconstructPixel(x, y);
+        }
       }
     }
   }
