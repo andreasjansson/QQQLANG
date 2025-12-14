@@ -651,8 +651,12 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
         fea_lines.append("")
     
     # Pass 5: First char (bold_first) gets spacing
+    # Regular chars: bold_first → bold_spaced
+    # Upload chars: bold_first → regular_spaced (uploads don't have bold_spaced)
     fea_lines.append("lookup pass5_first {")
     fea_lines.append("    sub @bold_first' lookup bold_first_to_bold_spaced;")
+    if upload_chars:
+        fea_lines.append("    sub @upload_bold_first' lookup upload_bold_first_to_regular_spaced;")
     fea_lines.append("} pass5_first;")
     fea_lines.append("")
     
