@@ -382,7 +382,7 @@ def build_font():
     build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
                        glyph_name_map, bold_first_glyph_map, bold_glyph_map, 
                        bold_spaced_glyph_map, regular_spaced_glyph_map,
-                       upload_glyph_name, upload_spaced_glyph_name)
+                       upload_variants)
     
     print("Updating font names...")
     name_table = font['name']
