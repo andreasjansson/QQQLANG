@@ -6780,11 +6780,10 @@ export const characterDefs: Record<string, CharDef> = {
     number: 24,
     fn: fnX,
     args: [
-      { type: Choice('★','●','■','▲','◆','♥','✦','⬡','✚','◐','☽','⚡','∞','☀','✿','⬢','◯','△','□','◇','♦','♣','♠','⬟','⬠','▽','◁','▷','⊕','⊗','⊛','⊚','▣','▤','▥','▦','▧','▨','▩','⬣','⬤','◉','◎','◈','◊','○','◌','◍','◢','◣','◤','◥','♯','♮','♩','♪','✶','✴','✳','✲','✱','✰','✯','✮'), documentation: "Unicode shape (cycles through 64 symbols)" },
-      { type: COLOR, documentation: "Shape color" }
+      { type: INT, documentation: "Lossiness (A=subtle, ~=extreme glitchy artifacts)" }
     ],
-    functionName: "shape-overlay",
-    documentation: "Draws unicode shape at center with gradient to average color."
+    functionName: "predictive-compress",
+    documentation: "Lossy predictive coding compression with quantized residuals, creating glitchy artifacts that accumulate and propagate."
   },
   
   'Y': {
