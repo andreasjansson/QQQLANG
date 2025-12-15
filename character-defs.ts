@@ -6081,7 +6081,7 @@ function fnCloseBrace(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
+function fnOilSlick(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
@@ -6091,9 +6091,9 @@ function fnOilSlick(ctx: FnContext, warpN: number, iridN: number): Image {
   gl.bindTexture(gl.TEXTURE_2D, null);
   gl.activeTexture(gl.TEXTURE0);
   
-  const seed = ctx.images.length * 137.5 + warpN * 17.3 + iridN * 7.1;
-  const depth = 1 + Math.floor(iridN / 4);
-  const warpStrength = 0.05 + warpN * 0.025;
+  const seed = ctx.images.length * 137.5 + n * 24.4;
+  const depth = 1 + Math.floor(n / 4);
+  const warpStrength = 0.05 + n * 0.025;
   const patternScale = 1.5;
   
   const vertexShader = `
