@@ -6348,25 +6348,25 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
   const zData = new Float32Array(zDim);
   for (let i = 0; i < zDim; i++) zData[i] = zRng() * 0.5;
   
-  const W_z = createWeightTensor(zDim, netSize, rng);
-  const B_z = createBiasTensor(netSize, rng);
-  const W_x = createWeightTensor(1, netSize, rng);
-  const W_y = createWeightTensor(1, netSize, rng);
-  const W_r = createWeightTensor(1, netSize, rng);
+  const W_z = createWeightTensor(zDim, netSize, rng, weightScale);
+  const B_z = createBiasTensor(netSize, rng, weightScale);
+  const W_x = createWeightTensor(1, netSize, rng, weightScale);
+  const W_y = createWeightTensor(1, netSize, rng, weightScale);
+  const W_r = createWeightTensor(1, netSize, rng, weightScale);
   
-  const W_h0 = createWeightTensor(netSize, netSize, rng);
-  const B_h0 = createBiasTensor(netSize, rng);
-  const W_h1 = createWeightTensor(netSize, netSize, rng);
-  const B_h1 = createBiasTensor(netSize, rng);
-  const W_h2 = createWeightTensor(netSize, netSize, rng);
-  const B_h2 = createBiasTensor(netSize, rng);
-  const W_h3 = createWeightTensor(netSize, netSize, rng);
-  const B_h3 = createBiasTensor(netSize, rng);
-  const W_h4 = createWeightTensor(netSize, netSize, rng);
-  const B_h4 = createBiasTensor(netSize, rng);
+  const W_h0 = createWeightTensor(netSize, netSize, rng, weightScale);
+  const B_h0 = createBiasTensor(netSize, rng, weightScale);
+  const W_h1 = createWeightTensor(netSize, netSize, rng, weightScale);
+  const B_h1 = createBiasTensor(netSize, rng, weightScale);
+  const W_h2 = createWeightTensor(netSize, netSize, rng, weightScale);
+  const B_h2 = createBiasTensor(netSize, rng, weightScale);
+  const W_h3 = createWeightTensor(netSize, netSize, rng, weightScale);
+  const B_h3 = createBiasTensor(netSize, rng, weightScale);
+  const W_h4 = createWeightTensor(netSize, netSize, rng, weightScale);
+  const B_h4 = createBiasTensor(netSize, rng, weightScale);
   
-  const W_out = createWeightTensor(netSize, outDim, rng);
-  const B_out = createBiasTensor(outDim, rng);
+  const W_out = createWeightTensor(netSize, outDim, rng, weightScale);
+  const B_out = createBiasTensor(outDim, rng, weightScale);
   
   const outputTensor = tf.tidy(() => {
     const nPoints = width * height;
