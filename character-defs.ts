@@ -426,28 +426,35 @@ function fnB(ctx: FnContext, old: Image, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const hash = (i: number) => {
-    const x = Math.sin(i * 127.1 + n * 311.7) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  
-  const numSeeds = 20 + Math.floor(hash(0) * 40);
-  const jitterX = 0.5 + hash(1) * 0.5;
-  const jitterY = 0.5 + hash(2) * 0.5;
-  const xScale = 0.8 + hash(3) * 0.4;
-  const yScale = 0.8 + hash(4) * 0.4;
-  const offsetX = (hash(5) - 0.5) * ctx.width * 0.3;
-  const offsetY = (hash(6) - 0.5) * ctx.height * 0.3;
+  const numSeeds = 24 + (n % 24);
+  const xMult = 31 + n * 7;
+  const yMult = 47 + n * 11;
+  const angle = (n * Math.PI) / 34;
+  const cos_a = Math.cos(angle);
+  const sin_a = Math.sin(angle);
+  const spiralTightness = 0.5 + (n % 17) * 0.1;
+  const cx = ctx.width / 2;
+  const cy = ctx.height / 2;
   
   const seeds: [number, number][] = [];
   for (let i = 0; i < numSeeds; i++) {
-    const baseX = hash(100 + i * 2) * ctx.width;
-    const baseY = hash(100 + i * 2 + 1) * ctx.height;
-    const jitterAmtX = (hash(200 + i) - 0.5) * ctx.width * 0.2 * jitterX;
-    const jitterAmtY = (hash(300 + i) - 0.5) * ctx.height * 0.2 * jitterY;
+    const t = i / numSeeds;
+    const gridX = (i * xMult) % ctx.width;
+    const gridY = (i * yMult) % ctx.height;
+    const spiralR = t * Math.min(cx, cy) * spiralTightness;
+    const spiralAngle = t * Math.PI * 2 * (3 + (n % 5));
+    const spiralX = cx + spiralR * Math.cos(spiralAngle);
+    const spiralY = cy + spiralR * Math.sin(spiralAngle);
+    const blend = (n % 34) / 34;
+    const rawX = gridX * (1 - blend) + spiralX * blend;
+    const rawY = gridY * (1 - blend) + spiralY * blend;
+    const dx = rawX - cx;
+    const dy = rawY - cy;
+    const rotX = cx + dx * cos_a - dy * sin_a;
+    const rotY = cy + dx * sin_a + dy * cos_a;
     seeds.push([
-      ((baseX + jitterAmtX + offsetX) * xScale) % ctx.width,
-      ((baseY + jitterAmtY + offsetY) * yScale) % ctx.height
+      ((rotX % ctx.width) + ctx.width) % ctx.width,
+      ((rotY % ctx.height) + ctx.height) % ctx.height
     ]);
   }
   
