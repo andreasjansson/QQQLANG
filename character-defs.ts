@@ -3019,94 +3019,79 @@ function fn1(ctx: FnContext): Image {
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, null);
   
-  const aspect = ctx.width / ctx.height;
-  
-  // Build a grid mesh - higher resolution for smooth curvature
-  const gridSize = 100;
-  const vertices: number[] = [];
-  const texCoords: number[] = [];
-  const indices: number[] = [];
-  
-  for (let y = 0; y <= gridSize; y++) {
-    for (let x = 0; x <= gridSize; x++) {
-      const px = (x / gridSize) * 2 - 1;
-      const py = (y / gridSize) * 2 - 1;
-      vertices.push(px, py);
-      
-      const u = x / gridSize;
-      const v = 1 - y / gridSize;
-      texCoords.push(u, v);
-    }
-  }
-  
-  for (let y = 0; y < gridSize; y++) {
-    for (let x = 0; x < gridSize; x++) {
-      const tl = y * (gridSize + 1) + x;
-      const tr = tl + 1;
-      const bl = (y + 1) * (gridSize + 1) + x;
-      const br = bl + 1;
-      
-      indices.push(tl, bl, tr);
-      indices.push(tr, bl, br);
-    }
-  }
-  
   const vertexShader = `
-    attribute vec2 aPosition;
-    attribute vec2 aTexCoord;
-    
-    uniform float uAspect;
-    
-    varying vec2 vTexCoord;
-    varying float vDepth;
-    
+    attribute vec2 position;
+    varying vec2 vUV;
     void main() {
-      vec2 centered = aPosition;
-      centered.x /= uAspect;
-      
-      float r = length(centered);
-      
-      // Trumpet/vortex shape: z goes to negative infinity as r approaches 0
-      // Using -1/r but clamped and smoothed to avoid singularity
-      // At r=0, z would be -infinity; at r=1, z is -1
-      float minR = 0.02;
-      float effectiveR = max(r, minR);
-      
-      // Trumpet depth - deeper pull at center
-      float depth = 1.5;
-      float z = -depth / (effectiveR + 0.1);
-      
-      // Smooth transition at the very center to avoid harsh clipping
-      if (r < minR) {
-        z = -depth / (minR + 0.1);
-      }
-      
-      // Perspective projection
-      float cameraDist = 3.0;
-      float w = (cameraDist - z) / cameraDist;
-      
-      // Ensure w doesn't get too small (prevents extreme stretching)
-      w = max(w, 0.15);
-      
-      gl_Position = vec4(aPosition.x / w, aPosition.y / w, z * 0.05 + 0.5, 1.0);
-      
-      vTexCoord = aTexCoord;
-      vDepth = -z;
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
     }
   `;
   
   const fragmentShader = `
     precision highp float;
     uniform sampler2D uTexture;
-    varying vec2 vTexCoord;
-    varying float vDepth;
+    uniform vec2 uResolution;
+    varying vec2 vUV;
     
     void main() {
-      vec3 color = texture2D(uTexture, vTexCoord).rgb;
+      vec2 uv = vUV;
+      float aspect = uResolution.x / uResolution.y;
       
-      // Subtle depth-based darkening for 3D feel
-      float depthShade = 1.0 - smoothstep(0.0, 15.0, vDepth) * 0.4;
-      color *= depthShade;
+      // Center of the trumpet
+      vec2 center = vec2(0.5, 0.5);
+      vec2 pos = uv - center;
+      
+      // Adjust for aspect ratio to get circular distance
+      vec2 aspectPos = pos;
+      aspectPos.x *= aspect;
+      float r = length(aspectPos);
+      float angle = atan(pos.y, pos.x);
+      
+      // Normalize r to roughly 0-1 range (corner is ~0.7 with aspect)
+      float maxR = length(vec2(0.5 * aspect, 0.5));
+      float normR = r / maxR;
+      
+      // Trumpet curve: smooth curve that bends inward
+      // At edges (normR=1), depth=0; at center (normR=0), depth goes deep
+      // Using a smooth curve: depth = 1/(r+epsilon) - 1/(1+epsilon)
+      // This gives 0 at r=1 and increases smoothly toward center
+      float epsilon = 0.15;
+      float depth = 1.0 / (normR + epsilon) - 1.0 / (1.0 + epsilon);
+      depth = max(0.0, depth);
+      
+      // The trumpet surface stretches the texture radially
+      // Points on the curved wall map to compressed UV near center
+      // Inverse: to find what UV to sample, we expand outward based on depth
+      float stretch = 1.0 + depth * 0.4;
+      
+      // New UV: expand radially from center
+      vec2 newPos = pos * stretch;
+      vec2 sampleUV = newPos + center;
+      
+      // Clamp to valid UV range
+      sampleUV = clamp(sampleUV, 0.0, 1.0);
+      
+      vec3 color = texture2D(uTexture, sampleUV).rgb;
+      
+      // Calculate surface normal for lighting (trumpet surface)
+      // The trumpet surface has normals pointing outward and slightly up
+      // dz/dr gives the slope
+      float dz_dr = -1.0 / ((normR + epsilon) * (normR + epsilon));
+      vec3 radialDir = vec3(cos(angle), sin(angle), 0.0);
+      vec3 normal = normalize(vec3(radialDir.xy * (-dz_dr * 0.3), 1.0));
+      
+      // Light from upper front
+      vec3 lightDir = normalize(vec3(0.3, 0.4, 1.0));
+      float diffuse = max(dot(normal, lightDir), 0.0);
+      
+      // Ambient + diffuse lighting
+      float lighting = 0.5 + 0.5 * diffuse;
+      
+      // Darken deeper areas (center of trumpet)
+      float depthDarken = 1.0 - smoothstep(0.0, 4.0, depth) * 0.5;
+      
+      color *= lighting * depthDarken;
       
       gl_FragColor = vec4(color, 1.0);
     }
@@ -3114,26 +3099,6 @@ function fn1(ctx: FnContext): Image {
   
   const program = createShaderProgram(gl, vertexShader, fragmentShader);
   gl.useProgram(program);
-  
-  const vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'aPosition');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  const texCoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-  
-  const texCoordLoc = gl.getAttribLocation(program, 'aTexCoord');
-  gl.enableVertexAttribArray(texCoordLoc);
-  gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
   
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -3143,14 +3108,20 @@ function fn1(ctx: FnContext): Image {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform1f(gl.getUniformLocation(program, 'uAspect'), aspect);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.clearColor(0, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  
-  gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -3167,12 +3138,8 @@ function fn1(ctx: FnContext): Image {
     }
   }
   
-  gl.disableVertexAttribArray(positionLoc);
-  gl.disableVertexAttribArray(texCoordLoc);
   gl.deleteTexture(texture);
-  gl.deleteBuffer(vertexBuffer);
-  gl.deleteBuffer(texCoordBuffer);
-  gl.deleteBuffer(indexBuffer);
+  gl.deleteBuffer(buffer);
   gl.deleteProgram(program);
   
   return { width: ctx.width, height: ctx.height, data: flipped };
