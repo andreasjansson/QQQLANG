@@ -7011,13 +7011,12 @@ export const characterDefs: Record<string, CharDef> = {
   'X': {
     color: '#F5DEB3',
     number: 24,
-    fn: fnDLA,
+    fn: fnCPPN,
     args: [
-      { type: INT, documentation: "Shape/particle seed (A-H=shapes, higher=more particles)" },
-      { type: COLOR, documentation: "Aggregate color" }
+      { type: INT, documentation: "Network seed - different values produce different abstract patterns" }
     ],
-    functionName: "dla",
-    documentation: "Diffusion-Limited Aggregation creates organic fractal branching structures like coral, lightning, or frost."
+    functionName: "cppn",
+    documentation: "Compositional Pattern Producing Network generates abstract procedural art using a neural network with varied activation functions (sin, cos, gaussian, sigmoid, tanh, abs, sawtooth)."
   },
   
   'Y': {
