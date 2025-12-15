@@ -736,7 +736,6 @@ function fnK(ctx: FnContext, n: number): Image {
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
   const segments = Math.max(1, Math.min(n + 2, 18));
-  const borderSize = Math.floor(ctx.height * 0.08);
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   const angleStep = (Math.PI * 2) / segments;
@@ -744,12 +743,6 @@ function fnK(ctx: FnContext, n: number): Image {
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      if (y < borderSize || y >= ctx.height - borderSize) {
-        const [pr, pg, pb] = getPixel(prev, x, y);
-        setPixel(out, x, y, pr, pg, pb);
-        continue;
-      }
-      
       const dx = (x - cx) * zoom;
       const dy = (y - cy) * zoom;
       let angle = Math.atan2(dy, dx);
