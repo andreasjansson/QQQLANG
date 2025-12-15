@@ -3049,14 +3049,14 @@ function fn1(ctx: FnContext): Image {
       float maxR = length(vec2(0.5 * aspect, 0.5));
       float normR = clamp(r / maxR, 0.01, 1.0);
       
-      // Trumpet curve: gentle start at edges, infinite at center
-      // (1-r²) starts curving immediately but gently
-      // 1/r gives infinite depth at center
-      float curve = (1.0 - normR * normR);
-      float depth = curve / normR * 0.5;
+      // Trumpet curve: (1-r)² / r
+      // Very flat at edges (both value and derivative ~0 at r=1)
+      // Infinite at center
+      float oneMinusR = 1.0 - normR;
+      float depth = (oneMinusR * oneMinusR) / normR;
       
-      // UV stretch
-      float stretch = 1.0 + depth * 0.3;
+      // UV stretch - reduced coefficient for subtler edge effect
+      float stretch = 1.0 + depth * 0.15;
       
       vec2 newPos = pos * stretch;
       vec2 sampleUV = clamp(newPos + center, 0.0, 1.0);
@@ -3064,7 +3064,7 @@ function fn1(ctx: FnContext): Image {
       vec3 color = texture2D(uTexture, sampleUV).rgb;
       
       // Surface normal for lighting
-      float slope = (1.0 + normR) / (normR * normR) * 0.15;
+      float slope = depth * 0.3 / (normR + 0.1);
       vec3 normal = normalize(vec3(cos(angle) * slope, sin(angle) * slope, 1.0));
       
       vec3 lightDir = normalize(vec3(0.2, 0.3, 1.0));
@@ -3072,7 +3072,7 @@ function fn1(ctx: FnContext): Image {
       float lighting = 0.55 + 0.45 * diffuse;
       
       // Depth darkening
-      float depthDarken = 1.0 / (1.0 + depth * 1.5);
+      float depthDarken = 1.0 / (1.0 + depth * 0.8);
       
       color *= lighting * depthDarken;
       
