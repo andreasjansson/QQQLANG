@@ -569,7 +569,7 @@ export function formatFunctionHelp(
   return lines;
 }
 
-function generateCharacterRefLines(
+export function generateCharacterRefLines(
   char: string,
   def: CharDef,
   charsPerLine: number,
