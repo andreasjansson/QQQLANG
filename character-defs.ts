@@ -3019,116 +3019,94 @@ function fn1(ctx: FnContext): Image {
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, null);
   
+  const aspect = ctx.width / ctx.height;
+  
+  // Build a grid mesh - higher resolution for smooth curvature
+  const gridSize = 100;
+  const vertices: number[] = [];
+  const texCoords: number[] = [];
+  const indices: number[] = [];
+  
+  for (let y = 0; y <= gridSize; y++) {
+    for (let x = 0; x <= gridSize; x++) {
+      const px = (x / gridSize) * 2 - 1;
+      const py = (y / gridSize) * 2 - 1;
+      vertices.push(px, py);
+      
+      const u = x / gridSize;
+      const v = 1 - y / gridSize;
+      texCoords.push(u, v);
+    }
+  }
+  
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      const tl = y * (gridSize + 1) + x;
+      const tr = tl + 1;
+      const bl = (y + 1) * (gridSize + 1) + x;
+      const br = bl + 1;
+      
+      indices.push(tl, bl, tr);
+      indices.push(tr, bl, br);
+    }
+  }
+  
   const vertexShader = `
-    attribute vec2 position;
-    varying vec2 vUV;
+    attribute vec2 aPosition;
+    attribute vec2 aTexCoord;
+    
+    uniform float uAspect;
+    
+    varying vec2 vTexCoord;
+    varying float vDepth;
+    
     void main() {
-      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
-      gl_Position = vec4(position, 0.0, 1.0);
+      vec2 centered = aPosition;
+      centered.x /= uAspect;
+      
+      float r = length(centered);
+      
+      // Trumpet/vortex shape: z goes to negative infinity as r approaches 0
+      // Using -1/r but clamped and smoothed to avoid singularity
+      // At r=0, z would be -infinity; at r=1, z is -1
+      float minR = 0.02;
+      float effectiveR = max(r, minR);
+      
+      // Trumpet depth - deeper pull at center
+      float depth = 1.5;
+      float z = -depth / (effectiveR + 0.1);
+      
+      // Smooth transition at the very center to avoid harsh clipping
+      if (r < minR) {
+        z = -depth / (minR + 0.1);
+      }
+      
+      // Perspective projection
+      float cameraDist = 3.0;
+      float w = (cameraDist - z) / cameraDist;
+      
+      // Ensure w doesn't get too small (prevents extreme stretching)
+      w = max(w, 0.15);
+      
+      gl_Position = vec4(aPosition.x / w, aPosition.y / w, z * 0.05 + 0.5, 1.0);
+      
+      vTexCoord = aTexCoord;
+      vDepth = -z;
     }
   `;
   
   const fragmentShader = `
     precision highp float;
     uniform sampler2D uTexture;
-    uniform vec2 uResolution;
-    varying vec2 vUV;
-    
-    #define PI 3.14159265359
+    varying vec2 vTexCoord;
+    varying float vDepth;
     
     void main() {
-      vec2 uv = vUV;
-      float aspect = uResolution.x / uResolution.y;
+      vec3 color = texture2D(uTexture, vTexCoord).rgb;
       
-      // Center of the black hole
-      vec2 center = vec2(0.5, 0.5);
-      
-      // Adjust for aspect ratio
-      vec2 pos = uv - center;
-      pos.x *= aspect;
-      
-      float dist = length(pos);
-      float angle = atan(pos.y, pos.x);
-      
-      // Black hole parameters
-      float eventHorizon = 0.08;
-      float photonSphere = 0.15;
-      float accretionDisk = 0.4;
-      
-      // Inside event horizon - pure black
-      if (dist < eventHorizon) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
-      }
-      
-      // Gravitational lensing strength - inverse square falloff
-      // As we approach the event horizon, the bending becomes extreme
-      float bendStrength = eventHorizon * eventHorizon / (dist * dist);
-      
-      // The closer to the black hole, the more the image wraps around
-      // This creates the effect of the center being pulled infinitely back
-      float wrapAmount = bendStrength * 3.0;
-      
-      // Spiral the angle as we get closer - light wrapping around
-      float spiralAngle = angle + wrapAmount * PI;
-      
-      // The radial compression - space contracts near the hole
-      // This makes the image appear to stretch towards the center
-      float compressedDist = dist + (photonSphere - dist) * bendStrength * 2.0;
-      compressedDist = max(compressedDist, eventHorizon * 1.1);
-      
-      // Convert back to UV coordinates
-      vec2 warpedPos;
-      warpedPos.x = compressedDist * cos(spiralAngle);
-      warpedPos.y = compressedDist * sin(spiralAngle);
-      warpedPos.x /= aspect;
-      
-      vec2 warpedUV = warpedPos + center;
-      
-      // Tile the UV if it goes out of bounds (creates repeating pattern at edges)
-      warpedUV = fract(warpedUV);
-      
-      vec3 color = texture2D(uTexture, warpedUV).rgb;
-      
-      // Photon sphere glow - bright ring just outside event horizon
-      float photonGlow = 0.0;
-      if (dist > eventHorizon && dist < photonSphere) {
-        float t = (dist - eventHorizon) / (photonSphere - eventHorizon);
-        // Peak brightness at the photon sphere boundary
-        photonGlow = sin(t * PI) * 0.5;
-        
-        // Doppler shift - blue on one side, red on the other (rotating accretion)
-        float dopplerAngle = angle + PI * 0.25;
-        vec3 doppler = vec3(
-          0.8 + 0.4 * cos(dopplerAngle + PI),
-          0.7,
-          0.8 + 0.4 * cos(dopplerAngle)
-        );
-        color = color * (1.0 - photonGlow) + doppler * photonGlow;
-      }
-      
-      // Accretion disk glow - subtle warm glow further out
-      if (dist > photonSphere && dist < accretionDisk) {
-        float t = (dist - photonSphere) / (accretionDisk - photonSphere);
-        float diskGlow = (1.0 - t) * 0.15;
-        
-        // Rotating hot gas color
-        float diskAngle = angle + dist * 5.0;
-        vec3 diskColor = vec3(
-          1.0,
-          0.6 + 0.2 * sin(diskAngle),
-          0.3 + 0.1 * sin(diskAngle * 2.0)
-        );
-        color = color + diskColor * diskGlow;
-      }
-      
-      // Darken towards the event horizon
-      float darkness = smoothstep(eventHorizon, eventHorizon * 3.0, dist);
-      color *= darkness;
-      
-      // Subtle vignette enhancement
-      float vignette = 1.0 - smoothstep(0.5, 1.2, dist);
-      color *= 0.85 + 0.15 * vignette;
+      // Subtle depth-based darkening for 3D feel
+      float depthShade = 1.0 - smoothstep(0.0, 15.0, vDepth) * 0.4;
+      color *= depthShade;
       
       gl_FragColor = vec4(color, 1.0);
     }
@@ -3137,28 +3115,42 @@ function fn1(ctx: FnContext): Image {
   const program = createShaderProgram(gl, vertexShader, fragmentShader);
   gl.useProgram(program);
   
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  const vertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
   
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
+  const positionLoc = gl.getAttribLocation(program, 'aPosition');
   gl.enableVertexAttribArray(positionLoc);
   gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
   
+  const texCoordBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+  
+  const texCoordLoc = gl.getAttribLocation(program, 'aTexCoord');
+  gl.enableVertexAttribArray(texCoordLoc);
+  gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uAspect'), aspect);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  
+  gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
   
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -3175,8 +3167,12 @@ function fn1(ctx: FnContext): Image {
     }
   }
   
+  gl.disableVertexAttribArray(positionLoc);
+  gl.disableVertexAttribArray(texCoordLoc);
   gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
+  gl.deleteBuffer(vertexBuffer);
+  gl.deleteBuffer(texCoordBuffer);
+  gl.deleteBuffer(indexBuffer);
   gl.deleteProgram(program);
   
   return { width: ctx.width, height: ctx.height, data: flipped };
