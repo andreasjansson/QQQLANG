@@ -7174,20 +7174,15 @@ export const characterDefs: Record<string, CharDef> = {
       const prev = getPrevImage(ctx);
       const out = createSolidImage(ctx.width, ctx.height, '#000000');
       const [tr, tg, tb] = hexToRgb(c);
+      const [tintH, tintS] = rgbToHsl(tr, tg, tb);
       
       for (let y = 0; y < ctx.height; y++) {
         for (let x = 0; x < ctx.width; x++) {
           const [r, g, b] = getPixel(prev, x, y);
-          const luminance = r * 0.299 + g * 0.587 + b * 0.114;
-          const factor = luminance / 255;
+          const [, , origL] = rgbToHsl(r, g, b);
           
-          const tintedR = tr * factor;
-          const tintedG = tg * factor;
-          const tintedB = tb * factor;
-          
-          const [h, s, l] = rgbToHsl(tintedR, tintedG, tintedB);
-          const boostedS = Math.min(1, s * 1.5);
-          const [finalR, finalG, finalB] = hslToRgb(h, boostedS, l);
+          const boostedS = Math.min(1, tintS * 1.5);
+          const [finalR, finalG, finalB] = hslToRgb(tintH, boostedS, origL);
           
           setPixel(out, x, y, finalR, finalG, finalB);
         }
@@ -7195,9 +7190,9 @@ export const characterDefs: Record<string, CharDef> = {
       
       return out;
     },
-    args: [{ type: COLOR, documentation: "Tint color applied based on luminance" }],
+    args: [{ type: COLOR, documentation: "Tint color (hue and saturation applied)" }],
     functionName: "colorize",
-    documentation: "Converts to grayscale luminance, tints with the specified color, and boosts saturation by 20%."
+    documentation: "Applies the hue and boosted saturation of the tint color while preserving original lightness."
   },
   
   '2': {
