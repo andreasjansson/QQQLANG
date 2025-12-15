@@ -6297,11 +6297,14 @@ function fnCPPN(ctx: FnContext): Image {
   // CPPN fragment shader with multiple activation functions
   // Inputs: x, y, d (distance), r, g, b from prev image, bias
   // Outputs: RGB color
+  // All floats - WebGL 1.0 compatible
   const fragmentShader = `
     precision highp float;
     uniform sampler2D uTexture;
     uniform vec2 uResolution;
     varying vec2 vUV;
+    
+    #define PI 3.14159265359
     
     // Fixed seed = 0 for full determinism based on input image
     float hash(float n) {
@@ -6309,35 +6312,26 @@ function fnCPPN(ctx: FnContext): Image {
     }
     
     // Generate weight in range [-2, 2] from index
-    float weight(int i) {
-      return (hash(float(i)) * 4.0 - 2.0);
+    float w(float i) {
+      return hash(i) * 4.0 - 2.0;
     }
     
-    // Activation functions
-    float actSin(float x) { return sin(x * 3.14159); }
-    float actCos(float x) { return cos(x * 3.14159); }
-    float actGaussian(float x) { return exp(-x * x * 2.0); }
-    float actSigmoid(float x) { return 1.0 / (1.0 + exp(-x * 4.0)); }
-    float actTanh(float x) { return tanh(x * 2.0); }
-    float actAbs(float x) { return abs(x); }
-    float actSawtooth(float x) { return 2.0 * (x - floor(x + 0.5)); }
-    
-    // Select activation based on index mod 7
-    float activate(float x, int actType) {
-      int t = actType - (actType / 7) * 7; // mod 7
-      if (t == 0) return actSin(x);
-      if (t == 1) return actCos(x);
-      if (t == 2) return actGaussian(x);
-      if (t == 3) return actSigmoid(x);
-      if (t == 4) return actTanh(x);
-      if (t == 5) return actAbs(x);
-      return actSawtooth(x);
+    // Activation functions - select based on float value
+    float activate(float x, float actSel) {
+      float t = mod(actSel, 7.0);
+      if (t < 1.0) return sin(x * PI);
+      if (t < 2.0) return cos(x * PI);
+      if (t < 3.0) return exp(-x * x * 2.0);
+      if (t < 4.0) return 1.0 / (1.0 + exp(-x * 4.0));
+      if (t < 5.0) return tanh(x * 2.0);
+      if (t < 6.0) return abs(x);
+      return 2.0 * (x - floor(x + 0.5));
     }
     
     void main() {
       // Sample previous image
       vec3 tex = texture2D(uTexture, vec2(vUV.x, 1.0 - vUV.y)).rgb;
-      float inR = tex.r * 2.0 - 1.0; // normalize to [-1, 1]
+      float inR = tex.r * 2.0 - 1.0;
       float inG = tex.g * 2.0 - 1.0;
       float inB = tex.b * 2.0 - 1.0;
       
@@ -6349,29 +6343,29 @@ function fnCPPN(ctx: FnContext): Image {
       float bias = 1.0;
       
       // Layer 1: 7 inputs (x, y, d, r, g, b, bias) -> 8 hidden nodes
-      float h1_0 = activate(weight(0)*x + weight(1)*y + weight(2)*d + weight(3)*inR + weight(4)*inG + weight(5)*inB + weight(6)*bias, int(hash(100.0) * 100.0));
-      float h1_1 = activate(weight(7)*x + weight(8)*y + weight(9)*d + weight(10)*inR + weight(11)*inG + weight(12)*inB + weight(13)*bias, int(hash(101.0) * 100.0));
-      float h1_2 = activate(weight(14)*x + weight(15)*y + weight(16)*d + weight(17)*inR + weight(18)*inG + weight(19)*inB + weight(20)*bias, int(hash(102.0) * 100.0));
-      float h1_3 = activate(weight(21)*x + weight(22)*y + weight(23)*d + weight(24)*inR + weight(25)*inG + weight(26)*inB + weight(27)*bias, int(hash(103.0) * 100.0));
-      float h1_4 = activate(weight(28)*x + weight(29)*y + weight(30)*d + weight(31)*inR + weight(32)*inG + weight(33)*inB + weight(34)*bias, int(hash(104.0) * 100.0));
-      float h1_5 = activate(weight(35)*x + weight(36)*y + weight(37)*d + weight(38)*inR + weight(39)*inG + weight(40)*inB + weight(41)*bias, int(hash(105.0) * 100.0));
-      float h1_6 = activate(weight(42)*x + weight(43)*y + weight(44)*d + weight(45)*inR + weight(46)*inG + weight(47)*inB + weight(48)*bias, int(hash(106.0) * 100.0));
-      float h1_7 = activate(weight(49)*x + weight(50)*y + weight(51)*d + weight(52)*inR + weight(53)*inG + weight(54)*inB + weight(55)*bias, int(hash(107.0) * 100.0));
+      float h1_0 = activate(w(0.)*x + w(1.)*y + w(2.)*d + w(3.)*inR + w(4.)*inG + w(5.)*inB + w(6.)*bias, hash(100.0) * 7.0);
+      float h1_1 = activate(w(7.)*x + w(8.)*y + w(9.)*d + w(10.)*inR + w(11.)*inG + w(12.)*inB + w(13.)*bias, hash(101.0) * 7.0);
+      float h1_2 = activate(w(14.)*x + w(15.)*y + w(16.)*d + w(17.)*inR + w(18.)*inG + w(19.)*inB + w(20.)*bias, hash(102.0) * 7.0);
+      float h1_3 = activate(w(21.)*x + w(22.)*y + w(23.)*d + w(24.)*inR + w(25.)*inG + w(26.)*inB + w(27.)*bias, hash(103.0) * 7.0);
+      float h1_4 = activate(w(28.)*x + w(29.)*y + w(30.)*d + w(31.)*inR + w(32.)*inG + w(33.)*inB + w(34.)*bias, hash(104.0) * 7.0);
+      float h1_5 = activate(w(35.)*x + w(36.)*y + w(37.)*d + w(38.)*inR + w(39.)*inG + w(40.)*inB + w(41.)*bias, hash(105.0) * 7.0);
+      float h1_6 = activate(w(42.)*x + w(43.)*y + w(44.)*d + w(45.)*inR + w(46.)*inG + w(47.)*inB + w(48.)*bias, hash(106.0) * 7.0);
+      float h1_7 = activate(w(49.)*x + w(50.)*y + w(51.)*d + w(52.)*inR + w(53.)*inG + w(54.)*inB + w(55.)*bias, hash(107.0) * 7.0);
       
       // Layer 2: 8 hidden -> 8 hidden
-      float h2_0 = activate(weight(56)*h1_0 + weight(57)*h1_1 + weight(58)*h1_2 + weight(59)*h1_3 + weight(60)*h1_4 + weight(61)*h1_5 + weight(62)*h1_6 + weight(63)*h1_7, int(hash(108.0) * 100.0));
-      float h2_1 = activate(weight(64)*h1_0 + weight(65)*h1_1 + weight(66)*h1_2 + weight(67)*h1_3 + weight(68)*h1_4 + weight(69)*h1_5 + weight(70)*h1_6 + weight(71)*h1_7, int(hash(109.0) * 100.0));
-      float h2_2 = activate(weight(72)*h1_0 + weight(73)*h1_1 + weight(74)*h1_2 + weight(75)*h1_3 + weight(76)*h1_4 + weight(77)*h1_5 + weight(78)*h1_6 + weight(79)*h1_7, int(hash(110.0) * 100.0));
-      float h2_3 = activate(weight(80)*h1_0 + weight(81)*h1_1 + weight(82)*h1_2 + weight(83)*h1_3 + weight(84)*h1_4 + weight(85)*h1_5 + weight(86)*h1_6 + weight(87)*h1_7, int(hash(111.0) * 100.0));
-      float h2_4 = activate(weight(88)*h1_0 + weight(89)*h1_1 + weight(90)*h1_2 + weight(91)*h1_3 + weight(92)*h1_4 + weight(93)*h1_5 + weight(94)*h1_6 + weight(95)*h1_7, int(hash(112.0) * 100.0));
-      float h2_5 = activate(weight(96)*h1_0 + weight(97)*h1_1 + weight(98)*h1_2 + weight(99)*h1_3 + weight(100)*h1_4 + weight(101)*h1_5 + weight(102)*h1_6 + weight(103)*h1_7, int(hash(113.0) * 100.0));
-      float h2_6 = activate(weight(104)*h1_0 + weight(105)*h1_1 + weight(106)*h1_2 + weight(107)*h1_3 + weight(108)*h1_4 + weight(109)*h1_5 + weight(110)*h1_6 + weight(111)*h1_7, int(hash(114.0) * 100.0));
-      float h2_7 = activate(weight(112)*h1_0 + weight(113)*h1_1 + weight(114)*h1_2 + weight(115)*h1_3 + weight(116)*h1_4 + weight(117)*h1_5 + weight(118)*h1_6 + weight(119)*h1_7, int(hash(115.0) * 100.0));
+      float h2_0 = activate(w(56.)*h1_0 + w(57.)*h1_1 + w(58.)*h1_2 + w(59.)*h1_3 + w(60.)*h1_4 + w(61.)*h1_5 + w(62.)*h1_6 + w(63.)*h1_7, hash(108.0) * 7.0);
+      float h2_1 = activate(w(64.)*h1_0 + w(65.)*h1_1 + w(66.)*h1_2 + w(67.)*h1_3 + w(68.)*h1_4 + w(69.)*h1_5 + w(70.)*h1_6 + w(71.)*h1_7, hash(109.0) * 7.0);
+      float h2_2 = activate(w(72.)*h1_0 + w(73.)*h1_1 + w(74.)*h1_2 + w(75.)*h1_3 + w(76.)*h1_4 + w(77.)*h1_5 + w(78.)*h1_6 + w(79.)*h1_7, hash(110.0) * 7.0);
+      float h2_3 = activate(w(80.)*h1_0 + w(81.)*h1_1 + w(82.)*h1_2 + w(83.)*h1_3 + w(84.)*h1_4 + w(85.)*h1_5 + w(86.)*h1_6 + w(87.)*h1_7, hash(111.0) * 7.0);
+      float h2_4 = activate(w(88.)*h1_0 + w(89.)*h1_1 + w(90.)*h1_2 + w(91.)*h1_3 + w(92.)*h1_4 + w(93.)*h1_5 + w(94.)*h1_6 + w(95.)*h1_7, hash(112.0) * 7.0);
+      float h2_5 = activate(w(96.)*h1_0 + w(97.)*h1_1 + w(98.)*h1_2 + w(99.)*h1_3 + w(100.)*h1_4 + w(101.)*h1_5 + w(102.)*h1_6 + w(103.)*h1_7, hash(113.0) * 7.0);
+      float h2_6 = activate(w(104.)*h1_0 + w(105.)*h1_1 + w(106.)*h1_2 + w(107.)*h1_3 + w(108.)*h1_4 + w(109.)*h1_5 + w(110.)*h1_6 + w(111.)*h1_7, hash(114.0) * 7.0);
+      float h2_7 = activate(w(112.)*h1_0 + w(113.)*h1_1 + w(114.)*h1_2 + w(115.)*h1_3 + w(116.)*h1_4 + w(117.)*h1_5 + w(118.)*h1_6 + w(119.)*h1_7, hash(115.0) * 7.0);
       
       // Output layer: 8 hidden -> 3 RGB (using sigmoid for [0,1] output)
-      float outR = 1.0 / (1.0 + exp(-(weight(120)*h2_0 + weight(121)*h2_1 + weight(122)*h2_2 + weight(123)*h2_3 + weight(124)*h2_4 + weight(125)*h2_5 + weight(126)*h2_6 + weight(127)*h2_7)));
-      float outG = 1.0 / (1.0 + exp(-(weight(128)*h2_0 + weight(129)*h2_1 + weight(130)*h2_2 + weight(131)*h2_3 + weight(132)*h2_4 + weight(133)*h2_5 + weight(134)*h2_6 + weight(135)*h2_7)));
-      float outB = 1.0 / (1.0 + exp(-(weight(136)*h2_0 + weight(137)*h2_1 + weight(138)*h2_2 + weight(139)*h2_3 + weight(140)*h2_4 + weight(141)*h2_5 + weight(142)*h2_6 + weight(143)*h2_7)));
+      float outR = 1.0 / (1.0 + exp(-(w(120.)*h2_0 + w(121.)*h2_1 + w(122.)*h2_2 + w(123.)*h2_3 + w(124.)*h2_4 + w(125.)*h2_5 + w(126.)*h2_6 + w(127.)*h2_7)));
+      float outG = 1.0 / (1.0 + exp(-(w(128.)*h2_0 + w(129.)*h2_1 + w(130.)*h2_2 + w(131.)*h2_3 + w(132.)*h2_4 + w(133.)*h2_5 + w(134.)*h2_6 + w(135.)*h2_7)));
+      float outB = 1.0 / (1.0 + exp(-(w(136.)*h2_0 + w(137.)*h2_1 + w(138.)*h2_2 + w(139.)*h2_3 + w(140.)*h2_4 + w(141.)*h2_5 + w(142.)*h2_6 + w(143.)*h2_7)));
       
       gl_FragColor = vec4(outR, outG, outB, 1.0);
     }
