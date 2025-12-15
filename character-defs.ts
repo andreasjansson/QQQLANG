@@ -6286,7 +6286,6 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
-  // Box-Muller transform for normal distribution (stddev=1.0 like reference)
   function seededNormal(seed: number): () => number {
     let hasSpare = false;
     let spare = 0;
@@ -6322,8 +6321,8 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const scale = 16.0;
   const netSize = 32;
   const zDim = 8;
-  const cDim = 2; // dx, dy displacement
-  const displacementStrength = 0.3; // how much to warp (0-1 range, fraction of image size)
+  const outDim = 5; // dx, dy displacement + r, g, b color modulation
+  const displacementStrength = 0.3;
   
   // Derive z from input image for determinism
   let sumR = 0, sumG = 0, sumB = 0;
@@ -6344,16 +6343,14 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   
   const zRng = seededNormal(Math.floor((avgR + avgG + avgB) * 10000) + 12345);
   const zData = new Float32Array(zDim);
-  for (let i = 0; i < zDim; i++) zData[i] = zRng() * 0.5; // z in [-0.5, 0.5] range typically
+  for (let i = 0; i < zDim; i++) zData[i] = zRng() * 0.5;
   
-  // First layer: U = fc(z) + fc(x, no_bias) + fc(y, no_bias) + fc(r, no_bias)
   const W_z = createWeightTensor(zDim, netSize, rng);
   const B_z = createBiasTensor(netSize, rng);
   const W_x = createWeightTensor(1, netSize, rng);
   const W_y = createWeightTensor(1, netSize, rng);
   const W_r = createWeightTensor(1, netSize, rng);
   
-  // 5 hidden tanh layers for more detail
   const W_h0 = createWeightTensor(netSize, netSize, rng);
   const B_h0 = createBiasTensor(netSize, rng);
   const W_h1 = createWeightTensor(netSize, netSize, rng);
@@ -6365,15 +6362,12 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const W_h4 = createWeightTensor(netSize, netSize, rng);
   const B_h4 = createBiasTensor(netSize, rng);
   
-  // Output layer
-  const W_out = createWeightTensor(netSize, cDim, rng);
-  const B_out = createBiasTensor(cDim, rng);
+  const W_out = createWeightTensor(netSize, outDim, rng);
+  const B_out = createBiasTensor(outDim, rng);
   
   const outputTensor = tf.tidy(() => {
     const nPoints = width * height;
     
-    // Generate scaled coordinates exactly as reference:
-    // x_range = scale*(np.arange(x_dim)-(x_dim-1)/2.0)/(x_dim-1)/0.5
     const xMat: number[] = [];
     const yMat: number[] = [];
     const rMat: number[] = [];
@@ -6392,18 +6386,15 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
     const yTensor = tf.tensor2d(yMat, [nPoints, 1]);
     const rTensor = tf.tensor2d(rMat, [nPoints, 1]);
     
-    // Z scaled and broadcast: z_scaled = z * scale, broadcast to all points
     const zScaled = tf.tensor2d(zData, [1, zDim]).mul(scale);
     const zBroadcast = tf.tile(zScaled, [nPoints, 1]);
     
-    // First layer: U = fc(z) + fc(x, no_bias) + fc(y, no_bias) + fc(r, no_bias)
     const Uz = tf.add(tf.matMul(zBroadcast, W_z), B_z);
     const Ux = tf.matMul(xTensor, W_x);
     const Uy = tf.matMul(yTensor, W_y);
     const Ur = tf.matMul(rTensor, W_r);
     const U = tf.add(tf.add(Uz, Ux), tf.add(Uy, Ur));
     
-    // H = tanh(U), then 5 more tanh layers for sharper detail
     let H = tf.tanh(U) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h0), B_h0)) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h1), B_h1)) as tf.Tensor2D;
@@ -6411,13 +6402,12 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
     H = tf.tanh(tf.add(tf.matMul(H, W_h3), B_h3)) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h4), B_h4)) as tf.Tensor2D;
     
-    // Output: tanh for [-1, 1] displacement range
     const output = tf.tanh(tf.add(tf.matMul(H, W_out), B_out));
     
     return output;
   });
   
-  const displacementData = await outputTensor.data();
+  const cpnnData = await outputTensor.data();
   outputTensor.dispose();
   
   W_z.dispose(); B_z.dispose(); W_x.dispose(); W_y.dispose(); W_r.dispose();
@@ -6425,23 +6415,27 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   W_h2.dispose(); B_h2.dispose(); W_h3.dispose(); B_h3.dispose();
   W_h4.dispose(); B_h4.dispose(); W_out.dispose(); B_out.dispose();
   
-  // Apply displacement mapping to warp the input image
   const out = createSolidImage(width, height, '#000000');
   for (let py = 0; py < height; py++) {
     for (let px = 0; px < width; px++) {
       const i = py * width + px;
-      const dx = displacementData[i * 2] * displacementStrength * width;
-      const dy = displacementData[i * 2 + 1] * displacementStrength * height;
+      const dx = cpnnData[i * outDim] * displacementStrength * width;
+      const dy = cpnnData[i * outDim + 1] * displacementStrength * height;
       
-      // Sample from displaced coordinates with clamping
+      // CPPN color output in [-1, 1], map to modulation factor [0.5, 1.5]
+      const cR = cpnnData[i * outDim + 2] * 0.5 + 1.0;
+      const cG = cpnnData[i * outDim + 3] * 0.5 + 1.0;
+      const cB = cpnnData[i * outDim + 4] * 0.5 + 1.0;
+      
       const srcX = Math.max(0, Math.min(width - 1, Math.round(px + dx)));
       const srcY = Math.max(0, Math.min(height - 1, Math.round(py + dy)));
       const srcIdx = (srcY * width + srcX) * 4;
       
+      // Modulate warped color by CPPN color output
       const outIdx = i * 4;
-      out.data[outIdx] = prev.data[srcIdx];
-      out.data[outIdx + 1] = prev.data[srcIdx + 1];
-      out.data[outIdx + 2] = prev.data[srcIdx + 2];
+      out.data[outIdx] = Math.min(255, Math.max(0, Math.round(prev.data[srcIdx] * cR)));
+      out.data[outIdx + 1] = Math.min(255, Math.max(0, Math.round(prev.data[srcIdx + 1] * cG)));
+      out.data[outIdx + 2] = Math.min(255, Math.max(0, Math.round(prev.data[srcIdx + 2] * cB)));
       out.data[outIdx + 3] = 255;
     }
   }
