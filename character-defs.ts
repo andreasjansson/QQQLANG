@@ -6841,17 +6841,21 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnV,
     args: [
       { type: Choice(
-        'vertical-blur', 'circular-blur', 'horizontal-blur', 'rectangular-blur',
-        'diamond-blur', 'hexagon-blur',
-        'diamond-solid', 'hexagon-solid',
-        'sine-vertical-blur', 'sine-horizontal-blur',
-        'sine-vertical-solid', 'sine-horizontal-solid',
-        'sine-vertical-tri', 'sine-horizontal-tri'
+        'circular-solid', 'circular-blur',
+        'horizontal-solid', 'horizontal-blur',
+        'vertical-solid', 'vertical-blur',
+        'rectangular-solid', 'rectangular-blur',
+        'diamond-solid', 'diamond-blur',
+        'hexagon-solid', 'hexagon-blur',
+        'sine-horizontal-solid', 'sine-horizontal-blur',
+        'sine-vertical-solid', 'sine-vertical-blur',
+        'triangle-horizontal-solid', 'triangle-horizontal-blur',
+        'triangle-vertical-solid', 'triangle-vertical-blur'
       ), documentation: "Border shape style" },
       { type: COLOR, documentation: "Border tint color" }
     ],
     functionName: "border",
-    documentation: "Border effect with various shapes. A-F=blurred, G-H=solid geometric, I-L=sine waves, M-N=triangular sine."
+    documentation: "Border effect with various shapes: circular, horizontal, vertical, rectangular, diamond, hexagon, sine waves, and triangle waves."
   },
   
   'C': {
