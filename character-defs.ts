@@ -547,10 +547,10 @@ export const characterDefs: Record<string, CharDef> = {
   "^": {
     color: "#2ECC71",
     number: 39,
-    fn: shiftUp,
-    args: [],
-    functionName: "shift-up",
-    documentation: "Vertical shift 1/3 height up with wraparound.",
+    fn: verticalShift,
+    args: [{ type: INT, documentation: "Shift amount (A=up, 7=none, ~=down)" }],
+    functionName: "vertical-shift",
+    documentation: "Vertical shift with wraparound.",
   },
 
   "!": {
