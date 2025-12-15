@@ -6899,10 +6899,10 @@ export const characterDefs: Record<string, CharDef> = {
     number: 24,
     fn: fnX,
     args: [
-      { type: INT, documentation: "Compression level (A=minimal/high quality, ~=maximal/ringing artifacts)" }
+      { type: INT, documentation: "Compression level (A=minimal/high quality, ~=maximal/smooth blur)" }
     ],
-    functionName: "wavelet-compress",
-    documentation: "Daubechies-4 wavelet compression with coefficient thresholding, creating smooth ringing and halo artifacts around edges."
+    functionName: "pyramid-compress",
+    documentation: "Laplacian pyramid compression with soft thresholding, creating smooth organic blur and detail loss without blocky artifacts."
   },
   
   'Y': {
