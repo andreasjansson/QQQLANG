@@ -494,7 +494,8 @@
 
   <script type="module">
     import { runProgram, getParsedOperations, getExpectedNextType, getExpectedTypeAtPosition, addUploadedImage, setUploadedImage, getUploadedImageHash, getUploadedBlob, getNextAvailableIndex, hasUploadedImage, preloadUploadedImages, clearUploadedImages, getInvalidUploadIndices } from './runtime.ts';
-    import { characterDefs, emeraldReady, bgRemovalReady, UPLOAD_CHAR, UPLOAD_COUNT, isIndexedUpload, isInvalidUpload, isAnyUpload, getUploadIndex, getUploadChar, getInvalidUploadChar, ChoiceType } from './character-defs.ts';
+    import { characterDefs, emeraldReady, bgRemovalReady } from './character-defs.ts';
+    import { UPLOAD_CHAR, UPLOAD_COUNT, isIndexedUpload, isInvalidUpload, isAnyUpload, getUploadIndex, getUploadChar, getInvalidUploadChar, ChoiceType } from './functions/helpers.ts';
     import { formatFunctionHelp } from './functions/help.ts';
 
     const canvas = document.getElementById('canvas');
