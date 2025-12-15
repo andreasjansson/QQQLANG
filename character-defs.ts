@@ -2485,19 +2485,21 @@ function fnV(ctx: FnContext, style: string, c: string): Image {
         return Math.abs(nx - 0.3 * Math.sin(ny * Math.PI * 3));
         
       case 'sine-horizontal-tri': {
-        const sineY = 0.3 * Math.sin(nx * Math.PI * 3);
-        const topDist = Math.abs(ny - sineY);
-        const leftDist = Math.max(0, -nx - 0.8);
-        const rightDist = Math.max(0, nx - 0.8);
-        return topDist + leftDist + rightDist;
+        // Upward-pointing triangle with wavy top edge
+        const wave = 0.3 * Math.sin(nx * Math.PI * 3);
+        const topEdge = Math.max(0, -(ny - wave + 0.6));
+        const leftEdge = Math.max(0, -nx - ny * 0.8 - 0.5);
+        const rightEdge = Math.max(0, nx - ny * 0.8 - 0.5);
+        return Math.max(topEdge, leftEdge, rightEdge);
       }
         
       case 'sine-vertical-tri': {
-        const sineX = 0.3 * Math.sin(ny * Math.PI * 3);
-        const sideDist = Math.abs(nx - sineX);
-        const topDist = Math.max(0, -ny - 0.8);
-        const bottomDist = Math.max(0, ny - 0.8);
-        return sideDist + topDist + bottomDist;
+        // Right-pointing triangle with wavy right edge
+        const wave = 0.3 * Math.sin(ny * Math.PI * 3);
+        const rightEdge = Math.max(0, nx - wave - 0.6);
+        const topEdge = Math.max(0, -ny - nx * 0.8 - 0.5);
+        const bottomEdge = Math.max(0, ny - nx * 0.8 - 0.5);
+        return Math.max(rightEdge, topEdge, bottomEdge);
       }
         
       default:
