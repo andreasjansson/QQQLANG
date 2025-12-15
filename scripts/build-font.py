@@ -54,8 +54,10 @@ def parse_character_defs():
     content = CHARACTER_DEFS_PATH.read_text()
     
     # Match character definitions more robustly by finding the key and then parsing the object
-    # Pattern: "'X': {" followed by content until we reach the closing brace at the same level
-    pattern = r"(['\"])([^'\"]+)\1:\s*\{"
+    # Pattern matches both quoted ("X": {) and unquoted (X: {) keys
+    # Unquoted: single char identifier followed by colon
+    # Quoted: string literal followed by colon
+    pattern = r"(?:(['\"])([^'\"]+)\1|([A-Z0-9])):\s*\{"
     
     chars = {}
     for match in re.finditer(pattern, content):
