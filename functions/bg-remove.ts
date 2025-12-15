@@ -46,7 +46,7 @@ async function bgRemove(ctx: FnContext, old: Image): Promise<Image> {
     return cloneImage(prev);
   }
 
-  sinetInferenceInProgress = true;
+  setSinetInferenceInProgress(true);
   const startTime = performance.now();
 
   // Resize input to 224x224 for SINet
