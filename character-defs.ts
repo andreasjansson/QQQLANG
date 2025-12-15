@@ -2492,13 +2492,10 @@ function fnV(ctx: FnContext, style: string, c: string): Image {
         vignette = Math.max(0, 1 - Math.pow(dist / 0.7, 2));
       }
       
-      const darken = vignette;
-      const tint = 1 - vignette;
-      
       const idx = (y * ctx.width + x) * 4;
-      out.data[idx] = Math.round(out.data[idx] * darken + tr * tint * 0.5);
-      out.data[idx + 1] = Math.round(out.data[idx + 1] * darken + tg * tint * 0.5);
-      out.data[idx + 2] = Math.round(out.data[idx + 2] * darken + tb * tint * 0.5);
+      out.data[idx] = Math.round(out.data[idx] * vignette + tr * (1 - vignette));
+      out.data[idx + 1] = Math.round(out.data[idx + 1] * vignette + tg * (1 - vignette));
+      out.data[idx + 2] = Math.round(out.data[idx + 2] * vignette + tb * (1 - vignette));
     }
   }
   
