@@ -237,7 +237,7 @@ export function hexToRgb(hex: string): [number, number, number] {
   ];
 }
 
-function cloneImage(img: Image): Image {
+export function cloneImage(img: Image): Image {
   return {
     width: img.width,
     height: img.height,
