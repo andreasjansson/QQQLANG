@@ -528,7 +528,7 @@ Some functions take an image index as an argument, and uses that old image in so
   return wrapText(introText, charsPerLine);
 }
 
-function numToChar(num: number): string {
+export function numToChar(num: number): string {
   if (num >= 1 && num <= 26)
     return String.fromCharCode("A".charCodeAt(0) + num - 1);
   if (num >= 27 && num <= 36)
