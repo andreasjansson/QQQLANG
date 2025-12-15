@@ -7145,7 +7145,7 @@ export const characterDefs: Record<string, CharDef> = {
     number: 25,
     fn: fnU,
     args: [{ type: INT, documentation: "Controls angle and intensity of color shifts" }],
-    functionName: "undertone",
+    functionName: "hsl-shift",
     documentation: "HSL color shift with three gradient directions 120° apart: hue rotation, saturation multiply, lightness adjust (midtone-weighted)."
   },
   
