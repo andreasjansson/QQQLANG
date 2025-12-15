@@ -266,9 +266,80 @@ function imageHistory(ctx: FnContext): Image {
     Math.floor(Math.min(ctx.width, ctx.height) * marginFraction),
   );
 
+  if (ctx.images.length === 0) {
+    tempCtx.fillStyle = "#E8E4DC";
+    tempCtx.font = "300 16px Inconsolata, monospace";
+    tempCtx.fillText("No images in history", margin, margin + 16);
+    const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
+    out.data.set(imageData.data);
+    return out;
+  }
+
+  // Window size is 68 (the number of character functions)
+  const windowSize = 68;
+  const startOffset = Math.max(0, ctx.images.length - windowSize);
+  const endOffset = ctx.images.length;
+  const visibleCount = endOffset - startOffset;
+
+  // Find the best font size that fits
+  const minFontSize = 10;
+  const maxFontSize = 20;
+  let bestFontSize = minFontSize;
+
+  for (let testSize = maxFontSize; testSize >= minFontSize; testSize -= 1) {
+    tempCtx.font = `300 ${testSize}px Inconsolata, monospace`;
+    const charWidth = tempCtx.measureText("M").width;
+    const lineHeight = Math.floor(testSize * 1.4);
+
+    const headerHeight = lineHeight * 3;
+    const availableHeight = ctx.height - margin * 2 - headerHeight;
+    const maxLines = Math.floor(availableHeight / lineHeight);
+
+    if (maxLines >= visibleCount + 1) {
+      bestFontSize = testSize;
+      break;
+    }
+  }
+
+  tempCtx.font = `300 ${bestFontSize}px Inconsolata, monospace`;
+  const lineHeight = Math.floor(bestFontSize * 1.4);
+  const charWidth = tempCtx.measureText("M").width;
+
   tempCtx.fillStyle = "#E8E4DC";
-  tempCtx.font = "300 16px Inconsolata, monospace";
-  tempCtx.fillText("No images in history", 10, 30);
+
+  let y = margin + bestFontSize;
+
+  tempCtx.fillText("=== IMAGE HISTORY ===", margin, y);
+  y += lineHeight;
+
+  if (startOffset > 0) {
+    tempCtx.fillText(
+      `Showing last ${visibleCount} of ${ctx.images.length} images`,
+      margin,
+      y,
+    );
+  } else {
+    tempCtx.fillText(`${ctx.images.length} images in history`, margin, y);
+  }
+  y += lineHeight * 1.5;
+
+  tempCtx.fillText("Char  Index  Type", margin, y);
+  y += lineHeight;
+
+  for (let i = startOffset; i < endOffset; i++) {
+    const windowIndex = i - startOffset;
+    const char = numToChar(windowIndex + 1);
+    const opInfo = ctx.opInfos[i] || { type: "unknown", identifier: "" };
+
+    let typeStr = opInfo.type;
+    if (opInfo.type === "uploaded-image") {
+      typeStr = "upload";
+    }
+
+    const line = `${char.padEnd(6)}${String(i).padEnd(7)}${typeStr}`;
+    tempCtx.fillText(line, margin, y);
+    y += lineHeight;
+  }
 
   const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
   out.data.set(imageData.data);
