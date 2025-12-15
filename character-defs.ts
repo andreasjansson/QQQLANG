@@ -2494,7 +2494,7 @@ function fnW(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnX(ctx: FnContext, n: number): Image {
+function fnQuadtree(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   const out = createSolidImage(width, height, '#000000');
