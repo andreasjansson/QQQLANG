@@ -766,18 +766,15 @@
       const program = input.value || '';
       const cursorPos = input.selectionStart ?? program.length;
       
-      // Only show help if cursor is at the end of the program
-      if (cursorPos !== program.length) {
-        helpContainer.innerHTML = '';
-        return;
-      }
-      
       if (!program) {
         helpContainer.innerHTML = '';
         return;
       }
       
-      const ops = getParsedOperations(program);
+      // Get the program up to the cursor position
+      const programUpToCursor = program.substring(0, cursorPos);
+      const ops = getParsedOperations(programUpToCursor);
+      
       if (ops.length === 0) {
         helpContainer.innerHTML = '';
         return;
@@ -800,24 +797,19 @@
       const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
       const helpLines = formatFunctionHelp(char, def);
       
-      // If function has no args (arity 0), show help briefly then hide after 1 second
-      if (def.args.length === 0 && argsProvided === 0) {
-        helpContainer.innerHTML = `<div>${helpLines[0]}</div>`;
-        
-        helpHideTimeout = setTimeout(() => {
-          helpContainer.innerHTML = '';
-          helpHideTimeout = null;
-        }, 1000);
-        return;
-      }
-      
+      // If function is complete, don't show help
       if (argsProvided >= def.args.length) {
-        // Function is complete, don't show help
         helpContainer.innerHTML = '';
         return;
       }
       
+      // Show help and set 10 second auto-hide timeout
       helpContainer.innerHTML = helpLines.map(line => `<div>${line}</div>`).join('');
+      
+      helpHideTimeout = setTimeout(() => {
+        helpContainer.innerHTML = '';
+        helpHideTimeout = null;
+      }, 10000);
     }
     
     function updateUploadButtonState() {
