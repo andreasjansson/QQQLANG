@@ -228,7 +228,7 @@ export function createSolidImage(
   return { width, height, data };
 }
 
-function hexToRgb(hex: string): [number, number, number] {
+export function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");
   return [
     parseInt(h.substring(0, 2), 16),
