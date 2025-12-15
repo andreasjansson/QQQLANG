@@ -6322,7 +6322,8 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const scale = 16.0;
   const netSize = 32;
   const zDim = 8;
-  const cDim = 3; // RGB color
+  const cDim = 2; // dx, dy displacement
+  const displacementStrength = 0.3; // how much to warp (0-1 range, fraction of image size)
   
   // Derive z from input image for determinism
   let sumR = 0, sumG = 0, sumB = 0;
