@@ -263,12 +263,18 @@ export function getPrevImage(ctx: FnContext): Image {
 export function getOldImage(ctx: FnContext, j: number): Image {
   if (ctx.images.length === 0)
     return createSolidImage(ctx.width, ctx.height, "#000000");
-  // j is 1-based (A=1, B=2, etc.), convert to 0-based index
-  // A (1) -> index 0 (initial black), B (2) -> index 1, etc.
+  
+  // Window size is 68 (the number of character functions)
+  const windowSize = 68;
+  const startOffset = Math.max(0, ctx.images.length - windowSize);
+  const windowLength = ctx.images.length - startOffset;
+  
+  // j is 1-based (A=1, B=2, etc.), convert to 0-based index within the window
   const adjusted = Math.abs(j) - 1;
-  const idx =
-    ((adjusted % ctx.images.length) + ctx.images.length) % ctx.images.length;
-  return ctx.images[idx];
+  const windowIdx = ((adjusted % windowLength) + windowLength) % windowLength;
+  const actualIdx = startOffset + windowIdx;
+  
+  return ctx.images[actualIdx];
 }
 
 export function getPixel(
