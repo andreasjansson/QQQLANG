@@ -3041,41 +3041,38 @@ function fn1(ctx: FnContext): Image {
       vec2 center = vec2(0.5, 0.5);
       vec2 pos = uv - center;
       
-      // Adjust for aspect ratio
       vec2 aspectPos = pos;
       aspectPos.x *= aspect;
       float r = length(aspectPos);
       float angle = atan(pos.y, pos.x);
       
-      // Normalize r (corner distance)
       float maxR = length(vec2(0.5 * aspect, 0.5));
-      float normR = clamp(r / maxR, 0.001, 1.0);
+      float normR = clamp(r / maxR, 0.01, 1.0);
       
-      // Trumpet curve: FLAT at edges, INFINITE at center
-      // Use high power of (1-r) to keep edges flat, divide by r² for infinite center
-      float edgeFlatness = pow(1.0 - normR, 4.0);
-      float centerPull = 1.0 / (normR * normR);
-      float depth = edgeFlatness * centerPull * 0.05;
+      // Trumpet curve: gentle start at edges, infinite at center
+      // (1-r²) starts curving immediately but gently
+      // 1/r gives infinite depth at center
+      float curve = (1.0 - normR * normR);
+      float depth = curve / normR * 0.5;
       
-      // UV stretch - minimal at edges, strong at center
-      float stretch = 1.0 + depth * 0.8;
+      // UV stretch
+      float stretch = 1.0 + depth * 0.3;
       
       vec2 newPos = pos * stretch;
       vec2 sampleUV = clamp(newPos + center, 0.0, 1.0);
       
       vec3 color = texture2D(uTexture, sampleUV).rgb;
       
-      // Surface normal based on trumpet slope
-      float slope = edgeFlatness * 2.0 / (normR * normR * normR) * 0.05;
+      // Surface normal for lighting
+      float slope = (1.0 + normR) / (normR * normR) * 0.15;
       vec3 normal = normalize(vec3(cos(angle) * slope, sin(angle) * slope, 1.0));
       
-      // Lighting
       vec3 lightDir = normalize(vec3(0.2, 0.3, 1.0));
       float diffuse = max(dot(normal, lightDir), 0.0);
-      float lighting = 0.6 + 0.4 * diffuse;
+      float lighting = 0.55 + 0.45 * diffuse;
       
-      // Depth darkening - infinite depth at center goes to black
-      float depthDarken = 1.0 / (1.0 + depth * 2.0);
+      // Depth darkening
+      float depthDarken = 1.0 / (1.0 + depth * 1.5);
       
       color *= lighting * depthDarken;
       
