@@ -6282,194 +6282,117 @@ function fnTilde(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnCPPN(ctx: FnContext): Image {
+// Seeded random number generator for deterministic weights
+function seededRandom(seed: number): () => number {
+  return () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return (seed / 0x7fffffff) * 2 - 1; // Returns [-1, 1]
+  };
+}
+
+// Create deterministic weight matrix
+function createWeights(rows: number, cols: number, rng: () => number): number[][] {
+  const weights: number[][] = [];
+  for (let i = 0; i < rows; i++) {
+    weights[i] = [];
+    for (let j = 0; j < cols; j++) {
+      weights[i][j] = rng();
+    }
+  }
+  return weights;
+}
+
+// Create deterministic bias vector
+function createBias(size: number, rng: () => number): number[] {
+  const bias: number[] = [];
+  for (let i = 0; i < size; i++) {
+    bias[i] = rng();
+  }
+  return bias;
+}
+
+async function fnCPPN(ctx: FnContext): Promise<Image> {
   const prev = getPrevImage(ctx);
-  const gl = initWebGL(ctx.width, ctx.height);
+  const { width, height } = ctx;
   
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, null);
+  // Fixed seed for deterministic weights
+  const rng = seededRandom(42);
   
-  const vertexShaderSrc = `
-    attribute vec2 position;
-    varying vec2 vUV;
-    void main() {
-      vUV = position * 0.5 + 0.5;
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-  `;
+  // Network architecture: 7 inputs -> 32 hidden -> 32 hidden -> 3 outputs
+  const inputSize = 7;  // x, y, r, inR, inG, inB, bias
+  const hidden1Size = 32;
+  const hidden2Size = 32;
+  const outputSize = 3;  // R, G, B
   
-  // Classic CPPN implementation
-  // Inputs: x, y, r (distance from center), and RGB from input image as "latent" seed
-  // The input image colors act as a spatially-varying latent vector
-  // Architecture: 7 inputs -> 16 hidden (sin) -> 16 hidden (mixed) -> 3 RGB output
-  const fragmentShaderSrc = `
-    precision highp float;
-    uniform sampler2D uTexture;
-    uniform vec2 uResolution;
-    varying vec2 vUV;
-    
-    #define PI 3.14159265359
-    
-    // Deterministic weight generation from index
-    float hash(float n) {
-      return fract(sin(n * 127.1 + 311.7) * 43758.5453);
-    }
-    
-    // Gaussian-distributed weight approximation using Box-Muller-ish transform
-    // Returns value roughly in [-1.5, 1.5] with most values near 0
-    float gaussWeight(float i) {
-      float u1 = hash(i * 1.0);
-      float u2 = hash(i * 2.0 + 1000.0);
-      return sqrt(-0.5 * log(max(u1, 0.001))) * cos(2.0 * PI * u2);
-    }
-    
-    // Simpler uniform weight in [-1, 1]
-    float w(float i) {
-      return hash(i) * 2.0 - 1.0;
-    }
-    
-    void main() {
-      // Sample previous image - this acts as a spatially-varying latent vector
-      vec3 tex = texture2D(uTexture, vec2(vUV.x, 1.0 - vUV.y)).rgb;
+  // Create deterministic weights
+  const w1 = createWeights(inputSize, hidden1Size, rng);
+  const b1 = createBias(hidden1Size, rng);
+  const w2 = createWeights(hidden1Size, hidden2Size, rng);
+  const b2 = createBias(hidden2Size, rng);
+  const w3 = createWeights(hidden2Size, outputSize, rng);
+  const b3 = createBias(outputSize, rng);
+  
+  // Generate input coordinates
+  const inputData: number[][] = [];
+  const aspect = width / height;
+  
+  for (let py = 0; py < height; py++) {
+    for (let px = 0; px < width; px++) {
+      const x = ((px / width) * 2 - 1) * aspect;
+      const y = (py / height) * 2 - 1;
+      const r = Math.sqrt(x * x + y * y);
       
-      // Scale image values to be latent inputs (centered around 0)
-      float z1 = tex.r * 2.0 - 1.0;
-      float z2 = tex.g * 2.0 - 1.0;
-      float z3 = tex.b * 2.0 - 1.0;
+      // Sample input image
+      const [inR, inG, inB] = getPixel(prev, px, py);
+      const nR = inR / 255 * 2 - 1;
+      const nG = inG / 255 * 2 - 1;
+      const nB = inB / 255 * 2 - 1;
       
-      // Spatial coordinates normalized to [-1, 1]
-      float aspect = uResolution.x / uResolution.y;
-      float x = (vUV.x * 2.0 - 1.0) * aspect;
-      float y = vUV.y * 2.0 - 1.0;
-      float r = sqrt(x * x + y * y);  // Distance from center - creates radial symmetry bias
-      
-      // Input vector: [x, y, r, z1, z2, z3, bias]
-      // Scale factors to balance spatial vs latent influence
-      float xs = x * 1.0;
-      float ys = y * 1.0;
-      float rs = r * 1.0;
-      float zs1 = z1 * 0.5;
-      float zs2 = z2 * 0.5;
-      float zs3 = z3 * 0.5;
-      float bias = 1.0;
-      
-      // Hidden layer 1: 16 nodes, all using sin activation
-      // Sin creates the characteristic CPPN patterns (stripes, waves)
-      float s = 3.0;  // frequency scale
-      float h1_0 = sin(s * (w(0.)*xs + w(1.)*ys + w(2.)*rs + w(3.)*zs1 + w(4.)*zs2 + w(5.)*zs3 + w(6.)*bias));
-      float h1_1 = sin(s * (w(7.)*xs + w(8.)*ys + w(9.)*rs + w(10.)*zs1 + w(11.)*zs2 + w(12.)*zs3 + w(13.)*bias));
-      float h1_2 = sin(s * (w(14.)*xs + w(15.)*ys + w(16.)*rs + w(17.)*zs1 + w(18.)*zs2 + w(19.)*zs3 + w(20.)*bias));
-      float h1_3 = sin(s * (w(21.)*xs + w(22.)*ys + w(23.)*rs + w(24.)*zs1 + w(25.)*zs2 + w(26.)*zs3 + w(27.)*bias));
-      float h1_4 = cos(s * (w(28.)*xs + w(29.)*ys + w(30.)*rs + w(31.)*zs1 + w(32.)*zs2 + w(33.)*zs3 + w(34.)*bias));
-      float h1_5 = cos(s * (w(35.)*xs + w(36.)*ys + w(37.)*rs + w(38.)*zs1 + w(39.)*zs2 + w(40.)*zs3 + w(41.)*bias));
-      float h1_6 = cos(s * (w(42.)*xs + w(43.)*ys + w(44.)*rs + w(45.)*zs1 + w(46.)*zs2 + w(47.)*zs3 + w(48.)*bias));
-      float h1_7 = cos(s * (w(49.)*xs + w(50.)*ys + w(51.)*rs + w(52.)*zs1 + w(53.)*zs2 + w(54.)*zs3 + w(55.)*bias));
-      // Gaussian activation - creates soft radial patterns
-      float h1_8 = exp(-pow(w(56.)*xs + w(57.)*ys + w(58.)*rs + w(59.)*zs1 + w(60.)*zs2 + w(61.)*zs3 + w(62.)*bias, 2.0));
-      float h1_9 = exp(-pow(w(63.)*xs + w(64.)*ys + w(65.)*rs + w(66.)*zs1 + w(67.)*zs2 + w(68.)*zs3 + w(69.)*bias, 2.0));
-      // Abs - creates V-shaped / angular patterns
-      float h1_10 = abs(w(70.)*xs + w(71.)*ys + w(72.)*rs + w(73.)*zs1 + w(74.)*zs2 + w(75.)*zs3 + w(76.)*bias);
-      float h1_11 = abs(w(77.)*xs + w(78.)*ys + w(79.)*rs + w(80.)*zs1 + w(81.)*zs2 + w(82.)*zs3 + w(83.)*bias);
-      // More sin/cos at different frequencies
-      float h1_12 = sin(s * 2.0 * (w(84.)*xs + w(85.)*ys + w(86.)*rs + w(87.)*zs1));
-      float h1_13 = cos(s * 2.0 * (w(88.)*xs + w(89.)*ys + w(90.)*rs + w(91.)*zs2));
-      float h1_14 = sin(s * 0.5 * (w(92.)*xs + w(93.)*ys + w(94.)*rs + w(95.)*zs3));
-      float h1_15 = cos(s * 0.5 * (w(96.)*xs + w(97.)*ys + w(98.)*rs + w(99.)*bias));
-      
-      // Hidden layer 2: 8 nodes with mixed activations
-      float sum2_0 = w(100.)*h1_0 + w(101.)*h1_1 + w(102.)*h1_2 + w(103.)*h1_3 + w(104.)*h1_4 + w(105.)*h1_5 + w(106.)*h1_6 + w(107.)*h1_7 + w(108.)*h1_8 + w(109.)*h1_9 + w(110.)*h1_10 + w(111.)*h1_11 + w(112.)*h1_12 + w(113.)*h1_13 + w(114.)*h1_14 + w(115.)*h1_15;
-      float sum2_1 = w(116.)*h1_0 + w(117.)*h1_1 + w(118.)*h1_2 + w(119.)*h1_3 + w(120.)*h1_4 + w(121.)*h1_5 + w(122.)*h1_6 + w(123.)*h1_7 + w(124.)*h1_8 + w(125.)*h1_9 + w(126.)*h1_10 + w(127.)*h1_11 + w(128.)*h1_12 + w(129.)*h1_13 + w(130.)*h1_14 + w(131.)*h1_15;
-      float sum2_2 = w(132.)*h1_0 + w(133.)*h1_1 + w(134.)*h1_2 + w(135.)*h1_3 + w(136.)*h1_4 + w(137.)*h1_5 + w(138.)*h1_6 + w(139.)*h1_7 + w(140.)*h1_8 + w(141.)*h1_9 + w(142.)*h1_10 + w(143.)*h1_11 + w(144.)*h1_12 + w(145.)*h1_13 + w(146.)*h1_14 + w(147.)*h1_15;
-      float sum2_3 = w(148.)*h1_0 + w(149.)*h1_1 + w(150.)*h1_2 + w(151.)*h1_3 + w(152.)*h1_4 + w(153.)*h1_5 + w(154.)*h1_6 + w(155.)*h1_7 + w(156.)*h1_8 + w(157.)*h1_9 + w(158.)*h1_10 + w(159.)*h1_11 + w(160.)*h1_12 + w(161.)*h1_13 + w(162.)*h1_14 + w(163.)*h1_15;
-      float sum2_4 = w(164.)*h1_0 + w(165.)*h1_1 + w(166.)*h1_2 + w(167.)*h1_3 + w(168.)*h1_4 + w(169.)*h1_5 + w(170.)*h1_6 + w(171.)*h1_7 + w(172.)*h1_8 + w(173.)*h1_9 + w(174.)*h1_10 + w(175.)*h1_11 + w(176.)*h1_12 + w(177.)*h1_13 + w(178.)*h1_14 + w(179.)*h1_15;
-      float sum2_5 = w(180.)*h1_0 + w(181.)*h1_1 + w(182.)*h1_2 + w(183.)*h1_3 + w(184.)*h1_4 + w(185.)*h1_5 + w(186.)*h1_6 + w(187.)*h1_7 + w(188.)*h1_8 + w(189.)*h1_9 + w(190.)*h1_10 + w(191.)*h1_11 + w(192.)*h1_12 + w(193.)*h1_13 + w(194.)*h1_14 + w(195.)*h1_15;
-      
-      float h2_0 = sin(sum2_0);
-      float h2_1 = sin(sum2_1);
-      float h2_2 = cos(sum2_2);
-      float h2_3 = cos(sum2_3);
-      float h2_4 = exp(-sum2_4 * sum2_4);
-      float h2_5 = exp(-sum2_5 * sum2_5);
-      
-      // Output layer: produce RGB in [0, 1] using sigmoid
-      float outR = 0.5 + 0.5 * sin(PI * (w(200.)*h2_0 + w(201.)*h2_1 + w(202.)*h2_2 + w(203.)*h2_3 + w(204.)*h2_4 + w(205.)*h2_5));
-      float outG = 0.5 + 0.5 * sin(PI * (w(206.)*h2_0 + w(207.)*h2_1 + w(208.)*h2_2 + w(209.)*h2_3 + w(210.)*h2_4 + w(211.)*h2_5));
-      float outB = 0.5 + 0.5 * sin(PI * (w(212.)*h2_0 + w(213.)*h2_1 + w(214.)*h2_2 + w(215.)*h2_3 + w(216.)*h2_4 + w(217.)*h2_5));
-      
-      gl_FragColor = vec4(outR, outG, outB, 1.0);
-    }
-  `;
-  
-  // Compile shaders with error checking
-  const vertShader = gl.createShader(gl.VERTEX_SHADER)!;
-  gl.shaderSource(vertShader, vertexShaderSrc);
-  gl.compileShader(vertShader);
-  if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
-    console.error('CPPN vertex shader error:', gl.getShaderInfoLog(vertShader));
-  }
-  
-  const fragShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-  gl.shaderSource(fragShader, fragmentShaderSrc);
-  gl.compileShader(fragShader);
-  if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
-    console.error('CPPN fragment shader error:', gl.getShaderInfoLog(fragShader));
-  }
-  
-  const program = gl.createProgram()!;
-  gl.attachShader(program, vertShader);
-  gl.attachShader(program, fragShader);
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.error('CPPN program link error:', gl.getProgramInfoLog(program));
-  }
-  
-  gl.useProgram(program);
-  
-  // Upload previous image as texture
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-  const positionLoc = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
-  
-  gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  
-  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-  
-  // Flip vertically (WebGL has Y-up)
-  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-      const dstIdx = (y * ctx.width + x) * 4;
-      flipped[dstIdx] = pixels[srcIdx];
-      flipped[dstIdx + 1] = pixels[srcIdx + 1];
-      flipped[dstIdx + 2] = pixels[srcIdx + 2];
-      flipped[dstIdx + 3] = pixels[srcIdx + 3];
+      inputData.push([x, y, r, nR, nG, nB, 1.0]);
     }
   }
   
-  gl.deleteTexture(texture);
-  gl.deleteBuffer(buffer);
-  gl.deleteProgram(program);
+  // Run network using TensorFlow.js
+  const output = tf.tidy(() => {
+    const inputs = tf.tensor2d(inputData);
+    
+    const W1 = tf.tensor2d(w1);
+    const B1 = tf.tensor1d(b1);
+    const W2 = tf.tensor2d(w2);
+    const B2 = tf.tensor1d(b2);
+    const W3 = tf.tensor2d(w3);
+    const B3 = tf.tensor1d(b3);
+    
+    // Hidden layer 1 with sin activation (creates periodic patterns)
+    const h1 = tf.sin(tf.add(tf.matMul(inputs, W1), B1).mul(3.0));
+    
+    // Hidden layer 2 with tanh activation
+    const h2 = tf.tanh(tf.add(tf.matMul(h1, W2), B2));
+    
+    // Output layer with sigmoid to get [0, 1] range
+    const out = tf.sigmoid(tf.add(tf.matMul(h2, W3), B3));
+    
+    return out;
+  });
   
-  return { width: ctx.width, height: ctx.height, data: flipped };
+  // Extract output data
+  const outputData = await output.data();
+  output.dispose();
+  
+  // Create output image
+  const out = createSolidImage(width, height, '#000000');
+  
+  for (let py = 0; py < height; py++) {
+    for (let px = 0; px < width; px++) {
+      const idx = py * width + px;
+      const r = Math.round(outputData[idx * 3 + 0] * 255);
+      const g = Math.round(outputData[idx * 3 + 1] * 255);
+      const b = Math.round(outputData[idx * 3 + 2] * 255);
+      setPixel(out, px, py, r, g, b);
+    }
+  }
+  
+  return out;
 }
 
 function fnCond(ctx: FnContext, condImg: Image, trueImg: Image, falseImg: Image, channel: string, thresholdN: number): Image {
