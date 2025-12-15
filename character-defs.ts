@@ -6749,10 +6749,10 @@ export const characterDefs: Record<string, CharDef> = {
   'U': {
     color: '#DDA0DD',
     number: 21,
-    fn: fnU,
-    args: [{ type: INT, documentation: "Intensity and angle multiplier" }],
-    functionName: "undertone",
-    documentation: "HSL shift with three gradient directions for hue, saturation, and lightness."
+    fn: fnQuadtree,
+    args: [{ type: INT, documentation: "Compression level (A=minimal/detailed, ~=maximal/geometric blocks)" }],
+    functionName: "quadtree-compress",
+    documentation: "Adaptive quadtree compression - detailed areas keep resolution while uniform areas become large blocks, creating geometric patterns."
   },
   
   'V': {
