@@ -266,7 +266,7 @@ export function getOldImage(ctx: FnContext, j: number): Image {
   return ctx.images[idx];
 }
 
-function getPixel(
+export function getPixel(
   img: Image,
   x: number,
   y: number,
