@@ -4,11 +4,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:font": "pip install -r requirements.txt && python scripts/build-font.py",
+    "build:font": "(pip install -r requirements.txt || uv pip install -r requirements.txt) && python scripts/build-font.py",
     "build": "npm run build:font && tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write \"**/*.ts\"",
+    "format:check": "prettier --check \"**/*.ts\""
   },
   "devDependencies": {
+    "prettier": "^3.7.4",
     "typescript": "^5.3.3",
     "vite": "^5.0.0"
   },
