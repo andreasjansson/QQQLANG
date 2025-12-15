@@ -1,4 +1,4 @@
-import { CharDef, INT, COLOR, INDEX, Choice, ArgDef, FnContext, Image, createSolidImage, getPrevImage, getPixel, setPixel, cloneImage, hexToRgb, rgbToHsl, hslToRgb, getOldImage, ArgType, IntType, ColorType, IndexType, ChoiceType, OpInfo, UPLOAD_CHAR, UPLOAD_COUNT, isIndexedUpload, isInvalidUpload, isAnyUpload, getUploadIndex, getUploadChar, getInvalidUploadChar, createPlaceholderImage } from './functions/helpers.js';
+import { CharDef, INT, COLOR, INDEX, Choice, ArgDef, FnContext, Image, createSolidImage, getPrevImage, getPixel, setPixel, cloneImage, hexToRgb, rgbToHsl, hslToRgb, getOldImage, ArgType, IntType, ColorType, IndexType, ChoiceType, OpInfo, UPLOAD_CHAR, UPLOAD_COUNT, isIndexedUpload, isInvalidUpload, isAnyUpload, getUploadIndex, getUploadChar, getInvalidUploadChar, createPlaceholderImage, emeraldReady, bgRemovalReady, formatFunctionHelp } from './functions/helpers.js';
 
 import { spheres } from './functions/spheres.js';
 import { border } from './functions/border.js';
