@@ -6396,12 +6396,18 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
     const zScaled = tf.tensor2d(zData, [1, zDim]).mul(scale);
     const zBroadcast = tf.tile(zScaled, [nPoints, 1]);
     
-    // First layer: U = fc(z) + fc(x, no_bias) + fc(y, no_bias) + fc(r, no_bias)
+    // Convert input image to tensor, normalize RGB to [-1, 1]
+    const imgTensor = tf.tensor3d(prev.data, [height, width, 4]);
+    const rgbNorm = imgTensor.slice([0, 0, 0], [-1, -1, 3]).div(127.5).sub(1);
+    const rgbFlat = rgbNorm.reshape([nPoints, 3]);
+    
+    // First layer: U = fc(z) + fc(x, no_bias) + fc(y, no_bias) + fc(r, no_bias) + fc(rgb, no_bias)
     const Uz = tf.add(tf.matMul(zBroadcast, W_z), B_z);
     const Ux = tf.matMul(xTensor, W_x);
     const Uy = tf.matMul(yTensor, W_y);
     const Ur = tf.matMul(rTensor, W_r);
-    const U = tf.add(tf.add(Uz, Ux), tf.add(Uy, Ur));
+    const Urgb = tf.matMul(rgbFlat, W_rgb);
+    const U = tf.add(tf.add(tf.add(Uz, Ux), tf.add(Uy, Ur)), Urgb);
     
     // H = tanh(U), then 5 more tanh layers for sharper detail
     let H = tf.tanh(U) as tf.Tensor2D;
