@@ -55,9 +55,9 @@ def parse_character_defs():
     
     # Match character definitions more robustly by finding the key and then parsing the object
     # Pattern matches both quoted ("X": {) and unquoted (X: {) keys
-    # Unquoted: single char identifier followed by colon
-    # Quoted: string literal followed by colon
-    pattern = r"(?:(['\"])([^'\"]+)\1|([A-Z0-9])):\s*\{"
+    # Unquoted: alphanumeric or $ or _ (valid JS identifiers that don't need quotes)
+    # Quoted: string literal followed by colon (for symbols that need quotes)
+    pattern = r"(?:(['\"])([^'\"]+)\1|([A-Z0-9$_])):\s*\{"
     
     chars = {}
     for match in re.finditer(pattern, content):
