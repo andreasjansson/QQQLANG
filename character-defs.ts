@@ -4358,7 +4358,7 @@ function fnApostrophe(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnAnisotropicRadial(ctx: FnContext, a: number, k: number, theta: number): Image {
+function fnShearRadial(ctx: FnContext, cxParam: number, cyParam: number, kParam: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
@@ -4366,12 +4366,12 @@ function fnAnisotropicRadial(ctx: FnContext, a: number, k: number, theta: number
   gl.bindTexture(gl.TEXTURE_2D, null);
   
   // Map parameters:
-  // a (1-68) -> anisotropic scale -1.5 to 1.5
-  // k (1-68) -> radial distortion -2.0 to 2.0
-  // theta (1-68) -> angle 0 to 2π
-  const aParam = (a - 34.5) / 34.5 * 1.5;
-  const kParam = (k - 34.5) / 34.5 * 2.0;
-  const thetaParam = (theta - 1) / 67 * Math.PI * 2;
+  // cx (1-68) -> center x offset -0.5 to 0.5
+  // cy (1-68) -> center y offset -0.5 to 0.5
+  // k (1-68) -> radial strength -4.0 to 4.0
+  const cx = (cxParam - 34.5) / 67;
+  const cy = (cyParam - 34.5) / 67;
+  const k = (kParam - 34.5) / 34.5 * 4.0;
   
   const vertexShader = `
     attribute vec2 position;
@@ -4385,38 +4385,34 @@ function fnAnisotropicRadial(ctx: FnContext, a: number, k: number, theta: number
   const fragmentShader = `
     precision highp float;
     uniform sampler2D uTexture;
-    uniform float uA;
+    uniform float uCx;
+    uniform float uCy;
     uniform float uK;
-    uniform float uTheta;
-    uniform vec2 uResolution;
     varying vec2 vUV;
     
     void main() {
-      vec2 center = vec2(0.5, 0.5);
-      vec2 pos = vUV - center;
+      // Convert to centered coords (-0.5 to 0.5)
+      float x = vUV.x - 0.5;
+      float y = vUV.y - 0.5;
       
-      // Account for aspect ratio
-      float aspect = uResolution.x / uResolution.y;
-      pos.x *= aspect;
+      // Shear amount derived from center offset
+      float s = uK * uCx;
       
-      float r = length(pos);
-      float phi = atan(pos.y, pos.x);
+      // Shear first
+      float x_s = x + s * y;
+      float y_s = y;
       
-      // Anisotropic scale factor based on angle relative to theta
-      float stretch = 1.0 + uA * cos(2.0 * (phi - uTheta));
+      // Radial centered at (cx, cy)
+      float dx = x_s - uCx;
+      float dy = y_s - uCy;
+      float r2 = dx * dx + dy * dy;
       
-      // Radial distortion: r' = r * stretch / (1 + k * r²)
-      float rPrime = r * stretch / (1.0 + uK * r * r);
+      float denom = 1.0 + uK * r2;
+      float xPrime = uCx + dx / denom;
+      float yPrime = uCy + dy / denom;
       
-      // Convert back to cartesian
-      vec2 newPos;
-      newPos.x = rPrime * cos(phi);
-      newPos.y = rPrime * sin(phi);
-      
-      // Undo aspect ratio correction
-      newPos.x /= aspect;
-      
-      vec2 sampleUV = newPos + center;
+      // Convert back to UV coords
+      vec2 sampleUV = vec2(xPrime + 0.5, yPrime + 0.5);
       
       if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
@@ -4447,10 +4443,9 @@ function fnAnisotropicRadial(ctx: FnContext, a: number, k: number, theta: number
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform1f(gl.getUniformLocation(program, 'uA'), aParam);
-  gl.uniform1f(gl.getUniformLocation(program, 'uK'), kParam);
-  gl.uniform1f(gl.getUniformLocation(program, 'uTheta'), thetaParam);
-  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uCx'), cx);
+  gl.uniform1f(gl.getUniformLocation(program, 'uCy'), cy);
+  gl.uniform1f(gl.getUniformLocation(program, 'uK'), k);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
