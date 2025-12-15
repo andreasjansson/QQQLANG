@@ -404,9 +404,9 @@ export const characterDefs: Record<string, CharDef> = {
         documentation: "Controls angle and intensity of color shifts",
       },
     ],
-    functionName: "hsl-shift",
+    functionName: "yuv-shift",
     documentation:
-      "HSL color shift with three gradient directions 120° apart: hue rotation, saturation multiply, lightness adjust (midtone-weighted).",
+      "YUV color shift with three gradient directions 120° apart: luminance, blue chrominance, and red chrominance shifts.",
   },
 
   Z: {
