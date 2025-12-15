@@ -342,7 +342,7 @@ function fnA(ctx: FnContext): Image {
       
       float theta = atan(normal.x, normal.z) + rotation;
       vec2 texCoord = vec2(
-        theta / 3.14159 + 0.5,
+        theta / (2.0 * 3.14159) + 0.5,
         acos(normal.y) / 3.14159
       );
       
