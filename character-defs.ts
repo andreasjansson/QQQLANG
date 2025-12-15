@@ -6290,39 +6290,98 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-// Pre-computed CPPN weights (fixed seed = 42)
-let cppnWeights: { W1: tf.Tensor2D, B1: tf.Tensor1D, W2: tf.Tensor2D, B2: tf.Tensor1D, W3: tf.Tensor2D, B3: tf.Tensor1D } | null = null;
+// CPPN layer configuration
+interface CPPNLayer {
+  W: tf.Tensor2D;
+  B: tf.Tensor1D;
+  activations: number[]; // activation type per node: 0=sin, 1=cos, 2=tanh, 3=sigmoid, 4=gaussian, 5=abs, 6=identity
+}
 
-function getCPPNWeights() {
-  if (cppnWeights) return cppnWeights;
+// Pre-computed CPPN weights (fixed seed = 42)
+let cppnLayers: CPPNLayer[] | null = null;
+
+function getCPPNLayers(): CPPNLayer[] {
+  if (cppnLayers) return cppnLayers;
   
   const rng = seededRandom(42);
-  const inputSize = 7, hidden1Size = 32, hidden2Size = 32, outputSize = 3;
   
-  const w1Data = new Float32Array(inputSize * hidden1Size);
-  const b1Data = new Float32Array(hidden1Size);
-  const w2Data = new Float32Array(hidden1Size * hidden2Size);
-  const b2Data = new Float32Array(hidden2Size);
-  const w3Data = new Float32Array(hidden2Size * outputSize);
-  const b3Data = new Float32Array(outputSize);
+  // Network architecture: 
+  // Input (7) -> Hidden1 (24) -> Hidden2 (24) -> Hidden3 (16) -> Hidden4 (16) -> Output (3)
+  const layerSizes = [7, 24, 24, 16, 16, 3];
+  const numActivations = 7;
   
-  for (let i = 0; i < w1Data.length; i++) w1Data[i] = rng();
-  for (let i = 0; i < b1Data.length; i++) b1Data[i] = rng();
-  for (let i = 0; i < w2Data.length; i++) w2Data[i] = rng();
-  for (let i = 0; i < b2Data.length; i++) b2Data[i] = rng();
-  for (let i = 0; i < w3Data.length; i++) w3Data[i] = rng();
-  for (let i = 0; i < b3Data.length; i++) b3Data[i] = rng();
+  cppnLayers = [];
   
-  cppnWeights = {
-    W1: tf.tensor2d(w1Data, [inputSize, hidden1Size]),
-    B1: tf.tensor1d(b1Data),
-    W2: tf.tensor2d(w2Data, [hidden1Size, hidden2Size]),
-    B2: tf.tensor1d(b2Data),
-    W3: tf.tensor2d(w3Data, [hidden2Size, outputSize]),
-    B3: tf.tensor1d(b3Data),
-  };
+  for (let l = 0; l < layerSizes.length - 1; l++) {
+    const inSize = layerSizes[l];
+    const outSize = layerSizes[l + 1];
+    
+    const wData = new Float32Array(inSize * outSize);
+    const bData = new Float32Array(outSize);
+    const activations: number[] = [];
+    
+    for (let i = 0; i < wData.length; i++) wData[i] = rng();
+    for (let i = 0; i < bData.length; i++) bData[i] = rng() * 0.5;
+    
+    // Assign different activations to different nodes
+    // Last layer always uses sigmoid for output
+    for (let i = 0; i < outSize; i++) {
+      if (l === layerSizes.length - 2) {
+        activations.push(3); // sigmoid for output layer
+      } else {
+        // Varied activations for hidden layers
+        const actIdx = Math.floor((rng() + 1) / 2 * numActivations);
+        activations.push(actIdx % numActivations);
+      }
+    }
+    
+    cppnLayers.push({
+      W: tf.tensor2d(wData, [inSize, outSize]),
+      B: tf.tensor1d(bData),
+      activations,
+    });
+  }
   
-  return cppnWeights;
+  return cppnLayers;
+}
+
+// Apply different activations to different columns of a tensor
+function applyMixedActivations(x: tf.Tensor2D, activations: number[]): tf.Tensor2D {
+  const cols: tf.Tensor2D[] = [];
+  
+  for (let i = 0; i < activations.length; i++) {
+    const col = x.slice([0, i], [-1, 1]);
+    let activated: tf.Tensor2D;
+    
+    switch (activations[i]) {
+      case 0: // sin - creates periodic wave patterns
+        activated = tf.sin(col.mul(Math.PI)) as tf.Tensor2D;
+        break;
+      case 1: // cos - creates periodic patterns offset from sin
+        activated = tf.cos(col.mul(Math.PI)) as tf.Tensor2D;
+        break;
+      case 2: // tanh - smooth nonlinearity
+        activated = tf.tanh(col) as tf.Tensor2D;
+        break;
+      case 3: // sigmoid - smooth 0-1 output
+        activated = tf.sigmoid(col) as tf.Tensor2D;
+        break;
+      case 4: // gaussian - radial/blob patterns
+        activated = tf.exp(tf.neg(tf.square(col))) as tf.Tensor2D;
+        break;
+      case 5: // abs - V-shaped/angular patterns
+        activated = tf.abs(col) as tf.Tensor2D;
+        break;
+      case 6: // identity/linear - allows linear combinations
+      default:
+        activated = col as tf.Tensor2D;
+        break;
+    }
+    
+    cols.push(activated);
+  }
+  
+  return tf.concat(cols, 1) as tf.Tensor2D;
 }
 
 async function fnCPPN(ctx: FnContext): Promise<Image> {
@@ -6330,9 +6389,8 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const { width, height } = ctx;
   const aspect = width / height;
   
-  const weights = getCPPNWeights();
+  const layers = getCPPNLayers();
   
-  // Run everything on GPU
   const outputTensor = tf.tidy(() => {
     // Generate coordinate grids on GPU
     const xCoords = tf.linspace(-aspect, aspect, width);
@@ -6351,23 +6409,23 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
     // Bias column
     const bias = tf.ones([width * height, 1]);
     
-    // Concatenate inputs: [x, y, r, inR, inG, inB, bias]
-    const inputs = tf.concat([x, y, r, rgbFlat, bias], 1);
+    // Input: [x, y, r, inR, inG, inB, bias]
+    let h: tf.Tensor2D = tf.concat([x, y, r, rgbFlat, bias], 1) as tf.Tensor2D;
     
-    // Forward pass
-    const h1 = tf.sin(tf.add(tf.matMul(inputs, weights.W1), weights.B1).mul(3.0));
-    const h2 = tf.tanh(tf.add(tf.matMul(h1, weights.W2), weights.B2));
-    const out = tf.sigmoid(tf.add(tf.matMul(h2, weights.W3), weights.B3));
+    // Forward pass through all layers
+    for (let l = 0; l < layers.length; l++) {
+      const layer = layers[l];
+      const preActivation = tf.add(tf.matMul(h, layer.W), layer.B) as tf.Tensor2D;
+      h = applyMixedActivations(preActivation, layer.activations);
+    }
     
-    // Reshape to image and scale to [0, 255]
-    return out.reshape([height, width, 3]).mul(255);
+    // Output is already [0, 1] from sigmoid, scale to [0, 255]
+    return h.reshape([height, width, 3]).mul(255);
   });
   
-  // Single GPU->CPU transfer
   const outputData = await outputTensor.data();
   outputTensor.dispose();
   
-  // Create output image
   const out = createSolidImage(width, height, '#000000');
   for (let i = 0; i < width * height; i++) {
     const outIdx = i * 4;
