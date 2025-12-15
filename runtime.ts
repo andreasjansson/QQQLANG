@@ -1,24 +1,49 @@
-import { characterDefs, createSolidImage, createPlaceholderImage, getOldImage, Image, FnContext, CharDef, UPLOAD_CHAR, UPLOAD_COUNT, isIndexedUpload, isInvalidUpload, isAnyUpload, getUploadIndex, getUploadChar, getInvalidUploadChar, OpInfo, ArgType, IntType, ColorType, IndexType, ChoiceType, ArgDef } from './character-defs.js';
+import { characterDefs } from "./character-defs.js";
+import type {
+  Image,
+  FnContext,
+  CharDef,
+  OpInfo,
+  ArgType,
+  IntType,
+  ColorType,
+  IndexType,
+  ChoiceType,
+  ArgDef,
+} from "./functions/helpers.js";
+import {
+  createSolidImage,
+  createPlaceholderImage,
+  getOldImage,
+  UPLOAD_CHAR,
+  UPLOAD_COUNT,
+  isIndexedUpload,
+  isInvalidUpload,
+  isAnyUpload,
+  getUploadIndex,
+  getUploadChar,
+  getInvalidUploadChar,
+} from "./functions/helpers.js";
 
 interface UploadedImageRef {
-  type: 'uploaded';
-  index: number;  // This is now the upload character index (0-255), not positional
+  type: "uploaded";
+  index: number; // This is now the upload character index (0-255), not positional
 }
 
 interface ParsedSolidColor {
-  type: 'solid';
+  type: "solid";
   identifier: string;
   color: string;
 }
 
 interface ParsedUploadedImage {
-  type: 'uploaded-image';
+  type: "uploaded-image";
   identifier: string;
-  uploadIndex: number;  // The upload character index (0-255)
+  uploadIndex: number; // The upload character index (0-255)
 }
 
 interface ParsedFunction {
-  type: 'function';
+  type: "function";
   identifier: string;
   fnDef: CharDef;
   args: (number | string | UploadedImageRef)[];
@@ -63,11 +88,12 @@ class LRUCache<K, V> {
 
 // Uploaded images are now stored by their character index (0-255), not positionally
 // This allows copy/paste to preserve image identity
-const uploadedImages: Map<number, { blob: Blob, hash: string | null }> = new Map();
+const uploadedImages: Map<number, { blob: Blob; hash: string | null }> =
+  new Map();
 const uploadedImagesCache: Map<number, Image> = new Map();
 let uploadedCacheWidth = 0;
 let uploadedCacheHeight = 0;
-let nextUploadIndex = 0;  // Track next available index
+let nextUploadIndex = 0; // Track next available index
 
 export function clearUploadedImages(): void {
   uploadedImages.clear();
@@ -78,7 +104,10 @@ export function clearUploadedImages(): void {
 }
 
 // Add a new uploaded image and return its assigned index
-export function addUploadedImage(blob: Blob, hash: string | null = null): number {
+export function addUploadedImage(
+  blob: Blob,
+  hash: string | null = null,
+): number {
   const index = nextUploadIndex++;
   if (index >= UPLOAD_COUNT) {
     throw new Error(`Maximum upload count (${UPLOAD_COUNT}) exceeded`);
@@ -89,7 +118,11 @@ export function addUploadedImage(blob: Blob, hash: string | null = null): number
 }
 
 // Set an uploaded image at a specific index (used for URL loading and paste remapping)
-export function setUploadedImage(index: number, blob: Blob, hash: string | null = null): void {
+export function setUploadedImage(
+  index: number,
+  blob: Blob,
+  hash: string | null = null,
+): void {
   if (index < 0 || index >= UPLOAD_COUNT) {
     throw new Error(`Upload index ${index} out of range [0, ${UPLOAD_COUNT})`);
   }
@@ -135,21 +168,25 @@ export function getUploadedImageCount(): number {
   return uploadedImages.size;
 }
 
-function loadBlobToImage(blob: Blob, width: number, height: number): Promise<Image> {
+function loadBlobToImage(
+  blob: Blob,
+  width: number,
+  height: number,
+): Promise<Image> {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.onload = () => {
-      const tempCanvas = document.createElement('canvas');
+      const tempCanvas = document.createElement("canvas");
       tempCanvas.width = width;
       tempCanvas.height = height;
-      const tempCtx = tempCanvas.getContext('2d')!;
+      const tempCtx = tempCanvas.getContext("2d")!;
       tempCtx.drawImage(img, 0, 0, width, height);
       const imageData = tempCtx.getImageData(0, 0, width, height);
       URL.revokeObjectURL(img.src);
       resolve({
         width,
         height,
-        data: new Uint8ClampedArray(imageData.data)
+        data: new Uint8ClampedArray(imageData.data),
       });
     };
     img.onerror = () => {
@@ -160,7 +197,10 @@ function loadBlobToImage(blob: Blob, width: number, height: number): Promise<Ima
   });
 }
 
-export async function preloadUploadedImages(width: number, height: number): Promise<void> {
+export async function preloadUploadedImages(
+  width: number,
+  height: number,
+): Promise<void> {
   if (uploadedCacheWidth === width && uploadedCacheHeight === height) {
     let allCached = true;
     for (const index of uploadedImages.keys()) {
@@ -171,38 +211,51 @@ export async function preloadUploadedImages(width: number, height: number): Prom
     }
     if (allCached) return;
   }
-  
+
   if (uploadedCacheWidth !== width || uploadedCacheHeight !== height) {
     uploadedImagesCache.clear();
     uploadedCacheWidth = width;
     uploadedCacheHeight = height;
   }
-  
-  const promises = Array.from(uploadedImages.entries()).map(async ([index, source]) => {
-    if (!uploadedImagesCache.has(index)) {
-      uploadedImagesCache.set(index, await loadBlobToImage(source.blob, width, height));
-    }
-  });
+
+  const promises = Array.from(uploadedImages.entries()).map(
+    async ([index, source]) => {
+      if (!uploadedImagesCache.has(index)) {
+        uploadedImagesCache.set(
+          index,
+          await loadBlobToImage(source.blob, width, height),
+        );
+      }
+    },
+  );
   await Promise.all(promises);
 }
 
-export function getUploadedImage(index: number, width: number, height: number): Image {
+export function getUploadedImage(
+  index: number,
+  width: number,
+  height: number,
+): Image {
   if (!uploadedImages.has(index)) {
     return createPlaceholderImage(width, height);
   }
-  
+
   const cached = uploadedImagesCache.get(index);
-  if (cached && uploadedCacheWidth === width && uploadedCacheHeight === height) {
+  if (
+    cached &&
+    uploadedCacheWidth === width &&
+    uploadedCacheHeight === height
+  ) {
     return cached;
   }
-  
+
   return createPlaceholderImage(width, height);
 }
 
 // Count indexed uploads in a program string
 export function getUploadCount(program: string): number {
   const chars = [...program];
-  return chars.filter(c => isIndexedUpload(c)).length;
+  return chars.filter((c) => isIndexedUpload(c)).length;
 }
 
 // Get all upload indices used in a program string
@@ -219,7 +272,7 @@ export function getUploadIndicesInProgram(program: string): number[] {
 
 interface ParseResult {
   ops: ParsedOp[];
-  invalidUploadIndices: Set<number>;  // Upload character indices (0-255) in invalid positions
+  invalidUploadIndices: Set<number>; // Upload character indices (0-255) in invalid positions
 }
 
 // Check if a character is a valid program character
@@ -234,36 +287,36 @@ function isValidProgramChar(char: string): boolean {
 
 function parseProgram(program: string): ParseResult {
   const chars = [...program].filter(isValidProgramChar);
-  
+
   if (chars.length === 0) {
     return { ops: [], invalidUploadIndices: new Set() };
   }
 
   const ops: ParsedOp[] = [];
   const invalidUploadIndices = new Set<number>();
-  
+
   const firstChar = chars[0];
   const firstUploadIdx = getUploadIndex(firstChar);
-  
+
   if (firstUploadIdx !== null) {
     ops.push({
-      type: 'uploaded-image',
+      type: "uploaded-image",
       identifier: firstChar,
-      uploadIndex: firstUploadIdx
+      uploadIndex: firstUploadIdx,
     });
   } else if (firstChar === UPLOAD_CHAR) {
     ops.push({
-      type: 'solid',
+      type: "solid",
       identifier: firstChar,
-      color: '#000000'
+      color: "#000000",
     });
   } else {
     const firstDef = characterDefs[firstChar];
-    const firstColor = firstDef ? firstDef.color : '#000000';
+    const firstColor = firstDef ? firstDef.color : "#000000";
     ops.push({
-      type: 'solid',
+      type: "solid",
       identifier: firstChar,
-      color: firstColor
+      color: firstColor,
     });
   }
 
@@ -271,7 +324,7 @@ function parseProgram(program: string): ParseResult {
   while (i < chars.length) {
     const char = chars[i];
     const uploadIdx = getUploadIndex(char);
-    
+
     if (uploadIdx !== null || char === UPLOAD_CHAR) {
       if (uploadIdx !== null) {
         invalidUploadIndices.add(uploadIdx);
@@ -279,9 +332,9 @@ function parseProgram(program: string): ParseResult {
       i++;
       continue;
     }
-    
+
     const def = characterDefs[char];
-    
+
     if (!def) {
       i++;
       continue;
@@ -294,12 +347,12 @@ function parseProgram(program: string): ParseResult {
       const argDef = def.args[argIdx];
       const argType = argDef.type;
       let nextCharIdx = i + 1 + argsConsumed;
-      
+
       while (nextCharIdx < chars.length) {
         const nextChar = chars[nextCharIdx];
         const nextUploadIdx = getUploadIndex(nextChar);
         const isUpload = nextUploadIdx !== null || nextChar === UPLOAD_CHAR;
-        
+
         if (isUpload && !(argType instanceof IndexType)) {
           if (nextUploadIdx !== null) {
             invalidUploadIndices.add(nextUploadIdx);
@@ -310,16 +363,20 @@ function parseProgram(program: string): ParseResult {
           break;
         }
       }
-      
+
       if (nextCharIdx < chars.length) {
         const argChar = chars[nextCharIdx];
         const argUploadIdx = getUploadIndex(argChar);
-        
+
         if (argUploadIdx !== null) {
-          args.push({ type: 'uploaded', index: argUploadIdx });
+          args.push({ type: "uploaded", index: argUploadIdx });
           argsConsumed++;
         } else if (argChar === UPLOAD_CHAR) {
-          if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
+          if (
+            argType instanceof IntType ||
+            argType instanceof IndexType ||
+            argType instanceof ChoiceType
+          ) {
             args.push(def.number);
           } else {
             args.push(def.color);
@@ -327,16 +384,24 @@ function parseProgram(program: string): ParseResult {
           argsConsumed++;
         } else {
           const charDef = characterDefs[argChar];
-          
+
           if (charDef) {
-            if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
+            if (
+              argType instanceof IntType ||
+              argType instanceof IndexType ||
+              argType instanceof ChoiceType
+            ) {
               args.push(charDef.number);
             } else {
               args.push(charDef.color);
             }
             argsConsumed++;
           } else {
-            if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
+            if (
+              argType instanceof IntType ||
+              argType instanceof IndexType ||
+              argType instanceof ChoiceType
+            ) {
               args.push(def.number);
             } else {
               args.push(def.color);
@@ -344,7 +409,11 @@ function parseProgram(program: string): ParseResult {
           }
         }
       } else {
-        if (argType instanceof IntType || argType instanceof IndexType || argType instanceof ChoiceType) {
+        if (
+          argType instanceof IntType ||
+          argType instanceof IndexType ||
+          argType instanceof ChoiceType
+        ) {
           args.push(def.number);
         } else {
           args.push(def.color);
@@ -353,15 +422,15 @@ function parseProgram(program: string): ParseResult {
     }
 
     const endIndex = i + 1 + argsConsumed;
-    const identifier = chars.slice(0, endIndex).join('');
-    
+    const identifier = chars.slice(0, endIndex).join("");
+
     ops.push({
-      type: 'function',
+      type: "function",
       identifier,
       fnDef: def,
-      args
+      args,
     });
-    
+
     i += 1 + argsConsumed;
   }
 
@@ -373,10 +442,18 @@ let lastWidth = 0;
 let lastHeight = 0;
 let lastUploadCount = 0;
 
-export async function runProgram(program: string, width: number, height: number): Promise<Image[]> {
+export async function runProgram(
+  program: string,
+  width: number,
+  height: number,
+): Promise<Image[]> {
   const currentUploadCount = uploadedImages.size;
-  
-  if (width !== lastWidth || height !== lastHeight || currentUploadCount !== lastUploadCount) {
+
+  if (
+    width !== lastWidth ||
+    height !== lastHeight ||
+    currentUploadCount !== lastUploadCount
+  ) {
     imageCache.clear();
     lastWidth = width;
     lastHeight = height;
@@ -384,32 +461,32 @@ export async function runProgram(program: string, width: number, height: number)
   }
 
   const { ops } = parseProgram(program);
-  
+
   if (ops.length === 0) {
-    return [createSolidImage(width, height, '#000000')];
+    return [createSolidImage(width, height, "#000000")];
   }
 
-  const images: Image[] = [createSolidImage(width, height, '#000000')];
-  const opInfos: OpInfo[] = [{ identifier: '', type: 'solid' }];
-  
+  const images: Image[] = [createSolidImage(width, height, "#000000")];
+  const opInfos: OpInfo[] = [{ identifier: "", type: "solid" }];
+
   for (let opIdx = 0; opIdx < ops.length; opIdx++) {
     const op = ops[opIdx];
-    
+
     const cached = imageCache.get(op.identifier);
     if (cached) {
       images.push(cached);
       opInfos.push({
         identifier: op.identifier,
-        type: op.type
+        type: op.type,
       });
       continue;
     }
 
     let result: Image;
-    
-    if (op.type === 'solid') {
+
+    if (op.type === "solid") {
       result = createSolidImage(width, height, op.color);
-    } else if (op.type === 'uploaded-image') {
+    } else if (op.type === "uploaded-image") {
       result = getUploadedImage(op.uploadIndex, width, height);
     } else {
       const ctx: FnContext = {
@@ -419,33 +496,33 @@ export async function runProgram(program: string, width: number, height: number)
         currentIndex: images.length,
         opInfos: [...opInfos],
       };
-      
+
       const resolvedArgs = op.args.map((arg, idx) => {
         const argDef = op.fnDef.args[idx];
         const argType = argDef.type;
         if (argType instanceof IndexType) {
-          if (typeof arg === 'object' && arg.type === 'uploaded') {
+          if (typeof arg === "object" && arg.type === "uploaded") {
             return getUploadedImage(arg.index, width, height);
-          } else if (typeof arg === 'number') {
+          } else if (typeof arg === "number") {
             return getOldImage(ctx, arg);
           }
         } else if (argType instanceof ChoiceType) {
-          if (typeof arg === 'number') {
+          if (typeof arg === "number") {
             const choiceIndex = (arg - 1) % argType.choices.length;
             return argType.choices[choiceIndex];
           }
         }
         return arg;
       });
-      
+
       const fnResult = op.fnDef.fn(ctx, ...resolvedArgs);
       result = fnResult instanceof Promise ? await fnResult : fnResult;
     }
-    
+
     images.push(result);
     opInfos.push({
       identifier: op.identifier,
-      type: op.type
+      type: op.type,
     });
     imageCache.set(op.identifier, result);
   }
@@ -453,7 +530,11 @@ export async function runProgram(program: string, width: number, height: number)
   return images;
 }
 
-export async function getFinalImage(program: string, width: number, height: number): Promise<Image> {
+export async function getFinalImage(
+  program: string,
+  width: number,
+  height: number,
+): Promise<Image> {
   const images = await runProgram(program, width, height);
   return images[images.length - 1];
 }
@@ -466,43 +547,50 @@ export function getInvalidUploadIndices(program: string): Set<number> {
   return parseProgram(program).invalidUploadIndices;
 }
 
-export function getExpectedNextType(program: string): 'function' | 'int' | 'color' | 'index' | 'initial' {
+export function getExpectedNextType(
+  program: string,
+): "function" | "int" | "color" | "index" | "initial" {
   if (!program || program.length === 0) {
-    return 'initial';
+    return "initial";
   }
-  
+
   const { ops } = parseProgram(program);
   if (ops.length === 0) {
-    return 'initial';
+    return "initial";
   }
-  
+
   const lastOp = ops[ops.length - 1];
-  
-  if (lastOp.type === 'solid' || lastOp.type === 'uploaded-image') {
-    return 'function';
+
+  if (lastOp.type === "solid" || lastOp.type === "uploaded-image") {
+    return "function";
   }
-  
-  if (lastOp.type === 'function') {
+
+  if (lastOp.type === "function") {
     const def = lastOp.fnDef;
-    const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : '';
-    const currentOpChars = [...lastOp.identifier.substring(prevIdentifier.length)];
+    const prevIdentifier = ops.length > 1 ? ops[ops.length - 2].identifier : "";
+    const currentOpChars = [
+      ...lastOp.identifier.substring(prevIdentifier.length),
+    ];
     const argsProvided = currentOpChars.length - 1;
-    
+
     if (argsProvided < def.args.length) {
       const argType = def.args[argsProvided].type;
-      if (argType instanceof IntType) return 'int';
-      if (argType instanceof ColorType) return 'color';
-      if (argType instanceof IndexType) return 'index';
-      if (argType instanceof ChoiceType) return 'int';
+      if (argType instanceof IntType) return "int";
+      if (argType instanceof ColorType) return "color";
+      if (argType instanceof IndexType) return "index";
+      if (argType instanceof ChoiceType) return "int";
     }
-    
-    return 'function';
+
+    return "function";
   }
-  
-  return 'function';
+
+  return "function";
 }
 
-export function getExpectedTypeAtPosition(program: string, cursorPosition: number): 'function' | 'int' | 'color' | 'index' | 'initial' {
+export function getExpectedTypeAtPosition(
+  program: string,
+  cursorPosition: number,
+): "function" | "int" | "color" | "index" | "initial" {
   const beforeCursor = program.substring(0, cursorPosition);
   return getExpectedNextType(beforeCursor);
 }
