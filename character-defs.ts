@@ -280,7 +280,7 @@ export const characterDefs: Record<string, CharDef> = {
     number: 16,
     fn: diagonalPixelate,
     args: [{ type: INT, documentation: "Pixel cell size" }],
-    functionName: "diagonal-pixelate",
+    functionName: "pixelate",
     documentation:
       "Pixelate with diagonal split using average/saturated colors.",
   },
