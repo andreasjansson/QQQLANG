@@ -2496,166 +2496,189 @@ function fnW(ctx: FnContext, n: number): Image {
 
 function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const { width, height } = ctx;
   
-  // Determine table size for lookup based on argument
-  const tableSize = Math.max(4, Math.min(n * 100, 10000));
+  // Threshold maps from n (1-68) to compression level
+  // Low n = high threshold = more compression/artifacts
+  // High n = low threshold = better quality
+  const threshold = Math.max(1, 70 - n) * 2;
   
-  // Multi-granularity lookup tables with different quantization steps
-  const granularitySteps = [2, 8, 64, 128];
-  const lookupTables: Map<string, number[]>[] = granularitySteps.map(() => new Map());
+  // Number of decomposition levels (more levels = coarser decomposition)
+  const maxLevels = Math.min(6, Math.floor(Math.log2(Math.min(width, height))));
   
-  // Helper function to quantize a value to nearest multiple of step
-  const quantize = (value: number, step: number): number => {
-    return Math.round(value / step) * step;
-  };
-  
-  // Helper function to get context pixels (up to 6 pixels)
-  const getContextPixels = (img: Image, x: number, y: number): number[][] => {
-    const context: number[][] = [];
+  // Process each color channel separately
+  const processChannel = (channel: Float32Array, w: number, h: number): Float32Array => {
+    const data = new Float32Array(channel);
     
-    // Define context positions: (x-1,y), (x-2,y), (x,y-1), (x-1,y-1), (x-2,y-1), (x+1,y-1)
-    const positions = [
-      [x - 1, y],     // left
-      [x - 2, y],     // two left
-      [x, y - 1],     // top
-      [x - 1, y - 1], // top-left diagonal
-      [x - 2, y - 1], // two left, one up
-      [x + 1, y - 1]  // one right, one up
-    ];
+    // Forward Haar wavelet transform (in-place)
+    let currentW = w;
+    let currentH = h;
     
-    for (const [px, py] of positions) {
-      if (px >= 0 && px < img.width && py >= 0 && py < img.height) {
-        context.push([...getPixel(img, px, py)]);
-      }
-    }
-    
-    return context;
-  };
-  
-  // Helper function to create key from context pixels at given granularity
-  const createKey = (context: number[][], step: number): string => {
-    const quantizedContext: number[] = [];
-    
-    for (const pixel of context) {
-      quantizedContext.push(
-        quantize(pixel[0], step),
-        quantize(pixel[1], step),
-        quantize(pixel[2], step)
-      );
-    }
-    
-    return quantizedContext.join(',');
-  };
-  
-  // First pass: build lookup tables at all granularity levels
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      // Skip if we don't have enough context (need at least one context pixel)
-      const context = getContextPixels(prev, x, y);
-      if (context.length === 0) continue;
-      
-      // Get center (target) pixel
-      const center = getPixel(prev, x, y);
-      
-      // Add to all granularity levels
-      for (let i = 0; i < granularitySteps.length; i++) {
-        const step = granularitySteps[i];
-        const key = createKey(context, step);
-        const table = lookupTables[i];
-        
-        if (!table.has(key)) {
-          table.set(key, [0, 0, 0, 0]); // [sumR, sumG, sumB, count]
+    for (let level = 0; level < maxLevels && currentW > 1 && currentH > 1; level++) {
+      // Horizontal pass
+      for (let y = 0; y < currentH; y++) {
+        const row = new Float32Array(currentW);
+        for (let x = 0; x < currentW; x++) {
+          row[x] = data[y * w + x];
         }
         
-        const entry = table.get(key)!;
-        entry[0] += center[0]; // sumR
-        entry[1] += center[1]; // sumG
-        entry[2] += center[2]; // sumB
-        entry[3] += 1;         // count
+        const halfW = Math.floor(currentW / 2);
+        for (let x = 0; x < halfW; x++) {
+          const a = row[x * 2];
+          const b = row[x * 2 + 1];
+          data[y * w + x] = (a + b) / 2;           // Average (low frequency)
+          data[y * w + halfW + x] = (a - b) / 2;  // Difference (high frequency)
+        }
       }
-    }
-  }
-  
-  // Convert sums to averages and limit table sizes
-  for (let i = 0; i < lookupTables.length; i++) {
-    const table = lookupTables[i];
-    
-    // Convert sums to averages
-    for (const [key, entry] of table) {
-      if (entry[3] > 0) {
-        entry[0] = Math.round(entry[0] / entry[3]); // avgR
-        entry[1] = Math.round(entry[1] / entry[3]); // avgG
-        entry[2] = Math.round(entry[2] / entry[3]); // avgB
-      }
-    }
-    
-    // Limit table size by keeping most frequent entries
-    const adjustedTableSize = Math.floor(tableSize / (i + 1)); // Smaller tables for coarser granularities
-    if (table.size > adjustedTableSize) {
-      const entries = Array.from(table.entries());
-      entries.sort((a, b) => b[1][3] - a[1][3]); // Sort by count descending
-      table.clear();
-      for (let j = 0; j < adjustedTableSize; j++) {
-        table.set(entries[j][0], entries[j][1]);
-      }
-    }
-  }
-  
-  // Helper function to predict pixel using multi-granularity lookup
-  const predictPixel = (context: number[][]): number[] => {
-    if (context.length === 0) {
-      return [128, 128, 128]; // default gray
-    }
-    
-    // Try each granularity level from finest to coarsest
-    for (let i = 0; i < granularitySteps.length; i++) {
-      const step = granularitySteps[i];
-      const key = createKey(context, step);
-      const table = lookupTables[i];
       
-      if (table.has(key)) {
-        const entry = table.get(key)!;
-        return [entry[0], entry[1], entry[2]];
+      // Vertical pass
+      for (let x = 0; x < currentW; x++) {
+        const col = new Float32Array(currentH);
+        for (let y = 0; y < currentH; y++) {
+          col[y] = data[y * w + x];
+        }
+        
+        const halfH = Math.floor(currentH / 2);
+        for (let y = 0; y < halfH; y++) {
+          const a = col[y * 2];
+          const b = col[y * 2 + 1];
+          data[y * w + x] = (a + b) / 2;               // Average
+          data[(halfH + y) * w + x] = (a - b) / 2;    // Difference
+        }
+      }
+      
+      currentW = Math.floor(currentW / 2);
+      currentH = Math.floor(currentH / 2);
+    }
+    
+    // Thresholding - zero out small coefficients (lossy compression)
+    // Apply progressively stronger thresholds to higher frequency subbands
+    currentW = w;
+    currentH = h;
+    
+    for (let level = 0; level < maxLevels && currentW > 1 && currentH > 1; level++) {
+      const halfW = Math.floor(currentW / 2);
+      const halfH = Math.floor(currentH / 2);
+      
+      // Level-dependent threshold: higher levels (coarser) get lower threshold
+      const levelThreshold = threshold * Math.pow(0.7, maxLevels - level - 1);
+      
+      // Zero out small high-frequency coefficients in the three detail subbands
+      // LH (horizontal details)
+      for (let y = 0; y < halfH; y++) {
+        for (let x = halfW; x < currentW; x++) {
+          const idx = y * w + x;
+          if (Math.abs(data[idx]) < levelThreshold) {
+            data[idx] = 0;
+          }
+        }
+      }
+      
+      // HL (vertical details)
+      for (let y = halfH; y < currentH; y++) {
+        for (let x = 0; x < halfW; x++) {
+          const idx = y * w + x;
+          if (Math.abs(data[idx]) < levelThreshold) {
+            data[idx] = 0;
+          }
+        }
+      }
+      
+      // HH (diagonal details)
+      for (let y = halfH; y < currentH; y++) {
+        for (let x = halfW; x < currentW; x++) {
+          const idx = y * w + x;
+          if (Math.abs(data[idx]) < levelThreshold) {
+            data[idx] = 0;
+          }
+        }
+      }
+      
+      currentW = halfW;
+      currentH = halfH;
+    }
+    
+    // Inverse Haar wavelet transform
+    const levelSizes: [number, number][] = [];
+    currentW = w;
+    currentH = h;
+    for (let level = 0; level < maxLevels && currentW > 1 && currentH > 1; level++) {
+      currentW = Math.floor(currentW / 2);
+      currentH = Math.floor(currentH / 2);
+      levelSizes.push([currentW * 2, currentH * 2]);
+    }
+    
+    // Reconstruct from coarsest to finest
+    for (let level = levelSizes.length - 1; level >= 0; level--) {
+      const [levelW, levelH] = levelSizes[level];
+      
+      // Inverse vertical pass
+      for (let x = 0; x < levelW; x++) {
+        const halfH = Math.floor(levelH / 2);
+        const col = new Float32Array(levelH);
+        
+        for (let y = 0; y < halfH; y++) {
+          const avg = data[y * w + x];
+          const diff = data[(halfH + y) * w + x];
+          col[y * 2] = avg + diff;      // Reconstruct a
+          col[y * 2 + 1] = avg - diff;  // Reconstruct b
+        }
+        
+        for (let y = 0; y < levelH; y++) {
+          data[y * w + x] = col[y];
+        }
+      }
+      
+      // Inverse horizontal pass
+      for (let y = 0; y < levelH; y++) {
+        const halfW = Math.floor(levelW / 2);
+        const row = new Float32Array(levelW);
+        
+        for (let x = 0; x < halfW; x++) {
+          const avg = data[y * w + x];
+          const diff = data[y * w + halfW + x];
+          row[x * 2] = avg + diff;      // Reconstruct a
+          row[x * 2 + 1] = avg - diff;  // Reconstruct b
+        }
+        
+        for (let x = 0; x < levelW; x++) {
+          data[y * w + x] = row[x];
+        }
       }
     }
     
-    // If no match found in any table, return average of all context pixels
-    let sumR = 0, sumG = 0, sumB = 0;
-    for (const pixel of context) {
-      sumR += pixel[0];
-      sumG += pixel[1];
-      sumB += pixel[2];
-    }
-    
-    const avgR = Math.round(sumR / context.length);
-    const avgG = Math.round(sumG / context.length);
-    const avgB = Math.round(sumB / context.length);
-    
-    return [avgR, avgG, avgB];
+    return data;
   };
   
-  // Second pass: reconstruct image using multi-granularity predictions
-  // Initialize with 5x5 triangle in top-left corner
-  for (let y = 0; y < Math.min(5, ctx.height); y++) {
-    for (let x = 0; x <= Math.min(y, ctx.width - 1); x++) {
-      setPixel(out, x, y, ...getPixel(prev, x, y));
+  // Extract RGB channels
+  const rChannel = new Float32Array(width * height);
+  const gChannel = new Float32Array(width * height);
+  const bChannel = new Float32Array(width * height);
+  
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const idx = y * width + x;
+      rChannel[idx] = r;
+      gChannel[idx] = g;
+      bChannel[idx] = b;
     }
   }
   
-  // Reconstruct the rest of the image
-  for (let y = 0; y < ctx.height; y++) {
-    for (let x = 0; x < ctx.width; x++) {
-      // Skip pixels that are already initialized (5x5 triangle)
-      if (y < 5 && x <= y) continue;
-      
-      // Get context pixels from reconstructed image
-      const context = getContextPixels(out, x, y);
-      
-      // Predict using multi-granularity lookup
-      const prediction = predictPixel(context);
-      
-      setPixel(out, x, y, prediction[0], prediction[1], prediction[2]);
+  // Process each channel
+  const rOut = processChannel(rChannel, width, height);
+  const gOut = processChannel(gChannel, width, height);
+  const bOut = processChannel(bChannel, width, height);
+  
+  // Reconstruct output image
+  const out = createSolidImage(width, height, '#000000');
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = y * width + x;
+      const r = Math.max(0, Math.min(255, Math.round(rOut[idx])));
+      const g = Math.max(0, Math.min(255, Math.round(gOut[idx])));
+      const b = Math.max(0, Math.min(255, Math.round(bOut[idx])));
+      setPixel(out, x, y, r, g, b);
     }
   }
   
