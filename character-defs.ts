@@ -6282,9 +6282,11 @@ function fnTilde(ctx: FnContext, n: number): Image {
   return out;
 }
 
-async function fnCPPN(ctx: FnContext): Promise<Image> {
+async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
+  
+  const strength = (strengthN - 1) / 30;
   
   function seededNormal(seed: number): () => number {
     let hasSpare = false;
@@ -6322,7 +6324,7 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const netSize = 32;
   const zDim = 8;
   const outDim = 4; // dx, dy displacement + saturation, value modulation
-  const displacementStrength = 0.3;
+  const displacementStrength = 0.3 * strength;
   
   // Derive z from input image for determinism
   let sumR = 0, sumG = 0, sumB = 0;
