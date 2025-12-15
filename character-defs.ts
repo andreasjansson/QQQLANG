@@ -2500,12 +2500,16 @@ function fnQuadtree(ctx: FnContext, n: number): Image {
   const out = createSolidImage(width, height, '#000000');
   
   // Map n (1-68): A=minimal compression, ~=maximal compression
-  // Higher threshold = blocks merge more easily = larger uniform areas
   const compressionLevel = (n - 1) / 67;
-  const varianceThreshold = compressionLevel * 2500;
   
-  // Min block size (smaller = more detail preserved)
-  const minBlockSize = Math.max(2, Math.floor(2 + compressionLevel * 6));
+  // Base threshold - higher means more merging
+  const baseThreshold = compressionLevel * 3000;
+  
+  // Non-linear exponent: larger blocks need much lower variance to merge
+  // This preserves fine detail even at high compression
+  const exponent = 1.5 + compressionLevel * 0.5;
+  
+  const maxBlockSize = Math.max(width, height);
   
   // Calculate color variance of a block
   const getBlockVariance = (x0: number, y0: number, w: number, h: number): number => {
@@ -2570,10 +2574,24 @@ function fnQuadtree(ctx: FnContext, n: number): Image {
   const processBlock = (x0: number, y0: number, w: number, h: number): void => {
     if (w <= 0 || h <= 0 || x0 >= width || y0 >= height) return;
     
-    const variance = getBlockVariance(x0, y0, w, h);
+    // Minimum block size of 1
+    if (w <= 1 && h <= 1) {
+      const [r, g, b] = getPixel(prev, x0, y0);
+      setPixel(out, x0, y0, r, g, b);
+      return;
+    }
     
-    // If block is uniform enough OR too small, fill with average
-    if (variance < varianceThreshold || w <= minBlockSize || h <= minBlockSize) {
+    const variance = getBlockVariance(x0, y0, w, h);
+    const blockSize = Math.max(w, h);
+    
+    // Non-linear threshold: large blocks need VERY low variance to merge
+    // Small blocks can merge with higher variance
+    // This ensures fine detail is preserved even at high compression
+    const sizeRatio = blockSize / maxBlockSize;
+    const effectiveThreshold = baseThreshold * Math.pow(1 - sizeRatio, exponent);
+    
+    // If block is uniform enough, fill with average
+    if (variance < effectiveThreshold) {
       const [r, g, b] = getBlockAverage(x0, y0, w, h);
       fillBlock(x0, y0, w, h, r, g, b);
     } else {
@@ -2581,10 +2599,16 @@ function fnQuadtree(ctx: FnContext, n: number): Image {
       const halfW = Math.floor(w / 2);
       const halfH = Math.floor(h / 2);
       
-      processBlock(x0, y0, halfW, halfH);                    // Top-left
-      processBlock(x0 + halfW, y0, w - halfW, halfH);        // Top-right
-      processBlock(x0, y0 + halfH, halfW, h - halfH);        // Bottom-left
-      processBlock(x0 + halfW, y0 + halfH, w - halfW, h - halfH); // Bottom-right
+      if (halfW === 0 && halfH === 0) {
+        const [r, g, b] = getPixel(prev, x0, y0);
+        setPixel(out, x0, y0, r, g, b);
+        return;
+      }
+      
+      processBlock(x0, y0, Math.max(1, halfW), Math.max(1, halfH));
+      processBlock(x0 + halfW, y0, w - halfW, Math.max(1, halfH));
+      processBlock(x0, y0 + halfH, Math.max(1, halfW), h - halfH);
+      processBlock(x0 + halfW, y0 + halfH, w - halfW, h - halfH);
     }
   };
   
