@@ -327,14 +327,18 @@ function fnA(ctx: FnContext): Image {
       
       float z = sqrt(1.0 - d * d);
       vec3 normal = normalize(vec3(p.x, -p.y, z));
-      vec3 lightDir = normalize(vec3(-0.6, -0.6, 1.0));
+      vec3 lightDir1 = normalize(vec3(-0.6, -0.6, 1.0));
+      vec3 lightDir2 = normalize(vec3(-0.2, 0.8, 0.5));
       vec3 viewDir = vec3(0.0, 0.0, 1.0);
-      vec3 reflectDir = reflect(-lightDir, normal);
+      vec3 reflectDir1 = reflect(-lightDir1, normal);
+      vec3 reflectDir2 = reflect(-lightDir2, normal);
       
-      float diffuse = max(dot(normal, lightDir), 0.0);
-      float specular = pow(max(dot(viewDir, reflectDir), 0.0), 4.0);
+      float diffuse1 = max(dot(normal, lightDir1), 0.0);
+      float diffuse2 = max(dot(normal, lightDir2), 0.0);
+      float specular1 = pow(max(dot(viewDir, reflectDir1), 0.0), 4.0);
+      float specular2 = pow(max(dot(viewDir, reflectDir2), 0.0), 8.0);
       float ambient = 0.25;
-      float lighting = ambient + diffuse * 0.5;
+      float lighting = ambient + diffuse1 * 0.5 + diffuse2 * 0.25;
       
       float theta = atan(normal.x, normal.z) + rotation;
       vec2 texCoord = vec2(
@@ -343,7 +347,7 @@ function fnA(ctx: FnContext): Image {
       );
       
       vec3 color = texture2D(tex, texCoord).rgb;
-      return color * lighting + vec3(1.0) * specular * 0.5;
+      return color * lighting + vec3(1.0) * specular1 * 0.5 + vec3(1.0) * specular2 * 0.2;
     }
     
     void main() {
