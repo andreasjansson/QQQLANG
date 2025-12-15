@@ -1296,6 +1296,19 @@
       e.preventDefault();
     });
     
+    async function tryLoadImageFromUrl(url) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.startsWith('image/')) return null;
+        const blob = await response.blob();
+        return blob;
+      } catch (err) {
+        return null;
+      }
+    }
+    
     input.addEventListener('paste', async (e) => {
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -1306,14 +1319,37 @@
           e.preventDefault();
           const blob = item.getAsFile();
           if (blob) {
-            await handleImageUpload(blob);
+            // Check if paste position allows images
+            const cursorPos = input.selectionStart ?? input.value.length;
+            const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
+            const allowsImage = expectedType === 'initial' || expectedType === 'index';
+            await handleImageUpload(blob, allowsImage);
           }
           return;
         }
       }
       
-      // Process any text as a QQQLANG program
+      // Get text data
       const plainText = e.clipboardData.getData('text/plain');
+      if (!plainText) return;
+      
+      // Check if it's a URL pointing to an image
+      const urlMatch = plainText.trim().match(/^(https?:\/\/[^\s]+)$/);
+      if (urlMatch) {
+        const url = urlMatch[1];
+        const blob = await tryLoadImageFromUrl(url);
+        if (blob) {
+          e.preventDefault();
+          // Check if paste position allows images
+          const cursorPos = input.selectionStart ?? input.value.length;
+          const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
+          const allowsImage = expectedType === 'initial' || expectedType === 'index';
+          await handleImageUpload(blob, allowsImage);
+          return;
+        }
+      }
+      
+      // Process any text as a QQQLANG program
       if (!plainText) return;
       
       e.preventDefault();
