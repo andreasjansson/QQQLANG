@@ -426,8 +426,8 @@ function fnB(ctx: FnContext, old: Image, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const gridCols = 3 + (n % 6);
-  const gridRows = 3 + ((n * 3) % 6);
+  const gridCols = 6 + (n % 12);
+  const gridRows = 6 + ((n * 3) % 12);
   const cellW = ctx.width / gridCols;
   const cellH = ctx.height / gridRows;
   const angle = (n * Math.PI) / 34;
