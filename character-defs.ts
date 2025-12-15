@@ -6319,9 +6319,9 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   }
   
   const rng = seededNormal(42);
-  const scale = 10.0;
-  const netSize = 32;
-  const zDim = 8;
+  const scale = 12.0;
+  const netSize = 64;
+  const zDim = 16;
   const cDim = 3; // RGB color
   
   // Derive z from input image for determinism
