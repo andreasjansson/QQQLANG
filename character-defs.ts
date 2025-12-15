@@ -6316,6 +6316,12 @@ function fnCPPN(ctx: FnContext): Image {
       return hash(i) * 4.0 - 2.0;
     }
     
+    // tanh implementation for WebGL 1.0
+    float tanhApprox(float x) {
+      float e2x = exp(2.0 * x);
+      return (e2x - 1.0) / (e2x + 1.0);
+    }
+    
     // Activation functions - select based on float value
     float activate(float x, float actSel) {
       float t = mod(actSel, 7.0);
@@ -6323,7 +6329,7 @@ function fnCPPN(ctx: FnContext): Image {
       if (t < 2.0) return cos(x * PI);
       if (t < 3.0) return exp(-x * x * 2.0);
       if (t < 4.0) return 1.0 / (1.0 + exp(-x * 4.0));
-      if (t < 5.0) return tanh(x * 2.0);
+      if (t < 5.0) return tanhApprox(x * 2.0);
       if (t < 6.0) return abs(x);
       return 2.0 * (x - floor(x + 0.5));
     }
