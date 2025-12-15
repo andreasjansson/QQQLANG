@@ -6321,7 +6321,7 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const scale = 16.0;
   const netSize = 32;
   const zDim = 8;
-  const outDim = 5; // dx, dy displacement + r, g, b color modulation
+  const outDim = 4; // dx, dy displacement + saturation, value modulation
   const displacementStrength = 0.3;
   
   // Derive z from input image for determinism
