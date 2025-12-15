@@ -6869,10 +6869,10 @@ export const characterDefs: Record<string, CharDef> = {
     number: 24,
     fn: fnX,
     args: [
-      { type: INT, documentation: "KNN table size (A=small/subtle compression, ~=large table/better quality)" }
+      { type: INT, documentation: "Quality level (A=heavy compression/artifacts, ~=high quality)" }
     ],
-    functionName: "knn-compress",
-    documentation: "K-nearest neighbor lossy compression using 3-pixel context to predict each pixel, with adjustable lookup table size."
+    functionName: "wavelet-compress",
+    documentation: "Haar wavelet lossy compression with coefficient thresholding, producing ghostly blur and edge halo artifacts at low quality."
   },
   
   'Y': {
