@@ -52,20 +52,60 @@ UPLOAD_GSUB_BASE = 0xE400     # U+E400+: upload GSUB variants (bold_first, regul
 
 def parse_character_defs():
     content = CHARACTER_DEFS_PATH.read_text()
-    pattern = r"'([^']+)':\s*\{[^}]*color:\s*'([^']+)'[^}]*number:\s*(\d+)[^}]*args:\s*\[([\s\S]*?)\][^}]*functionName"
+    
+    # Match character definitions more robustly by finding the key and then parsing the object
+    # Pattern: "'X': {" followed by content until we reach the closing brace at the same level
+    pattern = r"(['\"])([^'\"]+)\1:\s*\{"
     
     chars = {}
     for match in re.finditer(pattern, content):
-        char = match.group(1)
+        char = match.group(2)
+        
         # Handle escape sequences from TypeScript source
         if char == '\\\\':
             char = '\\'
         elif char == "\\'":
             char = "'"
-        color = match.group(2)
-        number = int(match.group(3))
-        args_str = match.group(4)
-        arity = len(re.findall(r'\{\s*type:', args_str))
+        
+        # Find the matching closing brace by counting brace depth
+        start_pos = match.end()
+        brace_count = 1
+        pos = start_pos
+        
+        while pos < len(content) and brace_count > 0:
+            if content[pos] == '{':
+                brace_count += 1
+            elif content[pos] == '}':
+                brace_count -= 1
+            pos += 1
+        
+        if brace_count != 0:
+            continue  # Couldn't find matching brace
+        
+        obj_content = content[start_pos:pos-1]
+        
+        # Extract color
+        color_match = re.search(r'color:\s*["\']([^"\']+)["\']', obj_content)
+        if not color_match:
+            continue
+        color = color_match.group(1)
+        
+        # Extract number
+        number_match = re.search(r'number:\s*(\d+)', obj_content)
+        if not number_match:
+            continue
+        number = int(number_match.group(1))
+        
+        # Extract args array and count entries
+        args_match = re.search(r'args:\s*\[([\s\S]*?)\]', obj_content)
+        if args_match:
+            args_str = args_match.group(1)
+            # Count objects in args array by counting { that start an argument object
+            # We look for patterns like "{ type:" or "{\n    type:"
+            arity = len(re.findall(r'\{\s*type:', args_str))
+        else:
+            arity = 0
+        
         chars[char] = {"color": color, "number": number, "arity": arity}
     
     return chars
