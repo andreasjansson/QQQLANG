@@ -680,11 +680,11 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     fea_lines.append("} bold_to_bold_spaced;")
     fea_lines.append("")
     
-    # bold_first → bold_spaced (for first regular char)
-    fea_lines.append("lookup bold_first_to_bold_spaced {")
+    # bold_first → regular_spaced (for first regular char - has dot, not bold)
+    fea_lines.append("lookup bold_first_to_regular_spaced {")
     for char in qqqlang_chars:
-        fea_lines.append(f"    sub {bold_first_glyph_map[char]} by {bold_spaced_glyph_map[char]};")
-    fea_lines.append("} bold_first_to_bold_spaced;")
+        fea_lines.append(f"    sub {bold_first_glyph_map[char]} by {regular_spaced_glyph_map[char]};")
+    fea_lines.append("} bold_first_to_regular_spaced;")
     fea_lines.append("")
     
     # upload_bold_first → upload_regular_spaced (for first upload char)
