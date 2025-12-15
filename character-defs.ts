@@ -6971,10 +6971,10 @@ export const characterDefs: Record<string, CharDef> = {
   '&': {
     color: '#4169E1',
     number: 45,
-    fn: fnAmpersand,
-    args: [{ type: Choice('ordered-5level','bayer-bw','threshold-bw','ordered-2bit','floyd-rgb','floyd-bw','atkinson-4level','atkinson-bw','stucki-6level','burkes','sierra','random-bw','cluster-2bit','bluenoise-bw','bayer2x2-2bit','noise-2bit'), documentation: "Dithering algorithm" }],
-    functionName: "dither",
-    documentation: "Apply one of 16 dithering algorithms, from subtle to aggressive 2-color modes."
+    fn: fnQuadtree,
+    args: [{ type: INT, documentation: "Compression level (A=minimal/detailed, ~=maximal/geometric blocks)" }],
+    functionName: "quadtree-compress",
+    documentation: "Adaptive quadtree compression - detailed areas keep resolution while uniform areas become large blocks, creating geometric patterns."
   },
   
   "'": {
