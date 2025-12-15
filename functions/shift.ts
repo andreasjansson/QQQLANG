@@ -17,7 +17,7 @@ import {
   bgRemovalReady,
 } from "./helpers.js";
 
-function shift(ctx: FnContext, amount: number): Image {
+function horizontalShift(ctx: FnContext, amount: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, "#000000");
 
@@ -35,4 +35,4 @@ function shift(ctx: FnContext, amount: number): Image {
   return out;
 }
 
-export { shift };
+export { horizontalShift };
