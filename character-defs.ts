@@ -6951,9 +6951,23 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#8B4513',
     number: 2,
     fn: fnV,
-    args: [{ type: COLOR, documentation: "Border tint color" }],
+    args: [
+      { type: COLOR, documentation: "Border tint color" },
+      { type: Choice(
+        'vertical-blur', 'circular-blur', 'horizontal-blur', 'rectangular-blur',
+        'ellipse-wide-blur', 'ellipse-tall-blur', 'diamond-blur', 'rounded-rect-blur',
+        'hexagon-blur', 'octagon-blur', 'star5-blur', 'heart-blur',
+        'triangle-up-blur', 'triangle-down-blur', 'triangle-left-blur', 'triangle-right-blur',
+        'vertical-solid', 'circular-solid', 'horizontal-solid', 'rectangular-solid',
+        'ellipse-wide-solid', 'ellipse-tall-solid', 'diamond-solid', 'rounded-rect-solid',
+        'hexagon-solid', 'octagon-solid', 'star5-solid', 'heart-solid',
+        'triangle-up-solid', 'triangle-down-solid', 'triangle-left-solid', 'triangle-right-solid',
+        'sine-top', 'sine-bottom', 'sine-left', 'sine-right',
+        'concentric-circles', 'concentric-squares', 'spiral-cw', 'spiral-ccw'
+      ), documentation: "Border shape style" }
+    ],
     functionName: "border",
-    documentation: "Circular gradient darkening edges with color tint."
+    documentation: "Border effect with shape and gradient style. A-P=blurred shapes, Q-`=solid shapes, a-h=waves/patterns."
   },
   
   'C': {
