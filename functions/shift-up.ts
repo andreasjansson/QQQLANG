@@ -17,14 +17,16 @@ import {
   bgRemovalReady,
 } from "./helpers.js";
 
-function shiftUp(ctx: FnContext): Image {
+function verticalShift(ctx: FnContext, amount: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, "#000000");
-  const shift = Math.floor(ctx.height / 3);
+
+  const normalizedAmount = ((amount - 1) / 67) * 2 - 1;
+  const shift = Math.floor((normalizedAmount * ctx.height) / 2);
 
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const srcY = (y + shift) % ctx.height;
+      const srcY = (((y + shift) % ctx.height) + ctx.height) % ctx.height;
       const [r, g, b] = getPixel(prev, x, srcY);
       setPixel(out, x, y, r, g, b);
     }
@@ -33,4 +35,4 @@ function shiftUp(ctx: FnContext): Image {
   return out;
 }
 
-export { shiftUp };
+export { verticalShift };
