@@ -2598,7 +2598,7 @@ function fnY(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const sections = Math.max(2, Math.min(n, 36));
+  const sections = Math.max(2, n);
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   
