@@ -328,7 +328,7 @@ function fnA(ctx: FnContext): Image {
       float z = sqrt(1.0 - d * d);
       vec3 normal = normalize(vec3(p.x, -p.y, z));
       vec3 lightDir1 = normalize(vec3(-0.6, -0.6, 1.0));
-      vec3 lightDir2 = normalize(vec3(-0.2, 0.8, 0.5));
+      vec3 lightDir2 = normalize(vec3(-0.2, 0.8, 1.2));
       vec3 viewDir = vec3(0.0, 0.0, 1.0);
       vec3 reflectDir1 = reflect(-lightDir1, normal);
       vec3 reflectDir2 = reflect(-lightDir2, normal);
