@@ -2464,7 +2464,9 @@ function fnV(ctx: FnContext, style: string, c: string): Image {
     } else if (style.startsWith('hexagon')) {
       const ax = Math.abs(nx);
       const ay = Math.abs(ny);
-      return Math.max(ax, ax * 0.5 + ay * 0.866) * 0.8;
+      const hexDist = Math.max(ax, ax * 0.5 + ay * 0.866) * 0.8;
+      const topBottomBorder = Math.abs(ny) > 0.85 ? 10 : 0;
+      return Math.max(hexDist, topBottomBorder);
     } else if (style.startsWith('sine-horizontal')) {
       return Math.abs(ny - 0.3 * Math.sin(nx * Math.PI * 3));
     } else if (style.startsWith('sine-vertical')) {
