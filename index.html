@@ -1319,11 +1319,8 @@
           e.preventDefault();
           const blob = item.getAsFile();
           if (blob) {
-            // Check if paste position allows images
-            const cursorPos = input.selectionStart ?? input.value.length;
-            const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
-            const allowsImage = expectedType === 'initial' || expectedType === 'index';
-            await handleImageUpload(blob, allowsImage);
+            // Always insert at cursor - syncUploadChars will show as invalid if needed
+            await handleImageUpload(blob, true);
           }
           return;
         }
@@ -1340,11 +1337,8 @@
         const blob = await tryLoadImageFromUrl(url);
         if (blob) {
           e.preventDefault();
-          // Check if paste position allows images
-          const cursorPos = input.selectionStart ?? input.value.length;
-          const expectedType = getExpectedTypeAtPosition(input.value, cursorPos);
-          const allowsImage = expectedType === 'initial' || expectedType === 'index';
-          await handleImageUpload(blob, allowsImage);
+          // Always insert at cursor - syncUploadChars will show as invalid if needed
+          await handleImageUpload(blob, true);
           return;
         }
       }
