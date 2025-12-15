@@ -7026,11 +7026,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#F5DEB3',
     number: 24,
     fn: fnCPPN,
-    args: [
-      { type: INT, documentation: "Network seed - different values produce different abstract patterns" }
-    ],
+    args: [],
     functionName: "cppn",
-    documentation: "Compositional Pattern Producing Network generates abstract procedural art using a neural network with varied activation functions (sin, cos, gaussian, sigmoid, tanh, abs, sawtooth)."
+    documentation: "Compositional Pattern Producing Network transforms the image using a fixed neural network with varied activation functions (sin, cos, gaussian, sigmoid, tanh, abs, sawtooth). Fully deterministic based on input."
   },
   
   'Y': {
