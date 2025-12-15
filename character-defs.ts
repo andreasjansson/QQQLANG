@@ -7078,9 +7078,9 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#F5DEB3',
     number: 24,
     fn: fnCPPN,
-    args: [],
+    args: [{ type: INT, documentation: "Effect strength" }],
     functionName: "cppn",
-    documentation: "Compositional Pattern Producing Network transforms the image using a fixed neural network with varied activation functions (sin, cos, gaussian, sigmoid, tanh, abs, sawtooth). Fully deterministic based on input."
+    documentation: "Compositional Pattern Producing Network warps and modulates saturation/value using a neural network. Fully deterministic based on input."
   },
   
   'Y': {
