@@ -529,9 +529,9 @@ export const characterDefs: Record<string, CharDef> = {
   "<": {
     color: "#E74C3C",
     number: 37,
-    fn: shift,
+    fn: horizontalShift,
     args: [{ type: INT, documentation: "Shift amount (A=left, 7=none, ~=right)" }],
-    functionName: "shift",
+    functionName: "horizontal-shift",
     documentation: "Horizontal shift with wraparound.",
   },
 
