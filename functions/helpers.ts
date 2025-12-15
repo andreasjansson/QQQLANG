@@ -456,8 +456,6 @@ async function loadSinetModel(): Promise<void> {
 }
 
 export const bgRemovalReady = loadSinetModel();
-
-export function breakLigatures(text: string): string {
   // Insert zero-width non-joiner between common ligature pairs
   return text
     .replace(/ff/g, "f\u200Cf")
