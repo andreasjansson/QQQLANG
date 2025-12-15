@@ -529,10 +529,10 @@ export const characterDefs: Record<string, CharDef> = {
   "<": {
     color: "#E74C3C",
     number: 37,
-    fn: shiftLeft,
-    args: [],
-    functionName: "shift-left",
-    documentation: "Horizontal shift 1/3 width left with wraparound.",
+    fn: shift,
+    args: [{ type: INT, documentation: "Shift amount (A=left, 7=none, ~=right)" }],
+    functionName: "shift",
+    documentation: "Horizontal shift with wraparound.",
   },
 
   ">": {
