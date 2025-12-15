@@ -6286,7 +6286,7 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
-  const strength = (strengthN - 1) / 30;
+  const strength = (strengthN - 1) / 67;
   
   function seededNormal(seed: number): () => number {
     let hasSpare = false;
@@ -6319,12 +6319,12 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
     return tf.tensor2d(data, [1, size]);
   }
   
-  const rng = seededNormal(42);
-  const scale = 16.0;
+  const rng = seededNormal(strengthN * 1337);
+  const scale = 8.0 + strength * 16.0;
   const netSize = 32;
   const zDim = 8;
   const outDim = 4; // dx, dy displacement + saturation, value modulation
-  const displacementStrength = 0.3 * strength;
+  const displacementStrength = 0.1 + strength * 0.4;
   
   // Derive z from input image for determinism
   let sumR = 0, sumG = 0, sumB = 0;
