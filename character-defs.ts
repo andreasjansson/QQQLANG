@@ -4390,6 +4390,30 @@ function fnShearRadial(ctx: FnContext, cxParam: number, cyParam: number, kParam:
     uniform float uK;
     varying vec2 vUV;
     
+    // Mirror UV and return how many times we've mirrored (for fade calculation)
+    vec2 mirrorUV(vec2 uv, out float dist) {
+      // Track how far outside [0,1] we are
+      float dx = 0.0;
+      float dy = 0.0;
+      
+      if (uv.x < 0.0) dx = -uv.x;
+      else if (uv.x > 1.0) dx = uv.x - 1.0;
+      
+      if (uv.y < 0.0) dy = -uv.y;
+      else if (uv.y > 1.0) dy = uv.y - 1.0;
+      
+      dist = max(dx, dy);
+      
+      // Mirror by reflecting coordinates
+      vec2 m = mod(uv, 2.0);
+      if (m.x > 1.0) m.x = 2.0 - m.x;
+      if (m.y > 1.0) m.y = 2.0 - m.y;
+      if (m.x < 0.0) m.x = -m.x;
+      if (m.y < 0.0) m.y = -m.y;
+      
+      return m;
+    }
+    
     void main() {
       // Convert to centered coords (-0.5 to 0.5)
       float x = vUV.x - 0.5;
@@ -4414,11 +4438,17 @@ function fnShearRadial(ctx: FnContext, cxParam: number, cyParam: number, kParam:
       // Convert back to UV coords
       vec2 sampleUV = vec2(xPrime + 0.5, yPrime + 0.5);
       
-      if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-      } else {
-        gl_FragColor = texture2D(uTexture, sampleUV);
-      }
+      // Mirror and get distance outside bounds
+      float dist;
+      vec2 mirroredUV = mirrorUV(sampleUV, dist);
+      
+      // Sample the texture
+      vec4 color = texture2D(uTexture, mirroredUV);
+      
+      // Fade to black based on distance outside original bounds
+      float fade = 1.0 - smoothstep(0.0, 0.5, dist);
+      
+      gl_FragColor = vec4(color.rgb * fade, 1.0);
     }
   `;
   
