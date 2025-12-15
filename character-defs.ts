@@ -426,36 +426,32 @@ function fnB(ctx: FnContext, old: Image, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
-  const numSeeds = 24 + (n % 24);
-  const xMult = 31 + n * 7;
-  const yMult = 47 + n * 11;
+  const gridCols = 3 + (n % 6);
+  const gridRows = 3 + ((n * 3) % 6);
+  const cellW = ctx.width / gridCols;
+  const cellH = ctx.height / gridRows;
   const angle = (n * Math.PI) / 34;
   const cos_a = Math.cos(angle);
   const sin_a = Math.sin(angle);
-  const spiralTightness = 0.5 + (n % 17) * 0.1;
+  const offsetX = (n % 17) / 17;
+  const offsetY = ((n * 7) % 17) / 17;
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
   
   const seeds: [number, number][] = [];
-  for (let i = 0; i < numSeeds; i++) {
-    const t = i / numSeeds;
-    const gridX = (i * xMult) % ctx.width;
-    const gridY = (i * yMult) % ctx.height;
-    const spiralR = t * Math.min(cx, cy) * spiralTightness;
-    const spiralAngle = t * Math.PI * 2 * (3 + (n % 5));
-    const spiralX = cx + spiralR * Math.cos(spiralAngle);
-    const spiralY = cy + spiralR * Math.sin(spiralAngle);
-    const blend = (n % 34) / 34;
-    const rawX = gridX * (1 - blend) + spiralX * blend;
-    const rawY = gridY * (1 - blend) + spiralY * blend;
-    const dx = rawX - cx;
-    const dy = rawY - cy;
-    const rotX = cx + dx * cos_a - dy * sin_a;
-    const rotY = cy + dx * sin_a + dy * cos_a;
-    seeds.push([
-      ((rotX % ctx.width) + ctx.width) % ctx.width,
-      ((rotY % ctx.height) + ctx.height) % ctx.height
-    ]);
+  for (let row = 0; row < gridRows; row++) {
+    for (let col = 0; col < gridCols; col++) {
+      const baseX = (col + 0.5 + offsetX) * cellW;
+      const baseY = (row + 0.5 + offsetY) * cellH;
+      const dx = baseX - cx;
+      const dy = baseY - cy;
+      const rotX = cx + dx * cos_a - dy * sin_a;
+      const rotY = cy + dx * sin_a + dy * cos_a;
+      seeds.push([
+        ((rotX % ctx.width) + ctx.width) % ctx.width,
+        ((rotY % ctx.height) + ctx.height) % ctx.height
+      ]);
+    }
   }
   
   for (let y = 0; y < ctx.height; y++) {
