@@ -102,9 +102,9 @@ import { composite } from "./functions/composite.js";
 import { leftHalfOffset } from "./functions/left-half-offset.js";
 import { scanlines } from "./functions/scanlines.js";
 import { rule110 } from "./functions/rule110.js";
-import { skewLeft } from "./functions/skew-left.js";
+import { skew } from "./functions/skew.js";
 import { verticalSplit } from "./functions/vertical-split.js";
-import { skewRight } from "./functions/skew-right.js";
+import { sharpen } from "./functions/sharpen.js";
 import { waveChromatic } from "./functions/wave-chromatic.js";
 
 export const characterDefs: Record<string, CharDef> = {
