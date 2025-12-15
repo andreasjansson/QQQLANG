@@ -7226,8 +7226,8 @@ export const characterDefs: Record<string, CharDef> = {
     number: 28,
     fn: fn1,
     args: [],
-    functionName: "center-bar",
-    documentation: "Middle third sharpened and boosted, rest desaturated."
+    functionName: "black-hole",
+    documentation: "Gravitational lensing effect with event horizon, photon sphere, and accretion disk."
   },
   
   '2': {
