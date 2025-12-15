@@ -6426,7 +6426,7 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const outputData = await outputTensor.data();
   outputTensor.dispose();
   
-  W_z.dispose(); B_z.dispose(); W_x.dispose(); W_y.dispose(); W_r.dispose();
+  W_z.dispose(); B_z.dispose(); W_x.dispose(); W_y.dispose(); W_r.dispose(); W_rgb.dispose();
   W_h0.dispose(); B_h0.dispose(); W_h1.dispose(); B_h1.dispose();
   W_h2.dispose(); B_h2.dispose(); W_h3.dispose(); B_h3.dispose();
   W_h4.dispose(); B_h4.dispose(); W_out.dispose(); B_out.dispose();
