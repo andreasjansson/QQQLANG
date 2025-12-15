@@ -6952,7 +6952,6 @@ export const characterDefs: Record<string, CharDef> = {
     number: 2,
     fn: fnV,
     args: [
-      { type: COLOR, documentation: "Border tint color" },
       { type: Choice(
         'vertical-blur', 'circular-blur', 'horizontal-blur', 'rectangular-blur',
         'ellipse-wide-blur', 'ellipse-tall-blur', 'diamond-blur', 'rounded-rect-blur',
@@ -6964,7 +6963,8 @@ export const characterDefs: Record<string, CharDef> = {
         'triangle-up-solid', 'triangle-down-solid', 'triangle-left-solid', 'triangle-right-solid',
         'sine-top', 'sine-bottom', 'sine-left', 'sine-right',
         'concentric-circles', 'concentric-squares', 'spiral-cw', 'spiral-ccw'
-      ), documentation: "Border shape style" }
+      ), documentation: "Border shape style" },
+      { type: COLOR, documentation: "Border tint color" }
     ],
     functionName: "border",
     documentation: "Border effect with shape and gradient style. A-P=blurred shapes, Q-`=solid shapes, a-h=waves/patterns."
