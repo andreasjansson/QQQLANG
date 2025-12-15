@@ -499,7 +499,7 @@ export function wrapText(text: string, maxWidth: number): string[] {
   return lines;
 }
 
-function generateIntroPage(charsPerLine: number): string[] {
+export function generateIntroPage(charsPerLine: number): string[] {
   const introText = `QQQLANG: A syntax-free programming language for image synthesis
 
 In QQQLANG, any string of visible uppercase ascii characters is a valid program.
