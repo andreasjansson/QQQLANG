@@ -6320,7 +6320,7 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
     return tf.tensor2d(data, [1, size]);
   }
   
-  const rng = seededNormal(42);
+  const rng = seededNormal(ctx.images.length);
   const coordScale = 16.0;
   const netSize = 32;
   const zDim = 8;
