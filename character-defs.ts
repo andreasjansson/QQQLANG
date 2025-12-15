@@ -2500,7 +2500,8 @@ function fnQuadtree(ctx: FnContext, n: number): Image {
   const out = createSolidImage(width, height, '#000000');
   
   // Map n (1-68): A=minimal compression, ~=maximal compression
-  const compressionLevel = (n - 1) / 67;
+  // Doubled range for stronger effect at high values
+  const compressionLevel = ((n - 1) / 67) * 2;
   
   // Base threshold - higher means more merging
   const baseThreshold = compressionLevel * 3000;
