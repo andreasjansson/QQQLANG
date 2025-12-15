@@ -7343,10 +7343,14 @@ export const characterDefs: Record<string, CharDef> = {
   '(': {
     color: '#00CED1',
     number: 47,
-    fn: fnFisheye,
-    args: [{ type: INT, documentation: "Distortion (A-Q=pinch/concave, R-~=bulge/convex)" }],
-    functionName: "fisheye",
-    documentation: "Fisheye lens distortion. Low values pinch inward, high values bulge outward. Edges stay fixed."
+    fn: fnAnisotropicRadial,
+    args: [
+      { type: INT, documentation: "Anisotropic scale (A=squeeze, M=none, ~=stretch along θ)" },
+      { type: INT, documentation: "Radial distortion (A=barrel, M=none, ~=pincushion)" },
+      { type: INT, documentation: "Direction angle (A=0°, ~=360°)" }
+    ],
+    functionName: "aniso-radial",
+    documentation: "Anisotropic radial distortion combining directional stretch and barrel/pincushion distortion."
   },
   
   ')': {
