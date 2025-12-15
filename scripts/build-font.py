@@ -442,12 +442,14 @@ def build_font():
         bf_glyph_with_dot = create_glyph_with_dot(regular_glyph_data, char_color)
         new_glyphs.append((bf_name, bf_glyph_with_dot, regular_width, regular_lsb, bf_codepoint))
         
-        # Bold variant
+        # Bold variant (actually regular with dot - used for functions)
         bold_codepoint = pua_index
         pua_index += 1
         bold_name = f"uni{bold_codepoint:04X}"
         bold_glyph_map[char] = bold_name
-        new_glyphs.append((bold_name, bold_glyph_data, bold_width, bold_lsb, bold_codepoint))
+        # Use regular glyph with dot instead of bold
+        bold_glyph_with_dot = create_glyph_with_dot(regular_glyph_data, char_color)
+        new_glyphs.append((bold_name, bold_glyph_with_dot, regular_width, regular_lsb, bold_codepoint))
         
         # Bold+spaced variant (actually regular with dot, kept for spacing infrastructure)
         bold_spaced_codepoint = pua_index
