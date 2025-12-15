@@ -6403,11 +6403,13 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
     const Ur = tf.matMul(rTensor, W_r);
     const U = tf.add(tf.add(Uz, Ux), tf.add(Uy, Ur));
     
-    // Reference default: H = tanh(U), then 3 more tanh layers
+    // H = tanh(U), then 5 more tanh layers for sharper detail
     let H = tf.tanh(U) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h0), B_h0)) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h1), B_h1)) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h2), B_h2)) as tf.Tensor2D;
+    H = tf.tanh(tf.add(tf.matMul(H, W_h3), B_h3)) as tf.Tensor2D;
+    H = tf.tanh(tf.add(tf.matMul(H, W_h4), B_h4)) as tf.Tensor2D;
     
     // Output: sigmoid for [0, 1]
     const output = tf.sigmoid(tf.add(tf.matMul(H, W_out), B_out));
