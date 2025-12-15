@@ -276,6 +276,7 @@ function imageHistory(ctx: FnContext): Image {
   }
 
   const margin = 1;
+  const hGap = 5;
   const availWidth = ctx.width - margin * 2;
   const availHeight = ctx.height - margin * 2;
 
@@ -285,7 +286,7 @@ function imageHistory(ctx: FnContext): Image {
   for (let cols = 1; cols <= Math.min(10, numImages); cols++) {
     const rows = Math.ceil(numImages / cols);
 
-    const cellWidth = availWidth / cols;
+    const cellWidth = (availWidth - (cols - 1) * hGap) / cols;
     const cellHeight = availHeight / rows;
 
     const textHeight = Math.min(cellHeight * 0.15, 14);
@@ -307,7 +308,7 @@ function imageHistory(ctx: FnContext): Image {
   }
 
   const { cols, thumbSize, fontSize } = bestLayout;
-  const cellWidth = availWidth / cols;
+  const cellWidth = (availWidth - (cols - 1) * hGap) / cols;
   const cellHeight = availHeight / Math.ceil(numImages / cols);
 
   tempCtx.fillStyle = "#E8E4DC";
