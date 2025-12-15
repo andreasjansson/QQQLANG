@@ -6861,7 +6861,7 @@ export const characterDefs: Record<string, CharDef> = {
     number: 24,
     fn: fnX,
     args: [
-      { type: INT, documentation: "Quality level (A=heavy compression/digital artifacts, ~=high quality)" }
+      { type: INT, documentation: "Compression level (A=minimal/high quality, ~=maximal/heavy artifacts)" }
     ],
     functionName: "hadamard-compress",
     documentation: "Walsh-Hadamard transform compression using binary basis functions, creating sharp geometric and checkerboard-like artifacts."
