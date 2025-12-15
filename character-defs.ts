@@ -7222,8 +7222,8 @@ export const characterDefs: Record<string, CharDef> = {
     number: 28,
     fn: fn1,
     args: [],
-    functionName: "black-hole",
-    documentation: "Gravitational lensing effect with event horizon, photon sphere, and accretion disk."
+    functionName: "vortex",
+    documentation: "3D trumpet shape where the center is pulled infinitely back in Z dimension."
   },
   
   '2': {
