@@ -445,12 +445,14 @@ def build_font():
         bold_glyph_map[char] = bold_name
         new_glyphs.append((bold_name, bold_glyph_data, bold_width, bold_lsb, bold_codepoint))
         
-        # Bold+spaced variant
+        # Bold+spaced variant (actually regular with dot, kept for spacing infrastructure)
         bold_spaced_codepoint = pua_index
         pua_index += 1
         bold_spaced_name = f"uni{bold_spaced_codepoint:04X}"
         bold_spaced_glyph_map[char] = bold_spaced_name
-        new_glyphs.append((bold_spaced_name, bold_glyph_data, bold_width + FUNCTION_GAP, bold_lsb, bold_spaced_codepoint))
+        # Use regular glyph with dot (same as bold_first) for consistency
+        bs_glyph_with_dot = create_glyph_with_dot(regular_glyph_data, char_color)
+        new_glyphs.append((bold_spaced_name, bs_glyph_with_dot, regular_width + FUNCTION_GAP, regular_lsb, bold_spaced_codepoint))
         
         # Regular+spaced variant
         regular_spaced_codepoint = pua_index
