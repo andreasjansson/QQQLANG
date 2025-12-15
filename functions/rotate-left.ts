@@ -17,11 +17,14 @@ import {
   bgRemovalReady,
 } from "./helpers.js";
 
-function rotateLeft(ctx: FnContext): Image {
+function rotate(ctx: FnContext, amount: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, "#000000");
 
-  const angle = (-20 * Math.PI) / 180;
+  const normalizedAmount = ((amount - 1) / 67) * 2 - 1;
+  const maxRotation = 90;
+  const degrees = normalizedAmount * maxRotation;
+  const angle = (-degrees * Math.PI) / 180;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   const cx = ctx.width / 2;
@@ -41,4 +44,4 @@ function rotateLeft(ctx: FnContext): Image {
   return out;
 }
 
-export { rotateLeft };
+export { rotate };
