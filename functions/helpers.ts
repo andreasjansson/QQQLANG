@@ -701,24 +701,3 @@ function generateIndexPage(
 
   return lines;
 }
-
-// Export items not already exported
-export {
-  initWebGL,
-  createShaderProgram,
-  hexToRgb,
-  cloneImage,
-  getPrevImage,
-  getPixel,
-  setPixel,
-  rgbToHsl,
-  hslToRgb,
-  breakLigatures,
-  wrapText,
-  generateIntroPage,
-  numToChar,
-  generateCharacterRefLines,
-  getPageChar,
-  generateAllHelpPages,
-  generateIndexPage,
-};
