@@ -5,7 +5,7 @@ import {
   CharDef,
   ChoiceType,
 } from "./helpers.js";
-import { characterDefs } from '../character-defs.js';
+import { characterDefs } from "../character-defs.js";
 
 function breakLigatures(text: string): string {
   return text
@@ -279,7 +279,7 @@ function imageHistory(ctx: FnContext): Image {
 function help(ctx: FnContext, pageArg: number): Image {
   // If pageArg is 42 (the '#' character), show image history
   if (pageArg === 42) {
-    return fnImageHistory(ctx);
+    return imageHistory(ctx);
   }
 
   const out = createSolidImage(ctx.width, ctx.height, "#000000");
