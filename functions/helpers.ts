@@ -191,7 +191,7 @@ export function initWebGL(width: number, height: number): WebGLRenderingContext 
   return gl!;
 }
 
-function createShaderProgram(
+export function createShaderProgram(
   gl: WebGLRenderingContext,
   vertSource: string,
   fragSource: string,
