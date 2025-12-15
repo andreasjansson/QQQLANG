@@ -6322,7 +6322,7 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const scale = 10.0;
   const netSize = 32;
   const zDim = 8;
-  const cDim = 1; // grayscale like reference
+  const cDim = 3; // RGB color
   
   // Derive z from input image for determinism
   let sumR = 0, sumG = 0, sumB = 0;
