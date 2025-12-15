@@ -262,8 +262,9 @@ function imageHistory(ctx: FnContext): Image {
 
   // Window size is 68 (the number of character functions)
   const windowSize = 68;
-  const startOffset = Math.max(0, ctx.images.length - windowSize);
-  const numImages = ctx.images.length - startOffset;
+  const totalImages = ctx.images.length;
+  const startOffset = Math.max(0, totalImages - windowSize);
+  const numImages = Math.min(windowSize, totalImages);
 
   if (ctx.images.length === 0) {
     tempCtx.fillStyle = "#E8E4DC";
