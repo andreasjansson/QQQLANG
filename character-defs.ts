@@ -7170,10 +7170,30 @@ export const characterDefs: Record<string, CharDef> = {
   '1': {
     color: '#FFA07A',
     number: 28,
-    fn: fn1,
-    args: [],
-    functionName: "vortex",
-    documentation: "3D trumpet shape where the center is pulled infinitely back in Z dimension."
+    fn: (ctx: FnContext, c: string): Image => {
+      const prev = getPrevImage(ctx);
+      const out = createSolidImage(ctx.width, ctx.height, '#000000');
+      const [tr, tg, tb] = hexToRgb(c);
+      
+      for (let y = 0; y < ctx.height; y++) {
+        for (let x = 0; x < ctx.width; x++) {
+          const [r, g, b] = getPixel(prev, x, y);
+          const luminance = r * 0.299 + g * 0.587 + b * 0.114;
+          const factor = luminance / 255;
+          
+          setPixel(out, x, y,
+            Math.round(tr * factor),
+            Math.round(tg * factor),
+            Math.round(tb * factor)
+          );
+        }
+      }
+      
+      return out;
+    },
+    args: [{ type: COLOR, documentation: "Tint color applied based on luminance" }],
+    functionName: "colorize",
+    documentation: "Converts to grayscale luminance and tints with the specified color."
   },
   
   '2': {
