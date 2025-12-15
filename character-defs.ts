@@ -290,7 +290,7 @@ export const characterDefs: Record<string, CharDef> = {
     number: 17,
     fn: prism,
     args: [],
-    functionName: "prism",
+    functionName: "quad-prism",
     documentation: "Negative prism with diagonal inversion and mirroring.",
   },
 
