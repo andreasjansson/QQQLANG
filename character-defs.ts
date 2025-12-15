@@ -2497,220 +2497,99 @@ function fnW(ctx: FnContext, n: number): Image {
 function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
+  const out = createSolidImage(width, height, '#000000');
   
   // Map n (1-68): A=minimal compression, ~=maximal compression
+  // Higher threshold = blocks merge more easily = larger uniform areas
   const compressionLevel = (n - 1) / 67;
+  const varianceThreshold = compressionLevel * 2500;
   
-  // Threshold for Laplacian coefficients
-  const threshold = compressionLevel * 80;
+  // Min block size (smaller = more detail preserved)
+  const minBlockSize = Math.max(2, Math.floor(2 + compressionLevel * 6));
   
-  // Number of pyramid levels
-  const numLevels = Math.max(1, Math.min(7, Math.floor(2 + compressionLevel * 5)));
-  
-  // Gaussian blur using separable 5-tap kernel [1,4,6,4,1]/16
-  const gaussianBlur = (data: Float32Array, w: number, h: number): Float32Array => {
-    const temp = new Float32Array(w * h);
-    const result = new Float32Array(w * h);
+  // Calculate color variance of a block
+  const getBlockVariance = (x0: number, y0: number, w: number, h: number): number => {
+    let sumR = 0, sumG = 0, sumB = 0;
+    let sumR2 = 0, sumG2 = 0, sumB2 = 0;
+    let count = 0;
     
-    // Horizontal pass
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const x0 = Math.max(0, x - 2);
-        const x1 = Math.max(0, x - 1);
-        const x2 = x;
-        const x3 = Math.min(w - 1, x + 1);
-        const x4 = Math.min(w - 1, x + 2);
-        
-        temp[y * w + x] = (
-          data[y * w + x0] * 1 +
-          data[y * w + x1] * 4 +
-          data[y * w + x2] * 6 +
-          data[y * w + x3] * 4 +
-          data[y * w + x4] * 1
-        ) / 16;
+    const endX = Math.min(x0 + w, width);
+    const endY = Math.min(y0 + h, height);
+    
+    for (let y = y0; y < endY; y++) {
+      for (let x = x0; x < endX; x++) {
+        const [r, g, b] = getPixel(prev, x, y);
+        sumR += r; sumG += g; sumB += b;
+        sumR2 += r * r; sumG2 += g * g; sumB2 += b * b;
+        count++;
       }
     }
     
-    // Vertical pass
-    for (let y = 0; y < h; y++) {
-      const y0 = Math.max(0, y - 2);
-      const y1 = Math.max(0, y - 1);
-      const y2 = y;
-      const y3 = Math.min(h - 1, y + 1);
-      const y4 = Math.min(h - 1, y + 2);
-      
-      for (let x = 0; x < w; x++) {
-        result[y * w + x] = (
-          temp[y0 * w + x] * 1 +
-          temp[y1 * w + x] * 4 +
-          temp[y2 * w + x] * 6 +
-          temp[y3 * w + x] * 4 +
-          temp[y4 * w + x] * 1
-        ) / 16;
-      }
-    }
+    if (count === 0) return 0;
     
-    return result;
+    const varR = sumR2 / count - (sumR / count) ** 2;
+    const varG = sumG2 / count - (sumG / count) ** 2;
+    const varB = sumB2 / count - (sumB / count) ** 2;
+    
+    return varR + varG + varB;
   };
   
-  // Downsample by 2 (take every other pixel)
-  const downsample = (data: Float32Array, w: number, h: number): { data: Float32Array, w: number, h: number } => {
-    const newW = Math.floor(w / 2);
-    const newH = Math.floor(h / 2);
-    const result = new Float32Array(newW * newH);
+  // Get average color of a block
+  const getBlockAverage = (x0: number, y0: number, w: number, h: number): [number, number, number] => {
+    let sumR = 0, sumG = 0, sumB = 0;
+    let count = 0;
     
-    for (let y = 0; y < newH; y++) {
-      for (let x = 0; x < newW; x++) {
-        result[y * newW + x] = data[(y * 2) * w + (x * 2)];
+    const endX = Math.min(x0 + w, width);
+    const endY = Math.min(y0 + h, height);
+    
+    for (let y = y0; y < endY; y++) {
+      for (let x = x0; x < endX; x++) {
+        const [r, g, b] = getPixel(prev, x, y);
+        sumR += r; sumG += g; sumB += b;
+        count++;
       }
     }
     
-    return { data: result, w: newW, h: newH };
+    if (count === 0) return [0, 0, 0];
+    return [sumR / count, sumG / count, sumB / count];
   };
   
-  // Upsample by 2 with bilinear interpolation
-  const upsample = (data: Float32Array, w: number, h: number, targetW: number, targetH: number): Float32Array => {
-    const result = new Float32Array(targetW * targetH);
+  // Fill a block with a color
+  const fillBlock = (x0: number, y0: number, w: number, h: number, r: number, g: number, b: number): void => {
+    const endX = Math.min(x0 + w, width);
+    const endY = Math.min(y0 + h, height);
     
-    for (let y = 0; y < targetH; y++) {
-      for (let x = 0; x < targetW; x++) {
-        const srcX = x / 2;
-        const srcY = y / 2;
-        
-        const x0 = Math.floor(srcX);
-        const y0 = Math.floor(srcY);
-        const x1 = Math.min(w - 1, x0 + 1);
-        const y1 = Math.min(h - 1, y0 + 1);
-        
-        const fx = srcX - x0;
-        const fy = srcY - y0;
-        
-        const v00 = data[y0 * w + x0];
-        const v10 = data[y0 * w + x1];
-        const v01 = data[y1 * w + x0];
-        const v11 = data[y1 * w + x1];
-        
-        result[y * targetW + x] = 
-          v00 * (1 - fx) * (1 - fy) +
-          v10 * fx * (1 - fy) +
-          v01 * (1 - fx) * fy +
-          v11 * fx * fy;
+    for (let y = y0; y < endY; y++) {
+      for (let x = x0; x < endX; x++) {
+        setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
       }
     }
-    
-    return result;
   };
   
-  const processChannel = (input: Float32Array): Float32Array => {
-    // Build Gaussian pyramid
-    const gaussianPyramid: { data: Float32Array, w: number, h: number }[] = [];
-    gaussianPyramid.push({ data: new Float32Array(input), w: width, h: height });
+  // Recursive quadtree decomposition
+  const processBlock = (x0: number, y0: number, w: number, h: number): void => {
+    if (w <= 0 || h <= 0 || x0 >= width || y0 >= height) return;
     
-    for (let level = 0; level < numLevels; level++) {
-      const current = gaussianPyramid[level];
-      if (current.w < 8 || current.h < 8) break;
+    const variance = getBlockVariance(x0, y0, w, h);
+    
+    // If block is uniform enough OR too small, fill with average
+    if (variance < varianceThreshold || w <= minBlockSize || h <= minBlockSize) {
+      const [r, g, b] = getBlockAverage(x0, y0, w, h);
+      fillBlock(x0, y0, w, h, r, g, b);
+    } else {
+      // Subdivide into 4 quadrants
+      const halfW = Math.floor(w / 2);
+      const halfH = Math.floor(h / 2);
       
-      const blurred = gaussianBlur(current.data, current.w, current.h);
-      const down = downsample(blurred, current.w, current.h);
-      gaussianPyramid.push(down);
+      processBlock(x0, y0, halfW, halfH);                    // Top-left
+      processBlock(x0 + halfW, y0, w - halfW, halfH);        // Top-right
+      processBlock(x0, y0 + halfH, halfW, h - halfH);        // Bottom-left
+      processBlock(x0 + halfW, y0 + halfH, w - halfW, h - halfH); // Bottom-right
     }
-    
-    // Build Laplacian pyramid (difference of Gaussians at each level)
-    const laplacianPyramid: { data: Float32Array, w: number, h: number }[] = [];
-    
-    for (let level = 0; level < gaussianPyramid.length - 1; level++) {
-      const current = gaussianPyramid[level];
-      const next = gaussianPyramid[level + 1];
-      
-      // Upsample the coarser level
-      const upsampled = upsample(next.data, next.w, next.h, current.w, current.h);
-      
-      // Laplacian = current - upsampled(next)
-      const laplacian = new Float32Array(current.w * current.h);
-      for (let i = 0; i < laplacian.length; i++) {
-        laplacian[i] = current.data[i] - upsampled[i];
-      }
-      
-      laplacianPyramid.push({ data: laplacian, w: current.w, h: current.h });
-    }
-    
-    // Add coarsest Gaussian level as the base
-    laplacianPyramid.push(gaussianPyramid[gaussianPyramid.length - 1]);
-    
-    // Soft thresholding on Laplacian coefficients (not the coarsest level)
-    for (let level = 0; level < laplacianPyramid.length - 1; level++) {
-      const lap = laplacianPyramid[level];
-      
-      // Stronger threshold for finer levels (more detail)
-      const levelThreshold = threshold * Math.pow(1.5, laplacianPyramid.length - 2 - level);
-      
-      for (let i = 0; i < lap.data.length; i++) {
-        const val = lap.data[i];
-        // Soft thresholding: shrink toward zero
-        if (Math.abs(val) < levelThreshold) {
-          lap.data[i] = 0;
-        } else if (val > 0) {
-          lap.data[i] = val - levelThreshold;
-        } else {
-          lap.data[i] = val + levelThreshold;
-        }
-      }
-    }
-    
-    // Reconstruct from Laplacian pyramid (coarsest to finest)
-    let result = laplacianPyramid[laplacianPyramid.length - 1].data;
-    let resultW = laplacianPyramid[laplacianPyramid.length - 1].w;
-    let resultH = laplacianPyramid[laplacianPyramid.length - 1].h;
-    
-    for (let level = laplacianPyramid.length - 2; level >= 0; level--) {
-      const lap = laplacianPyramid[level];
-      
-      // Upsample current result
-      const upsampled = upsample(result, resultW, resultH, lap.w, lap.h);
-      
-      // Add Laplacian details
-      result = new Float32Array(lap.w * lap.h);
-      for (let i = 0; i < result.length; i++) {
-        result[i] = upsampled[i] + lap.data[i];
-      }
-      
-      resultW = lap.w;
-      resultH = lap.h;
-    }
-    
-    return result;
   };
   
-  // Extract and process RGB channels
-  const rChannel = new Float32Array(width * height);
-  const gChannel = new Float32Array(width * height);
-  const bChannel = new Float32Array(width * height);
-  
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      const idx = y * width + x;
-      rChannel[idx] = r;
-      gChannel[idx] = g;
-      bChannel[idx] = b;
-    }
-  }
-  
-  const rOut = processChannel(rChannel);
-  const gOut = processChannel(gChannel);
-  const bOut = processChannel(bChannel);
-  
-  // Reconstruct output image
-  const out = createSolidImage(width, height, '#000000');
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x;
-      const r = Math.max(0, Math.min(255, Math.round(rOut[idx])));
-      const g = Math.max(0, Math.min(255, Math.round(gOut[idx])));
-      const b = Math.max(0, Math.min(255, Math.round(bOut[idx])));
-      setPixel(out, x, y, r, g, b);
-    }
-  }
+  // Start with the full image
+  processBlock(0, 0, width, height);
   
   return out;
 }
