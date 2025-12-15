@@ -6287,6 +6287,7 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
   const { width, height } = ctx;
   
   const strength = (strengthN - 1) / 67;
+  const weightScale = 0.5 + strength * 1.5;
   
   function seededNormal(seed: number): () => number {
     let hasSpare = false;
@@ -6307,24 +6308,24 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
     };
   }
   
-  function createWeightTensor(rows: number, cols: number, rng: () => number): tf.Tensor2D {
+  function createWeightTensor(rows: number, cols: number, rng: () => number, scale: number): tf.Tensor2D {
     const data = new Float32Array(rows * cols);
-    for (let i = 0; i < data.length; i++) data[i] = rng();
+    for (let i = 0; i < data.length; i++) data[i] = rng() * scale;
     return tf.tensor2d(data, [rows, cols]);
   }
   
-  function createBiasTensor(size: number, rng: () => number): tf.Tensor2D {
+  function createBiasTensor(size: number, rng: () => number, scale: number): tf.Tensor2D {
     const data = new Float32Array(size);
-    for (let i = 0; i < size; i++) data[i] = rng();
+    for (let i = 0; i < size; i++) data[i] = rng() * scale;
     return tf.tensor2d(data, [1, size]);
   }
   
-  const rng = seededNormal(strengthN * 1337);
-  const scale = 8.0 + strength * 16.0;
+  const rng = seededNormal(42);
+  const coordScale = 16.0;
   const netSize = 32;
   const zDim = 8;
   const outDim = 4; // dx, dy displacement + saturation, value modulation
-  const displacementStrength = 0.1 + strength * 0.4;
+  const displacementStrength = 0.3;
   
   // Derive z from input image for determinism
   let sumR = 0, sumG = 0, sumB = 0;
