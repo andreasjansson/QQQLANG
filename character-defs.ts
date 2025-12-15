@@ -6778,10 +6778,10 @@ export const characterDefs: Record<string, CharDef> = {
     number: 24,
     fn: fnX,
     args: [
-      { type: INT, documentation: "Compression level (A=minimal/high quality, ~=maximal/smooth blur)" }
+      { type: INT, documentation: "Compression level (A=minimal/detailed, ~=maximal/geometric blocks)" }
     ],
-    functionName: "pyramid-compress",
-    documentation: "Laplacian pyramid compression with soft thresholding, creating smooth organic blur and detail loss without blocky artifacts."
+    functionName: "quadtree-compress",
+    documentation: "Adaptive quadtree compression - detailed areas keep resolution while uniform areas become large blocks, creating geometric patterns."
   },
   
   'Y': {
