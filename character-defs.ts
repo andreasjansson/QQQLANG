@@ -7174,15 +7174,20 @@ export const characterDefs: Record<string, CharDef> = {
       const prev = getPrevImage(ctx);
       const out = createSolidImage(ctx.width, ctx.height, '#000000');
       const [tr, tg, tb] = hexToRgb(c);
-      const [tintH, tintS] = rgbToHsl(tr, tg, tb);
       
       for (let y = 0; y < ctx.height; y++) {
         for (let x = 0; x < ctx.width; x++) {
           const [r, g, b] = getPixel(prev, x, y);
-          const [, , origL] = rgbToHsl(r, g, b);
+          const luminance = r * 0.299 + g * 0.587 + b * 0.114;
+          const factor = Math.pow(luminance / 255, 0.6);
           
-          const boostedS = Math.min(1, tintS * 1.5);
-          const [finalR, finalG, finalB] = hslToRgb(tintH, boostedS, origL);
+          const tintedR = tr * factor;
+          const tintedG = tg * factor;
+          const tintedB = tb * factor;
+          
+          const [h, s, l] = rgbToHsl(tintedR, tintedG, tintedB);
+          const boostedS = Math.min(1, s * 1.5);
+          const [finalR, finalG, finalB] = hslToRgb(h, boostedS, l);
           
           setPixel(out, x, y, finalR, finalG, finalB);
         }
@@ -7190,9 +7195,9 @@ export const characterDefs: Record<string, CharDef> = {
       
       return out;
     },
-    args: [{ type: COLOR, documentation: "Tint color (hue and saturation applied)" }],
+    args: [{ type: COLOR, documentation: "Tint color applied based on luminance" }],
     functionName: "colorize",
-    documentation: "Applies the hue and boosted saturation of the tint color while preserving original lightness."
+    documentation: "Tints the image with the specified color using gamma-corrected luminance and boosted saturation."
   },
   
   '2': {
