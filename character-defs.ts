@@ -7143,10 +7143,10 @@ export const characterDefs: Record<string, CharDef> = {
   'Y': {
     color: '#98FB98',
     number: 25,
-    fn: fnY,
-    args: [{ type: INT, documentation: "Number of radial sections" }],
-    functionName: "radial-hue",
-    documentation: "Radial sections with progressive hue rotation."
+    fn: fnU,
+    args: [{ type: INT, documentation: "Controls angle and intensity of color shifts" }],
+    functionName: "undertone",
+    documentation: "HSL color shift with three gradient directions 120° apart: hue rotation, saturation multiply, lightness adjust (midtone-weighted)."
   },
   
   'Z': {
