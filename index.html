@@ -1223,14 +1223,7 @@
         
         if (transformed !== e.data) {
           e.preventDefault();
-          const start = input.selectionStart;
-          const end = input.selectionEnd;
-          const before = input.value.substring(0, start);
-          const after = input.value.substring(end);
-          input.value = before + transformed + after;
-          input.selectionStart = input.selectionEnd = start + transformed.length;
-          updateURL(input.value);
-          render();
+          document.execCommand('insertText', false, transformed);
         }
       }
     });
