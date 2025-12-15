@@ -6849,7 +6849,7 @@ export const characterDefs: Record<string, CharDef> = {
         'triangle-horizontal-solid', 'triangle-horizontal-blur',
         'triangle-vertical-solid', 'triangle-vertical-blur'
       ), documentation: "Border shape style" },
-      { type: COLOR, documentation: "Border tint color" }
+      { type: COLOR, documentation: "Border color" }
     ],
     functionName: "border",
     documentation: "Border effect with various shapes: circular, horizontal, vertical, rectangular, diamond, hexagon, sine waves, and triangle waves."
