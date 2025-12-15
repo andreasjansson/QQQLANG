@@ -3038,58 +3038,44 @@ function fn1(ctx: FnContext): Image {
       vec2 uv = vUV;
       float aspect = uResolution.x / uResolution.y;
       
-      // Center of the trumpet
       vec2 center = vec2(0.5, 0.5);
       vec2 pos = uv - center;
       
-      // Adjust for aspect ratio to get circular distance
+      // Adjust for aspect ratio
       vec2 aspectPos = pos;
       aspectPos.x *= aspect;
       float r = length(aspectPos);
       float angle = atan(pos.y, pos.x);
       
-      // Normalize r to roughly 0-1 range (corner is ~0.7 with aspect)
+      // Normalize r (corner distance)
       float maxR = length(vec2(0.5 * aspect, 0.5));
-      float normR = r / maxR;
+      float normR = clamp(r / maxR, 0.001, 1.0);
       
-      // Trumpet curve: smooth curve that bends inward
-      // At edges (normR=1), depth=0; at center (normR=0), depth goes deep
-      // Using a smooth curve: depth = 1/(r+epsilon) - 1/(1+epsilon)
-      // This gives 0 at r=1 and increases smoothly toward center
-      float epsilon = 0.15;
-      float depth = 1.0 / (normR + epsilon) - 1.0 / (1.0 + epsilon);
-      depth = max(0.0, depth);
+      // Trumpet curve: FLAT at edges, INFINITE at center
+      // Use high power of (1-r) to keep edges flat, divide by r² for infinite center
+      float edgeFlatness = pow(1.0 - normR, 4.0);
+      float centerPull = 1.0 / (normR * normR);
+      float depth = edgeFlatness * centerPull * 0.05;
       
-      // The trumpet surface stretches the texture radially
-      // Points on the curved wall map to compressed UV near center
-      // Inverse: to find what UV to sample, we expand outward based on depth
-      float stretch = 1.0 + depth * 0.4;
+      // UV stretch - minimal at edges, strong at center
+      float stretch = 1.0 + depth * 0.8;
       
-      // New UV: expand radially from center
       vec2 newPos = pos * stretch;
-      vec2 sampleUV = newPos + center;
-      
-      // Clamp to valid UV range
-      sampleUV = clamp(sampleUV, 0.0, 1.0);
+      vec2 sampleUV = clamp(newPos + center, 0.0, 1.0);
       
       vec3 color = texture2D(uTexture, sampleUV).rgb;
       
-      // Calculate surface normal for lighting (trumpet surface)
-      // The trumpet surface has normals pointing outward and slightly up
-      // dz/dr gives the slope
-      float dz_dr = -1.0 / ((normR + epsilon) * (normR + epsilon));
-      vec3 radialDir = vec3(cos(angle), sin(angle), 0.0);
-      vec3 normal = normalize(vec3(radialDir.xy * (-dz_dr * 0.3), 1.0));
+      // Surface normal based on trumpet slope
+      float slope = edgeFlatness * 2.0 / (normR * normR * normR) * 0.05;
+      vec3 normal = normalize(vec3(cos(angle) * slope, sin(angle) * slope, 1.0));
       
-      // Light from upper front
-      vec3 lightDir = normalize(vec3(0.3, 0.4, 1.0));
+      // Lighting
+      vec3 lightDir = normalize(vec3(0.2, 0.3, 1.0));
       float diffuse = max(dot(normal, lightDir), 0.0);
+      float lighting = 0.6 + 0.4 * diffuse;
       
-      // Ambient + diffuse lighting
-      float lighting = 0.5 + 0.5 * diffuse;
-      
-      // Darken deeper areas (center of trumpet)
-      float depthDarken = 1.0 - smoothstep(0.0, 4.0, depth) * 0.5;
+      // Depth darkening - infinite depth at center goes to black
+      float depthDarken = 1.0 / (1.0 + depth * 2.0);
       
       color *= lighting * depthDarken;
       
