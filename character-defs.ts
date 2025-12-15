@@ -6856,20 +6856,16 @@ export const characterDefs: Record<string, CharDef> = {
     args: [
       { type: Choice(
         'vertical-blur', 'circular-blur', 'horizontal-blur', 'rectangular-blur',
-        'ellipse-wide-blur', 'ellipse-tall-blur', 'diamond-blur', 'rounded-rect-blur',
-        'hexagon-blur', 'octagon-blur', 'star5-blur', 'heart-blur',
-        'triangle-up-blur', 'triangle-down-blur', 'triangle-left-blur', 'triangle-right-blur',
-        'vertical-solid', 'circular-solid', 'horizontal-solid', 'rectangular-solid',
-        'ellipse-wide-solid', 'ellipse-tall-solid', 'diamond-solid', 'rounded-rect-solid',
-        'hexagon-solid', 'octagon-solid', 'star5-solid', 'heart-solid',
-        'triangle-up-solid', 'triangle-down-solid', 'triangle-left-solid', 'triangle-right-solid',
-        'sine-top', 'sine-bottom', 'sine-left', 'sine-right',
-        'concentric-circles', 'concentric-squares', 'spiral-cw', 'spiral-ccw'
+        'diamond-blur', 'hexagon-blur',
+        'diamond-solid', 'hexagon-solid',
+        'sine-top-blur', 'sine-bottom-blur',
+        'sine-top-solid', 'sine-bottom-solid',
+        'sine-top-tri', 'sine-bottom-tri'
       ), documentation: "Border shape style" },
       { type: COLOR, documentation: "Border tint color" }
     ],
     functionName: "border",
-    documentation: "Border effect with shape and gradient style. A-P=blurred shapes, Q-`=solid shapes, a-h=waves/patterns."
+    documentation: "Border effect with various shapes. A-F=blurred, G-H=solid geometric, I-L=sine waves, M-N=triangular sine."
   },
   
   'C': {
