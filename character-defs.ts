@@ -2498,208 +2498,187 @@ function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
-  // Map n (1-68): A=minimal compression (high quality), ~=maximal compression (artifacts)
+  // Map n (1-68): A=minimal compression, ~=maximal compression
   const compressionLevel = (n - 1) / 67;
   
-  // Threshold increases with compression level
-  const threshold = compressionLevel * 120;
+  // Threshold for Laplacian coefficients
+  const threshold = compressionLevel * 80;
   
-  // Number of decomposition levels (more = coarser approximation at high compression)
-  const numLevels = Math.max(1, Math.min(6, Math.floor(1 + compressionLevel * 5)));
+  // Number of pyramid levels
+  const numLevels = Math.max(1, Math.min(7, Math.floor(2 + compressionLevel * 5)));
   
-  // Daubechies-4 filter coefficients
-  const sqrt3 = Math.sqrt(3);
-  const denom = 4 * Math.sqrt(2);
-  const h0 = (1 + sqrt3) / denom;
-  const h1 = (3 + sqrt3) / denom;
-  const h2 = (3 - sqrt3) / denom;
-  const h3 = (1 - sqrt3) / denom;
-  
-  // Forward 1D Daubechies-4 transform (one level)
-  const dwt1d = (data: Float32Array, len: number): void => {
-    if (len < 4) return;
+  // Gaussian blur using separable 5-tap kernel [1,4,6,4,1]/16
+  const gaussianBlur = (data: Float32Array, w: number, h: number): Float32Array => {
+    const temp = new Float32Array(w * h);
+    const result = new Float32Array(w * h);
     
-    const half = len >> 1;
-    const temp = new Float32Array(len);
-    
-    for (let i = 0; i < half; i++) {
-      const j = i * 2;
-      // Periodic boundary
-      const d0 = data[j % len];
-      const d1 = data[(j + 1) % len];
-      const d2 = data[(j + 2) % len];
-      const d3 = data[(j + 3) % len];
-      
-      // Low-pass (approximation)
-      temp[i] = h0 * d0 + h1 * d1 + h2 * d2 + h3 * d3;
-      // High-pass (detail) - using quadrature mirror filter
-      temp[half + i] = h3 * d0 - h2 * d1 + h1 * d2 - h0 * d3;
-    }
-    
-    for (let i = 0; i < len; i++) {
-      data[i] = temp[i];
-    }
-  };
-  
-  // Inverse 1D Daubechies-4 transform (one level)
-  const idwt1d = (data: Float32Array, len: number): void => {
-    if (len < 4) return;
-    
-    const half = len >> 1;
-    const temp = new Float32Array(len);
-    
-    for (let i = 0; i < half; i++) {
-      const low = data[i];
-      const high = data[half + i];
-      
-      // Reconstruction - interleave low and high pass
-      const j = i * 2;
-      
-      // Even samples
-      temp[j % len] += h2 * low + h1 * high;
-      temp[(j + 2) % len] += h0 * low + h3 * high;
-      
-      // Odd samples  
-      temp[(j + 1) % len] += h3 * low - h0 * high;
-      temp[(j + 3) % len] += h1 * low - h2 * high;
-    }
-    
-    for (let i = 0; i < len; i++) {
-      data[i] = temp[i];
-    }
-  };
-  
-  // 2D forward DWT (one level) - operates on top-left wxh region
-  const dwt2d = (data: Float32Array, w: number, h: number, stride: number): void => {
-    // Transform rows
+    // Horizontal pass
     for (let y = 0; y < h; y++) {
-      const row = new Float32Array(w);
       for (let x = 0; x < w; x++) {
-        row[x] = data[y * stride + x];
-      }
-      dwt1d(row, w);
-      for (let x = 0; x < w; x++) {
-        data[y * stride + x] = row[x];
+        const x0 = Math.max(0, x - 2);
+        const x1 = Math.max(0, x - 1);
+        const x2 = x;
+        const x3 = Math.min(w - 1, x + 1);
+        const x4 = Math.min(w - 1, x + 2);
+        
+        temp[y * w + x] = (
+          data[y * w + x0] * 1 +
+          data[y * w + x1] * 4 +
+          data[y * w + x2] * 6 +
+          data[y * w + x3] * 4 +
+          data[y * w + x4] * 1
+        ) / 16;
       }
     }
     
-    // Transform columns
-    for (let x = 0; x < w; x++) {
-      const col = new Float32Array(h);
-      for (let y = 0; y < h; y++) {
-        col[y] = data[y * stride + x];
-      }
-      dwt1d(col, h);
-      for (let y = 0; y < h; y++) {
-        data[y * stride + x] = col[y];
+    // Vertical pass
+    for (let y = 0; y < h; y++) {
+      const y0 = Math.max(0, y - 2);
+      const y1 = Math.max(0, y - 1);
+      const y2 = y;
+      const y3 = Math.min(h - 1, y + 1);
+      const y4 = Math.min(h - 1, y + 2);
+      
+      for (let x = 0; x < w; x++) {
+        result[y * w + x] = (
+          temp[y0 * w + x] * 1 +
+          temp[y1 * w + x] * 4 +
+          temp[y2 * w + x] * 6 +
+          temp[y3 * w + x] * 4 +
+          temp[y4 * w + x] * 1
+        ) / 16;
       }
     }
+    
+    return result;
   };
   
-  // 2D inverse DWT (one level)
-  const idwt2d = (data: Float32Array, w: number, h: number, stride: number): void => {
-    // Inverse transform columns first
-    for (let x = 0; x < w; x++) {
-      const col = new Float32Array(h);
-      for (let y = 0; y < h; y++) {
-        col[y] = data[y * stride + x];
-      }
-      idwt1d(col, h);
-      for (let y = 0; y < h; y++) {
-        data[y * stride + x] = col[y];
+  // Downsample by 2 (take every other pixel)
+  const downsample = (data: Float32Array, w: number, h: number): { data: Float32Array, w: number, h: number } => {
+    const newW = Math.floor(w / 2);
+    const newH = Math.floor(h / 2);
+    const result = new Float32Array(newW * newH);
+    
+    for (let y = 0; y < newH; y++) {
+      for (let x = 0; x < newW; x++) {
+        result[y * newW + x] = data[(y * 2) * w + (x * 2)];
       }
     }
     
-    // Then inverse transform rows
-    for (let y = 0; y < h; y++) {
-      const row = new Float32Array(w);
-      for (let x = 0; x < w; x++) {
-        row[x] = data[y * stride + x];
-      }
-      idwt1d(row, w);
-      for (let x = 0; x < w; x++) {
-        data[y * stride + x] = row[x];
+    return { data: result, w: newW, h: newH };
+  };
+  
+  // Upsample by 2 with bilinear interpolation
+  const upsample = (data: Float32Array, w: number, h: number, targetW: number, targetH: number): Float32Array => {
+    const result = new Float32Array(targetW * targetH);
+    
+    for (let y = 0; y < targetH; y++) {
+      for (let x = 0; x < targetW; x++) {
+        const srcX = x / 2;
+        const srcY = y / 2;
+        
+        const x0 = Math.floor(srcX);
+        const y0 = Math.floor(srcY);
+        const x1 = Math.min(w - 1, x0 + 1);
+        const y1 = Math.min(h - 1, y0 + 1);
+        
+        const fx = srcX - x0;
+        const fy = srcY - y0;
+        
+        const v00 = data[y0 * w + x0];
+        const v10 = data[y0 * w + x1];
+        const v01 = data[y1 * w + x0];
+        const v11 = data[y1 * w + x1];
+        
+        result[y * targetW + x] = 
+          v00 * (1 - fx) * (1 - fy) +
+          v10 * fx * (1 - fy) +
+          v01 * (1 - fx) * fy +
+          v11 * fx * fy;
       }
     }
+    
+    return result;
   };
   
   const processChannel = (input: Float32Array): Float32Array => {
-    const data = new Float32Array(input);
+    // Build Gaussian pyramid
+    const gaussianPyramid: { data: Float32Array, w: number, h: number }[] = [];
+    gaussianPyramid.push({ data: new Float32Array(input), w: width, h: height });
     
-    // Multi-level forward transform
-    let currentW = width;
-    let currentH = height;
-    
-    for (let level = 0; level < numLevels && currentW >= 4 && currentH >= 4; level++) {
-      dwt2d(data, currentW, currentH, width);
-      currentW = currentW >> 1;
-      currentH = currentH >> 1;
+    for (let level = 0; level < numLevels; level++) {
+      const current = gaussianPyramid[level];
+      if (current.w < 8 || current.h < 8) break;
+      
+      const blurred = gaussianBlur(current.data, current.w, current.h);
+      const down = downsample(blurred, current.w, current.h);
+      gaussianPyramid.push(down);
     }
     
-    // Threshold detail coefficients (everything except the final LL subband)
-    // Apply stronger thresholding to finer scales (higher frequencies)
-    currentW = width;
-    currentH = height;
+    // Build Laplacian pyramid (difference of Gaussians at each level)
+    const laplacianPyramid: { data: Float32Array, w: number, h: number }[] = [];
     
-    for (let level = 0; level < numLevels && currentW >= 4 && currentH >= 4; level++) {
-      const halfW = currentW >> 1;
-      const halfH = currentH >> 1;
+    for (let level = 0; level < gaussianPyramid.length - 1; level++) {
+      const current = gaussianPyramid[level];
+      const next = gaussianPyramid[level + 1];
       
-      // Scale threshold: stronger for fine details (early levels)
-      const levelThreshold = threshold * (1 + (numLevels - level - 1) * 0.5);
+      // Upsample the coarser level
+      const upsampled = upsample(next.data, next.w, next.h, current.w, current.h);
       
-      // Threshold LH (top-right), HL (bottom-left), HH (bottom-right) subbands
-      // LH subband
-      for (let y = 0; y < halfH; y++) {
-        for (let x = halfW; x < currentW; x++) {
-          const idx = y * width + x;
-          if (Math.abs(data[idx]) < levelThreshold) {
-            data[idx] = 0;
-          }
-        }
+      // Laplacian = current - upsampled(next)
+      const laplacian = new Float32Array(current.w * current.h);
+      for (let i = 0; i < laplacian.length; i++) {
+        laplacian[i] = current.data[i] - upsampled[i];
       }
       
-      // HL subband
-      for (let y = halfH; y < currentH; y++) {
-        for (let x = 0; x < halfW; x++) {
-          const idx = y * width + x;
-          if (Math.abs(data[idx]) < levelThreshold) {
-            data[idx] = 0;
-          }
+      laplacianPyramid.push({ data: laplacian, w: current.w, h: current.h });
+    }
+    
+    // Add coarsest Gaussian level as the base
+    laplacianPyramid.push(gaussianPyramid[gaussianPyramid.length - 1]);
+    
+    // Soft thresholding on Laplacian coefficients (not the coarsest level)
+    for (let level = 0; level < laplacianPyramid.length - 1; level++) {
+      const lap = laplacianPyramid[level];
+      
+      // Stronger threshold for finer levels (more detail)
+      const levelThreshold = threshold * Math.pow(1.5, laplacianPyramid.length - 2 - level);
+      
+      for (let i = 0; i < lap.data.length; i++) {
+        const val = lap.data[i];
+        // Soft thresholding: shrink toward zero
+        if (Math.abs(val) < levelThreshold) {
+          lap.data[i] = 0;
+        } else if (val > 0) {
+          lap.data[i] = val - levelThreshold;
+        } else {
+          lap.data[i] = val + levelThreshold;
         }
       }
+    }
+    
+    // Reconstruct from Laplacian pyramid (coarsest to finest)
+    let result = laplacianPyramid[laplacianPyramid.length - 1].data;
+    let resultW = laplacianPyramid[laplacianPyramid.length - 1].w;
+    let resultH = laplacianPyramid[laplacianPyramid.length - 1].h;
+    
+    for (let level = laplacianPyramid.length - 2; level >= 0; level--) {
+      const lap = laplacianPyramid[level];
       
-      // HH subband
-      for (let y = halfH; y < currentH; y++) {
-        for (let x = halfW; x < currentW; x++) {
-          const idx = y * width + x;
-          if (Math.abs(data[idx]) < levelThreshold) {
-            data[idx] = 0;
-          }
-        }
+      // Upsample current result
+      const upsampled = upsample(result, resultW, resultH, lap.w, lap.h);
+      
+      // Add Laplacian details
+      result = new Float32Array(lap.w * lap.h);
+      for (let i = 0; i < result.length; i++) {
+        result[i] = upsampled[i] + lap.data[i];
       }
       
-      currentW = halfW;
-      currentH = halfH;
+      resultW = lap.w;
+      resultH = lap.h;
     }
     
-    // Multi-level inverse transform
-    const sizes: [number, number][] = [];
-    currentW = width;
-    currentH = height;
-    for (let level = 0; level < numLevels && currentW >= 4 && currentH >= 4; level++) {
-      sizes.push([currentW, currentH]);
-      currentW = currentW >> 1;
-      currentH = currentH >> 1;
-    }
-    
-    // Reconstruct from coarsest to finest
-    for (let level = sizes.length - 1; level >= 0; level--) {
-      const [w, h] = sizes[level];
-      idwt2d(data, w, h, width);
-    }
-    
-    return data;
+    return result;
   };
   
   // Extract and process RGB channels
