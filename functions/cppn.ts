@@ -67,7 +67,7 @@ async function cppn(ctx: FnContext, strengthN: number): Promise<Image> {
 
   const rng = seededNormal(ctx.images.length);
   const coordScale = 8.0 + strength * 8.0;
-  const netSize = 32;
+  const netSize = 8;
   const zDim = 8;
   const outDim = 4; // dx, dy displacement + saturation, value modulation
   const displacementStrength = 0.1 + strength * 0.2;
