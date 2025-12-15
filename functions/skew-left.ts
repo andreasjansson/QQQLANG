@@ -17,11 +17,14 @@ import {
   bgRemovalReady,
 } from "./helpers.js";
 
-function skewLeft(ctx: FnContext): Image {
+function skew(ctx: FnContext, amount: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, "#000000");
 
-  const skewAmount = (Math.tan((20 * Math.PI) / 180) * ctx.height) / 2;
+  const normalizedAmount = ((amount - 1) / 67) * 2 - 1;
+  const maxSkewAngle = 45;
+  const skewAngle = normalizedAmount * maxSkewAngle;
+  const skewAmount = (Math.tan((skewAngle * Math.PI) / 180) * ctx.height) / 2;
 
   for (let y = 0; y < ctx.height; y++) {
     const rowSkew = skewAmount * (1 - (2 * y) / ctx.height);
@@ -35,4 +38,4 @@ function skewLeft(ctx: FnContext): Image {
   return out;
 }
 
-export { skewLeft };
+export { skew };
