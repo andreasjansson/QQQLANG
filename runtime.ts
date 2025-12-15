@@ -4,11 +4,6 @@ import type {
   FnContext,
   CharDef,
   OpInfo,
-  ArgType,
-  IntType,
-  ColorType,
-  IndexType,
-  ChoiceType,
   ArgDef,
 } from "./functions/helpers.js";
 import {
@@ -23,6 +18,10 @@ import {
   getUploadIndex,
   getUploadChar,
   getInvalidUploadChar,
+  IntType,
+  ColorType,
+  IndexType,
+  ChoiceType,
 } from "./functions/helpers.js";
 
 interface UploadedImageRef {
