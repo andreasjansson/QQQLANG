@@ -991,5 +991,4 @@ export {
   createPlaceholderImage,
   emeraldReady,
   bgRemovalReady,
-  formatFunctionHelp,
 };
