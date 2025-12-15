@@ -6285,7 +6285,7 @@ function fnCPPN(ctx: FnContext): Image {
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, null);
   
-  const vertexShader = `
+  const vertexShaderSrc = `
     attribute vec2 position;
     varying vec2 vUV;
     void main() {
@@ -6298,7 +6298,7 @@ function fnCPPN(ctx: FnContext): Image {
   // Inputs: x, y, d (distance), r, g, b from prev image, bias
   // Outputs: RGB color
   // All floats - WebGL 1.0 compatible
-  const fragmentShader = `
+  const fragmentShaderSrc = `
     precision highp float;
     uniform sampler2D uTexture;
     uniform vec2 uResolution;
@@ -6371,7 +6371,29 @@ function fnCPPN(ctx: FnContext): Image {
     }
   `;
   
-  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  // Compile shaders with error checking
+  const vertShader = gl.createShader(gl.VERTEX_SHADER)!;
+  gl.shaderSource(vertShader, vertexShaderSrc);
+  gl.compileShader(vertShader);
+  if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
+    console.error('CPPN vertex shader error:', gl.getShaderInfoLog(vertShader));
+  }
+  
+  const fragShader = gl.createShader(gl.FRAGMENT_SHADER)!;
+  gl.shaderSource(fragShader, fragmentShaderSrc);
+  gl.compileShader(fragShader);
+  if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
+    console.error('CPPN fragment shader error:', gl.getShaderInfoLog(fragShader));
+  }
+  
+  const program = gl.createProgram()!;
+  gl.attachShader(program, vertShader);
+  gl.attachShader(program, fragShader);
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    console.error('CPPN program link error:', gl.getProgramInfoLog(program));
+  }
+  
   gl.useProgram(program);
   
   // Upload previous image as texture
