@@ -7183,13 +7183,10 @@ export const characterDefs: Record<string, CharDef> = {
   '&': {
     color: '#4169E1',
     number: 45,
-    fn: fnDLA,
-    args: [
-      { type: INT, documentation: "Shape/particle seed (A-H=shapes, higher=more particles)" },
-      { type: COLOR, documentation: "Aggregate color" }
-    ],
-    functionName: "dla",
-    documentation: "Diffusion-Limited Aggregation creates organic fractal branching structures like coral, lightning, or frost."
+    fn: fnQuadtree,
+    args: [{ type: INT, documentation: "Compression level (A=minimal/detailed, ~=maximal/geometric blocks)" }],
+    functionName: "quadtree-compress",
+    documentation: "Adaptive quadtree compression - detailed areas keep resolution while uniform areas become large blocks, creating geometric patterns."
   },
   
   "'": {
