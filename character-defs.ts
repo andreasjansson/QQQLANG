@@ -6278,191 +6278,139 @@ function fnTilde(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnDLA(ctx: FnContext, n: number, color: string): Image {
-  const prev = getPrevImage(ctx);
-  const out = cloneImage(prev);
-  const { width, height } = ctx;
+function fnCPPN(ctx: FnContext, n: number): Image {
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  // Seeded PRNG for determinism
-  let seed = Math.abs(n) || 1;
-  const random = () => {
-    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-    return seed / 0x7fffffff;
-  };
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
   
-  // Extract parameters from n (1-68)
-  // Bits 0-2: seed shape (8 options)
-  // Bits 3-5: particle count tier
-  // Bits 6+: sticking probability
-  const seedShape = Math.abs(n - 1) % 8;
-  const particleCount = 200 + Math.floor((Math.abs(n - 1) / 8) % 8) * 150;
-  const stickProb = 0.4 + (Math.floor((Math.abs(n - 1) / 64)) % 4) * 0.15;
+  // Use n as seed to generate deterministic network weights
+  const seed = n * 137.5 + ctx.images.length * 17.3;
   
-  // Work at reduced resolution for performance, then upscale
-  const scale = Math.max(1, Math.floor(Math.min(width, height) / 128));
-  const simW = Math.floor(width / scale);
-  const simH = Math.floor(height / scale);
-  
-  // Grid to track aggregate (0 = empty, 1 = aggregate)
-  const grid = new Uint8Array(simW * simH);
-  
-  const cx = Math.floor(simW / 2);
-  const cy = Math.floor(simH / 2);
-  
-  const setSeed = (x: number, y: number) => {
-    if (x >= 0 && x < simW && y >= 0 && y < simH) {
-      grid[y * simW + x] = 1;
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = position * 0.5 + 0.5;
+      gl_Position = vec4(position, 0.0, 1.0);
     }
-  };
+  `;
   
-  // Initialize seed based on shape
-  switch (seedShape) {
-    case 0: // Single point
-      setSeed(cx, cy);
-      break;
-    case 1: // Horizontal line
-      for (let x = cx - 15; x <= cx + 15; x++) setSeed(x, cy);
-      break;
-    case 2: // Vertical line
-      for (let y = cy - 15; y <= cy + 15; y++) setSeed(cx, y);
-      break;
-    case 3: // Small circle
-      for (let a = 0; a < 360; a += 15) {
-        const x = cx + Math.round(8 * Math.cos(a * Math.PI / 180));
-        const y = cy + Math.round(8 * Math.sin(a * Math.PI / 180));
-        setSeed(x, y);
-      }
-      break;
-    case 4: // Cross
-      for (let i = -12; i <= 12; i++) {
-        setSeed(cx + i, cy);
-        setSeed(cx, cy + i);
-      }
-      break;
-    case 5: // Diagonal X
-      for (let i = -12; i <= 12; i++) {
-        setSeed(cx + i, cy + i);
-        setSeed(cx + i, cy - i);
-      }
-      break;
-    case 6: // Four corners
-      setSeed(cx - 15, cy - 15);
-      setSeed(cx + 15, cy - 15);
-      setSeed(cx - 15, cy + 15);
-      setSeed(cx + 15, cy + 15);
-      break;
-    case 7: // Ring
-      for (let a = 0; a < 360; a += 8) {
-        const x = cx + Math.round(20 * Math.cos(a * Math.PI / 180));
-        const y = cy + Math.round(20 * Math.sin(a * Math.PI / 180));
-        setSeed(x, y);
-      }
-      break;
-  }
-  
-  // Track aggregate bounds for efficient spawn radius
-  let minAggX = cx, maxAggX = cx, minAggY = cy, maxAggY = cy;
-  for (let y = 0; y < simH; y++) {
-    for (let x = 0; x < simW; x++) {
-      if (grid[y * simW + x] === 1) {
-        minAggX = Math.min(minAggX, x);
-        maxAggX = Math.max(maxAggX, x);
-        minAggY = Math.min(minAggY, y);
-        maxAggY = Math.max(maxAggY, y);
-      }
-    }
-  }
-  
-  // DLA simulation
-  const margin = 10;
-  const killRadius = Math.max(simW, simH) * 0.6;
-  
-  for (let p = 0; p < particleCount; p++) {
-    // Spawn radius just outside current aggregate bounds
-    const aggRadius = Math.max(maxAggX - minAggX, maxAggY - minAggY) / 2 + margin;
-    const spawnRadius = Math.min(aggRadius + 5, killRadius - 5);
+  // CPPN fragment shader with multiple activation functions
+  // Inputs: x, y, distance from center (d), bias
+  // Outputs: RGB color
+  const fragmentShader = `
+    precision highp float;
+    uniform vec2 uResolution;
+    uniform float uSeed;
+    varying vec2 vUV;
     
-    // Start particle at random position on spawn circle
-    const angle = random() * 2 * Math.PI;
-    let x = Math.floor(cx + spawnRadius * Math.cos(angle));
-    let y = Math.floor(cy + spawnRadius * Math.sin(angle));
+    // Deterministic hash for weight generation
+    float hash(float n) {
+      return fract(sin(n * 127.1 + uSeed) * 43758.5453);
+    }
     
-    let steps = 0;
-    const maxSteps = simW * simH * 2;
+    // Generate weight in range [-2, 2] from index
+    float weight(int i) {
+      return (hash(float(i)) * 4.0 - 2.0);
+    }
     
-    while (steps < maxSteps) {
-      // Check if adjacent to aggregate
-      let adjacent = false;
-      for (let dy = -1; dy <= 1 && !adjacent; dy++) {
-        for (let dx = -1; dx <= 1 && !adjacent; dx++) {
-          if (dx === 0 && dy === 0) continue;
-          const nx = x + dx;
-          const ny = y + dy;
-          if (nx >= 0 && nx < simW && ny >= 0 && ny < simH) {
-            if (grid[ny * simW + nx] === 1) {
-              adjacent = true;
-            }
-          }
-        }
-      }
+    // Activation functions
+    float actSin(float x) { return sin(x * 3.14159); }
+    float actCos(float x) { return cos(x * 3.14159); }
+    float actGaussian(float x) { return exp(-x * x * 2.0); }
+    float actSigmoid(float x) { return 1.0 / (1.0 + exp(-x * 4.0)); }
+    float actTanh(float x) { return tanh(x * 2.0); }
+    float actAbs(float x) { return abs(x); }
+    float actSawtooth(float x) { return 2.0 * (x - floor(x + 0.5)); }
+    
+    // Select activation based on index mod 7
+    float activate(float x, int actType) {
+      int t = actType - (actType / 7) * 7; // mod 7
+      if (t == 0) return actSin(x);
+      if (t == 1) return actCos(x);
+      if (t == 2) return actGaussian(x);
+      if (t == 3) return actSigmoid(x);
+      if (t == 4) return actTanh(x);
+      if (t == 5) return actAbs(x);
+      return actSawtooth(x);
+    }
+    
+    void main() {
+      // Normalize coordinates to [-1, 1]
+      float aspect = uResolution.x / uResolution.y;
+      float x = (vUV.x * 2.0 - 1.0) * aspect;
+      float y = vUV.y * 2.0 - 1.0;
+      float d = sqrt(x * x + y * y);
+      float bias = 1.0;
       
-      if (adjacent && random() < stickProb) {
-        // Stick to aggregate
-        if (x >= 0 && x < simW && y >= 0 && y < simH) {
-          grid[y * simW + x] = 1;
-          // Update bounds
-          minAggX = Math.min(minAggX, x);
-          maxAggX = Math.max(maxAggX, x);
-          minAggY = Math.min(minAggY, y);
-          maxAggY = Math.max(maxAggY, y);
-        }
-        break;
-      }
+      // Layer 1: 4 inputs -> 8 hidden nodes
+      float h1_0 = activate(weight(0)*x + weight(1)*y + weight(2)*d + weight(3)*bias, int(hash(100.0) * 100.0));
+      float h1_1 = activate(weight(4)*x + weight(5)*y + weight(6)*d + weight(7)*bias, int(hash(101.0) * 100.0));
+      float h1_2 = activate(weight(8)*x + weight(9)*y + weight(10)*d + weight(11)*bias, int(hash(102.0) * 100.0));
+      float h1_3 = activate(weight(12)*x + weight(13)*y + weight(14)*d + weight(15)*bias, int(hash(103.0) * 100.0));
+      float h1_4 = activate(weight(16)*x + weight(17)*y + weight(18)*d + weight(19)*bias, int(hash(104.0) * 100.0));
+      float h1_5 = activate(weight(20)*x + weight(21)*y + weight(22)*d + weight(23)*bias, int(hash(105.0) * 100.0));
+      float h1_6 = activate(weight(24)*x + weight(25)*y + weight(26)*d + weight(27)*bias, int(hash(106.0) * 100.0));
+      float h1_7 = activate(weight(28)*x + weight(29)*y + weight(30)*d + weight(31)*bias, int(hash(107.0) * 100.0));
       
-      // Random walk (4-connected)
-      const dir = Math.floor(random() * 4);
-      switch (dir) {
-        case 0: x++; break;
-        case 1: x--; break;
-        case 2: y++; break;
-        case 3: y--; break;
-      }
+      // Layer 2: 8 hidden -> 8 hidden
+      float h2_0 = activate(weight(32)*h1_0 + weight(33)*h1_1 + weight(34)*h1_2 + weight(35)*h1_3 + weight(36)*h1_4 + weight(37)*h1_5 + weight(38)*h1_6 + weight(39)*h1_7, int(hash(108.0) * 100.0));
+      float h2_1 = activate(weight(40)*h1_0 + weight(41)*h1_1 + weight(42)*h1_2 + weight(43)*h1_3 + weight(44)*h1_4 + weight(45)*h1_5 + weight(46)*h1_6 + weight(47)*h1_7, int(hash(109.0) * 100.0));
+      float h2_2 = activate(weight(48)*h1_0 + weight(49)*h1_1 + weight(50)*h1_2 + weight(51)*h1_3 + weight(52)*h1_4 + weight(53)*h1_5 + weight(54)*h1_6 + weight(55)*h1_7, int(hash(110.0) * 100.0));
+      float h2_3 = activate(weight(56)*h1_0 + weight(57)*h1_1 + weight(58)*h1_2 + weight(59)*h1_3 + weight(60)*h1_4 + weight(61)*h1_5 + weight(62)*h1_6 + weight(63)*h1_7, int(hash(111.0) * 100.0));
+      float h2_4 = activate(weight(64)*h1_0 + weight(65)*h1_1 + weight(66)*h1_2 + weight(67)*h1_3 + weight(68)*h1_4 + weight(69)*h1_5 + weight(70)*h1_6 + weight(71)*h1_7, int(hash(112.0) * 100.0));
+      float h2_5 = activate(weight(72)*h1_0 + weight(73)*h1_1 + weight(74)*h1_2 + weight(75)*h1_3 + weight(76)*h1_4 + weight(77)*h1_5 + weight(78)*h1_6 + weight(79)*h1_7, int(hash(113.0) * 100.0));
+      float h2_6 = activate(weight(80)*h1_0 + weight(81)*h1_1 + weight(82)*h1_2 + weight(83)*h1_3 + weight(84)*h1_4 + weight(85)*h1_5 + weight(86)*h1_6 + weight(87)*h1_7, int(hash(114.0) * 100.0));
+      float h2_7 = activate(weight(88)*h1_0 + weight(89)*h1_1 + weight(90)*h1_2 + weight(91)*h1_3 + weight(92)*h1_4 + weight(93)*h1_5 + weight(94)*h1_6 + weight(95)*h1_7, int(hash(115.0) * 100.0));
       
-      // Kill if too far from center
-      const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-      if (dist > killRadius) {
-        // Respawn
-        const angle = random() * 2 * Math.PI;
-        x = Math.floor(cx + spawnRadius * Math.cos(angle));
-        y = Math.floor(cy + spawnRadius * Math.sin(angle));
-      }
+      // Output layer: 8 hidden -> 3 RGB (using sigmoid for [0,1] output)
+      float r = 1.0 / (1.0 + exp(-(weight(96)*h2_0 + weight(97)*h2_1 + weight(98)*h2_2 + weight(99)*h2_3 + weight(100)*h2_4 + weight(101)*h2_5 + weight(102)*h2_6 + weight(103)*h2_7)));
+      float g = 1.0 / (1.0 + exp(-(weight(104)*h2_0 + weight(105)*h2_1 + weight(106)*h2_2 + weight(107)*h2_3 + weight(108)*h2_4 + weight(109)*h2_5 + weight(110)*h2_6 + weight(111)*h2_7)));
+      float b = 1.0 / (1.0 + exp(-(weight(112)*h2_0 + weight(113)*h2_1 + weight(114)*h2_2 + weight(115)*h2_3 + weight(116)*h2_4 + weight(117)*h2_5 + weight(118)*h2_6 + weight(119)*h2_7)));
       
-      steps++;
+      gl_FragColor = vec4(r, g, b, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  // Flip vertically (WebGL has Y-up)
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  for (let y = 0; y < ctx.height; y++) {
+    for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  // Render aggregate with color, upscaling to output resolution
-  const [r, g, b] = hexToRgb(color);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
   
-  for (let sy = 0; sy < simH; sy++) {
-    for (let sx = 0; sx < simW; sx++) {
-      if (grid[sy * simW + sx] === 1) {
-        // Fill corresponding output pixels
-        const outX0 = sx * scale;
-        const outY0 = sy * scale;
-        const outX1 = Math.min((sx + 1) * scale, width);
-        const outY1 = Math.min((sy + 1) * scale, height);
-        
-        for (let oy = outY0; oy < outY1; oy++) {
-          for (let ox = outX0; ox < outX1; ox++) {
-            setPixel(out, ox, oy, r, g, b);
-          }
-        }
-      }
-    }
-  }
-  
-  return out;
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fnCond(ctx: FnContext, condImg: Image, trueImg: Image, falseImg: Image, channel: string, thresholdN: number): Image {
