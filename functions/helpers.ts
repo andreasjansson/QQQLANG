@@ -345,15 +345,15 @@ export function hslToRgb(h: number, s: number, l: number): [number, number, numb
   return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
-let emeraldScene: THREE.Scene | null = null;
-let emeraldRenderer: THREE.WebGLRenderer | null = null;
-let emeraldCamera: THREE.PerspectiveCamera | null = null;
-let emeraldModel: THREE.Group | null = null;
-let emeraldModelLoaded = false;
-let emeraldLoadPromise: Promise<void> | null = null;
-let emeraldComposer: EffectComposer | null = null;
+export let emeraldScene: THREE.Scene | null = null;
+export let emeraldRenderer: THREE.WebGLRenderer | null = null;
+export let emeraldCamera: THREE.PerspectiveCamera | null = null;
+export let emeraldModel: THREE.Group | null = null;
+export let emeraldModelLoaded = false;
+export let emeraldLoadPromise: Promise<void> | null = null;
+export let emeraldComposer: EffectComposer | null = null;
 
-function initEmeraldScene(width: number, height: number) {
+export function initEmeraldScene(width: number, height: number) {
   if (
     !emeraldRenderer ||
     emeraldRenderer.domElement.width !== width ||
