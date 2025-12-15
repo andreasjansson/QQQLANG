@@ -343,7 +343,7 @@ function fnA(ctx: FnContext): Image {
       );
       
       vec3 color = texture2D(tex, texCoord).rgb;
-      return color * lighting + vec3(1.0) * specular * 0.8;
+      return color * lighting + vec3(1.0) * specular * 0.5;
     }
     
     void main() {
