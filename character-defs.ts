@@ -6420,11 +6420,10 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   
   const out = createSolidImage(width, height, '#000000');
   for (let i = 0; i < width * height; i++) {
-    const gray = Math.round(outputData[i]);
     const outIdx = i * 4;
-    out.data[outIdx] = gray;
-    out.data[outIdx + 1] = gray;
-    out.data[outIdx + 2] = gray;
+    out.data[outIdx] = Math.round(outputData[i * 3]);
+    out.data[outIdx + 1] = Math.round(outputData[i * 3 + 1]);
+    out.data[outIdx + 2] = Math.round(outputData[i * 3 + 2]);
     out.data[outIdx + 3] = 255;
   }
   
