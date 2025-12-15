@@ -6304,11 +6304,11 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
   }
   
   const rng = seededNormal(ctx.images.length);
-  const coordScale = 8.0;
+  const coordScale = 8.0 + strength * 8.0;
   const netSize = 32;
   const zDim = 8;
   const outDim = 4; // dx, dy displacement + saturation, value modulation
-  const displacementStrength = 0.1;
+  const displacementStrength = 0.1 + strength * 0.2;
   
   // Derive z from input image for determinism
   let sumR = 0, sumG = 0, sumB = 0;
