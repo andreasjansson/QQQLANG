@@ -6213,6 +6213,193 @@ function fnTilde(ctx: FnContext, n: number): Image {
   return out;
 }
 
+function fnDLA(ctx: FnContext, n: number, color: string): Image {
+  const prev = getPrevImage(ctx);
+  const out = cloneImage(prev);
+  const { width, height } = ctx;
+  
+  // Seeded PRNG for determinism
+  let seed = Math.abs(n) || 1;
+  const random = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return seed / 0x7fffffff;
+  };
+  
+  // Extract parameters from n (1-68)
+  // Bits 0-2: seed shape (8 options)
+  // Bits 3-5: particle count tier
+  // Bits 6+: sticking probability
+  const seedShape = Math.abs(n - 1) % 8;
+  const particleCount = 200 + Math.floor((Math.abs(n - 1) / 8) % 8) * 150;
+  const stickProb = 0.4 + (Math.floor((Math.abs(n - 1) / 64)) % 4) * 0.15;
+  
+  // Work at reduced resolution for performance, then upscale
+  const scale = Math.max(1, Math.floor(Math.min(width, height) / 128));
+  const simW = Math.floor(width / scale);
+  const simH = Math.floor(height / scale);
+  
+  // Grid to track aggregate (0 = empty, 1 = aggregate)
+  const grid = new Uint8Array(simW * simH);
+  
+  const cx = Math.floor(simW / 2);
+  const cy = Math.floor(simH / 2);
+  
+  const setSeed = (x: number, y: number) => {
+    if (x >= 0 && x < simW && y >= 0 && y < simH) {
+      grid[y * simW + x] = 1;
+    }
+  };
+  
+  // Initialize seed based on shape
+  switch (seedShape) {
+    case 0: // Single point
+      setSeed(cx, cy);
+      break;
+    case 1: // Horizontal line
+      for (let x = cx - 15; x <= cx + 15; x++) setSeed(x, cy);
+      break;
+    case 2: // Vertical line
+      for (let y = cy - 15; y <= cy + 15; y++) setSeed(cx, y);
+      break;
+    case 3: // Small circle
+      for (let a = 0; a < 360; a += 15) {
+        const x = cx + Math.round(8 * Math.cos(a * Math.PI / 180));
+        const y = cy + Math.round(8 * Math.sin(a * Math.PI / 180));
+        setSeed(x, y);
+      }
+      break;
+    case 4: // Cross
+      for (let i = -12; i <= 12; i++) {
+        setSeed(cx + i, cy);
+        setSeed(cx, cy + i);
+      }
+      break;
+    case 5: // Diagonal X
+      for (let i = -12; i <= 12; i++) {
+        setSeed(cx + i, cy + i);
+        setSeed(cx + i, cy - i);
+      }
+      break;
+    case 6: // Four corners
+      setSeed(cx - 15, cy - 15);
+      setSeed(cx + 15, cy - 15);
+      setSeed(cx - 15, cy + 15);
+      setSeed(cx + 15, cy + 15);
+      break;
+    case 7: // Ring
+      for (let a = 0; a < 360; a += 8) {
+        const x = cx + Math.round(20 * Math.cos(a * Math.PI / 180));
+        const y = cy + Math.round(20 * Math.sin(a * Math.PI / 180));
+        setSeed(x, y);
+      }
+      break;
+  }
+  
+  // Track aggregate bounds for efficient spawn radius
+  let minAggX = cx, maxAggX = cx, minAggY = cy, maxAggY = cy;
+  for (let y = 0; y < simH; y++) {
+    for (let x = 0; x < simW; x++) {
+      if (grid[y * simW + x] === 1) {
+        minAggX = Math.min(minAggX, x);
+        maxAggX = Math.max(maxAggX, x);
+        minAggY = Math.min(minAggY, y);
+        maxAggY = Math.max(maxAggY, y);
+      }
+    }
+  }
+  
+  // DLA simulation
+  const margin = 10;
+  const killRadius = Math.max(simW, simH) * 0.6;
+  
+  for (let p = 0; p < particleCount; p++) {
+    // Spawn radius just outside current aggregate bounds
+    const aggRadius = Math.max(maxAggX - minAggX, maxAggY - minAggY) / 2 + margin;
+    const spawnRadius = Math.min(aggRadius + 5, killRadius - 5);
+    
+    // Start particle at random position on spawn circle
+    const angle = random() * 2 * Math.PI;
+    let x = Math.floor(cx + spawnRadius * Math.cos(angle));
+    let y = Math.floor(cy + spawnRadius * Math.sin(angle));
+    
+    let steps = 0;
+    const maxSteps = simW * simH * 2;
+    
+    while (steps < maxSteps) {
+      // Check if adjacent to aggregate
+      let adjacent = false;
+      for (let dy = -1; dy <= 1 && !adjacent; dy++) {
+        for (let dx = -1; dx <= 1 && !adjacent; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < simW && ny >= 0 && ny < simH) {
+            if (grid[ny * simW + nx] === 1) {
+              adjacent = true;
+            }
+          }
+        }
+      }
+      
+      if (adjacent && random() < stickProb) {
+        // Stick to aggregate
+        if (x >= 0 && x < simW && y >= 0 && y < simH) {
+          grid[y * simW + x] = 1;
+          // Update bounds
+          minAggX = Math.min(minAggX, x);
+          maxAggX = Math.max(maxAggX, x);
+          minAggY = Math.min(minAggY, y);
+          maxAggY = Math.max(maxAggY, y);
+        }
+        break;
+      }
+      
+      // Random walk (4-connected)
+      const dir = Math.floor(random() * 4);
+      switch (dir) {
+        case 0: x++; break;
+        case 1: x--; break;
+        case 2: y++; break;
+        case 3: y--; break;
+      }
+      
+      // Kill if too far from center
+      const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+      if (dist > killRadius) {
+        // Respawn
+        const angle = random() * 2 * Math.PI;
+        x = Math.floor(cx + spawnRadius * Math.cos(angle));
+        y = Math.floor(cy + spawnRadius * Math.sin(angle));
+      }
+      
+      steps++;
+    }
+  }
+  
+  // Render aggregate with color, upscaling to output resolution
+  const [r, g, b] = hexToRgb(color);
+  
+  for (let sy = 0; sy < simH; sy++) {
+    for (let sx = 0; sx < simW; sx++) {
+      if (grid[sy * simW + sx] === 1) {
+        // Fill corresponding output pixels
+        const outX0 = sx * scale;
+        const outY0 = sy * scale;
+        const outX1 = Math.min((sx + 1) * scale, width);
+        const outY1 = Math.min((sy + 1) * scale, height);
+        
+        for (let oy = outY0; oy < outY1; oy++) {
+          for (let ox = outX0; ox < outX1; ox++) {
+            setPixel(out, ox, oy, r, g, b);
+          }
+        }
+      }
+    }
+  }
+  
+  return out;
+}
+
 function fnCond(ctx: FnContext, condImg: Image, trueImg: Image, falseImg: Image, channel: string, thresholdN: number): Image {
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
