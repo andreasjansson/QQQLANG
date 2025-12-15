@@ -6376,9 +6376,9 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
     const rMat: number[] = [];
     
     for (let py = 0; py < height; py++) {
-      const yVal = scale * (py - (height - 1) / 2.0) / (height - 1) / 0.5;
+      const yVal = coordScale * (py - (height - 1) / 2.0) / (height - 1) / 0.5;
       for (let px = 0; px < width; px++) {
-        const xVal = scale * (px - (width - 1) / 2.0) / (width - 1) / 0.5;
+        const xVal = coordScale * (px - (width - 1) / 2.0) / (width - 1) / 0.5;
         xMat.push(xVal);
         yMat.push(yVal);
         rMat.push(Math.sqrt(xVal * xVal + yVal * yVal));
@@ -6389,7 +6389,7 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
     const yTensor = tf.tensor2d(yMat, [nPoints, 1]);
     const rTensor = tf.tensor2d(rMat, [nPoints, 1]);
     
-    const zScaled = tf.tensor2d(zData, [1, zDim]).mul(scale);
+    const zScaled = tf.tensor2d(zData, [1, zDim]).mul(coordScale);
     const zBroadcast = tf.tile(zScaled, [nPoints, 1]);
     
     const Uz = tf.add(tf.matMul(zBroadcast, W_z), B_z);
