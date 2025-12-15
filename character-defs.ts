@@ -357,7 +357,7 @@ function fnA(ctx: FnContext): Image {
       
       vec2 topRight = vec2(0.75, 0.75);
       vec2 bottomLeft = vec2(0.25, 0.25);
-      float radius = 0.15;
+      float radius = 0.195;
       float rotationAmount = 0.3 * 2.0 * 3.14159;
       
       vec3 sphere1 = renderSphere(uv, topRight, radius, texture, rotationAmount);
