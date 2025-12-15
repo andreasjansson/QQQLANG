@@ -6290,106 +6290,91 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-// Create deterministic weight matrix
-function createWeights(rows: number, cols: number, rng: () => number): number[][] {
-  const weights: number[][] = [];
-  for (let i = 0; i < rows; i++) {
-    weights[i] = [];
-    for (let j = 0; j < cols; j++) {
-      weights[i][j] = rng();
-    }
-  }
-  return weights;
-}
+// Pre-computed CPPN weights (fixed seed = 42)
+let cppnWeights: { W1: tf.Tensor2D, B1: tf.Tensor1D, W2: tf.Tensor2D, B2: tf.Tensor1D, W3: tf.Tensor2D, B3: tf.Tensor1D } | null = null;
 
-// Create deterministic bias vector
-function createBias(size: number, rng: () => number): number[] {
-  const bias: number[] = [];
-  for (let i = 0; i < size; i++) {
-    bias[i] = rng();
-  }
-  return bias;
+function getCPPNWeights() {
+  if (cppnWeights) return cppnWeights;
+  
+  const rng = seededRandom(42);
+  const inputSize = 7, hidden1Size = 32, hidden2Size = 32, outputSize = 3;
+  
+  const w1Data = new Float32Array(inputSize * hidden1Size);
+  const b1Data = new Float32Array(hidden1Size);
+  const w2Data = new Float32Array(hidden1Size * hidden2Size);
+  const b2Data = new Float32Array(hidden2Size);
+  const w3Data = new Float32Array(hidden2Size * outputSize);
+  const b3Data = new Float32Array(outputSize);
+  
+  for (let i = 0; i < w1Data.length; i++) w1Data[i] = rng();
+  for (let i = 0; i < b1Data.length; i++) b1Data[i] = rng();
+  for (let i = 0; i < w2Data.length; i++) w2Data[i] = rng();
+  for (let i = 0; i < b2Data.length; i++) b2Data[i] = rng();
+  for (let i = 0; i < w3Data.length; i++) w3Data[i] = rng();
+  for (let i = 0; i < b3Data.length; i++) b3Data[i] = rng();
+  
+  cppnWeights = {
+    W1: tf.tensor2d(w1Data, [inputSize, hidden1Size]),
+    B1: tf.tensor1d(b1Data),
+    W2: tf.tensor2d(w2Data, [hidden1Size, hidden2Size]),
+    B2: tf.tensor1d(b2Data),
+    W3: tf.tensor2d(w3Data, [hidden2Size, outputSize]),
+    B3: tf.tensor1d(b3Data),
+  };
+  
+  return cppnWeights;
 }
 
 async function fnCPPN(ctx: FnContext): Promise<Image> {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
-  
-  // Fixed seed for deterministic weights
-  const rng = seededRandom(42);
-  
-  // Network architecture: 7 inputs -> 32 hidden -> 32 hidden -> 3 outputs
-  const inputSize = 7;  // x, y, r, inR, inG, inB, bias
-  const hidden1Size = 32;
-  const hidden2Size = 32;
-  const outputSize = 3;  // R, G, B
-  
-  // Create deterministic weights
-  const w1 = createWeights(inputSize, hidden1Size, rng);
-  const b1 = createBias(hidden1Size, rng);
-  const w2 = createWeights(hidden1Size, hidden2Size, rng);
-  const b2 = createBias(hidden2Size, rng);
-  const w3 = createWeights(hidden2Size, outputSize, rng);
-  const b3 = createBias(outputSize, rng);
-  
-  // Generate input coordinates
-  const inputData: number[][] = [];
   const aspect = width / height;
   
-  for (let py = 0; py < height; py++) {
-    for (let px = 0; px < width; px++) {
-      const x = ((px / width) * 2 - 1) * aspect;
-      const y = (py / height) * 2 - 1;
-      const r = Math.sqrt(x * x + y * y);
-      
-      // Sample input image
-      const [inR, inG, inB] = getPixel(prev, px, py);
-      const nR = inR / 255 * 2 - 1;
-      const nG = inG / 255 * 2 - 1;
-      const nB = inB / 255 * 2 - 1;
-      
-      inputData.push([x, y, r, nR, nG, nB, 1.0]);
-    }
-  }
+  const weights = getCPPNWeights();
   
-  // Run network using TensorFlow.js
-  const output = tf.tidy(() => {
-    const inputs = tf.tensor2d(inputData);
+  // Run everything on GPU
+  const outputTensor = tf.tidy(() => {
+    // Generate coordinate grids on GPU
+    const xCoords = tf.linspace(-aspect, aspect, width);
+    const yCoords = tf.linspace(-1, 1, height);
+    const [xGrid, yGrid] = tf.meshgrid(xCoords, yCoords);
     
-    const W1 = tf.tensor2d(w1);
-    const B1 = tf.tensor1d(b1);
-    const W2 = tf.tensor2d(w2);
-    const B2 = tf.tensor1d(b2);
-    const W3 = tf.tensor2d(w3);
-    const B3 = tf.tensor1d(b3);
+    const x = xGrid.reshape([-1, 1]);
+    const y = yGrid.reshape([-1, 1]);
+    const r = tf.sqrt(tf.add(tf.square(x), tf.square(y)));
     
-    // Hidden layer 1 with sin activation (creates periodic patterns)
-    const h1 = tf.sin(tf.add(tf.matMul(inputs, W1), B1).mul(3.0));
+    // Convert input image to tensor and reshape
+    const imgTensor = tf.tensor3d(prev.data, [height, width, 4]);
+    const rgb = imgTensor.slice([0, 0, 0], [-1, -1, 3]).div(255).mul(2).sub(1);
+    const rgbFlat = rgb.reshape([-1, 3]);
     
-    // Hidden layer 2 with tanh activation
-    const h2 = tf.tanh(tf.add(tf.matMul(h1, W2), B2));
+    // Bias column
+    const bias = tf.ones([width * height, 1]);
     
-    // Output layer with sigmoid to get [0, 1] range
-    const out = tf.sigmoid(tf.add(tf.matMul(h2, W3), B3));
+    // Concatenate inputs: [x, y, r, inR, inG, inB, bias]
+    const inputs = tf.concat([x, y, r, rgbFlat, bias], 1);
     
-    return out;
+    // Forward pass
+    const h1 = tf.sin(tf.add(tf.matMul(inputs, weights.W1), weights.B1).mul(3.0));
+    const h2 = tf.tanh(tf.add(tf.matMul(h1, weights.W2), weights.B2));
+    const out = tf.sigmoid(tf.add(tf.matMul(h2, weights.W3), weights.B3));
+    
+    // Reshape to image and scale to [0, 255]
+    return out.reshape([height, width, 3]).mul(255);
   });
   
-  // Extract output data
-  const outputData = await output.data();
-  output.dispose();
+  // Single GPU->CPU transfer
+  const outputData = await outputTensor.data();
+  outputTensor.dispose();
   
   // Create output image
   const out = createSolidImage(width, height, '#000000');
-  
-  for (let py = 0; py < height; py++) {
-    for (let px = 0; px < width; px++) {
-      const idx = py * width + px;
-      const r = Math.round(outputData[idx * 3 + 0] * 255);
-      const g = Math.round(outputData[idx * 3 + 1] * 255);
-      const b = Math.round(outputData[idx * 3 + 2] * 255);
-      setPixel(out, px, py, r, g, b);
-    }
+  for (let i = 0; i < width * height; i++) {
+    const outIdx = i * 4;
+    out.data[outIdx] = Math.round(outputData[i * 3]);
+    out.data[outIdx + 1] = Math.round(outputData[i * 3 + 1]);
+    out.data[outIdx + 2] = Math.round(outputData[i * 3 + 2]);
+    out.data[outIdx + 3] = 255;
   }
   
   return out;
