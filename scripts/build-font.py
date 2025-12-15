@@ -355,7 +355,11 @@ def build_font():
         
         # Dot parameters
         dot_radius = int(units_per_em * 0.06)  # Small dot
-        dot_center_x = units_per_em // 2  # Center horizontally
+        # Center dot based on actual character bounds, not em-square
+        if hasattr(original_glyph, 'xMin') and hasattr(original_glyph, 'xMax'):
+            dot_center_x = (original_glyph.xMin + original_glyph.xMax) // 2
+        else:
+            dot_center_x = units_per_em // 2  # Fallback to em-square center
         dot_center_y = int(-units_per_em * 0.15)  # Below baseline
         
         # Create circular dot with 8 points
