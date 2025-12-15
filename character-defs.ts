@@ -6920,10 +6920,10 @@ export const characterDefs: Record<string, CharDef> = {
     number: 24,
     fn: fnX,
     args: [
-      { type: INT, documentation: "Compression level (A=minimal/high quality, ~=maximal/heavy artifacts)" }
+      { type: INT, documentation: "Compression level (A=minimal/high quality, ~=maximal/ringing artifacts)" }
     ],
-    functionName: "hadamard-compress",
-    documentation: "Walsh-Hadamard transform compression using binary basis functions, creating sharp geometric and checkerboard-like artifacts."
+    functionName: "wavelet-compress",
+    documentation: "Daubechies-4 wavelet compression with coefficient thresholding, creating smooth ringing and halo artifacts around edges."
   },
   
   'Y': {
