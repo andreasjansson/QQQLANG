@@ -2505,9 +2505,9 @@ function fnQuadtree(ctx: FnContext, n: number): Image {
   // Base threshold - higher means more merging
   const baseThreshold = compressionLevel * 3000;
   
-  // Non-linear exponent: larger blocks need much lower variance to merge
-  // This preserves fine detail even at high compression
-  const exponent = 1.5 + compressionLevel * 0.5;
+  // Non-linear exponent: larger blocks need lower variance to merge
+  // Lower exponent = less aggressive detail preservation
+  const exponent = 0.5 + compressionLevel * 0.3;
   
   const maxBlockSize = Math.max(width, height);
   
