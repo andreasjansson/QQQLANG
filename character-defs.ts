@@ -2498,9 +2498,9 @@ function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
-  // Map n (1-68) to compression: A=minimal, ~=maximal
-  // Keep percentage of coefficients based on n
-  const keepRatio = n / 68;
+  // Map n (1-68) to compression: A=minimal compression (high quality), ~=maximal compression (artifacts)
+  // At n=1, keep nearly all coefficients; at n=68, keep almost none
+  const keepRatio = Math.pow(1 - (n - 1) / 67, 3);
   
   // Find the largest power of 2 that fits in both dimensions
   const blockSize = Math.pow(2, Math.floor(Math.log2(Math.min(width, height))));
