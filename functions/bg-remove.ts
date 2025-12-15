@@ -216,7 +216,7 @@ async function bgRemove(ctx: FnContext, old: Image): Promise<Image> {
   const endTime = performance.now();
   console.log(`SINet inference took ${(endTime - startTime).toFixed(1)}ms`);
 
-  sinetInferenceInProgress = false;
+  setSinetInferenceInProgress(false);
 
   return {
     width: ctx.width,
