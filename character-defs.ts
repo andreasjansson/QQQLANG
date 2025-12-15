@@ -6854,9 +6854,9 @@ export const characterDefs: Record<string, CharDef> = {
         'vertical-blur', 'circular-blur', 'horizontal-blur', 'rectangular-blur',
         'diamond-blur', 'hexagon-blur',
         'diamond-solid', 'hexagon-solid',
-        'sine-top-blur', 'sine-bottom-blur',
-        'sine-top-solid', 'sine-bottom-solid',
-        'sine-top-tri', 'sine-bottom-tri'
+        'sine-vertical-blur', 'sine-horizontal-blur',
+        'sine-vertical-solid', 'sine-horizontal-solid',
+        'sine-vertical-tri', 'sine-horizontal-tri'
       ), documentation: "Border shape style" },
       { type: COLOR, documentation: "Border tint color" }
     ],
