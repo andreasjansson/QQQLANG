@@ -7181,11 +7181,15 @@ export const characterDefs: Record<string, CharDef> = {
           const luminance = r * 0.299 + g * 0.587 + b * 0.114;
           const factor = luminance / 255;
           
-          setPixel(out, x, y,
-            Math.round(tr * factor),
-            Math.round(tg * factor),
-            Math.round(tb * factor)
-          );
+          const tintedR = tr * factor;
+          const tintedG = tg * factor;
+          const tintedB = tb * factor;
+          
+          const [h, s, l] = rgbToHsl(tintedR, tintedG, tintedB);
+          const boostedS = Math.min(1, s * 1.2);
+          const [finalR, finalG, finalB] = hslToRgb(h, boostedS, l);
+          
+          setPixel(out, x, y, finalR, finalG, finalB);
         }
       }
       
@@ -7193,7 +7197,7 @@ export const characterDefs: Record<string, CharDef> = {
     },
     args: [{ type: COLOR, documentation: "Tint color applied based on luminance" }],
     functionName: "colorize",
-    documentation: "Converts to grayscale luminance and tints with the specified color."
+    documentation: "Converts to grayscale luminance, tints with the specified color, and boosts saturation by 20%."
   },
   
   '2': {
