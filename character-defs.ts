@@ -2498,69 +2498,88 @@ function fnX(ctx: FnContext, n: number): Image {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
-  // Map n (1-68) to compression: A=minimal compression (high quality), ~=maximal compression (artifacts)
-  // At n=1, keep nearly all coefficients; at n=68, keep almost none
-  const keepRatio = Math.pow(1 - (n - 1) / 67, 3);
+  // Map n (1-68): A=minimal compression (high quality), ~=maximal compression (artifacts)
+  const compressionLevel = (n - 1) / 67;
   
-  // Find the largest power of 2 that fits in both dimensions
-  const blockSize = Math.pow(2, Math.floor(Math.log2(Math.min(width, height))));
+  // Threshold increases with compression level
+  const threshold = compressionLevel * 120;
   
-  // Fast Walsh-Hadamard Transform (in-place, operates on arrays of size 2^k)
-  const fwht = (data: Float32Array, size: number): void => {
-    let h = 1;
-    while (h < size) {
-      for (let i = 0; i < size; i += h * 2) {
-        for (let j = i; j < i + h; j++) {
-          const a = data[j];
-          const b = data[j + h];
-          data[j] = a + b;
-          data[j + h] = a - b;
-        }
-      }
-      h *= 2;
+  // Number of decomposition levels (more = coarser approximation at high compression)
+  const numLevels = Math.max(1, Math.min(6, Math.floor(1 + compressionLevel * 5)));
+  
+  // Daubechies-4 filter coefficients
+  const sqrt3 = Math.sqrt(3);
+  const denom = 4 * Math.sqrt(2);
+  const h0 = (1 + sqrt3) / denom;
+  const h1 = (3 + sqrt3) / denom;
+  const h2 = (3 - sqrt3) / denom;
+  const h3 = (1 - sqrt3) / denom;
+  
+  // Forward 1D Daubechies-4 transform (one level)
+  const dwt1d = (data: Float32Array, len: number): void => {
+    if (len < 4) return;
+    
+    const half = len >> 1;
+    const temp = new Float32Array(len);
+    
+    for (let i = 0; i < half; i++) {
+      const j = i * 2;
+      // Periodic boundary
+      const d0 = data[j % len];
+      const d1 = data[(j + 1) % len];
+      const d2 = data[(j + 2) % len];
+      const d3 = data[(j + 3) % len];
+      
+      // Low-pass (approximation)
+      temp[i] = h0 * d0 + h1 * d1 + h2 * d2 + h3 * d3;
+      // High-pass (detail) - using quadrature mirror filter
+      temp[half + i] = h3 * d0 - h2 * d1 + h1 * d2 - h0 * d3;
     }
     
-    // Normalize
-    const norm = 1 / Math.sqrt(size);
-    for (let i = 0; i < size; i++) {
-      data[i] *= norm;
+    for (let i = 0; i < len; i++) {
+      data[i] = temp[i];
     }
   };
   
-  // Inverse Fast Walsh-Hadamard Transform
-  const ifwht = (data: Float32Array, size: number): void => {
-    // Same as forward, but normalize differently
-    let h = 1;
-    while (h < size) {
-      for (let i = 0; i < size; i += h * 2) {
-        for (let j = i; j < i + h; j++) {
-          const a = data[j];
-          const b = data[j + h];
-          data[j] = a + b;
-          data[j + h] = a - b;
-        }
-      }
-      h *= 2;
+  // Inverse 1D Daubechies-4 transform (one level)
+  const idwt1d = (data: Float32Array, len: number): void => {
+    if (len < 4) return;
+    
+    const half = len >> 1;
+    const temp = new Float32Array(len);
+    
+    for (let i = 0; i < half; i++) {
+      const low = data[i];
+      const high = data[half + i];
+      
+      // Reconstruction - interleave low and high pass
+      const j = i * 2;
+      
+      // Even samples
+      temp[j % len] += h2 * low + h1 * high;
+      temp[(j + 2) % len] += h0 * low + h3 * high;
+      
+      // Odd samples  
+      temp[(j + 1) % len] += h3 * low - h0 * high;
+      temp[(j + 3) % len] += h1 * low - h2 * high;
     }
     
-    // Normalize
-    const norm = 1 / Math.sqrt(size);
-    for (let i = 0; i < size; i++) {
-      data[i] *= norm;
+    for (let i = 0; i < len; i++) {
+      data[i] = temp[i];
     }
   };
   
-  // 2D Walsh-Hadamard transform via separable 1D transforms
-  const fwht2d = (data: Float32Array, w: number, h: number): void => {
+  // 2D forward DWT (one level) - operates on top-left wxh region
+  const dwt2d = (data: Float32Array, w: number, h: number, stride: number): void => {
     // Transform rows
     for (let y = 0; y < h; y++) {
       const row = new Float32Array(w);
       for (let x = 0; x < w; x++) {
-        row[x] = data[y * w + x];
+        row[x] = data[y * stride + x];
       }
-      fwht(row, w);
+      dwt1d(row, w);
       for (let x = 0; x < w; x++) {
-        data[y * w + x] = row[x];
+        data[y * stride + x] = row[x];
       }
     }
     
@@ -2568,109 +2587,149 @@ function fnX(ctx: FnContext, n: number): Image {
     for (let x = 0; x < w; x++) {
       const col = new Float32Array(h);
       for (let y = 0; y < h; y++) {
-        col[y] = data[y * w + x];
+        col[y] = data[y * stride + x];
       }
-      fwht(col, h);
+      dwt1d(col, h);
       for (let y = 0; y < h; y++) {
-        data[y * w + x] = col[y];
+        data[y * stride + x] = col[y];
       }
     }
   };
   
-  // Inverse 2D Walsh-Hadamard transform
-  const ifwht2d = (data: Float32Array, w: number, h: number): void => {
-    // Inverse transform columns
+  // 2D inverse DWT (one level)
+  const idwt2d = (data: Float32Array, w: number, h: number, stride: number): void => {
+    // Inverse transform columns first
     for (let x = 0; x < w; x++) {
       const col = new Float32Array(h);
       for (let y = 0; y < h; y++) {
-        col[y] = data[y * w + x];
+        col[y] = data[y * stride + x];
       }
-      ifwht(col, h);
+      idwt1d(col, h);
       for (let y = 0; y < h; y++) {
-        data[y * w + x] = col[y];
+        data[y * stride + x] = col[y];
       }
     }
     
-    // Inverse transform rows
+    // Then inverse transform rows
     for (let y = 0; y < h; y++) {
       const row = new Float32Array(w);
       for (let x = 0; x < w; x++) {
-        row[x] = data[y * w + x];
+        row[x] = data[y * stride + x];
       }
-      ifwht(row, w);
+      idwt1d(row, w);
       for (let x = 0; x < w; x++) {
-        data[y * w + x] = row[x];
+        data[y * stride + x] = row[x];
       }
     }
   };
   
-  const processChannel = (channel: Float32Array, w: number, h: number): Float32Array => {
-    const data = new Float32Array(channel);
+  const processChannel = (input: Float32Array): Float32Array => {
+    const data = new Float32Array(input);
     
-    // Apply 2D Walsh-Hadamard transform
-    fwht2d(data, w, h);
+    // Multi-level forward transform
+    let currentW = width;
+    let currentH = height;
     
-    // Sort coefficients by magnitude and keep only the largest ones
-    const coeffs: [number, number][] = [];
-    for (let i = 0; i < w * h; i++) {
-      coeffs.push([Math.abs(data[i]), i]);
-    }
-    coeffs.sort((a, b) => b[0] - a[0]);
-    
-    // Zero out all but the top keepRatio coefficients
-    const keepCount = Math.max(1, Math.floor(w * h * keepRatio));
-    const keepSet = new Set<number>();
-    for (let i = 0; i < keepCount; i++) {
-      keepSet.add(coeffs[i][1]);
+    for (let level = 0; level < numLevels && currentW >= 4 && currentH >= 4; level++) {
+      dwt2d(data, currentW, currentH, width);
+      currentW = currentW >> 1;
+      currentH = currentH >> 1;
     }
     
-    for (let i = 0; i < w * h; i++) {
-      if (!keepSet.has(i)) {
-        data[i] = 0;
+    // Threshold detail coefficients (everything except the final LL subband)
+    // Apply stronger thresholding to finer scales (higher frequencies)
+    currentW = width;
+    currentH = height;
+    
+    for (let level = 0; level < numLevels && currentW >= 4 && currentH >= 4; level++) {
+      const halfW = currentW >> 1;
+      const halfH = currentH >> 1;
+      
+      // Scale threshold: stronger for fine details (early levels)
+      const levelThreshold = threshold * (1 + (numLevels - level - 1) * 0.5);
+      
+      // Threshold LH (top-right), HL (bottom-left), HH (bottom-right) subbands
+      // LH subband
+      for (let y = 0; y < halfH; y++) {
+        for (let x = halfW; x < currentW; x++) {
+          const idx = y * width + x;
+          if (Math.abs(data[idx]) < levelThreshold) {
+            data[idx] = 0;
+          }
+        }
       }
+      
+      // HL subband
+      for (let y = halfH; y < currentH; y++) {
+        for (let x = 0; x < halfW; x++) {
+          const idx = y * width + x;
+          if (Math.abs(data[idx]) < levelThreshold) {
+            data[idx] = 0;
+          }
+        }
+      }
+      
+      // HH subband
+      for (let y = halfH; y < currentH; y++) {
+        for (let x = halfW; x < currentW; x++) {
+          const idx = y * width + x;
+          if (Math.abs(data[idx]) < levelThreshold) {
+            data[idx] = 0;
+          }
+        }
+      }
+      
+      currentW = halfW;
+      currentH = halfH;
     }
     
-    // Apply inverse transform
-    ifwht2d(data, w, h);
+    // Multi-level inverse transform
+    const sizes: [number, number][] = [];
+    currentW = width;
+    currentH = height;
+    for (let level = 0; level < numLevels && currentW >= 4 && currentH >= 4; level++) {
+      sizes.push([currentW, currentH]);
+      currentW = currentW >> 1;
+      currentH = currentH >> 1;
+    }
+    
+    // Reconstruct from coarsest to finest
+    for (let level = sizes.length - 1; level >= 0; level--) {
+      const [w, h] = sizes[level];
+      idwt2d(data, w, h, width);
+    }
     
     return data;
   };
   
-  // Extract RGB channels, cropped to blockSize×blockSize for valid transform
-  const cropW = Math.min(blockSize, width);
-  const cropH = Math.min(blockSize, height);
+  // Extract and process RGB channels
+  const rChannel = new Float32Array(width * height);
+  const gChannel = new Float32Array(width * height);
+  const bChannel = new Float32Array(width * height);
   
-  const rChannel = new Float32Array(cropW * cropH);
-  const gChannel = new Float32Array(cropW * cropH);
-  const bChannel = new Float32Array(cropW * cropH);
-  
-  const offsetX = Math.floor((width - cropW) / 2);
-  const offsetY = Math.floor((height - cropH) / 2);
-  
-  for (let y = 0; y < cropH; y++) {
-    for (let x = 0; x < cropW; x++) {
-      const [r, g, b] = getPixel(prev, x + offsetX, y + offsetY);
-      const idx = y * cropW + x;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const [r, g, b] = getPixel(prev, x, y);
+      const idx = y * width + x;
       rChannel[idx] = r;
       gChannel[idx] = g;
       bChannel[idx] = b;
     }
   }
   
-  // Process each channel
-  const rOut = processChannel(rChannel, cropW, cropH);
-  const gOut = processChannel(gChannel, cropW, cropH);
-  const bOut = processChannel(bChannel, cropW, cropH);
+  const rOut = processChannel(rChannel);
+  const gOut = processChannel(gChannel);
+  const bOut = processChannel(bChannel);
   
   // Reconstruct output image
-  const out = cloneImage(prev);
-  for (let y = 0; y < cropH; y++) {
-    for (let x = 0; x < cropW; x++) {
-      const idx = y * cropW + x;
+  const out = createSolidImage(width, height, '#000000');
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = y * width + x;
       const r = Math.max(0, Math.min(255, Math.round(rOut[idx])));
       const g = Math.max(0, Math.min(255, Math.round(gOut[idx])));
       const b = Math.max(0, Math.min(255, Math.round(bOut[idx])));
-      setPixel(out, x + offsetX, y + offsetY, r, g, b);
+      setPixel(out, x, y, r, g, b);
     }
   }
   
