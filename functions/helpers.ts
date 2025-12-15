@@ -174,7 +174,10 @@ let gl: WebGLRenderingContext | null = null;
 let glTexture: WebGLTexture | null = null;
 let glFramebuffer: WebGLFramebuffer | null = null;
 
-export function initWebGL(width: number, height: number): WebGLRenderingContext {
+export function initWebGL(
+  width: number,
+  height: number,
+): WebGLRenderingContext {
   if (!glCanvas || glCanvas.width !== width || glCanvas.height !== height) {
     glCanvas = document.createElement("canvas");
     glCanvas.width = width;
@@ -245,7 +248,7 @@ export function cloneImage(img: Image): Image {
   };
 }
 
-function getPrevImage(ctx: FnContext): Image {
+export function getPrevImage(ctx: FnContext): Image {
   if (ctx.images.length === 0) {
     return createSolidImage(ctx.width, ctx.height, "#000000");
   }
