@@ -299,7 +299,11 @@ export function setPixel(
   img.data[i + 3] = a;
 }
 
-export function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+export function rgbToHsl(
+  r: number,
+  g: number,
+  b: number,
+): [number, number, number] {
   r /= 255;
   g /= 255;
   b /= 255;
@@ -320,7 +324,11 @@ export function rgbToHsl(r: number, g: number, b: number): [number, number, numb
   return [h * 360, s, l];
 }
 
-export function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+export function hslToRgb(
+  h: number,
+  s: number,
+  l: number,
+): [number, number, number] {
   h = h / 360;
   let r, g, b;
 
