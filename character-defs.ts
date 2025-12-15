@@ -6345,13 +6345,12 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const zData = new Float32Array(zDim);
   for (let i = 0; i < zDim; i++) zData[i] = zRng() * 0.5; // z in [-0.5, 0.5] range typically
   
-  // First layer: U = fc(z) + fc(x, no_bias) + fc(y, no_bias) + fc(r, no_bias) + fc(rgb, no_bias)
+  // First layer: U = fc(z) + fc(x, no_bias) + fc(y, no_bias) + fc(r, no_bias)
   const W_z = createWeightTensor(zDim, netSize, rng);
   const B_z = createBiasTensor(netSize, rng);
   const W_x = createWeightTensor(1, netSize, rng);
   const W_y = createWeightTensor(1, netSize, rng);
   const W_r = createWeightTensor(1, netSize, rng);
-  const W_rgb = createWeightTensor(3, netSize, rng); // input image RGB
   
   // 5 hidden tanh layers for more detail
   const W_h0 = createWeightTensor(netSize, netSize, rng);
