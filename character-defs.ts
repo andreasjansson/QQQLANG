@@ -1099,24 +1099,15 @@ function fnL(ctx: FnContext, old: Image, rot: number): Image {
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
   
-  const borderSize = Math.floor(ctx.height * 0.08);
   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
       const dstIdx = (y * ctx.width + x) * 4;
-      if (y < borderSize || y >= ctx.height - borderSize) {
-        const prevIdx = (y * prev.width + x) * 4;
-        flipped[dstIdx] = prev.data[prevIdx];
-        flipped[dstIdx + 1] = prev.data[prevIdx + 1];
-        flipped[dstIdx + 2] = prev.data[prevIdx + 2];
-        flipped[dstIdx + 3] = prev.data[prevIdx + 3];
-      } else {
-        const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
-        flipped[dstIdx] = pixels[srcIdx];
-        flipped[dstIdx + 1] = pixels[srcIdx + 1];
-        flipped[dstIdx + 2] = pixels[srcIdx + 2];
-        flipped[dstIdx + 3] = pixels[srcIdx + 3];
-      }
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
