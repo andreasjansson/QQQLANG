@@ -260,85 +260,120 @@ function imageHistory(ctx: FnContext): Image {
   tempCtx.fillStyle = "#141414";
   tempCtx.fillRect(0, 0, ctx.width, ctx.height);
 
-  const marginFraction = 0.025;
-  const margin = Math.max(
-    8,
-    Math.floor(Math.min(ctx.width, ctx.height) * marginFraction),
-  );
+  // Window size is 68 (the number of character functions)
+  const windowSize = 68;
+  const startOffset = Math.max(0, ctx.images.length - windowSize);
+  const numImages = ctx.images.length - startOffset;
 
   if (ctx.images.length === 0) {
     tempCtx.fillStyle = "#E8E4DC";
     tempCtx.font = "300 16px Inconsolata, monospace";
-    tempCtx.fillText("No images in history", margin, margin + 16);
+    tempCtx.fillText("No images in history", 10, 30);
     const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
     out.data.set(imageData.data);
     return out;
   }
 
-  // Window size is 68 (the number of character functions)
-  const windowSize = 68;
-  const startOffset = Math.max(0, ctx.images.length - windowSize);
-  const endOffset = ctx.images.length;
-  const visibleCount = endOffset - startOffset;
+  const margin = 1;
+  const availWidth = ctx.width - margin * 2;
+  const availHeight = ctx.height - margin * 2;
 
-  // Find the best font size that fits
-  const minFontSize = 10;
-  const maxFontSize = 20;
-  let bestFontSize = minFontSize;
+  let bestLayout = { cols: 1, rows: numImages, thumbSize: 10, fontSize: 6 };
+  let bestScore = 0;
 
-  for (let testSize = maxFontSize; testSize >= minFontSize; testSize -= 1) {
-    tempCtx.font = `300 ${testSize}px Inconsolata, monospace`;
-    const charWidth = tempCtx.measureText("M").width;
-    const lineHeight = Math.floor(testSize * 1.4);
+  for (let cols = 1; cols <= Math.min(10, numImages); cols++) {
+    const rows = Math.ceil(numImages / cols);
 
-    const headerHeight = lineHeight * 3;
-    const availableHeight = ctx.height - margin * 2 - headerHeight;
-    const maxLines = Math.floor(availableHeight / lineHeight);
+    const cellWidth = availWidth / cols;
+    const cellHeight = availHeight / rows;
 
-    if (maxLines >= visibleCount + 1) {
-      bestFontSize = testSize;
-      break;
+    const textHeight = Math.min(cellHeight * 0.15, 14);
+    const fontSize = Math.max(6, Math.min(10, textHeight));
+    const bottomMargin = 3;
+
+    const thumbSize = Math.min(
+      cellWidth - 2,
+      cellHeight - textHeight - bottomMargin - 2,
+    );
+
+    if (thumbSize > 8 && fontSize >= 6) {
+      const score = thumbSize * fontSize;
+      if (score > bestScore) {
+        bestScore = score;
+        bestLayout = { cols, rows, thumbSize, fontSize };
+      }
     }
   }
 
-  tempCtx.font = `300 ${bestFontSize}px Inconsolata, monospace`;
-  const lineHeight = Math.floor(bestFontSize * 1.4);
-  const charWidth = tempCtx.measureText("M").width;
+  const { cols, thumbSize, fontSize } = bestLayout;
+  const cellWidth = availWidth / cols;
+  const cellHeight = availHeight / Math.ceil(numImages / cols);
 
   tempCtx.fillStyle = "#E8E4DC";
+  tempCtx.font = `300 ${fontSize}px Inconsolata, monospace`;
 
-  let y = margin + bestFontSize;
+  for (let i = 0; i < numImages; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
 
-  tempCtx.fillText("=== IMAGE HISTORY ===", margin, y);
-  y += lineHeight;
+    const x = margin + col * cellWidth;
+    const y = margin + row * cellHeight;
 
-  if (startOffset > 0) {
-    tempCtx.fillText(
-      `Showing last ${visibleCount} of ${ctx.images.length} images`,
-      margin,
-      y,
+    const imgIndex = startOffset + i;
+    const img = ctx.images[imgIndex];
+    const accessKey = numToChar(i + 1);
+
+    const opInfo = ctx.opInfos[imgIndex];
+    const prevOpIdentifier =
+      imgIndex > 0 ? ctx.opInfos[imgIndex - 1].identifier : "";
+    const opChars = opInfo.identifier.substring(prevOpIdentifier.length);
+    const displayOp = imgIndex === 0 ? "(init)" : opChars || "?";
+
+    const thumbX = x + (cellWidth - thumbSize) / 2;
+    const thumbY = y + 1;
+
+    const thumbCanvas = document.createElement("canvas");
+    thumbCanvas.width = thumbSize;
+    thumbCanvas.height = thumbSize;
+    const thumbCtx = thumbCanvas.getContext("2d")!;
+
+    const srcSize = Math.min(img.width, img.height);
+    const srcX = (img.width - srcSize) / 2;
+    const srcY = (img.height - srcSize) / 2;
+
+    const srcCanvas = document.createElement("canvas");
+    srcCanvas.width = img.width;
+    srcCanvas.height = img.height;
+    const srcCtx = srcCanvas.getContext("2d")!;
+    const srcImageData = new ImageData(
+      new Uint8ClampedArray(img.data),
+      img.width,
+      img.height,
     );
-  } else {
-    tempCtx.fillText(`${ctx.images.length} images in history`, margin, y);
-  }
-  y += lineHeight * 1.5;
+    srcCtx.putImageData(srcImageData, 0, 0);
 
-  tempCtx.fillText("Char  Index  Type", margin, y);
-  y += lineHeight;
+    thumbCtx.drawImage(
+      srcCanvas,
+      srcX,
+      srcY,
+      srcSize,
+      srcSize,
+      0,
+      0,
+      thumbSize,
+      thumbSize,
+    );
 
-  for (let i = startOffset; i < endOffset; i++) {
-    const windowIndex = i - startOffset;
-    const char = numToChar(windowIndex + 1);
-    const opInfo = ctx.opInfos[i] || { type: "unknown", identifier: "" };
+    tempCtx.strokeStyle = "#E8E4DC";
+    tempCtx.lineWidth = 1;
+    tempCtx.strokeRect(thumbX, thumbY, thumbSize, thumbSize);
 
-    let typeStr = opInfo.type;
-    if (opInfo.type === "uploaded-image") {
-      typeStr = "upload";
-    }
+    tempCtx.drawImage(thumbCanvas, thumbX, thumbY);
 
-    const line = `${char.padEnd(6)}${String(i).padEnd(7)}${typeStr}`;
-    tempCtx.fillText(line, margin, y);
-    y += lineHeight;
+    const textY = thumbY + thumbSize + fontSize + 1;
+    tempCtx.fillStyle = "#E8E4DC";
+    tempCtx.textAlign = "center";
+    tempCtx.fillText(`[${accessKey}] ${displayOp}`, thumbX + thumbSize / 2, textY);
   }
 
   const imageData = tempCtx.getImageData(0, 0, ctx.width, ctx.height);
