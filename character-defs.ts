@@ -62,7 +62,7 @@ import { dither } from "./functions/dither.js";
 import { voronoi } from "./functions/voronoi.js";
 import { swirl } from "./functions/swirl.js";
 import { cppn } from "./functions/cppn.js";
-import { hslShift } from "./functions/hsl-shift.js";
+import { hslShift } from "./functions/yuv-shift.js";
 import { zoomBlur } from "./functions/zoom-blur.js";
 import { bgRemove } from "./functions/bg-remove.js";
 import { colorize } from "./functions/colorize.js";
