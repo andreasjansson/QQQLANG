@@ -456,9 +456,6 @@ async function loadSinetModel(): Promise<void> {
 }
 
 export const bgRemovalReady = loadSinetModel();
-}
-
-export function wrapText(text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   const paragraphs = text.split("\n");
 
