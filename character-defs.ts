@@ -380,7 +380,7 @@ export const characterDefs: Record<string, CharDef> = {
     number: 23,
     fn: swirl,
     args: [{ type: INT, documentation: "Rotation multiplier (×20°)" }],
-    functionName: "swirl",
+    functionName: "whirl",
     documentation: "Swirl distortion from center with quadratic falloff.",
   },
 
