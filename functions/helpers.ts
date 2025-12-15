@@ -445,6 +445,10 @@ export const SINET_INPUT_SIZE = 320;
 export const SINET_MEAN = [102.890434, 111.25247, 126.91212];
 export const SINET_STD = [62.93292, 62.82138, 66.355705];
 
+export function setSinetInferenceInProgress(value: boolean): void {
+  sinetInferenceInProgress = value;
+}
+
 async function loadSinetModel(): Promise<void> {
   try {
     console.log("Loading SINet model...");
