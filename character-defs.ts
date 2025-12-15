@@ -6424,9 +6424,9 @@ async function fnCPPN(ctx: FnContext, strengthN: number): Promise<Image> {
       const dx = cpnnData[i * outDim] * displacementStrength * width;
       const dy = cpnnData[i * outDim + 1] * displacementStrength * height;
       
-      // CPPN outputs in [-1, 1], map to modulation factor [0.5, 1.5]
-      const sMod = cpnnData[i * outDim + 2] * 0.5 + 1.0;
-      const vMod = cpnnData[i * outDim + 3] * 0.5 + 1.0;
+      // CPPN outputs in [-1, 1], map to modulation factor based on strength
+      const sMod = cpnnData[i * outDim + 2] * 0.5 * strength + 1.0;
+      const vMod = cpnnData[i * outDim + 3] * 0.5 * strength + 1.0;
       
       const srcX = Math.max(0, Math.min(width - 1, Math.round(px + dx)));
       const srcY = Math.max(0, Math.min(height - 1, Math.round(py + dy)));
