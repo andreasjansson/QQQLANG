@@ -1,10 +1,14 @@
 import * as THREE from 'three';
+import * as tf from '@tensorflow/tfjs';
 import FFT from 'fft.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as ort from 'onnxruntime-web';
+
+// Set TensorFlow.js to use WebGL backend
+tf.setBackend('webgl');
 
 // Configure ONNX Runtime to use CDN for WASM files
 ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/';
