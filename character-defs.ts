@@ -2443,8 +2443,8 @@ function fnV(ctx: FnContext, style: string, c: string): Image {
   
   const SOLID_STYLES = [
     'diamond-solid', 'hexagon-solid',
-    'sine-top-solid', 'sine-bottom-solid',
-    'sine-top-tri', 'sine-bottom-tri'
+    'sine-vertical-solid', 'sine-horizontal-solid',
+    'sine-vertical-tri', 'sine-horizontal-tri'
   ];
   const isSolid = SOLID_STYLES.includes(style);
   
@@ -2476,32 +2476,28 @@ function fnV(ctx: FnContext, style: string, c: string): Image {
         return Math.max(ax, ax * 0.5 + ay * 0.866) * 0.8;
       }
         
-      case 'sine-top-blur':
-      case 'sine-top-solid': {
-        const wave = 0.3 * Math.sin(nx * Math.PI * 3);
-        return Math.max(0, -(ny - wave - 0.5)) + Math.max(0, ny + 0.8);
-      }
+      case 'sine-horizontal-blur':
+      case 'sine-horizontal-solid':
+        return Math.abs(ny - 0.3 * Math.sin(nx * Math.PI * 3));
         
-      case 'sine-bottom-blur':
-      case 'sine-bottom-solid': {
-        const wave = 0.3 * Math.sin(nx * Math.PI * 3);
-        return Math.max(0, ny + wave - 0.5) + Math.max(0, -ny - 0.8);
-      }
+      case 'sine-vertical-blur':
+      case 'sine-vertical-solid':
+        return Math.abs(nx - 0.3 * Math.sin(ny * Math.PI * 3));
         
-      case 'sine-top-tri': {
-        const wave = 0.3 * Math.sin(nx * Math.PI * 3);
-        const topDist = Math.max(0, -(ny - wave - 0.5));
+      case 'sine-horizontal-tri': {
+        const sineY = 0.3 * Math.sin(nx * Math.PI * 3);
+        const topDist = Math.abs(ny - sineY);
         const leftDist = Math.max(0, -nx - 0.8);
         const rightDist = Math.max(0, nx - 0.8);
         return topDist + leftDist + rightDist;
       }
         
-      case 'sine-bottom-tri': {
-        const wave = 0.3 * Math.sin(nx * Math.PI * 3);
-        const bottomDist = Math.max(0, ny + wave - 0.5);
-        const leftDist = Math.max(0, -nx - 0.8);
-        const rightDist = Math.max(0, nx - 0.8);
-        return bottomDist + leftDist + rightDist;
+      case 'sine-vertical-tri': {
+        const sineX = 0.3 * Math.sin(ny * Math.PI * 3);
+        const sideDist = Math.abs(nx - sineX);
+        const topDist = Math.max(0, -ny - 0.8);
+        const bottomDist = Math.max(0, ny - 0.8);
+        return sideDist + topDist + bottomDist;
       }
         
       default:
