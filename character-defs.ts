@@ -2433,22 +2433,191 @@ function fnU(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnV(ctx: FnContext, c: string): Image {
+function fnV(ctx: FnContext, c: string, style: string): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   const [tr, tg, tb] = hexToRgb(c);
   
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
+  const aspect = ctx.width / ctx.height;
   const maxR = Math.sqrt(cx * cx + cy * cy) * 0.7;
+  
+  const BORDER_STYLES = [
+    'vertical-blur', 'circular-blur', 'horizontal-blur', 'rectangular-blur',
+    'ellipse-wide-blur', 'ellipse-tall-blur', 'diamond-blur', 'rounded-rect-blur',
+    'hexagon-blur', 'octagon-blur', 'star5-blur', 'heart-blur',
+    'triangle-up-blur', 'triangle-down-blur', 'triangle-left-blur', 'triangle-right-blur',
+    'vertical-solid', 'circular-solid', 'horizontal-solid', 'rectangular-solid',
+    'ellipse-wide-solid', 'ellipse-tall-solid', 'diamond-solid', 'rounded-rect-solid',
+    'hexagon-solid', 'octagon-solid', 'star5-solid', 'heart-solid',
+    'triangle-up-solid', 'triangle-down-solid', 'triangle-left-solid', 'triangle-right-solid',
+    'sine-top', 'sine-bottom', 'sine-left', 'sine-right',
+    'concentric-circles', 'concentric-squares', 'spiral-cw', 'spiral-ccw'
+  ];
+  
+  const styleIdx = BORDER_STYLES.indexOf(style);
+  const isBlurred = styleIdx < 16 || styleIdx >= 32;
+  const isSolid = styleIdx >= 16 && styleIdx < 32;
+  
+  const computeDistance = (x: number, y: number): number => {
+    const nx = (x - cx) / cx;
+    const ny = (y - cy) / cy;
+    
+    switch (style) {
+      case 'vertical-blur':
+      case 'vertical-solid':
+        return Math.abs(nx);
+        
+      case 'circular-blur':
+      case 'circular-solid':
+        return Math.sqrt(nx * nx + ny * ny);
+        
+      case 'horizontal-blur':
+      case 'horizontal-solid':
+        return Math.abs(ny);
+        
+      case 'rectangular-blur':
+      case 'rectangular-solid':
+        return Math.max(Math.abs(nx), Math.abs(ny));
+        
+      case 'ellipse-wide-blur':
+      case 'ellipse-wide-solid':
+        return Math.sqrt(nx * nx + ny * ny * 2.25);
+        
+      case 'ellipse-tall-blur':
+      case 'ellipse-tall-solid':
+        return Math.sqrt(nx * nx * 2.25 + ny * ny);
+        
+      case 'diamond-blur':
+      case 'diamond-solid':
+        return Math.abs(nx) + Math.abs(ny);
+        
+      case 'rounded-rect-blur':
+      case 'rounded-rect-solid': {
+        const rx = Math.max(0, Math.abs(nx) - 0.5);
+        const ry = Math.max(0, Math.abs(ny) - 0.5);
+        return Math.max(Math.abs(nx), Math.abs(ny)) * 0.7 + Math.sqrt(rx * rx + ry * ry) * 0.6;
+      }
+        
+      case 'hexagon-blur':
+      case 'hexagon-solid': {
+        const ax = Math.abs(nx);
+        const ay = Math.abs(ny);
+        return Math.max(ax, ax * 0.5 + ay * 0.866);
+      }
+        
+      case 'octagon-blur':
+      case 'octagon-solid': {
+        const ax = Math.abs(nx);
+        const ay = Math.abs(ny);
+        const diag = (ax + ay) * 0.7071;
+        return Math.max(ax, ay, diag);
+      }
+        
+      case 'star5-blur':
+      case 'star5-solid': {
+        const angle = Math.atan2(ny, nx);
+        const r = Math.sqrt(nx * nx + ny * ny);
+        const starAngle = ((angle + Math.PI) % (Math.PI * 2 / 5)) - Math.PI / 5;
+        const starR = 0.5 + 0.3 * Math.cos(5 * angle);
+        return r / starR;
+      }
+        
+      case 'heart-blur':
+      case 'heart-solid': {
+        const hx = nx;
+        const hy = -ny * 0.8 + 0.3;
+        const heartR = Math.sqrt(hx * hx + hy * hy);
+        const heartAngle = Math.atan2(hy, hx);
+        const heartShape = heartR - (1 - Math.abs(heartAngle) / Math.PI) * 0.4 - 0.3;
+        return heartShape + 0.5;
+      }
+        
+      case 'triangle-up-blur':
+      case 'triangle-up-solid': {
+        const ty = ny + 0.8;
+        if (ty < 0) return 2;
+        const triWidth = ty * 1.2;
+        return Math.max(ty / 1.6, Math.abs(nx) / triWidth);
+      }
+        
+      case 'triangle-down-blur':
+      case 'triangle-down-solid': {
+        const ty = -ny + 0.8;
+        if (ty < 0) return 2;
+        const triWidth = ty * 1.2;
+        return Math.max(ty / 1.6, Math.abs(nx) / triWidth);
+      }
+        
+      case 'triangle-left-blur':
+      case 'triangle-left-solid': {
+        const tx = -nx + 0.8;
+        if (tx < 0) return 2;
+        const triHeight = tx * 1.2;
+        return Math.max(tx / 1.6, Math.abs(ny) / triHeight);
+      }
+        
+      case 'triangle-right-blur':
+      case 'triangle-right-solid': {
+        const tx = nx + 0.8;
+        if (tx < 0) return 2;
+        const triHeight = tx * 1.2;
+        return Math.max(tx / 1.6, Math.abs(ny) / triHeight);
+      }
+        
+      case 'sine-top':
+        return Math.abs(ny - 0.3 * Math.sin(nx * Math.PI * 3));
+        
+      case 'sine-bottom':
+        return Math.abs(ny + 0.3 * Math.sin(nx * Math.PI * 3));
+        
+      case 'sine-left':
+        return Math.abs(nx - 0.3 * Math.sin(ny * Math.PI * 3));
+        
+      case 'sine-right':
+        return Math.abs(nx + 0.3 * Math.sin(ny * Math.PI * 3));
+        
+      case 'concentric-circles': {
+        const r = Math.sqrt(nx * nx + ny * ny);
+        return Math.abs(Math.sin(r * Math.PI * 4)) * 0.5 + r * 0.5;
+      }
+        
+      case 'concentric-squares': {
+        const r = Math.max(Math.abs(nx), Math.abs(ny));
+        return Math.abs(Math.sin(r * Math.PI * 4)) * 0.5 + r * 0.5;
+      }
+        
+      case 'spiral-cw': {
+        const r = Math.sqrt(nx * nx + ny * ny);
+        const angle = Math.atan2(ny, nx);
+        const spiralPhase = (angle + r * 6) % (Math.PI * 2);
+        return r * 0.7 + Math.abs(Math.sin(spiralPhase)) * 0.3;
+      }
+        
+      case 'spiral-ccw': {
+        const r = Math.sqrt(nx * nx + ny * ny);
+        const angle = Math.atan2(ny, nx);
+        const spiralPhase = (angle - r * 6) % (Math.PI * 2);
+        return r * 0.7 + Math.abs(Math.sin(spiralPhase)) * 0.3;
+      }
+        
+      default:
+        return Math.sqrt(nx * nx + ny * ny);
+    }
+  };
   
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const dist = computeDistance(x, y);
       
-      const vignette = Math.max(0, 1 - Math.pow(dist / maxR, 2));
+      let vignette: number;
+      if (isSolid) {
+        vignette = dist < 0.7 ? 1 : 0;
+      } else {
+        vignette = Math.max(0, 1 - Math.pow(dist / 0.7, 2));
+      }
+      
       const darken = vignette;
       const tint = 1 - vignette;
       
