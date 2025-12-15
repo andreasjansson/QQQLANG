@@ -277,7 +277,7 @@ export function getPixel(
   return [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]];
 }
 
-function setPixel(
+export function setPixel(
   img: Image,
   x: number,
   y: number,
