@@ -337,8 +337,8 @@ function fnA(ctx: FnContext): Image {
       float diffuse2 = max(dot(normal, lightDir2), 0.0);
       float specular1 = pow(max(dot(viewDir, reflectDir1), 0.0), 4.0);
       float specular2 = pow(max(dot(viewDir, reflectDir2), 0.0), 8.0);
-      float ambient = 0.25;
-      float lighting = ambient + diffuse1 * 0.5 + diffuse2 * 0.25;
+      float ambient = 0.6;
+      float lighting = ambient + diffuse1 * 0.3 + diffuse2 * 0.15;
       
       float theta = atan(normal.x, normal.z) + rotation;
       vec2 texCoord = vec2(
@@ -347,7 +347,7 @@ function fnA(ctx: FnContext): Image {
       );
       
       vec3 color = texture2D(tex, texCoord).rgb;
-      return color * lighting + vec3(1.0) * specular1 * 0.5 + vec3(1.0) * specular2 * 0.2;
+      return color * lighting + vec3(1.0) * specular1 * 0.4 + vec3(1.0) * specular2 * 0.15;
     }
     
     void main() {
