@@ -6294,10 +6294,10 @@ function fnCPPN(ctx: FnContext): Image {
     }
   `;
   
-  // CPPN fragment shader with multiple activation functions
-  // Inputs: x, y, d (distance), r, g, b from prev image, bias
-  // Outputs: RGB color
-  // All floats - WebGL 1.0 compatible
+  // Classic CPPN implementation
+  // Inputs: x, y, r (distance from center), and RGB from input image as "latent" seed
+  // The input image colors act as a spatially-varying latent vector
+  // Architecture: 7 inputs -> 16 hidden (sin) -> 16 hidden (mixed) -> 3 RGB output
   const fragmentShaderSrc = `
     precision highp float;
     uniform sampler2D uTexture;
@@ -6306,72 +6306,91 @@ function fnCPPN(ctx: FnContext): Image {
     
     #define PI 3.14159265359
     
-    // Fixed seed = 0 for full determinism based on input image
+    // Deterministic weight generation from index
     float hash(float n) {
-      return fract(sin(n * 127.1) * 43758.5453);
+      return fract(sin(n * 127.1 + 311.7) * 43758.5453);
     }
     
-    // Generate weight in range [-2, 2] from index
+    // Gaussian-distributed weight approximation using Box-Muller-ish transform
+    // Returns value roughly in [-1.5, 1.5] with most values near 0
+    float gaussWeight(float i) {
+      float u1 = hash(i * 1.0);
+      float u2 = hash(i * 2.0 + 1000.0);
+      return sqrt(-0.5 * log(max(u1, 0.001))) * cos(2.0 * PI * u2);
+    }
+    
+    // Simpler uniform weight in [-1, 1]
     float w(float i) {
-      return hash(i) * 4.0 - 2.0;
-    }
-    
-    // tanh implementation for WebGL 1.0
-    float tanhApprox(float x) {
-      float e2x = exp(2.0 * x);
-      return (e2x - 1.0) / (e2x + 1.0);
-    }
-    
-    // Activation functions - select based on float value
-    float activate(float x, float actSel) {
-      float t = mod(actSel, 7.0);
-      if (t < 1.0) return sin(x * PI);
-      if (t < 2.0) return cos(x * PI);
-      if (t < 3.0) return exp(-x * x * 2.0);
-      if (t < 4.0) return 1.0 / (1.0 + exp(-x * 4.0));
-      if (t < 5.0) return tanhApprox(x * 2.0);
-      if (t < 6.0) return abs(x);
-      return 2.0 * (x - floor(x + 0.5));
+      return hash(i) * 2.0 - 1.0;
     }
     
     void main() {
-      // Sample previous image
+      // Sample previous image - this acts as a spatially-varying latent vector
       vec3 tex = texture2D(uTexture, vec2(vUV.x, 1.0 - vUV.y)).rgb;
-      float inR = tex.r * 2.0 - 1.0;
-      float inG = tex.g * 2.0 - 1.0;
-      float inB = tex.b * 2.0 - 1.0;
       
-      // Normalize coordinates to [-1, 1]
+      // Scale image values to be latent inputs (centered around 0)
+      float z1 = tex.r * 2.0 - 1.0;
+      float z2 = tex.g * 2.0 - 1.0;
+      float z3 = tex.b * 2.0 - 1.0;
+      
+      // Spatial coordinates normalized to [-1, 1]
       float aspect = uResolution.x / uResolution.y;
       float x = (vUV.x * 2.0 - 1.0) * aspect;
       float y = vUV.y * 2.0 - 1.0;
-      float d = sqrt(x * x + y * y);
+      float r = sqrt(x * x + y * y);  // Distance from center - creates radial symmetry bias
+      
+      // Input vector: [x, y, r, z1, z2, z3, bias]
+      // Scale factors to balance spatial vs latent influence
+      float xs = x * 1.0;
+      float ys = y * 1.0;
+      float rs = r * 1.0;
+      float zs1 = z1 * 0.5;
+      float zs2 = z2 * 0.5;
+      float zs3 = z3 * 0.5;
       float bias = 1.0;
       
-      // Layer 1: 7 inputs (x, y, d, r, g, b, bias) -> 8 hidden nodes
-      float h1_0 = activate(w(0.)*x + w(1.)*y + w(2.)*d + w(3.)*inR + w(4.)*inG + w(5.)*inB + w(6.)*bias, hash(100.0) * 7.0);
-      float h1_1 = activate(w(7.)*x + w(8.)*y + w(9.)*d + w(10.)*inR + w(11.)*inG + w(12.)*inB + w(13.)*bias, hash(101.0) * 7.0);
-      float h1_2 = activate(w(14.)*x + w(15.)*y + w(16.)*d + w(17.)*inR + w(18.)*inG + w(19.)*inB + w(20.)*bias, hash(102.0) * 7.0);
-      float h1_3 = activate(w(21.)*x + w(22.)*y + w(23.)*d + w(24.)*inR + w(25.)*inG + w(26.)*inB + w(27.)*bias, hash(103.0) * 7.0);
-      float h1_4 = activate(w(28.)*x + w(29.)*y + w(30.)*d + w(31.)*inR + w(32.)*inG + w(33.)*inB + w(34.)*bias, hash(104.0) * 7.0);
-      float h1_5 = activate(w(35.)*x + w(36.)*y + w(37.)*d + w(38.)*inR + w(39.)*inG + w(40.)*inB + w(41.)*bias, hash(105.0) * 7.0);
-      float h1_6 = activate(w(42.)*x + w(43.)*y + w(44.)*d + w(45.)*inR + w(46.)*inG + w(47.)*inB + w(48.)*bias, hash(106.0) * 7.0);
-      float h1_7 = activate(w(49.)*x + w(50.)*y + w(51.)*d + w(52.)*inR + w(53.)*inG + w(54.)*inB + w(55.)*bias, hash(107.0) * 7.0);
+      // Hidden layer 1: 16 nodes, all using sin activation
+      // Sin creates the characteristic CPPN patterns (stripes, waves)
+      float s = 3.0;  // frequency scale
+      float h1_0 = sin(s * (w(0.)*xs + w(1.)*ys + w(2.)*rs + w(3.)*zs1 + w(4.)*zs2 + w(5.)*zs3 + w(6.)*bias));
+      float h1_1 = sin(s * (w(7.)*xs + w(8.)*ys + w(9.)*rs + w(10.)*zs1 + w(11.)*zs2 + w(12.)*zs3 + w(13.)*bias));
+      float h1_2 = sin(s * (w(14.)*xs + w(15.)*ys + w(16.)*rs + w(17.)*zs1 + w(18.)*zs2 + w(19.)*zs3 + w(20.)*bias));
+      float h1_3 = sin(s * (w(21.)*xs + w(22.)*ys + w(23.)*rs + w(24.)*zs1 + w(25.)*zs2 + w(26.)*zs3 + w(27.)*bias));
+      float h1_4 = cos(s * (w(28.)*xs + w(29.)*ys + w(30.)*rs + w(31.)*zs1 + w(32.)*zs2 + w(33.)*zs3 + w(34.)*bias));
+      float h1_5 = cos(s * (w(35.)*xs + w(36.)*ys + w(37.)*rs + w(38.)*zs1 + w(39.)*zs2 + w(40.)*zs3 + w(41.)*bias));
+      float h1_6 = cos(s * (w(42.)*xs + w(43.)*ys + w(44.)*rs + w(45.)*zs1 + w(46.)*zs2 + w(47.)*zs3 + w(48.)*bias));
+      float h1_7 = cos(s * (w(49.)*xs + w(50.)*ys + w(51.)*rs + w(52.)*zs1 + w(53.)*zs2 + w(54.)*zs3 + w(55.)*bias));
+      // Gaussian activation - creates soft radial patterns
+      float h1_8 = exp(-pow(w(56.)*xs + w(57.)*ys + w(58.)*rs + w(59.)*zs1 + w(60.)*zs2 + w(61.)*zs3 + w(62.)*bias, 2.0));
+      float h1_9 = exp(-pow(w(63.)*xs + w(64.)*ys + w(65.)*rs + w(66.)*zs1 + w(67.)*zs2 + w(68.)*zs3 + w(69.)*bias, 2.0));
+      // Abs - creates V-shaped / angular patterns
+      float h1_10 = abs(w(70.)*xs + w(71.)*ys + w(72.)*rs + w(73.)*zs1 + w(74.)*zs2 + w(75.)*zs3 + w(76.)*bias);
+      float h1_11 = abs(w(77.)*xs + w(78.)*ys + w(79.)*rs + w(80.)*zs1 + w(81.)*zs2 + w(82.)*zs3 + w(83.)*bias);
+      // More sin/cos at different frequencies
+      float h1_12 = sin(s * 2.0 * (w(84.)*xs + w(85.)*ys + w(86.)*rs + w(87.)*zs1));
+      float h1_13 = cos(s * 2.0 * (w(88.)*xs + w(89.)*ys + w(90.)*rs + w(91.)*zs2));
+      float h1_14 = sin(s * 0.5 * (w(92.)*xs + w(93.)*ys + w(94.)*rs + w(95.)*zs3));
+      float h1_15 = cos(s * 0.5 * (w(96.)*xs + w(97.)*ys + w(98.)*rs + w(99.)*bias));
       
-      // Layer 2: 8 hidden -> 8 hidden
-      float h2_0 = activate(w(56.)*h1_0 + w(57.)*h1_1 + w(58.)*h1_2 + w(59.)*h1_3 + w(60.)*h1_4 + w(61.)*h1_5 + w(62.)*h1_6 + w(63.)*h1_7, hash(108.0) * 7.0);
-      float h2_1 = activate(w(64.)*h1_0 + w(65.)*h1_1 + w(66.)*h1_2 + w(67.)*h1_3 + w(68.)*h1_4 + w(69.)*h1_5 + w(70.)*h1_6 + w(71.)*h1_7, hash(109.0) * 7.0);
-      float h2_2 = activate(w(72.)*h1_0 + w(73.)*h1_1 + w(74.)*h1_2 + w(75.)*h1_3 + w(76.)*h1_4 + w(77.)*h1_5 + w(78.)*h1_6 + w(79.)*h1_7, hash(110.0) * 7.0);
-      float h2_3 = activate(w(80.)*h1_0 + w(81.)*h1_1 + w(82.)*h1_2 + w(83.)*h1_3 + w(84.)*h1_4 + w(85.)*h1_5 + w(86.)*h1_6 + w(87.)*h1_7, hash(111.0) * 7.0);
-      float h2_4 = activate(w(88.)*h1_0 + w(89.)*h1_1 + w(90.)*h1_2 + w(91.)*h1_3 + w(92.)*h1_4 + w(93.)*h1_5 + w(94.)*h1_6 + w(95.)*h1_7, hash(112.0) * 7.0);
-      float h2_5 = activate(w(96.)*h1_0 + w(97.)*h1_1 + w(98.)*h1_2 + w(99.)*h1_3 + w(100.)*h1_4 + w(101.)*h1_5 + w(102.)*h1_6 + w(103.)*h1_7, hash(113.0) * 7.0);
-      float h2_6 = activate(w(104.)*h1_0 + w(105.)*h1_1 + w(106.)*h1_2 + w(107.)*h1_3 + w(108.)*h1_4 + w(109.)*h1_5 + w(110.)*h1_6 + w(111.)*h1_7, hash(114.0) * 7.0);
-      float h2_7 = activate(w(112.)*h1_0 + w(113.)*h1_1 + w(114.)*h1_2 + w(115.)*h1_3 + w(116.)*h1_4 + w(117.)*h1_5 + w(118.)*h1_6 + w(119.)*h1_7, hash(115.0) * 7.0);
+      // Hidden layer 2: 8 nodes with mixed activations
+      float sum2_0 = w(100.)*h1_0 + w(101.)*h1_1 + w(102.)*h1_2 + w(103.)*h1_3 + w(104.)*h1_4 + w(105.)*h1_5 + w(106.)*h1_6 + w(107.)*h1_7 + w(108.)*h1_8 + w(109.)*h1_9 + w(110.)*h1_10 + w(111.)*h1_11 + w(112.)*h1_12 + w(113.)*h1_13 + w(114.)*h1_14 + w(115.)*h1_15;
+      float sum2_1 = w(116.)*h1_0 + w(117.)*h1_1 + w(118.)*h1_2 + w(119.)*h1_3 + w(120.)*h1_4 + w(121.)*h1_5 + w(122.)*h1_6 + w(123.)*h1_7 + w(124.)*h1_8 + w(125.)*h1_9 + w(126.)*h1_10 + w(127.)*h1_11 + w(128.)*h1_12 + w(129.)*h1_13 + w(130.)*h1_14 + w(131.)*h1_15;
+      float sum2_2 = w(132.)*h1_0 + w(133.)*h1_1 + w(134.)*h1_2 + w(135.)*h1_3 + w(136.)*h1_4 + w(137.)*h1_5 + w(138.)*h1_6 + w(139.)*h1_7 + w(140.)*h1_8 + w(141.)*h1_9 + w(142.)*h1_10 + w(143.)*h1_11 + w(144.)*h1_12 + w(145.)*h1_13 + w(146.)*h1_14 + w(147.)*h1_15;
+      float sum2_3 = w(148.)*h1_0 + w(149.)*h1_1 + w(150.)*h1_2 + w(151.)*h1_3 + w(152.)*h1_4 + w(153.)*h1_5 + w(154.)*h1_6 + w(155.)*h1_7 + w(156.)*h1_8 + w(157.)*h1_9 + w(158.)*h1_10 + w(159.)*h1_11 + w(160.)*h1_12 + w(161.)*h1_13 + w(162.)*h1_14 + w(163.)*h1_15;
+      float sum2_4 = w(164.)*h1_0 + w(165.)*h1_1 + w(166.)*h1_2 + w(167.)*h1_3 + w(168.)*h1_4 + w(169.)*h1_5 + w(170.)*h1_6 + w(171.)*h1_7 + w(172.)*h1_8 + w(173.)*h1_9 + w(174.)*h1_10 + w(175.)*h1_11 + w(176.)*h1_12 + w(177.)*h1_13 + w(178.)*h1_14 + w(179.)*h1_15;
+      float sum2_5 = w(180.)*h1_0 + w(181.)*h1_1 + w(182.)*h1_2 + w(183.)*h1_3 + w(184.)*h1_4 + w(185.)*h1_5 + w(186.)*h1_6 + w(187.)*h1_7 + w(188.)*h1_8 + w(189.)*h1_9 + w(190.)*h1_10 + w(191.)*h1_11 + w(192.)*h1_12 + w(193.)*h1_13 + w(194.)*h1_14 + w(195.)*h1_15;
       
-      // Output layer: 8 hidden -> 3 RGB (using sigmoid for [0,1] output)
-      float outR = 1.0 / (1.0 + exp(-(w(120.)*h2_0 + w(121.)*h2_1 + w(122.)*h2_2 + w(123.)*h2_3 + w(124.)*h2_4 + w(125.)*h2_5 + w(126.)*h2_6 + w(127.)*h2_7)));
-      float outG = 1.0 / (1.0 + exp(-(w(128.)*h2_0 + w(129.)*h2_1 + w(130.)*h2_2 + w(131.)*h2_3 + w(132.)*h2_4 + w(133.)*h2_5 + w(134.)*h2_6 + w(135.)*h2_7)));
-      float outB = 1.0 / (1.0 + exp(-(w(136.)*h2_0 + w(137.)*h2_1 + w(138.)*h2_2 + w(139.)*h2_3 + w(140.)*h2_4 + w(141.)*h2_5 + w(142.)*h2_6 + w(143.)*h2_7)));
+      float h2_0 = sin(sum2_0);
+      float h2_1 = sin(sum2_1);
+      float h2_2 = cos(sum2_2);
+      float h2_3 = cos(sum2_3);
+      float h2_4 = exp(-sum2_4 * sum2_4);
+      float h2_5 = exp(-sum2_5 * sum2_5);
+      
+      // Output layer: produce RGB in [0, 1] using sigmoid
+      float outR = 0.5 + 0.5 * sin(PI * (w(200.)*h2_0 + w(201.)*h2_1 + w(202.)*h2_2 + w(203.)*h2_3 + w(204.)*h2_4 + w(205.)*h2_5));
+      float outG = 0.5 + 0.5 * sin(PI * (w(206.)*h2_0 + w(207.)*h2_1 + w(208.)*h2_2 + w(209.)*h2_3 + w(210.)*h2_4 + w(211.)*h2_5));
+      float outB = 0.5 + 0.5 * sin(PI * (w(212.)*h2_0 + w(213.)*h2_1 + w(214.)*h2_2 + w(215.)*h2_3 + w(216.)*h2_4 + w(217.)*h2_5));
       
       gl_FragColor = vec4(outR, outG, outB, 1.0);
     }
