@@ -6286,10 +6286,23 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const prev = getPrevImage(ctx);
   const { width, height } = ctx;
   
-  function seededRandom(seed: number): () => number {
+  // Box-Muller transform for normal distribution (stddev=1.0 like reference)
+  function seededNormal(seed: number): () => number {
+    let hasSpare = false;
+    let spare = 0;
     return () => {
+      if (hasSpare) {
+        hasSpare = false;
+        return spare;
+      }
       seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-      return (seed / 0x7fffffff) * 2 - 1;
+      const u1 = (seed / 0x7fffffff);
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      const u2 = (seed / 0x7fffffff);
+      const mag = Math.sqrt(-2.0 * Math.log(u1 + 1e-10));
+      spare = mag * Math.sin(2.0 * Math.PI * u2);
+      hasSpare = true;
+      return mag * Math.cos(2.0 * Math.PI * u2);
     };
   }
   
@@ -6305,18 +6318,19 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
     return tf.tensor2d(data, [1, size]);
   }
   
-  const rng = seededRandom(42);
-  const scale = 8.0;
+  const rng = seededNormal(42);
+  const scale = 10.0;
   const netSize = 32;
   const zDim = 8;
+  const cDim = 1; // grayscale like reference
   
-  // Generate deterministic z vector from previous image's average color
+  // Derive z from input image for determinism
   let sumR = 0, sumG = 0, sumB = 0;
   const sampleStep = Math.max(1, Math.floor(Math.sqrt(width * height / 100)));
   let sampleCount = 0;
-  for (let y = 0; y < height; y += sampleStep) {
-    for (let x = 0; x < width; x += sampleStep) {
-      const idx = (y * width + x) * 4;
+  for (let sy = 0; sy < height; sy += sampleStep) {
+    for (let sx = 0; sx < width; sx += sampleStep) {
+      const idx = (sy * width + sx) * 4;
       sumR += prev.data[idx];
       sumG += prev.data[idx + 1];
       sumB += prev.data[idx + 2];
@@ -6327,56 +6341,46 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   const avgG = sumG / sampleCount / 255;
   const avgB = sumB / sampleCount / 255;
   
+  const zRng = seededNormal(Math.floor((avgR + avgG + avgB) * 10000) + 12345);
   const zData = new Float32Array(zDim);
-  const zRng = seededRandom(Math.floor((avgR + avgG + avgB) * 10000) + 12345);
-  for (let i = 0; i < zDim; i++) zData[i] = zRng();
+  for (let i = 0; i < zDim; i++) zData[i] = zRng() * 0.5; // z in [-0.5, 0.5] range typically
   
-  // Create weight matrices following reference architecture
-  // First layer combines: z, x, y, r separately then sums
+  // Following reference architecture exactly:
+  // First layer: U = fc(z) + fc(x, no_bias) + fc(y, no_bias) + fc(r, no_bias)
   const W_z = createWeightTensor(zDim, netSize, rng);
+  const B_z = createBiasTensor(netSize, rng);
   const W_x = createWeightTensor(1, netSize, rng);
   const W_y = createWeightTensor(1, netSize, rng);
   const W_r = createWeightTensor(1, netSize, rng);
-  const B_0 = createBiasTensor(netSize, rng);
   
-  // Hidden layers
+  // 3 hidden tanh layers (reference default)
+  const W_h0 = createWeightTensor(netSize, netSize, rng);
+  const B_h0 = createBiasTensor(netSize, rng);
   const W_h1 = createWeightTensor(netSize, netSize, rng);
   const B_h1 = createBiasTensor(netSize, rng);
   const W_h2 = createWeightTensor(netSize, netSize, rng);
   const B_h2 = createBiasTensor(netSize, rng);
-  const W_h3 = createWeightTensor(netSize, netSize, rng);
-  const B_h3 = createBiasTensor(netSize, rng);
   
   // Output layer
-  const W_out = createWeightTensor(netSize, 3, rng);
-  const B_out = createBiasTensor(3, rng);
+  const W_out = createWeightTensor(netSize, cDim, rng);
+  const B_out = createBiasTensor(cDim, rng);
   
   const outputTensor = tf.tidy(() => {
     const nPoints = width * height;
     
-    // Generate scaled coordinates (following reference)
-    const xRange = [];
-    const yRange = [];
-    for (let y = 0; y < height; y++) {
-      const yVal = scale * (y - (height - 1) / 2.0) / ((height - 1) / 2.0);
-      yRange.push(yVal);
-    }
-    for (let x = 0; x < width; x++) {
-      const xVal = scale * (x - (width - 1) / 2.0) / ((width - 1) / 2.0);
-      xRange.push(xVal);
-    }
-    
-    // Create coordinate grids
+    // Generate scaled coordinates exactly as reference:
+    // x_range = scale*(np.arange(x_dim)-(x_dim-1)/2.0)/(x_dim-1)/0.5
     const xMat: number[] = [];
     const yMat: number[] = [];
     const rMat: number[] = [];
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const xv = xRange[x];
-        const yv = yRange[y];
-        xMat.push(xv);
-        yMat.push(yv);
-        rMat.push(Math.sqrt(xv * xv + yv * yv));
+    
+    for (let py = 0; py < height; py++) {
+      const yVal = scale * (py - (height - 1) / 2.0) / (height - 1) / 0.5;
+      for (let px = 0; px < width; px++) {
+        const xVal = scale * (px - (width - 1) / 2.0) / (width - 1) / 0.5;
+        xMat.push(xVal);
+        yMat.push(yVal);
+        rMat.push(Math.sqrt(xVal * xVal + yVal * yVal));
       }
     }
     
@@ -6384,44 +6388,43 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
     const yTensor = tf.tensor2d(yMat, [nPoints, 1]);
     const rTensor = tf.tensor2d(rMat, [nPoints, 1]);
     
-    // Z vector scaled and broadcast to all points
+    // Z scaled and broadcast: z_scaled = z * scale, broadcast to all points
     const zScaled = tf.tensor2d(zData, [1, zDim]).mul(scale);
     const zBroadcast = tf.tile(zScaled, [nPoints, 1]);
     
-    // First layer: combine inputs with separate weights then sum
-    // U = fc(z) + fc(x) + fc(y) + fc(r)
-    const Uz = tf.matMul(zBroadcast, W_z);
+    // First layer: U = fc(z) + fc(x, no_bias) + fc(y, no_bias) + fc(r, no_bias)
+    const Uz = tf.add(tf.matMul(zBroadcast, W_z), B_z);
     const Ux = tf.matMul(xTensor, W_x);
     const Uy = tf.matMul(yTensor, W_y);
     const Ur = tf.matMul(rTensor, W_r);
-    const U = tf.add(tf.add(tf.add(Uz, Ux), tf.add(Uy, Ur)), B_0);
+    const U = tf.add(tf.add(Uz, Ux), tf.add(Uy, Ur));
     
-    // Hidden layers with tanh (following reference's default)
+    // Reference default: H = tanh(U), then 3 more tanh layers
     let H = tf.tanh(U) as tf.Tensor2D;
+    H = tf.tanh(tf.add(tf.matMul(H, W_h0), B_h0)) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h1), B_h1)) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h2), B_h2)) as tf.Tensor2D;
-    H = tf.tanh(tf.add(tf.matMul(H, W_h3), B_h3)) as tf.Tensor2D;
     
-    // Output with sigmoid
+    // Output: sigmoid for [0, 1]
     const output = tf.sigmoid(tf.add(tf.matMul(H, W_out), B_out));
     
-    return output.reshape([height, width, 3]).mul(255);
+    return output.mul(255);
   });
   
   const outputData = await outputTensor.data();
   outputTensor.dispose();
   
-  // Clean up weight tensors
-  W_z.dispose(); W_x.dispose(); W_y.dispose(); W_r.dispose(); B_0.dispose();
-  W_h1.dispose(); B_h1.dispose(); W_h2.dispose(); B_h2.dispose();
-  W_h3.dispose(); B_h3.dispose(); W_out.dispose(); B_out.dispose();
+  W_z.dispose(); B_z.dispose(); W_x.dispose(); W_y.dispose(); W_r.dispose();
+  W_h0.dispose(); B_h0.dispose(); W_h1.dispose(); B_h1.dispose();
+  W_h2.dispose(); B_h2.dispose(); W_out.dispose(); B_out.dispose();
   
   const out = createSolidImage(width, height, '#000000');
   for (let i = 0; i < width * height; i++) {
+    const gray = Math.round(outputData[i]);
     const outIdx = i * 4;
-    out.data[outIdx] = Math.round(outputData[i * 3]);
-    out.data[outIdx + 1] = Math.round(outputData[i * 3 + 1]);
-    out.data[outIdx + 2] = Math.round(outputData[i * 3 + 2]);
+    out.data[outIdx] = gray;
+    out.data[outIdx + 1] = gray;
+    out.data[outIdx + 2] = gray;
     out.data[outIdx + 3] = 255;
   }
   
