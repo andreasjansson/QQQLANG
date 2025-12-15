@@ -313,16 +313,16 @@ function imageHistory(ctx: FnContext): Image {
   tempCtx.fillStyle = "#E8E4DC";
   tempCtx.font = `300 ${fontSize}px Inconsolata, monospace`;
 
-  for (let i = 0; i < numImages; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
+  for (let windowPos = 0; windowPos < numImages; windowPos++) {
+    const col = windowPos % cols;
+    const row = Math.floor(windowPos / cols);
 
     const x = margin + col * cellWidth;
     const y = margin + row * cellHeight;
 
-    const imgIndex = startOffset + i;
-    const img = ctx.images[imgIndex];
-    const accessKey = numToChar(i + 1);
+    const absoluteIndex = startOffset + windowPos;
+    const img = ctx.images[absoluteIndex];
+    const accessKey = numToChar(windowPos + 1);
 
     const opInfo = ctx.opInfos[imgIndex];
     const prevOpIdentifier =
