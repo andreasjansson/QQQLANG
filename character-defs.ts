@@ -1,12 +1,21 @@
-import {
+import type {
   CharDef,
+  ArgDef,
+  FnContext,
+  Image,
+  ArgType,
+  IntType,
+  ColorType,
+  IndexType,
+  ChoiceType,
+  OpInfo,
+} from "./functions/helpers.js";
+
+import {
   INT,
   COLOR,
   INDEX,
   Choice,
-  ArgDef,
-  FnContext,
-  Image,
   createSolidImage,
   getPrevImage,
   getPixel,
@@ -16,12 +25,6 @@ import {
   rgbToHsl,
   hslToRgb,
   getOldImage,
-  ArgType,
-  IntType,
-  ColorType,
-  IndexType,
-  ChoiceType,
-  OpInfo,
   UPLOAD_CHAR,
   UPLOAD_COUNT,
   isIndexedUpload,
