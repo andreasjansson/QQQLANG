@@ -939,10 +939,10 @@ export const characterDefs: Record<string, CharDef> = {
   "}": {
     color: "#9400D3",
     number: 67,
-    fn: skewRight,
+    fn: sharpen,
     args: [],
-    functionName: "skew-right",
-    documentation: "Skew 20° right with wraparound (top right, bottom left).",
+    functionName: "sharpen",
+    documentation: "Sharpen using convolution kernel to enhance edges.",
   },
 
   "~": {
