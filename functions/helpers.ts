@@ -456,13 +456,6 @@ async function loadSinetModel(): Promise<void> {
 }
 
 export const bgRemovalReady = loadSinetModel();
-  // Insert zero-width non-joiner between common ligature pairs
-  return text
-    .replace(/ff/g, "f\u200Cf")
-    .replace(/fi/g, "f\u200Ci")
-    .replace(/fl/g, "f\u200Cl")
-    .replace(/ffi/g, "f\u200Cf\u200Ci")
-    .replace(/ffl/g, "f\u200Cf\u200Cl");
 }
 
 export function wrapText(text: string, maxWidth: number): string[] {
