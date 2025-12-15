@@ -7186,7 +7186,7 @@ export const characterDefs: Record<string, CharDef> = {
           const tintedB = tb * factor;
           
           const [h, s, l] = rgbToHsl(tintedR, tintedG, tintedB);
-          const boostedS = Math.min(1, s * 1.2);
+          const boostedS = Math.min(1, s * 1.5);
           const [finalR, finalG, finalB] = hslToRgb(h, boostedS, l);
           
           setPixel(out, x, y, finalR, finalG, finalB);
