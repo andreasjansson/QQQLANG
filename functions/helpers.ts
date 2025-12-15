@@ -467,7 +467,7 @@ export function breakLigatures(text: string): string {
     .replace(/ffl/g, "f\u200Cf\u200Cl");
 }
 
-function wrapText(text: string, maxWidth: number): string[] {
+export function wrapText(text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   const paragraphs = text.split("\n");
 
