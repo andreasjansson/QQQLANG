@@ -6411,13 +6411,13 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
     H = tf.tanh(tf.add(tf.matMul(H, W_h3), B_h3)) as tf.Tensor2D;
     H = tf.tanh(tf.add(tf.matMul(H, W_h4), B_h4)) as tf.Tensor2D;
     
-    // Output: sigmoid for [0, 1]
-    const output = tf.sigmoid(tf.add(tf.matMul(H, W_out), B_out));
+    // Output: tanh for [-1, 1] displacement range
+    const output = tf.tanh(tf.add(tf.matMul(H, W_out), B_out));
     
-    return output.mul(255);
+    return output;
   });
   
-  const outputData = await outputTensor.data();
+  const displacementData = await outputTensor.data();
   outputTensor.dispose();
   
   W_z.dispose(); B_z.dispose(); W_x.dispose(); W_y.dispose(); W_r.dispose();
@@ -6425,13 +6425,25 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
   W_h2.dispose(); B_h2.dispose(); W_h3.dispose(); B_h3.dispose();
   W_h4.dispose(); B_h4.dispose(); W_out.dispose(); B_out.dispose();
   
+  // Apply displacement mapping to warp the input image
   const out = createSolidImage(width, height, '#000000');
-  for (let i = 0; i < width * height; i++) {
-    const outIdx = i * 4;
-    out.data[outIdx] = Math.round(outputData[i * 3]);
-    out.data[outIdx + 1] = Math.round(outputData[i * 3 + 1]);
-    out.data[outIdx + 2] = Math.round(outputData[i * 3 + 2]);
-    out.data[outIdx + 3] = 255;
+  for (let py = 0; py < height; py++) {
+    for (let px = 0; px < width; px++) {
+      const i = py * width + px;
+      const dx = displacementData[i * 2] * displacementStrength * width;
+      const dy = displacementData[i * 2 + 1] * displacementStrength * height;
+      
+      // Sample from displaced coordinates with clamping
+      const srcX = Math.max(0, Math.min(width - 1, Math.round(px + dx)));
+      const srcY = Math.max(0, Math.min(height - 1, Math.round(py + dy)));
+      const srcIdx = (srcY * width + srcX) * 4;
+      
+      const outIdx = i * 4;
+      out.data[outIdx] = prev.data[srcIdx];
+      out.data[outIdx + 1] = prev.data[srcIdx + 1];
+      out.data[outIdx + 2] = prev.data[srcIdx + 2];
+      out.data[outIdx + 3] = 255;
+    }
   }
   
   return out;
