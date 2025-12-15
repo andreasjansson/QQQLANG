@@ -7139,7 +7139,7 @@ export const characterDefs: Record<string, CharDef> = {
     fn: fnB,
     args: [
       { type: INDEX, documentation: "Old image to alternate with" },
-      { type: INT, documentation: "Pattern shape seed" }
+      { type: INT, documentation: "Pattern shape" }
     ],
     functionName: "voronoi",
     documentation: "Voronoi cells alternating between current and old image, with variable pattern shape."
