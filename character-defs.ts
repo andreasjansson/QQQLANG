@@ -2433,7 +2433,7 @@ function fnU(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnV(ctx: FnContext, c: string, style: string): Image {
+function fnV(ctx: FnContext, style: string, c: string): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   const [tr, tg, tb] = hexToRgb(c);
