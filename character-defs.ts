@@ -920,10 +920,10 @@ export const characterDefs: Record<string, CharDef> = {
   "{": {
     color: "#DC143C",
     number: 65,
-    fn: skewLeft,
-    args: [],
-    functionName: "skew-left",
-    documentation: "Skew 20° left with wraparound (top left, bottom right).",
+    fn: skew,
+    args: [{ type: INT, documentation: "Skew amount (A=left, 7=none, ~=right)" }],
+    functionName: "skew",
+    documentation: "Skew horizontal with wraparound.",
   },
 
   "|": {
