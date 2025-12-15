@@ -37,7 +37,7 @@ INPUT_FONT_PATH = PROJECT_DIR / "fonts" / "Inconsolata-Variable.ttf"
 OUTPUT_FONT_PATH = PROJECT_DIR / "public" / "QQQLANG.ttf"
 
 PUA_START = 0xE000
-FUNCTION_GAP = 375  # ~10px spacing (150 units ≈ 4px)
+FUNCTION_GAP = 0
 
 REGULAR_WEIGHT = 400
 BOLD_WEIGHT = 700
@@ -341,6 +341,76 @@ def build_font():
     pua_index = PUA_START
     new_glyphs = []
     
+    # Helper to create a glyph with a dot underneath
+    from fontTools.ttLib.tables._g_l_y_f import Glyph, GlyphCoordinates
+    from fontTools.ttLib.tables import ttProgram
+    
+    def create_glyph_with_dot(original_glyph, color_hex):
+        """Create a composite glyph with original character and a colored dot underneath"""
+        from fontTools.pens.t2CharStringPen import T2CharStringPen
+        from fontTools.pens.ttGlyphPen import TTGlyphPen
+        
+        # Create a new glyph with dot underneath
+        units_per_em = font['head'].unitsPerEm
+        
+        # Dot parameters
+        dot_radius = int(units_per_em * 0.06)  # Small dot
+        dot_center_x = units_per_em // 2  # Center horizontally
+        dot_center_y = int(-units_per_em * 0.15)  # Below baseline
+        
+        # Create circular dot with 8 points
+        import math
+        dot_glyph = Glyph()
+        dot_glyph.numberOfContours = 1
+        
+        points = []
+        for i in range(8):
+            angle = 2 * math.pi * i / 8
+            x = dot_center_x + int(dot_radius * math.cos(angle))
+            y = dot_center_y + int(dot_radius * math.sin(angle))
+            points.append((x, y))
+        
+        dot_glyph.coordinates = GlyphCoordinates(points)
+        dot_glyph.flags = [1] * 8  # All on-curve points
+        dot_glyph.endPtsOfContours = [7]
+        dot_glyph.program = ttProgram.Program()
+        
+        # Calculate bounds including dot
+        dot_glyph.xMin = dot_center_x - dot_radius
+        dot_glyph.yMin = dot_center_y - dot_radius
+        dot_glyph.xMax = dot_center_x + dot_radius
+        dot_glyph.yMax = dot_center_y + dot_radius
+        
+        # Combine with original glyph
+        if hasattr(original_glyph, 'numberOfContours') and original_glyph.numberOfContours > 0:
+            combined = Glyph()
+            combined.numberOfContours = original_glyph.numberOfContours + 1
+            
+            # Combine coordinates
+            orig_coords = list(original_glyph.coordinates)
+            dot_coords = list(dot_glyph.coordinates)
+            combined.coordinates = GlyphCoordinates(orig_coords + dot_coords)
+            
+            # Combine flags
+            combined.flags = list(original_glyph.flags) + list(dot_glyph.flags)
+            
+            # Combine contour end points (offset dot contour indices)
+            orig_end_pts = list(original_glyph.endPtsOfContours)
+            dot_end_pt = len(orig_coords) + 7  # Dot ends at 8th point after original
+            combined.endPtsOfContours = orig_end_pts + [dot_end_pt]
+            
+            combined.program = ttProgram.Program()
+            
+            # Update bounds
+            combined.xMin = min(original_glyph.xMin, dot_glyph.xMin)
+            combined.yMin = min(original_glyph.yMin, dot_glyph.yMin)
+            combined.xMax = max(original_glyph.xMax, dot_glyph.xMax)
+            combined.yMax = max(original_glyph.yMax, dot_glyph.yMax)
+            
+            return combined
+        else:
+            return dot_glyph
+    
     for char in qqqlang_chars:
         regular_glyph_name = glyph_name_map[char]
         regular_glyph_data = glyf[regular_glyph_name]
@@ -356,12 +426,17 @@ def build_font():
             bold_glyph_data = regular_glyph_data
             bold_width, bold_lsb = regular_width, regular_lsb
         
-        # Bold_first variant (for initial char detection)
+        # Get color for this character
+        char_color = char_defs[char]['color']
+        
+        # Bold_first variant (for initial char detection) - now with dot instead of bold
         bf_codepoint = pua_index
         pua_index += 1
         bf_name = f"uni{bf_codepoint:04X}"
         bold_first_glyph_map[char] = bf_name
-        new_glyphs.append((bf_name, bold_glyph_data, bold_width, bold_lsb, bf_codepoint))
+        # Use regular glyph with dot underneath instead of bold
+        bf_glyph_with_dot = create_glyph_with_dot(regular_glyph_data, char_color)
+        new_glyphs.append((bf_name, bf_glyph_with_dot, regular_width, regular_lsb, bf_codepoint))
         
         # Bold variant
         bold_codepoint = pua_index
