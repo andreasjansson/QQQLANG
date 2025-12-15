@@ -6278,14 +6278,12 @@ function fnTilde(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnCPPN(ctx: FnContext, n: number): Image {
+function fnCPPN(ctx: FnContext): Image {
+  const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, null);
-  
-  // Use n as seed to generate deterministic network weights
-  const seed = n * 137.5 + ctx.images.length * 17.3;
   
   const vertexShader = `
     attribute vec2 position;
@@ -6297,17 +6295,17 @@ function fnCPPN(ctx: FnContext, n: number): Image {
   `;
   
   // CPPN fragment shader with multiple activation functions
-  // Inputs: x, y, distance from center (d), bias
+  // Inputs: x, y, d (distance), r, g, b from prev image, bias
   // Outputs: RGB color
   const fragmentShader = `
     precision highp float;
+    uniform sampler2D uTexture;
     uniform vec2 uResolution;
-    uniform float uSeed;
     varying vec2 vUV;
     
-    // Deterministic hash for weight generation
+    // Fixed seed = 0 for full determinism based on input image
     float hash(float n) {
-      return fract(sin(n * 127.1 + uSeed) * 43758.5453);
+      return fract(sin(n * 127.1) * 43758.5453);
     }
     
     // Generate weight in range [-2, 2] from index
@@ -6337,6 +6335,12 @@ function fnCPPN(ctx: FnContext, n: number): Image {
     }
     
     void main() {
+      // Sample previous image
+      vec3 tex = texture2D(uTexture, vec2(vUV.x, 1.0 - vUV.y)).rgb;
+      float inR = tex.r * 2.0 - 1.0; // normalize to [-1, 1]
+      float inG = tex.g * 2.0 - 1.0;
+      float inB = tex.b * 2.0 - 1.0;
+      
       // Normalize coordinates to [-1, 1]
       float aspect = uResolution.x / uResolution.y;
       float x = (vUV.x * 2.0 - 1.0) * aspect;
@@ -6344,37 +6348,46 @@ function fnCPPN(ctx: FnContext, n: number): Image {
       float d = sqrt(x * x + y * y);
       float bias = 1.0;
       
-      // Layer 1: 4 inputs -> 8 hidden nodes
-      float h1_0 = activate(weight(0)*x + weight(1)*y + weight(2)*d + weight(3)*bias, int(hash(100.0) * 100.0));
-      float h1_1 = activate(weight(4)*x + weight(5)*y + weight(6)*d + weight(7)*bias, int(hash(101.0) * 100.0));
-      float h1_2 = activate(weight(8)*x + weight(9)*y + weight(10)*d + weight(11)*bias, int(hash(102.0) * 100.0));
-      float h1_3 = activate(weight(12)*x + weight(13)*y + weight(14)*d + weight(15)*bias, int(hash(103.0) * 100.0));
-      float h1_4 = activate(weight(16)*x + weight(17)*y + weight(18)*d + weight(19)*bias, int(hash(104.0) * 100.0));
-      float h1_5 = activate(weight(20)*x + weight(21)*y + weight(22)*d + weight(23)*bias, int(hash(105.0) * 100.0));
-      float h1_6 = activate(weight(24)*x + weight(25)*y + weight(26)*d + weight(27)*bias, int(hash(106.0) * 100.0));
-      float h1_7 = activate(weight(28)*x + weight(29)*y + weight(30)*d + weight(31)*bias, int(hash(107.0) * 100.0));
+      // Layer 1: 7 inputs (x, y, d, r, g, b, bias) -> 8 hidden nodes
+      float h1_0 = activate(weight(0)*x + weight(1)*y + weight(2)*d + weight(3)*inR + weight(4)*inG + weight(5)*inB + weight(6)*bias, int(hash(100.0) * 100.0));
+      float h1_1 = activate(weight(7)*x + weight(8)*y + weight(9)*d + weight(10)*inR + weight(11)*inG + weight(12)*inB + weight(13)*bias, int(hash(101.0) * 100.0));
+      float h1_2 = activate(weight(14)*x + weight(15)*y + weight(16)*d + weight(17)*inR + weight(18)*inG + weight(19)*inB + weight(20)*bias, int(hash(102.0) * 100.0));
+      float h1_3 = activate(weight(21)*x + weight(22)*y + weight(23)*d + weight(24)*inR + weight(25)*inG + weight(26)*inB + weight(27)*bias, int(hash(103.0) * 100.0));
+      float h1_4 = activate(weight(28)*x + weight(29)*y + weight(30)*d + weight(31)*inR + weight(32)*inG + weight(33)*inB + weight(34)*bias, int(hash(104.0) * 100.0));
+      float h1_5 = activate(weight(35)*x + weight(36)*y + weight(37)*d + weight(38)*inR + weight(39)*inG + weight(40)*inB + weight(41)*bias, int(hash(105.0) * 100.0));
+      float h1_6 = activate(weight(42)*x + weight(43)*y + weight(44)*d + weight(45)*inR + weight(46)*inG + weight(47)*inB + weight(48)*bias, int(hash(106.0) * 100.0));
+      float h1_7 = activate(weight(49)*x + weight(50)*y + weight(51)*d + weight(52)*inR + weight(53)*inG + weight(54)*inB + weight(55)*bias, int(hash(107.0) * 100.0));
       
       // Layer 2: 8 hidden -> 8 hidden
-      float h2_0 = activate(weight(32)*h1_0 + weight(33)*h1_1 + weight(34)*h1_2 + weight(35)*h1_3 + weight(36)*h1_4 + weight(37)*h1_5 + weight(38)*h1_6 + weight(39)*h1_7, int(hash(108.0) * 100.0));
-      float h2_1 = activate(weight(40)*h1_0 + weight(41)*h1_1 + weight(42)*h1_2 + weight(43)*h1_3 + weight(44)*h1_4 + weight(45)*h1_5 + weight(46)*h1_6 + weight(47)*h1_7, int(hash(109.0) * 100.0));
-      float h2_2 = activate(weight(48)*h1_0 + weight(49)*h1_1 + weight(50)*h1_2 + weight(51)*h1_3 + weight(52)*h1_4 + weight(53)*h1_5 + weight(54)*h1_6 + weight(55)*h1_7, int(hash(110.0) * 100.0));
-      float h2_3 = activate(weight(56)*h1_0 + weight(57)*h1_1 + weight(58)*h1_2 + weight(59)*h1_3 + weight(60)*h1_4 + weight(61)*h1_5 + weight(62)*h1_6 + weight(63)*h1_7, int(hash(111.0) * 100.0));
-      float h2_4 = activate(weight(64)*h1_0 + weight(65)*h1_1 + weight(66)*h1_2 + weight(67)*h1_3 + weight(68)*h1_4 + weight(69)*h1_5 + weight(70)*h1_6 + weight(71)*h1_7, int(hash(112.0) * 100.0));
-      float h2_5 = activate(weight(72)*h1_0 + weight(73)*h1_1 + weight(74)*h1_2 + weight(75)*h1_3 + weight(76)*h1_4 + weight(77)*h1_5 + weight(78)*h1_6 + weight(79)*h1_7, int(hash(113.0) * 100.0));
-      float h2_6 = activate(weight(80)*h1_0 + weight(81)*h1_1 + weight(82)*h1_2 + weight(83)*h1_3 + weight(84)*h1_4 + weight(85)*h1_5 + weight(86)*h1_6 + weight(87)*h1_7, int(hash(114.0) * 100.0));
-      float h2_7 = activate(weight(88)*h1_0 + weight(89)*h1_1 + weight(90)*h1_2 + weight(91)*h1_3 + weight(92)*h1_4 + weight(93)*h1_5 + weight(94)*h1_6 + weight(95)*h1_7, int(hash(115.0) * 100.0));
+      float h2_0 = activate(weight(56)*h1_0 + weight(57)*h1_1 + weight(58)*h1_2 + weight(59)*h1_3 + weight(60)*h1_4 + weight(61)*h1_5 + weight(62)*h1_6 + weight(63)*h1_7, int(hash(108.0) * 100.0));
+      float h2_1 = activate(weight(64)*h1_0 + weight(65)*h1_1 + weight(66)*h1_2 + weight(67)*h1_3 + weight(68)*h1_4 + weight(69)*h1_5 + weight(70)*h1_6 + weight(71)*h1_7, int(hash(109.0) * 100.0));
+      float h2_2 = activate(weight(72)*h1_0 + weight(73)*h1_1 + weight(74)*h1_2 + weight(75)*h1_3 + weight(76)*h1_4 + weight(77)*h1_5 + weight(78)*h1_6 + weight(79)*h1_7, int(hash(110.0) * 100.0));
+      float h2_3 = activate(weight(80)*h1_0 + weight(81)*h1_1 + weight(82)*h1_2 + weight(83)*h1_3 + weight(84)*h1_4 + weight(85)*h1_5 + weight(86)*h1_6 + weight(87)*h1_7, int(hash(111.0) * 100.0));
+      float h2_4 = activate(weight(88)*h1_0 + weight(89)*h1_1 + weight(90)*h1_2 + weight(91)*h1_3 + weight(92)*h1_4 + weight(93)*h1_5 + weight(94)*h1_6 + weight(95)*h1_7, int(hash(112.0) * 100.0));
+      float h2_5 = activate(weight(96)*h1_0 + weight(97)*h1_1 + weight(98)*h1_2 + weight(99)*h1_3 + weight(100)*h1_4 + weight(101)*h1_5 + weight(102)*h1_6 + weight(103)*h1_7, int(hash(113.0) * 100.0));
+      float h2_6 = activate(weight(104)*h1_0 + weight(105)*h1_1 + weight(106)*h1_2 + weight(107)*h1_3 + weight(108)*h1_4 + weight(109)*h1_5 + weight(110)*h1_6 + weight(111)*h1_7, int(hash(114.0) * 100.0));
+      float h2_7 = activate(weight(112)*h1_0 + weight(113)*h1_1 + weight(114)*h1_2 + weight(115)*h1_3 + weight(116)*h1_4 + weight(117)*h1_5 + weight(118)*h1_6 + weight(119)*h1_7, int(hash(115.0) * 100.0));
       
       // Output layer: 8 hidden -> 3 RGB (using sigmoid for [0,1] output)
-      float r = 1.0 / (1.0 + exp(-(weight(96)*h2_0 + weight(97)*h2_1 + weight(98)*h2_2 + weight(99)*h2_3 + weight(100)*h2_4 + weight(101)*h2_5 + weight(102)*h2_6 + weight(103)*h2_7)));
-      float g = 1.0 / (1.0 + exp(-(weight(104)*h2_0 + weight(105)*h2_1 + weight(106)*h2_2 + weight(107)*h2_3 + weight(108)*h2_4 + weight(109)*h2_5 + weight(110)*h2_6 + weight(111)*h2_7)));
-      float b = 1.0 / (1.0 + exp(-(weight(112)*h2_0 + weight(113)*h2_1 + weight(114)*h2_2 + weight(115)*h2_3 + weight(116)*h2_4 + weight(117)*h2_5 + weight(118)*h2_6 + weight(119)*h2_7)));
+      float outR = 1.0 / (1.0 + exp(-(weight(120)*h2_0 + weight(121)*h2_1 + weight(122)*h2_2 + weight(123)*h2_3 + weight(124)*h2_4 + weight(125)*h2_5 + weight(126)*h2_6 + weight(127)*h2_7)));
+      float outG = 1.0 / (1.0 + exp(-(weight(128)*h2_0 + weight(129)*h2_1 + weight(130)*h2_2 + weight(131)*h2_3 + weight(132)*h2_4 + weight(133)*h2_5 + weight(134)*h2_6 + weight(135)*h2_7)));
+      float outB = 1.0 / (1.0 + exp(-(weight(136)*h2_0 + weight(137)*h2_1 + weight(138)*h2_2 + weight(139)*h2_3 + weight(140)*h2_4 + weight(141)*h2_5 + weight(142)*h2_6 + weight(143)*h2_7)));
       
-      gl_FragColor = vec4(r, g, b, 1.0);
+      gl_FragColor = vec4(outR, outG, outB, 1.0);
     }
   `;
   
   const program = createShaderProgram(gl, vertexShader, fragmentShader);
   gl.useProgram(program);
+  
+  // Upload previous image as texture
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   
   const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
   const buffer = gl.createBuffer();
@@ -6385,8 +6398,8 @@ function fnCPPN(ctx: FnContext, n: number): Image {
   gl.enableVertexAttribArray(positionLoc);
   gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
   
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
   gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
-  gl.uniform1f(gl.getUniformLocation(program, 'uSeed'), seed);
   
   gl.viewport(0, 0, ctx.width, ctx.height);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -6407,6 +6420,7 @@ function fnCPPN(ctx: FnContext, n: number): Image {
     }
   }
   
+  gl.deleteTexture(texture);
   gl.deleteBuffer(buffer);
   gl.deleteProgram(program);
   
