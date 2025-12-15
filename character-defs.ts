@@ -107,20 +107,6 @@ import { verticalSplit } from "./functions/vertical-split.js";
 import { skewRight } from "./functions/skew-right.js";
 import { waveChromatic } from "./functions/wave-chromatic.js";
 
-// Re-export types for other modules
-export type {
-  CharDef,
-  ArgDef,
-  FnContext,
-  Image,
-  ArgType,
-  IntType,
-  ColorType,
-  IndexType,
-  ChoiceType,
-  OpInfo,
-};
-
 export const characterDefs: Record<string, CharDef> = {
   A: {
     color: "#78A10F",
