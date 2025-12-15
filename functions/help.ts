@@ -318,7 +318,7 @@ function imageHistory(ctx: FnContext): Image {
     const col = windowPos % cols;
     const row = Math.floor(windowPos / cols);
 
-    const x = margin + col * cellWidth;
+    const x = margin + col * (cellWidth + hGap);
     const y = margin + row * cellHeight;
 
     const absoluteIndex = startOffset + windowPos;
