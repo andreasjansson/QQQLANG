@@ -3014,49 +3014,172 @@ async function fn0(ctx: FnContext, old: Image): Promise<Image> {
 
 function fn1(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
-  const out = createSolidImage(ctx.width, ctx.height, '#000000');
+  const gl = initWebGL(ctx.width, ctx.height);
   
-  const barStart = Math.floor(ctx.width / 3);
-  const barEnd = Math.floor(ctx.width * 2 / 3);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
   
+  const vertexShader = `
+    attribute vec2 position;
+    varying vec2 vUV;
+    void main() {
+      vUV = vec2(position.x * 0.5 + 0.5, 1.0 - (position.y * 0.5 + 0.5));
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+  
+  const fragmentShader = `
+    precision highp float;
+    uniform sampler2D uTexture;
+    uniform vec2 uResolution;
+    varying vec2 vUV;
+    
+    #define PI 3.14159265359
+    
+    void main() {
+      vec2 uv = vUV;
+      float aspect = uResolution.x / uResolution.y;
+      
+      // Center of the black hole
+      vec2 center = vec2(0.5, 0.5);
+      
+      // Adjust for aspect ratio
+      vec2 pos = uv - center;
+      pos.x *= aspect;
+      
+      float dist = length(pos);
+      float angle = atan(pos.y, pos.x);
+      
+      // Black hole parameters
+      float eventHorizon = 0.08;
+      float photonSphere = 0.15;
+      float accretionDisk = 0.4;
+      
+      // Inside event horizon - pure black
+      if (dist < eventHorizon) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+      }
+      
+      // Gravitational lensing strength - inverse square falloff
+      // As we approach the event horizon, the bending becomes extreme
+      float bendStrength = eventHorizon * eventHorizon / (dist * dist);
+      
+      // The closer to the black hole, the more the image wraps around
+      // This creates the effect of the center being pulled infinitely back
+      float wrapAmount = bendStrength * 3.0;
+      
+      // Spiral the angle as we get closer - light wrapping around
+      float spiralAngle = angle + wrapAmount * PI;
+      
+      // The radial compression - space contracts near the hole
+      // This makes the image appear to stretch towards the center
+      float compressedDist = dist + (photonSphere - dist) * bendStrength * 2.0;
+      compressedDist = max(compressedDist, eventHorizon * 1.1);
+      
+      // Convert back to UV coordinates
+      vec2 warpedPos;
+      warpedPos.x = compressedDist * cos(spiralAngle);
+      warpedPos.y = compressedDist * sin(spiralAngle);
+      warpedPos.x /= aspect;
+      
+      vec2 warpedUV = warpedPos + center;
+      
+      // Tile the UV if it goes out of bounds (creates repeating pattern at edges)
+      warpedUV = fract(warpedUV);
+      
+      vec3 color = texture2D(uTexture, warpedUV).rgb;
+      
+      // Photon sphere glow - bright ring just outside event horizon
+      float photonGlow = 0.0;
+      if (dist > eventHorizon && dist < photonSphere) {
+        float t = (dist - eventHorizon) / (photonSphere - eventHorizon);
+        // Peak brightness at the photon sphere boundary
+        photonGlow = sin(t * PI) * 0.5;
+        
+        // Doppler shift - blue on one side, red on the other (rotating accretion)
+        float dopplerAngle = angle + PI * 0.25;
+        vec3 doppler = vec3(
+          0.8 + 0.4 * cos(dopplerAngle + PI),
+          0.7,
+          0.8 + 0.4 * cos(dopplerAngle)
+        );
+        color = color * (1.0 - photonGlow) + doppler * photonGlow;
+      }
+      
+      // Accretion disk glow - subtle warm glow further out
+      if (dist > photonSphere && dist < accretionDisk) {
+        float t = (dist - photonSphere) / (accretionDisk - photonSphere);
+        float diskGlow = (1.0 - t) * 0.15;
+        
+        // Rotating hot gas color
+        float diskAngle = angle + dist * 5.0;
+        vec3 diskColor = vec3(
+          1.0,
+          0.6 + 0.2 * sin(diskAngle),
+          0.3 + 0.1 * sin(diskAngle * 2.0)
+        );
+        color = color + diskColor * diskGlow;
+      }
+      
+      // Darken towards the event horizon
+      float darkness = smoothstep(eventHorizon, eventHorizon * 3.0, dist);
+      color *= darkness;
+      
+      // Subtle vignette enhancement
+      float vignette = 1.0 - smoothstep(0.5, 1.2, dist);
+      color *= 0.85 + 0.15 * vignette;
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  
+  const program = createShaderProgram(gl, vertexShader, fragmentShader);
+  gl.useProgram(program);
+  
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+  const positionLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  
+  gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
+  
+  gl.viewport(0, 0, ctx.width, ctx.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  
+  const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
+  gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const [r, g, b] = getPixel(prev, x, y);
-      
-      if (x >= barStart && x < barEnd) {
-        let sr = 0, sg = 0, sb = 0;
-        const kernel = [
-          [0, -1, 0],
-          [-1, 5, -1],
-          [0, -1, 0]
-        ];
-        for (let ky = -1; ky <= 1; ky++) {
-          for (let kx = -1; kx <= 1; kx++) {
-            const [pr, pg, pb] = getPixel(prev, x + kx, y + ky);
-            const weight = kernel[ky + 1][kx + 1];
-            sr += pr * weight;
-            sg += pg * weight;
-            sb += pb * weight;
-          }
-        }
-        sr = Math.max(0, Math.min(255, sr));
-        sg = Math.max(0, Math.min(255, sg));
-        sb = Math.max(0, Math.min(255, sb));
-        
-        const contrast = 1.3;
-        sr = Math.max(0, Math.min(255, ((sr / 255 - 0.5) * contrast + 0.5) * 255));
-        sg = Math.max(0, Math.min(255, ((sg / 255 - 0.5) * contrast + 0.5) * 255));
-        sb = Math.max(0, Math.min(255, ((sb / 255 - 0.5) * contrast + 0.5) * 255));
-        
-        setPixel(out, x, y, Math.round(sr), Math.round(sg), Math.round(sb));
-      } else {
-        const gray = Math.round(r * 0.299 + g * 0.587 + b * 0.114);
-        setPixel(out, x, y, gray, gray, gray);
-      }
+      const srcIdx = ((ctx.height - 1 - y) * ctx.width + x) * 4;
+      const dstIdx = (y * ctx.width + x) * 4;
+      flipped[dstIdx] = pixels[srcIdx];
+      flipped[dstIdx + 1] = pixels[srcIdx + 1];
+      flipped[dstIdx + 2] = pixels[srcIdx + 2];
+      flipped[dstIdx + 3] = pixels[srcIdx + 3];
     }
   }
   
-  return out;
+  gl.deleteTexture(texture);
+  gl.deleteBuffer(buffer);
+  gl.deleteProgram(program);
+  
+  return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
 function fn2(ctx: FnContext, old: Image, oldThird: number, prevThird: number): Image {
