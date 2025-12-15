@@ -526,6 +526,44 @@
     const UPLOAD_WORKER_URL = 'https://qqqlang-upload-worker.andreas-s-t-jansson.workers.dev';
     const HASH_LENGTH = 22;
     
+    // Custom undo/redo stack
+    const undoStack = [];
+    const redoStack = [];
+    let lastInputValue = '';
+    
+    function pushUndo(value, cursorPos) {
+      if (value !== lastInputValue) {
+        undoStack.push({ value: lastInputValue, cursor: cursorPos });
+        redoStack.length = 0;
+        if (undoStack.length > 100) undoStack.shift();
+        lastInputValue = value;
+      }
+    }
+    
+    function performUndo() {
+      if (undoStack.length === 0) return;
+      const current = { value: input.value, cursor: input.selectionStart };
+      redoStack.push(current);
+      const prev = undoStack.pop();
+      input.value = prev.value;
+      input.selectionStart = input.selectionEnd = prev.cursor;
+      lastInputValue = prev.value;
+      updateURL(input.value);
+      render();
+    }
+    
+    function performRedo() {
+      if (redoStack.length === 0) return;
+      const current = { value: input.value, cursor: input.selectionStart };
+      undoStack.push(current);
+      const next = redoStack.pop();
+      input.value = next.value;
+      input.selectionStart = input.selectionEnd = next.cursor;
+      lastInputValue = next.value;
+      updateURL(input.value);
+      render();
+    }
+    
     // pendingReplaceIndex: when clicking upload button on existing upload, this is the index to replace
     let pendingReplaceIndex = null;
     
