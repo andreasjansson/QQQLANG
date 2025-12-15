@@ -61,7 +61,8 @@ def parse_character_defs():
     
     chars = {}
     for match in re.finditer(pattern, content):
-        char = match.group(2)
+        # Extract character - either from quoted string (group 2) or unquoted identifier (group 3)
+        char = match.group(2) if match.group(2) else match.group(3)
         
         # Handle escape sequences from TypeScript source
         if char == '\\\\':
