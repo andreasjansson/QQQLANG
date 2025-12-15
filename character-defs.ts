@@ -6776,7 +6776,7 @@ export const characterDefs: Record<string, CharDef> = {
   'X': {
     color: '#F5DEB3',
     number: 24,
-    fn: fnX,
+    fn: fnQuadtree,
     args: [
       { type: INT, documentation: "Compression level (A=minimal/detailed, ~=maximal/geometric blocks)" }
     ],
