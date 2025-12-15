@@ -319,7 +319,7 @@ function fnA(ctx: FnContext): Image {
     uniform vec2 resolution;
     varying vec2 vUV;
     
-    vec3 renderSphere(vec2 uv, vec2 center, float radius, sampler2D tex) {
+    vec3 renderSphere(vec2 uv, vec2 center, float radius, sampler2D tex, float rotation) {
       vec2 p = (uv - center) / radius;
       float d = length(p);
       
@@ -328,30 +328,35 @@ function fnA(ctx: FnContext): Image {
       float z = sqrt(1.0 - d * d);
       vec3 normal = normalize(vec3(p.x, -p.y, z));
       vec3 lightDir = normalize(vec3(-0.3, 0.3, 1.0));
+      vec3 viewDir = vec3(0.0, 0.0, 1.0);
+      vec3 reflectDir = reflect(-lightDir, normal);
       
       float diffuse = max(dot(normal, lightDir), 0.0);
-      float ambient = 0.3;
-      float lighting = ambient + diffuse * 0.7;
+      float specular = pow(max(dot(viewDir, reflectDir), 0.0), 64.0);
+      float ambient = 0.25;
+      float lighting = ambient + diffuse * 0.5;
       
+      float theta = atan(normal.x, normal.z) + rotation;
       vec2 texCoord = vec2(
-        atan(normal.x, normal.z) / (2.0 * 3.14159) + 0.5,
+        theta / (2.0 * 3.14159) + 0.5,
         acos(normal.y) / 3.14159
       );
       
       vec3 color = texture2D(tex, texCoord).rgb;
-      return color * lighting;
+      return color * lighting + vec3(1.0) * specular * 0.8;
     }
     
     void main() {
       vec2 uv = gl_FragCoord.xy / resolution;
-      vec3 bg = texture2D(texture, vec2(1.0 - uv.x, 1.0 - uv.y)).rgb;
+      vec3 bg = texture2D(texture, vec2(uv.x, 1.0 - uv.y)).rgb;
       
       vec2 topRight = vec2(0.75, 0.75);
       vec2 bottomLeft = vec2(0.25, 0.25);
       float radius = 0.15;
+      float rotationAmount = 0.3 * 2.0 * 3.14159;
       
-      vec3 sphere1 = renderSphere(uv, topRight, radius, texture);
-      vec3 sphere2 = renderSphere(uv, bottomLeft, radius, texture);
+      vec3 sphere1 = renderSphere(uv, topRight, radius, texture, rotationAmount);
+      vec3 sphere2 = renderSphere(uv, bottomLeft, radius, texture, -rotationAmount);
       
       vec3 color = bg;
       if (sphere1.x >= 0.0) color = sphere1;
