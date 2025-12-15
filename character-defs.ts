@@ -858,10 +858,10 @@ export const characterDefs: Record<string, CharDef> = {
   "[": {
     color: "#48D1CC",
     number: 60,
-    fn: rotateLeft,
-    args: [],
-    functionName: "rotate-left",
-    documentation: "Rotate 20° counter-clockwise.",
+    fn: rotate,
+    args: [{ type: INT, documentation: "Rotation amount (A=left, 7=none, ~=right)" }],
+    functionName: "rotate",
+    documentation: "Rotate around center.",
   },
 
   "\\": {
