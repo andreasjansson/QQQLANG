@@ -422,15 +422,32 @@ function fnA(ctx: FnContext): Image {
   return { width: ctx.width, height: ctx.height, data: flipped };
 }
 
-function fnB(ctx: FnContext, old: Image): Image {
+function fnB(ctx: FnContext, old: Image, n: number): Image {
   const prev = getPrevImage(ctx);
   const out = createSolidImage(ctx.width, ctx.height, '#000000');
   
+  const hash = (i: number) => {
+    const x = Math.sin(i * 127.1 + n * 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  
+  const numSeeds = 20 + Math.floor(hash(0) * 40);
+  const jitterX = 0.5 + hash(1) * 0.5;
+  const jitterY = 0.5 + hash(2) * 0.5;
+  const xScale = 0.8 + hash(3) * 0.4;
+  const yScale = 0.8 + hash(4) * 0.4;
+  const offsetX = (hash(5) - 0.5) * ctx.width * 0.3;
+  const offsetY = (hash(6) - 0.5) * ctx.height * 0.3;
+  
   const seeds: [number, number][] = [];
-  for (let i = 0; i < 36; i++) {
+  for (let i = 0; i < numSeeds; i++) {
+    const baseX = hash(100 + i * 2) * ctx.width;
+    const baseY = hash(100 + i * 2 + 1) * ctx.height;
+    const jitterAmtX = (hash(200 + i) - 0.5) * ctx.width * 0.2 * jitterX;
+    const jitterAmtY = (hash(300 + i) - 0.5) * ctx.height * 0.2 * jitterY;
     seeds.push([
-      (i * 47) % ctx.width,
-      (i * 89) % ctx.height
+      ((baseX + jitterAmtX + offsetX) * xScale) % ctx.width,
+      ((baseY + jitterAmtY + offsetY) * yScale) % ctx.height
     ]);
   }
   
