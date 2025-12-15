@@ -4442,8 +4442,8 @@ function fnShearRadial(ctx: FnContext, cxParam: number, cyParam: number, kParam:
       float dist;
       vec2 mirroredUV = mirrorUV(sampleUV, dist);
       
-      // Sample the texture
-      vec4 color = texture2D(uTexture, mirroredUV);
+      // Flip upside down and sample the texture
+      vec4 color = texture2D(uTexture, vec2(mirroredUV.x, 1.0 - mirroredUV.y));
       
       // Fade to black based on distance outside original bounds
       float fade = 1.0 - smoothstep(0.0, 0.5, dist);
