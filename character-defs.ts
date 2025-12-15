@@ -6961,10 +6961,7 @@ export const characterDefs: Record<string, CharDef> = {
     color: '#FF6347',
     number: 15,
     fn: fnOilSlick,
-    args: [
-      { type: INT, documentation: "Warp strength" },
-      { type: INT, documentation: "Iteration depth" }
-    ],
+    args: [{ type: INT, documentation: "Warp intensity and depth" }],
     functionName: "oil-slick",
     documentation: "Domain warping with iridescent lighting."
   },
