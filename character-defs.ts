@@ -7338,14 +7338,14 @@ export const characterDefs: Record<string, CharDef> = {
   '(': {
     color: '#00CED1',
     number: 47,
-    fn: fnAnisotropicRadial,
+    fn: fnShearRadial,
     args: [
-      { type: INT, documentation: "Anisotropic scale (A=squeeze, M=none, ~=stretch along θ)" },
-      { type: INT, documentation: "Radial distortion (A=barrel, M=none, ~=pincushion)" },
-      { type: INT, documentation: "Direction angle (A=0°, ~=360°)" }
+      { type: INT, documentation: "Center X offset (A=left, M=center, ~=right)" },
+      { type: INT, documentation: "Center Y offset (A=bottom, M=center, ~=top)" },
+      { type: INT, documentation: "Radial/shear strength (A=barrel, M=none, ~=pincushion)" }
     ],
-    functionName: "aniso-radial",
-    documentation: "Anisotropic radial distortion combining directional stretch and barrel/pincushion distortion."
+    functionName: "shear-radial",
+    documentation: "Combined shear and radial distortion. Shear amount couples to horizontal offset and radial strength."
   },
   
   ')': {
