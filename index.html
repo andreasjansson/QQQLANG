@@ -797,6 +797,16 @@
       const char = [...lastOp.identifier].find(c => characterDefs[c] && characterDefs[c] === def) || '?';
       const helpLines = formatFunctionHelp(char, def);
       
+      // Special case: arity-0 function with cursor directly after it
+      if (def.args.length === 0 && cursorPos === lastOp.identifier.length) {
+        helpContainer.innerHTML = `<div>${helpLines[0]}</div>`;
+        helpHideTimeout = setTimeout(() => {
+          helpContainer.innerHTML = '';
+          helpHideTimeout = null;
+        }, 1000);
+        return;
+      }
+      
       // If function is complete, don't show help
       if (argsProvided >= def.args.length) {
         helpContainer.innerHTML = '';
