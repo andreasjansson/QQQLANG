@@ -88,7 +88,7 @@ function numToChar(num: number): string {
   return "?";
 }
 
-function formatFunctionHelp(
+export function formatFunctionHelp(
   char: string,
   def: CharDef,
   charsPerLine: number = 80,
