@@ -6422,20 +6422,57 @@ async function fnCPPN(ctx: FnContext): Promise<Image> {
       const dx = cpnnData[i * outDim] * displacementStrength * width;
       const dy = cpnnData[i * outDim + 1] * displacementStrength * height;
       
-      // CPPN color output in [-1, 1], map to modulation factor [0.5, 1.5]
-      const cR = cpnnData[i * outDim + 2] * 0.5 + 1.0;
-      const cG = cpnnData[i * outDim + 3] * 0.5 + 1.0;
-      const cB = cpnnData[i * outDim + 4] * 0.5 + 1.0;
+      // CPPN outputs in [-1, 1], map to modulation factor [0.5, 1.5]
+      const sMod = cpnnData[i * outDim + 2] * 0.5 + 1.0;
+      const vMod = cpnnData[i * outDim + 3] * 0.5 + 1.0;
       
       const srcX = Math.max(0, Math.min(width - 1, Math.round(px + dx)));
       const srcY = Math.max(0, Math.min(height - 1, Math.round(py + dy)));
       const srcIdx = (srcY * width + srcX) * 4;
       
-      // Modulate warped color by CPPN color output
+      const r = prev.data[srcIdx];
+      const g = prev.data[srcIdx + 1];
+      const b = prev.data[srcIdx + 2];
+      
+      // Convert to HSV
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const d = max - min;
+      let h = 0;
+      const s = max === 0 ? 0 : d / max;
+      const v = max / 255;
+      
+      if (d !== 0) {
+        if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        else if (max === g) h = ((b - r) / d + 2) / 6;
+        else h = ((r - g) / d + 4) / 6;
+      }
+      
+      // Modulate S and V
+      const newS = Math.min(1, Math.max(0, s * sMod));
+      const newV = Math.min(1, Math.max(0, v * vMod));
+      
+      // Convert back to RGB
+      const hi = Math.floor(h * 6) % 6;
+      const f = h * 6 - Math.floor(h * 6);
+      const p = newV * (1 - newS);
+      const q = newV * (1 - f * newS);
+      const t = newV * (1 - (1 - f) * newS);
+      
+      let rOut: number, gOut: number, bOut: number;
+      switch (hi) {
+        case 0: rOut = newV; gOut = t; bOut = p; break;
+        case 1: rOut = q; gOut = newV; bOut = p; break;
+        case 2: rOut = p; gOut = newV; bOut = t; break;
+        case 3: rOut = p; gOut = q; bOut = newV; break;
+        case 4: rOut = t; gOut = p; bOut = newV; break;
+        default: rOut = newV; gOut = p; bOut = q; break;
+      }
+      
       const outIdx = i * 4;
-      out.data[outIdx] = Math.min(255, Math.max(0, Math.round(prev.data[srcIdx] * cR)));
-      out.data[outIdx + 1] = Math.min(255, Math.max(0, Math.round(prev.data[srcIdx + 1] * cG)));
-      out.data[outIdx + 2] = Math.min(255, Math.max(0, Math.round(prev.data[srcIdx + 2] * cB)));
+      out.data[outIdx] = Math.round(rOut * 255);
+      out.data[outIdx + 1] = Math.round(gOut * 255);
+      out.data[outIdx + 2] = Math.round(bOut * 255);
       out.data[outIdx + 3] = 255;
     }
   }
