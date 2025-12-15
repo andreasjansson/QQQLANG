@@ -4358,126 +4358,86 @@ function fnApostrophe(ctx: FnContext, n: number): Image {
   return out;
 }
 
-function fnFisheye(ctx: FnContext, n: number): Image {
+function fnAnisotropicRadial(ctx: FnContext, a: number, k: number, theta: number): Image {
   const prev = getPrevImage(ctx);
   const gl = initWebGL(ctx.width, ctx.height);
   
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, null);
   
-  // Map n from 1-68 to z displacement
-  // 1-34: push back (negative z), 35-68: pull forward (positive z)
-  const zDisplacement = (n - 34.5) / 34.5 * 0.8;
-  
-  const aspect = ctx.width / ctx.height;
-  
-  // Build a grid mesh that we'll deform in the vertex shader
-  const gridSize = 80;
-  const vertices: number[] = [];
-  const texCoords: number[] = [];
-  const indices: number[] = [];
-  
-  for (let y = 0; y <= gridSize; y++) {
-    for (let x = 0; x <= gridSize; x++) {
-      // Position in -1 to 1 range (clip space)
-      const px = (x / gridSize) * 2 - 1;
-      const py = (y / gridSize) * 2 - 1;
-      vertices.push(px, py);
-      
-      // Texture coords in 0 to 1 range
-      const u = x / gridSize;
-      const v = 1 - y / gridSize; // Flip v for correct orientation
-      texCoords.push(u, v);
-    }
-  }
-  
-  // Create triangle indices
-  for (let y = 0; y < gridSize; y++) {
-    for (let x = 0; x < gridSize; x++) {
-      const tl = y * (gridSize + 1) + x;
-      const tr = tl + 1;
-      const bl = (y + 1) * (gridSize + 1) + x;
-      const br = bl + 1;
-      
-      indices.push(tl, bl, tr);
-      indices.push(tr, bl, br);
-    }
-  }
+  // Map parameters:
+  // a (1-68) -> anisotropic scale -1.5 to 1.5
+  // k (1-68) -> radial distortion -2.0 to 2.0
+  // theta (1-68) -> angle 0 to 2π
+  const aParam = (a - 34.5) / 34.5 * 1.5;
+  const kParam = (k - 34.5) / 34.5 * 2.0;
+  const thetaParam = (theta - 1) / 67 * Math.PI * 2;
   
   const vertexShader = `
-    attribute vec2 aPosition;
-    attribute vec2 aTexCoord;
-    
-    uniform float uZDisplacement;
-    uniform float uAspect;
-    
-    varying vec2 vTexCoord;
-    
+    attribute vec2 position;
+    varying vec2 vUV;
     void main() {
-      // Calculate distance from center (accounting for aspect ratio)
-      vec2 centered = aPosition;
-      centered.x /= uAspect; // Normalize x so distance is circular
-      
-      float r = length(centered);
-      float maxR = length(vec2(1.0 / uAspect, 1.0)); // Distance to corner
-      float normR = r / maxR;
-      
-      // Z displacement: paraboloid - max at center, zero at edges
-      // Using (1 - r²) ensures edges stay at z=0
-      float z = uZDisplacement * (1.0 - normR * normR);
-      
-      // Perspective projection
-      // Camera at z=2, looking at origin, with fov ~53 degrees
-      float cameraDist = 2.0;
-      float fov = 0.5; // tan(fov/2)
-      
-      // Project: x' = x / (z_camera - z) * z_camera
-      float w = (cameraDist - z) / cameraDist;
-      
-      // Output position with perspective divide baked in
-      gl_Position = vec4(aPosition.x / w, aPosition.y / w, z * 0.1, 1.0);
-      
-      vTexCoord = aTexCoord;
+      vUV = vec2(position.x * 0.5 + 0.5, position.y * 0.5 + 0.5);
+      gl_Position = vec4(position, 0.0, 1.0);
     }
   `;
   
   const fragmentShader = `
     precision highp float;
     uniform sampler2D uTexture;
-    varying vec2 vTexCoord;
+    uniform float uA;
+    uniform float uK;
+    uniform float uTheta;
+    uniform vec2 uResolution;
+    varying vec2 vUV;
     
     void main() {
-      gl_FragColor = texture2D(uTexture, vTexCoord);
+      vec2 center = vec2(0.5, 0.5);
+      vec2 pos = vUV - center;
+      
+      // Account for aspect ratio
+      float aspect = uResolution.x / uResolution.y;
+      pos.x *= aspect;
+      
+      float r = length(pos);
+      float phi = atan(pos.y, pos.x);
+      
+      // Anisotropic scale factor based on angle relative to theta
+      float stretch = 1.0 + uA * cos(2.0 * (phi - uTheta));
+      
+      // Radial distortion: r' = r * stretch / (1 + k * r²)
+      float rPrime = r * stretch / (1.0 + uK * r * r);
+      
+      // Convert back to cartesian
+      vec2 newPos;
+      newPos.x = rPrime * cos(phi);
+      newPos.y = rPrime * sin(phi);
+      
+      // Undo aspect ratio correction
+      newPos.x /= aspect;
+      
+      vec2 sampleUV = newPos + center;
+      
+      if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      } else {
+        gl_FragColor = texture2D(uTexture, sampleUV);
+      }
     }
   `;
   
   const program = createShaderProgram(gl, vertexShader, fragmentShader);
   gl.useProgram(program);
   
-  // Create and upload vertex buffer
-  const vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
   
-  const positionLoc = gl.getAttribLocation(program, 'aPosition');
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  const posLoc = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
   
-  // Create and upload texcoord buffer
-  const texCoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-  
-  const texCoordLoc = gl.getAttribLocation(program, 'aTexCoord');
-  gl.enableVertexAttribArray(texCoordLoc);
-  gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
-  
-  // Create and upload index buffer
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-  
-  // Create texture
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, prev.width, prev.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, prev.data);
@@ -4486,23 +4446,18 @@ function fnFisheye(ctx: FnContext, n: number): Image {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   
-  // Set uniforms
   gl.uniform1i(gl.getUniformLocation(program, 'uTexture'), 0);
-  gl.uniform1f(gl.getUniformLocation(program, 'uZDisplacement'), zDisplacement);
-  gl.uniform1f(gl.getUniformLocation(program, 'uAspect'), aspect);
+  gl.uniform1f(gl.getUniformLocation(program, 'uA'), aParam);
+  gl.uniform1f(gl.getUniformLocation(program, 'uK'), kParam);
+  gl.uniform1f(gl.getUniformLocation(program, 'uTheta'), thetaParam);
+  gl.uniform2f(gl.getUniformLocation(program, 'uResolution'), ctx.width, ctx.height);
   
-  // Clear and draw
   gl.viewport(0, 0, ctx.width, ctx.height);
-  gl.clearColor(0, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   
-  gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-  
-  // Read pixels
   const pixels = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   gl.readPixels(0, 0, ctx.width, ctx.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
   
-  // Flip vertically
   const flipped = new Uint8ClampedArray(ctx.width * ctx.height * 4);
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
@@ -4515,13 +4470,9 @@ function fnFisheye(ctx: FnContext, n: number): Image {
     }
   }
   
-  // Cleanup
-  gl.disableVertexAttribArray(positionLoc);
-  gl.disableVertexAttribArray(texCoordLoc);
+  gl.disableVertexAttribArray(posLoc);
   gl.deleteTexture(texture);
-  gl.deleteBuffer(vertexBuffer);
-  gl.deleteBuffer(texCoordBuffer);
-  gl.deleteBuffer(indexBuffer);
+  gl.deleteBuffer(buffer);
   gl.deleteProgram(program);
   
   return { width: ctx.width, height: ctx.height, data: flipped };
