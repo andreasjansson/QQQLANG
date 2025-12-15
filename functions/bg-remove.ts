@@ -29,6 +29,7 @@ import {
   SINET_INPUT_SIZE,
   SINET_MEAN,
   SINET_STD,
+  setSinetInferenceInProgress,
 } from "./helpers.js";
 import * as ort from "onnxruntime-web";
 
