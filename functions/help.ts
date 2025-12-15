@@ -324,11 +324,11 @@ function imageHistory(ctx: FnContext): Image {
     const img = ctx.images[absoluteIndex];
     const accessKey = numToChar(windowPos + 1);
 
-    const opInfo = ctx.opInfos[imgIndex];
+    const opInfo = ctx.opInfos[absoluteIndex];
     const prevOpIdentifier =
-      imgIndex > 0 ? ctx.opInfos[imgIndex - 1].identifier : "";
+      absoluteIndex > 0 ? ctx.opInfos[absoluteIndex - 1].identifier : "";
     const opChars = opInfo.identifier.substring(prevOpIdentifier.length);
-    const displayOp = imgIndex === 0 ? "(init)" : opChars || "?";
+    const displayOp = absoluteIndex === 0 ? "(init)" : opChars || "?";
 
     const thumbX = x + (cellWidth - thumbSize) / 2;
     const thumbY = y + 1;
