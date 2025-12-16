@@ -5,7 +5,6 @@ import {
   getPixel,
   setPixel,
   cloneImage,
-  rgbToHsl,
   hslToRgb,
 } from "./helpers.js";
 
@@ -130,20 +129,11 @@ function gradientify(ctx: FnContext): Image {
     }
   }
 
-  // Step 4: Gather region statistics
+  // Step 4: Gather region statistics and count regions
   const regionStats = new Map<
     number,
     {
-      sumR: number;
-      sumG: number;
-      sumB: number;
-      minX: number;
-      maxX: number;
-      minY: number;
-      maxY: number;
       count: number;
-      sumX: number;
-      sumY: number;
     }
   >();
 
@@ -153,181 +143,55 @@ function gradientify(ctx: FnContext): Image {
       if (!isFlat[idx]) continue;
 
       const root = find(idx);
-      const [r, g, b] = getPixel(prev, x, y);
 
       if (!regionStats.has(root)) {
-        regionStats.set(root, {
-          sumR: 0,
-          sumG: 0,
-          sumB: 0,
-          minX: x,
-          maxX: x,
-          minY: y,
-          maxY: y,
-          count: 0,
-          sumX: 0,
-          sumY: 0,
-        });
+        regionStats.set(root, { count: 0 });
       }
 
-      const stats = regionStats.get(root)!;
-      stats.sumR += r;
-      stats.sumG += g;
-      stats.sumB += b;
-      stats.minX = Math.min(stats.minX, x);
-      stats.maxX = Math.max(stats.maxX, x);
-      stats.minY = Math.min(stats.minY, y);
-      stats.maxY = Math.max(stats.maxY, y);
-      stats.count++;
-      stats.sumX += x;
-      stats.sumY += y;
+      regionStats.get(root)!.count++;
     }
   }
 
-  // Step 5: Apply gradients to regions
+  // Assign each region a unique hue
+  const regionHue = new Map<number, number>();
+  const goldenRatio = 0.618033988749895;
+  let hueAccum = 0;
+  
+  for (const root of regionStats.keys()) {
+    regionHue.set(root, hueAccum * 360);
+    hueAccum = (hueAccum + goldenRatio) % 1;
+  }
+
+  // DEBUG: Color each region with its unique hue
   const minRegionSize = Math.max(30, (width * height) / 800);
-  const hueShiftAmount = 35;
-  const lightnessShiftAmount = 0.18;
-  const saturationBoost = 1.15;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = y * width + x;
-      if (!isFlat[idx]) continue;
+      
+      if (!isFlat[idx]) {
+        // Non-flat pixels: show as dark gray
+        setPixel(out, x, y, 40, 40, 40);
+        continue;
+      }
 
       const root = find(idx);
       const stats = regionStats.get(root);
-      if (!stats || stats.count < minRegionSize) continue;
-
-      const [r, g, b] = getPixel(prev, x, y);
-      const [h, s, l] = rgbToHsl(r, g, b);
-
-      const regionWidth = stats.maxX - stats.minX + 1;
-      const regionHeight = stats.maxY - stats.minY + 1;
-      const centerX = stats.sumX / stats.count;
-      const centerY = stats.sumY / stats.count;
-
-      let gradientPos: number;
-      if (regionWidth > regionHeight * 1.5) {
-        gradientPos =
-          regionWidth > 1 ? (x - stats.minX) / (regionWidth - 1) : 0.5;
-      } else if (regionHeight > regionWidth * 1.5) {
-        gradientPos =
-          regionHeight > 1 ? (y - stats.minY) / (regionHeight - 1) : 0.5;
-      } else {
-        const dx = x - centerX;
-        const dy = y - centerY;
-        const maxDist =
-          Math.sqrt(regionWidth * regionWidth + regionHeight * regionHeight) /
-          2;
-        gradientPos =
-          maxDist > 0
-            ? Math.min(1, Math.sqrt(dx * dx + dy * dy) / maxDist)
-            : 0.5;
+      
+      if (!stats || stats.count < minRegionSize) {
+        // Too-small regions: show as medium gray
+        setPixel(out, x, y, 100, 100, 100);
+        continue;
       }
 
-      const isGrayscale = s < 0.08;
-      const isVeryDark = l < 0.08;
-      const isVeryLight = l > 0.92;
-
-      let newH: number, newS: number, newL: number;
-
-      if (isVeryDark) {
-        // For black/very dark areas: add color and lightness gradient
-        // Use position-based hue to create color variation
-        const baseHue = ((x + y) / (width + height)) * 360;
-        newH = (baseHue + (gradientPos - 0.5) * 60) % 360;
-        if (newH < 0) newH += 360;
-        // Add some saturation and vary lightness from dark to slightly less dark
-        newS = 0.3 + gradientPos * 0.2;
-        newL = 0.02 + gradientPos * 0.12;
-      } else if (isVeryLight) {
-        // For white/very light areas: add subtle color and darken gradient
-        const baseHue = ((x + y) / (width + height)) * 360;
-        newH = (baseHue + (gradientPos - 0.5) * 60) % 360;
-        if (newH < 0) newH += 360;
-        // Add subtle saturation and vary lightness from light to slightly less light
-        newS = 0.15 + gradientPos * 0.15;
-        newL = 0.98 - gradientPos * 0.12;
-      } else if (isGrayscale) {
-        // For gray areas: add color based on position
-        const baseHue = ((x * 0.7 + y * 0.3) / (width * 0.7 + height * 0.3)) * 360;
-        newH = (baseHue + (gradientPos - 0.5) * 50) % 360;
-        if (newH < 0) newH += 360;
-        // Add saturation to make the gradient visible
-        newS = 0.25 + gradientPos * 0.15;
-        // Vary lightness
-        const lightnessShift = (gradientPos - 0.5) * lightnessShiftAmount;
-        newL = Math.max(0.05, Math.min(0.95, l + lightnessShift));
-      } else {
-        // Normal colored areas: shift hue and lightness
-        const hueShift = (gradientPos - 0.5) * hueShiftAmount;
-        newH = h + hueShift;
-        if (newH < 0) newH += 360;
-        if (newH >= 360) newH -= 360;
-
-        const lightnessShift = (gradientPos - 0.5) * lightnessShiftAmount;
-        newL = Math.max(0.05, Math.min(0.95, l + lightnessShift));
-
-        newS = Math.min(1, s * saturationBoost);
-      }
-
-      const [newR, newG, newB] = hslToRgb(newH, newS, newL);
-      setPixel(out, x, y, newR, newG, newB);
+      // Valid region: color with unique hue
+      const hue = regionHue.get(root) || 0;
+      const [r, g, b] = hslToRgb(hue, 0.9, 0.5);
+      setPixel(out, x, y, r, g, b);
     }
   }
 
-  // Step 6: Feathering - create smooth transition at edges of gradient regions
-  const featherRadius = 4;
-  const feathered = cloneImage(out);
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x;
-
-      let gradientCount = 0;
-      let nonGradientCount = 0;
-
-      for (let dy = -featherRadius; dy <= featherRadius; dy++) {
-        for (let dx = -featherRadius; dx <= featherRadius; dx++) {
-          const nx = x + dx;
-          const ny = y + dy;
-          if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-
-          const nidx = ny * width + nx;
-          const nRoot = isFlat[nidx] ? find(nidx) : -1;
-          const nStats = nRoot >= 0 ? regionStats.get(nRoot) : null;
-          const nIsGradient = nStats && nStats.count >= minRegionSize;
-
-          if (nIsGradient) {
-            gradientCount++;
-          } else {
-            nonGradientCount++;
-          }
-        }
-      }
-
-      if (gradientCount > 0 && nonGradientCount > 0) {
-        const blendFactor = gradientCount / (gradientCount + nonGradientCount);
-        const [origR, origG, origB] = getPixel(prev, x, y);
-        const [gradR, gradG, gradB] = getPixel(out, x, y);
-
-        const finalR = Math.round(
-          origR * (1 - blendFactor) + gradR * blendFactor,
-        );
-        const finalG = Math.round(
-          origG * (1 - blendFactor) + gradG * blendFactor,
-        );
-        const finalB = Math.round(
-          origB * (1 - blendFactor) + gradB * blendFactor,
-        );
-
-        setPixel(feathered, x, y, finalR, finalG, finalB);
-      }
-    }
-  }
-
-  return feathered;
+  return out;
 }
 
 export { gradientify };
