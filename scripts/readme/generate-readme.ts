@@ -269,6 +269,11 @@ Andreas Jansson ([@andreasjansson](https://github.com/andreasjansson))
 }
 
 async function main() {
+  // Parse --char X argument for single character mode
+  const charArgIdx = process.argv.indexOf("--char");
+  const singleChar = charArgIdx !== -1 ? process.argv[charArgIdx + 1] : null;
+  const skipImages = process.argv.includes("--skip-images");
+
   console.log("Parsing character definitions...");
   const chars = parseCharacterDefs();
   console.log(`Found ${Object.keys(chars).length} character definitions`);
@@ -277,40 +282,54 @@ async function main() {
     fs.mkdirSync(ASSETS_DIR, { recursive: true });
   }
 
-  console.log("\nLaunching browser...");
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({
-    viewport: { width: 768, height: 512 },
-    ignoreHTTPSErrors: true,
-  });
-  const page = await context.newPage();
+  if (!skipImages) {
+    console.log("\nLaunching browser...");
+    const browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({
+      viewport: { width: 768, height: 512 },
+      ignoreHTTPSErrors: true,
+    });
+    const page = await context.newPage();
 
-  console.log("Navigating to localhost:5173...");
-  await page.goto("http://localhost:5173/", {
-    waitUntil: "networkidle",
-  });
+    console.log("Navigating to localhost:5173...");
+    await page.goto("http://localhost:5173/", {
+      waitUntil: "networkidle",
+    });
 
-  await page.waitForTimeout(3000);
+    await page.waitForTimeout(3000);
 
-  console.log("\nCapturing example images...");
-  const sortedChars = Object.entries(chars).sort(
-    (a, b) => a[1].number - b[1].number
-  );
+    console.log("\nCapturing example images...");
+    
+    let charsToProcess: [string, CharDef][];
+    if (singleChar) {
+      if (!chars[singleChar]) {
+        console.error(`Character '${singleChar}' not found`);
+        process.exit(1);
+      }
+      charsToProcess = [[singleChar, chars[singleChar]]];
+    } else {
+      charsToProcess = Object.entries(chars).sort(
+        (a, b) => a[1].number - b[1].number
+      );
+    }
 
-  for (const [char, def] of sortedChars) {
-    const safeFilename = def.number.toString().padStart(2, "0");
-    const outputPath = path.join(ASSETS_DIR, `${safeFilename}-example.png`);
+    for (const [char, def] of charsToProcess) {
+      const safeFilename = def.number.toString().padStart(2, "0");
+      const outputPath = path.join(ASSETS_DIR, `${safeFilename}-example.png`);
 
-    console.log(`  Processing '${char}' (${def.functionName})...`);
-    await captureExampleImage(page, def.example, outputPath);
+      console.log(`  Processing '${char}' (${def.functionName})...`);
+      await captureExampleImage(page, def.example, outputPath);
+    }
+
+    await browser.close();
   }
 
-  await browser.close();
-
-  console.log("\nGenerating README.md...");
-  const readme = generateReadme(chars);
-  fs.writeFileSync(README_PATH, readme);
-  console.log(`Wrote ${README_PATH}`);
+  if (!singleChar) {
+    console.log("\nGenerating README.md...");
+    const readme = generateReadme(chars);
+    fs.writeFileSync(README_PATH, readme);
+    console.log(`Wrote ${README_PATH}`);
+  }
 
   console.log("\nDone!");
 }
