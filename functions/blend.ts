@@ -398,6 +398,80 @@ function blend(ctx: FnContext, old: Image, modeName: string): Image {
           b = Math.min(255, Math.sqrt(bb * bb + tb * tb) / Math.SQRT2);
           break;
 
+        case "modulo":
+          // Modulo creates banding effects
+          r = tr === 0 ? br : br % tr;
+          g = tg === 0 ? bg : bg % tg;
+          b = tb === 0 ? bb : bb % tb;
+          break;
+
+        case "modulo-reverse":
+          // Modulo with layers swapped
+          r = br === 0 ? tr : tr % br;
+          g = bg === 0 ? tg : tg % bg;
+          b = bb === 0 ? tb : tb % bb;
+          break;
+
+        case "sin-blend":
+          // Sin creates wave-like color shifts
+          r = Math.abs(Math.sin(br * Math.PI / 255) * tr);
+          g = Math.abs(Math.sin(bg * Math.PI / 255) * tg);
+          b = Math.abs(Math.sin(bb * Math.PI / 255) * tb);
+          break;
+
+        case "cos-blend":
+          // Cos blend - phase shifted from sin
+          r = Math.abs(Math.cos(br * Math.PI / 255) * tr);
+          g = Math.abs(Math.cos(bg * Math.PI / 255) * tg);
+          b = Math.abs(Math.cos(bb * Math.PI / 255) * tb);
+          break;
+
+        case "bitshift-left":
+          // Glitchy left shift
+          r = (br << Math.floor(tr / 32)) & 255;
+          g = (bg << Math.floor(tg / 32)) & 255;
+          b = (bb << Math.floor(tb / 32)) & 255;
+          break;
+
+        case "bitshift-right":
+          // Glitchy right shift
+          r = (br >> Math.floor(tr / 32)) & 255;
+          g = (bg >> Math.floor(tg / 32)) & 255;
+          b = (bb >> Math.floor(tb / 32)) & 255;
+          break;
+
+        case "threshold-max":
+          // Per-channel: use whichever is greater
+          r = br > tr ? br : tr;
+          g = bg > tg ? bg : tg;
+          b = bb > tb ? bb : tb;
+          break;
+
+        case "threshold-min":
+          // Per-channel: use whichever is smaller
+          r = br < tr ? br : tr;
+          g = bg < tg ? bg : tg;
+          b = bb < tb ? bb : tb;
+          break;
+
+        case "threshold-swap":
+          // Per-channel: if bottom > top use top, else use bottom (creates edges)
+          r = br > tr ? tr : br;
+          g = bg > tg ? tg : bg;
+          b = bb > tb ? tb : bb;
+          break;
+
+        case "posterize-blend": {
+          // Quantize bottom based on top's luminance
+          const tLum = (tr * 0.299 + tg * 0.587 + tb * 0.114) / 255;
+          const levels = Math.max(2, Math.floor(tLum * 8) + 2);
+          const step = 255 / (levels - 1);
+          r = Math.round(Math.round(br / step) * step);
+          g = Math.round(Math.round(bg / step) * step);
+          b = Math.round(Math.round(bb / step) * step);
+          break;
+        }
+
         default:
           r = tr;
           g = tg;
