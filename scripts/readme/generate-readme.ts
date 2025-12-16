@@ -71,8 +71,6 @@ function parseCharacterDefs(): Record<string, CharDef> {
   let match;
   const entries: { char: string; startIdx: number }[] = [];
   
-
-  
   while ((match = entryRegex.exec(defsContent)) !== null) {
     let char = match[1] || match[2] || match[3];
     if (char === "\\\\") char = "\\";
