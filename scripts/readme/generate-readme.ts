@@ -85,7 +85,10 @@ function parseCharacterDefs(): Record<string, CharDef> {
     const colorMatch = entryContent.match(/color:\s*["']([^"']+)["']/);
     const numberMatch = entryContent.match(/number:\s*(\d+)/);
     const functionNameMatch = entryContent.match(/functionName:\s*["']([^"']+)["']/);
-    const docMatch = entryContent.match(/documentation:\s*\n?\s*["']([^"']+)["']/);
+    // Match documentation that comes after functionName (function-level doc, not arg docs)
+    const fnNameIdx = entryContent.indexOf('functionName:');
+    const docAfterFnName = fnNameIdx >= 0 ? entryContent.substring(fnNameIdx) : entryContent;
+    const docMatch = docAfterFnName.match(/documentation:\s*\n?\s*["']([^"']+)["']/);
     const exampleMatch = entryContent.match(/example:\s*["'](.+?)["']/);
     
     if (!colorMatch || !numberMatch || !functionNameMatch || !docMatch) continue;
