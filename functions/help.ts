@@ -526,7 +526,7 @@ function help(ctx: FnContext, pageArg: number): Image {
       5,
       Math.floor((ctx.height - margin * 2) / lineHeight),
     );
-    const { pages, introPageCount, refPageCount } = generateAllHelpPages(
+    const { pages, introPageCount, aboutPageCount, refPageCount } = generateAllHelpPages(
       charsPerLine,
       linesPerPage,
       characterDefs,
@@ -534,7 +534,7 @@ function help(ctx: FnContext, pageArg: number): Image {
     if (page >= 1 && page <= pages.length) {
       bestLines = pages[page - 1];
     } else {
-      bestLines = generateIndexPage(introPageCount, refPageCount);
+      bestLines = generateIndexPage(introPageCount, aboutPageCount, refPageCount);
     }
     bestFontSize = minFontSize;
     bestLinesPerPage = linesPerPage;
