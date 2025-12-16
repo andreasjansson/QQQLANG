@@ -236,7 +236,10 @@ Some functions take an image index as an argument, and uses that old image in so
     readme += `## \`${displayChar}\` (number ${def.number}, color <span style="color:${def.color}">${def.color}</span>)\n\n`;
 
     const safeFilename = def.number.toString().padStart(2, "0");
-    readme += `![Example for ${displayChar}](assets/${safeFilename}-example.png)\n\n`;
+    const fullProgram = UPLOAD_CHAR + UPLOAD_HASH + def.example;
+    const encodedProgram = encodeURIComponent(fullProgram).replace(/'/g, "%27");
+    const qqqlangUrl = `https://qqqlang.com/?p=${encodedProgram}`;
+    readme += `[![Example for ${displayChar}](assets/${safeFilename}-example.png)](${qqqlangUrl})\n\n`;
 
     readme += `**Function:** \`${def.functionName}\` — ${def.documentation}\n\n`;
 
