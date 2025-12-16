@@ -26,7 +26,7 @@ function verticalShift(ctx: FnContext, amount: number): Image {
 
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const srcY = (((y + shift) % ctx.height) + ctx.height) % ctx.height;
+      const srcY = (((y - shift) % ctx.height) + ctx.height) % ctx.height;
       const [r, g, b] = getPixel(prev, x, srcY);
       setPixel(out, x, y, r, g, b);
     }

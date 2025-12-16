@@ -26,7 +26,7 @@ function horizontalShift(ctx: FnContext, amount: number): Image {
 
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
-      const srcX = (((x + shift) % ctx.width) + ctx.width) % ctx.width;
+      const srcX = (((x - shift) % ctx.width) + ctx.width) % ctx.width;
       const [r, g, b] = getPixel(prev, srcX, y);
       setPixel(out, x, y, r, g, b);
     }

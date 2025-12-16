@@ -116,6 +116,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "spheres",
     documentation:
       "Flips prev horizontally, then renders as texture on two 3D spheres with lighting.",
+    example: "A",
   },
 
   B: {
@@ -153,6 +154,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "border",
     documentation:
       "Border effect with various shapes: circular, horizontal, vertical, rectangular, diamond, hexagon, sine waves, and triangle waves.",
+    example: "BAA",
   },
 
   C: {
@@ -162,6 +164,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Number of concentric circles" }],
     functionName: "concentric-hue",
     documentation: "Alternating original and hue-shifted concentric circles.",
+    example: "CP",
   },
 
   D: {
@@ -171,6 +174,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "drip",
     documentation: "Metaball-based dripping water drops effect.",
+    example: "D",
   },
 
   E: {
@@ -180,6 +184,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "emerald",
     documentation: "Renders reflective 3D emeralds in symmetric pattern.",
+    example: "E",
   },
 
   F: {
@@ -189,6 +194,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "FFT multiplier strength" }],
     functionName: "fft-overflow",
     documentation: "2D FFT with magnitude overflow and chromatic phase shifts.",
+    example: "FB",
   },
 
   G: {
@@ -198,6 +204,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Number of posterize colors" }],
     functionName: "grayscale-colorize",
     documentation: "Converts to grayscale then applies rainbow palette.",
+    example: "GG",
   },
 
   H: {
@@ -207,6 +214,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "hourglass",
     documentation: "Hourglass gradient with bitwise color blending.",
+    example: "H",
   },
 
   I: {
@@ -216,6 +224,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "invert-edges",
     documentation: "Inverts colors then adds Sobel edge detection.",
+    example: "I",
   },
 
   J: {
@@ -225,6 +234,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Fractal zoom depth" }],
     functionName: "julia-fractal",
     documentation: "Julia set fractal masking the previous image.",
+    example: "JM",
   },
 
   K: {
@@ -234,6 +244,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Number of kaleidoscope segments" }],
     functionName: "kaleidoscope",
     documentation: "N-way kaleidoscope effect with zoom.",
+    example: "KE",
   },
 
   L: {
@@ -246,6 +257,7 @@ export const characterDefs: Record<string, CharDef> = {
     ],
     functionName: "lissajous",
     documentation: "3D Lissajous tube with textured surface.",
+    example: "LLL",
   },
 
   M: {
@@ -255,6 +267,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Pattern complexity seed" }],
     functionName: "moire",
     documentation: "Moiré interference pattern with color zones.",
+    example: "MC",
   },
 
   N: {
@@ -264,6 +277,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "neon",
     documentation: "Neon glow effect on bright edges.",
+    example: "N",
   },
 
   O: {
@@ -273,6 +287,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Warp intensity and depth" }],
     functionName: "oil-slick",
     documentation: "Domain warping with iridescent lighting.",
+    example: "O9",
   },
 
   P: {
@@ -283,6 +298,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "pixelate",
     documentation:
       "Pixelate with diagonal split using average/saturated colors.",
+    example: "P6",
   },
 
   Q: {
@@ -292,6 +308,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "quad-prism",
     documentation: "Negative prism with diagonal inversion and mirroring.",
+    example: "Q",
   },
 
   R: {
@@ -301,6 +318,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "room",
     documentation: "3D room with textured walls, ceiling, and floor.",
+    example: "R",
   },
 
   S: {
@@ -313,6 +331,7 @@ export const characterDefs: Record<string, CharDef> = {
     ],
     functionName: "sierpinski",
     documentation: "Sierpiński triangle fractal with color effects.",
+    example: "SSS",
   },
 
   T: {
@@ -328,6 +347,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "tiles",
     documentation:
       "Grid of 3D tiles covering entire canvas, heights based on seed with multiplier.",
+    example: "T8",
   },
 
   U: {
@@ -360,6 +380,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "dither",
     documentation:
       "Apply one of 16 dithering algorithms, from subtle to aggressive 2-color modes.",
+    example: "UB",
   },
 
   V: {
@@ -373,6 +394,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "voronoi",
     documentation:
       "Voronoi cells alternating between current and old image, with variable pattern shape.",
+    example: ")~1AVBJ",
   },
 
   W: {
@@ -382,6 +404,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Rotation multiplier (×20°)" }],
     functionName: "whirl",
     documentation: "Swirl distortion from center with quadratic falloff.",
+    example: "WW",
   },
 
   X: {
@@ -392,6 +415,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "cppn",
     documentation:
       "Compositional Pattern Producing Network warps and modulates saturation/value using a neural network. Fully deterministic based on input.",
+    example: "XE",
   },
 
   Y: {
@@ -407,6 +431,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "yuv-shift",
     documentation:
       "YUV color shift with three gradient directions 120° apart: luminance, blue chrominance, and red chrominance shifts.",
+    example: "YY",
   },
 
   Z: {
@@ -416,6 +441,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Blur strength multiplier (×4px)" }],
     functionName: "zoom-blur",
     documentation: "Radial motion blur from center with sharp center.",
+    example: "ZK",
   },
 
   "0": {
@@ -428,6 +454,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "bg-remove",
     documentation:
       "Removes background from prev image using ML, composites on specified background.",
+    example: "0A",
   },
 
   "1": {
@@ -440,6 +467,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "colorize",
     documentation:
       "Tints the image with the specified color using gamma-corrected luminance and boosted saturation.",
+    example: "1E",
   },
 
   "2": {
@@ -461,6 +489,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "third-stamp",
     documentation:
       "Replace a vertical third of current image with a third from old image.",
+    example: "2BAB",
   },
 
   "3": {
@@ -470,6 +499,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "triple-rotate",
     documentation: "Three vertical strips with different rotations.",
+    example: "3",
   },
 
   "4": {
@@ -479,6 +509,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "quad-rotate",
     documentation: "Four quadrants each rotated 0°, 90°, 180°, 270°.",
+    example: "4",
   },
 
   "5": {
@@ -488,6 +519,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Cell size multiplier" }],
     functionName: "triangular-split",
     documentation: "Triangular grid with hue shifts and lightness variation.",
+    example: "55",
   },
 
   "6": {
@@ -497,6 +529,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "posterize",
     documentation: "Posterize to 4 levels per channel.",
+    example: "6",
   },
 
   "7": {
@@ -506,6 +539,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "chromatic",
     documentation: "Chromatic aberration with RGB channel shifts.",
+    example: "777",
   },
 
   "8": {
@@ -515,6 +549,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Distortion strength" }],
     functionName: "lemniscate",
     documentation: "Infinity-loop lemniscate distortion.",
+    example: "8T",
   },
 
   "9": {
@@ -524,6 +559,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INDEX, documentation: "Old image to XOR with" }],
     functionName: "xor-blend",
     documentation: "XOR blend creating glitchy digital artifacts.",
+    example: "YY9B",
   },
 
   "<": {
@@ -533,6 +569,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Shift amount (A=left, 7=none, ~=right)" }],
     functionName: "horizontal-shift",
     documentation: "Horizontal shift with wraparound.",
+    example: "<J",
   },
 
   ">": {
@@ -542,6 +579,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "rotate-90",
     documentation: "Rotate 90 degrees clockwise.",
+    example: ">",
   },
 
   "^": {
@@ -551,6 +589,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Shift amount (A=up, 7=none, ~=down)" }],
     functionName: "vertical-shift",
     documentation: "Vertical shift with wraparound.",
+    example: "^V",
   },
 
   "!": {
@@ -560,6 +599,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "godrays",
     documentation: "Volumetric light scattering from center.",
+    example: "!",
   },
 
   '"': {
@@ -570,6 +610,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "band-transform",
     documentation:
       "Horizontal bands with alternating hue/saturation transforms.",
+    example: '"M',
   },
 
   "#": {
@@ -579,6 +620,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INDEX, documentation: "Old image index to insert" }],
     functionName: "insert",
     documentation: "Replaces current image with specified old image.",
+    example: "#B",
   },
 
   $: {
@@ -589,6 +631,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "segment-hue-sort",
     documentation:
       "Color-based segmentation, then sorts pixels by hue within each segment.",
+    example: "$",
   },
 
   "%": {
@@ -604,6 +647,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "flip",
     documentation:
       "Flips image horizontally or vertically based on argument parity.",
+    example: "%A",
   },
 
   "&": {
@@ -620,6 +664,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "quadtree-compress",
     documentation:
       "Adaptive quadtree compression - detailed areas keep resolution while uniform areas become large blocks, creating geometric patterns.",
+    example: "&P",
   },
 
   "'": {
@@ -630,6 +675,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "variable-checkerboard",
     documentation:
       "Checkerboard blend with increasing square size from corner to corner.",
+    example: "))1''B",
   },
 
   "(": {
@@ -653,6 +699,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "shear-radial",
     documentation:
       "Combined shear and radial distortion. Shear amount couples to horizontal offset and radial strength.",
+    example: "(3F&",
   },
 
   ")": {
@@ -663,6 +710,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "blur",
     documentation:
       "Gaussian blur with adjustable radius using two-pass convolution.",
+    example: "))",
   },
 
   "*": {
@@ -673,6 +721,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "fur",
     documentation:
       "Fur/hair strands growing from pixels based on hue and noise.",
+    example: "*",
   },
 
   "+": {
@@ -682,6 +731,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "zoom",
     documentation: "Zoom in 1.2× from center.",
+    example: "+++++++",
   },
 
   ",": {
@@ -691,6 +741,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: COLOR, documentation: "Stipple dot color" }],
     functionName: "stipple",
     documentation: "Stipple dots at luminance-based positions.",
+    example: ",D",
   },
 
   "-": {
@@ -741,6 +792,7 @@ export const characterDefs: Record<string, CharDef> = {
     ],
     functionName: "blend",
     documentation: "Blend old image with current using specified mode.",
+    example: "))1D-B6",
   },
 
   ".": {
@@ -750,6 +802,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Dot radius base (mod 8 + 2)" }],
     functionName: "pointillism",
     documentation: "Pointillism effect with saturated circular dots.",
+    example: "..",
   },
 
   "/": {
@@ -785,6 +838,7 @@ export const characterDefs: Record<string, CharDef> = {
     ],
     functionName: "circle-stamp",
     documentation: "Stamp circular region from old image center onto current.",
+    example: "/B073C",
   },
 
   ":": {
@@ -795,6 +849,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "porthole",
     documentation:
       "Circular window showing current image with old image as background.",
+    example: "1D:B",
   },
 
   ";": {
@@ -805,6 +860,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "semicircle-reflect",
     documentation:
       "Top semicircle preserved, bottom reflected with wave distortion.",
+    example: ";",
   },
 
   "=": {
@@ -814,6 +870,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Stripe height in pixels" }],
     functionName: "shifted-stripes",
     documentation: "Horizontal stripes with alternating shifts.",
+    example: "=X",
   },
 
   "?": {
@@ -828,6 +885,7 @@ export const characterDefs: Record<string, CharDef> = {
     ],
     functionName: "help",
     documentation: "Display help text or image history table.",
+    example: "??",
   },
 
   "@": {
@@ -853,6 +911,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "cond",
     documentation:
       "Per-pixel conditional: extracts channel from condition image, outputs true-image pixel where value >= threshold, otherwise false-image pixel.",
+    example: "GA#B1.#B1C@CEGAE",
   },
 
   "[": {
@@ -862,6 +921,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Rotation amount (A=left, 7=none, ~=right)" }],
     functionName: "rotate",
     documentation: "Rotate around center.",
+    example: "[X",
   },
 
   "\\": {
@@ -887,6 +947,7 @@ export const characterDefs: Record<string, CharDef> = {
     ],
     functionName: "composite",
     documentation: "Composite transformed region from old image onto current.",
+    example: "\\B4VXMVH-0}A",
   },
 
   "]": {
@@ -896,6 +957,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "left-half-offset",
     documentation: "Shift left half vertically by 20% with wraparound.",
+    example: "]",
   },
 
   _: {
@@ -905,6 +967,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "scanlines",
     documentation: "CRT scanline effect with darkening and displacement.",
+    example: "_",
   },
 
   "`": {
@@ -915,6 +978,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "rule110",
     documentation:
       "Rule 110 cellular automaton - a Turing-complete 1D CA applied horizontally to each row.",
+    example: "`M",
   },
 
   "{": {
@@ -924,6 +988,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Skew amount (A=left, 7=none, ~=right)" }],
     functionName: "skew",
     documentation: "Skew horizontal with wraparound.",
+    example: "{R",
   },
 
   "|": {
@@ -934,6 +999,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "vertical-split",
     documentation:
       "Vertical split with wavy blend zone using multiple blend modes.",
+    example: "))1||",
   },
 
   "}": {
@@ -943,6 +1009,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "sharpen",
     documentation: "Sharpen using convolution kernel to enhance edges.",
+    example: "}",
   },
 
   "~": {
@@ -952,6 +1019,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Wave amplitude and chromatic shift" }],
     functionName: "wave-chromatic",
     documentation: "Horizontal wave distortion with chromatic aberration.",
+    example: "~F",
   },
 };
 
