@@ -1027,10 +1027,10 @@ export const characterDefs: Record<string, CharDef> = {
   "}": {
     color: "#9400D3",
     number: 67,
-    fn: sharpen,
+    fn: gradientify,
     args: [],
-    functionName: "sharpen",
-    documentation: "Sharpen using convolution kernel to enhance edges.",
+    functionName: "gradientify",
+    documentation: "Turns flat single-color areas into subtle gradients with hue shifts.",
     example: "}",
   },
 
