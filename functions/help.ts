@@ -490,7 +490,7 @@ function help(ctx: FnContext, pageArg: number): Image {
     );
 
     // Generate pages at this size
-    const { pages, introPageCount, refPageCount } = generateAllHelpPages(
+    const { pages, introPageCount, aboutPageCount, refPageCount } = generateAllHelpPages(
       charsPerLine,
       linesPerPage,
       characterDefs,
@@ -500,7 +500,7 @@ function help(ctx: FnContext, pageArg: number): Image {
     if (page >= 1 && page <= pages.length) {
       lines = pages[page - 1];
     } else {
-      lines = generateIndexPage(introPageCount, refPageCount);
+      lines = generateIndexPage(introPageCount, aboutPageCount, refPageCount);
     }
 
     // Check if content fits
