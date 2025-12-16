@@ -11,8 +11,8 @@ const ASSETS_DIR = path.join(PROJECT_ROOT, "assets");
 const CHARACTER_DEFS_PATH = path.join(PROJECT_ROOT, "character-defs.ts");
 const README_PATH = path.join(PROJECT_ROOT, "README.md");
 
-const UPLOAD_REGULAR_BASE = 0x2600;
-const UPLOAD_HASH = "Lh8lX-CEM_8ykW3QtaeIyw";
+const BASE_IMAGE_URL =
+  "https://replicate.delivery/pbxt/NV0JLz4NfRmXPOkVrzjiASCfJvsea419i9agH2EuPJlHjG9h/0_1.webp";
 
 interface CharDef {
   color: string;
@@ -116,10 +116,6 @@ function parseCharacterDefs(): Record<string, CharDef> {
   return chars;
 }
 
-function getUploadChar(index: number): string {
-  return String.fromCodePoint(UPLOAD_REGULAR_BASE + index);
-}
-
 function numToChar(num: number): string {
   if (num >= 1 && num <= 26)
     return String.fromCharCode("A".charCodeAt(0) + num - 1);
@@ -136,14 +132,46 @@ async function captureExampleImage(
   program: string,
   outputPath: string
 ): Promise<void> {
-  const uploadChar = getUploadChar(0);
-  const fullProgram = uploadChar + UPLOAD_HASH + program;
+  // Clear input and paste the base image URL to upload it
+  await page.evaluate(() => {
+    const input = document.getElementById("program-input") as HTMLInputElement;
+    input.value = "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
 
+  await page.waitForTimeout(200);
+
+  // Focus the input and paste the image URL
+  const input = await page.$("#program-input");
+  await input?.focus();
+
+  // Paste the URL - this should trigger the image upload
+  await page.evaluate((url) => {
+    const input = document.getElementById("program-input") as HTMLInputElement;
+    input.focus();
+
+    const clipboardData = new DataTransfer();
+    clipboardData.setData("text/plain", url);
+
+    const pasteEvent = new ClipboardEvent("paste", {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: clipboardData,
+    });
+
+    input.dispatchEvent(pasteEvent);
+  }, BASE_IMAGE_URL);
+
+  // Wait for image to load
+  await page.waitForTimeout(2000);
+
+  // Now type the example program
   await page.evaluate((prog) => {
     const input = document.getElementById("program-input") as HTMLInputElement;
-    input.value = prog;
+    // Append to existing value (which should have the upload char)
+    input.value = input.value + prog;
     input.dispatchEvent(new Event("input", { bubbles: true }));
-  }, fullProgram);
+  }, program);
 
   await page.waitForTimeout(1000);
 
@@ -250,19 +278,15 @@ async function main() {
   console.log("\nLaunching browser...");
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
-    viewport: { width: 800, height: 600 },
+    viewport: { width: 512, height: 512 },
     ignoreHTTPSErrors: true,
   });
   const page = await context.newPage();
 
   console.log("Navigating to localhost:5173...");
-  const uploadChar = getUploadChar(0);
-  await page.goto(
-    `http://localhost:5173/?p=${encodeURIComponent(uploadChar + UPLOAD_HASH)}`,
-    {
-      waitUntil: "networkidle",
-    }
-  );
+  await page.goto("http://localhost:5173/", {
+    waitUntil: "networkidle",
+  });
 
   await page.waitForTimeout(3000);
 
