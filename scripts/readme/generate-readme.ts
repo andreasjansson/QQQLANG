@@ -258,7 +258,7 @@ async function main() {
   console.log("Navigating to localhost:5173...");
   const uploadChar = getUploadChar(0);
   await page.goto(
-    `https://localhost:5173/?p=${encodeURIComponent(uploadChar + UPLOAD_HASH)}`,
+    `http://localhost:5173/?p=${encodeURIComponent(uploadChar + UPLOAD_HASH)}`,
     {
       waitUntil: "networkidle",
     }
