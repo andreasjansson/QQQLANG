@@ -77,9 +77,43 @@ function gradientify(ctx: FnContext): Image {
 
   // Step 2: Create flatness mask with threshold
   const gradientThreshold = 3;
-  const isFlat = new Uint8Array(width * height);
+  const isFlatRaw = new Uint8Array(width * height);
   for (let i = 0; i < width * height; i++) {
-    isFlat[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
+    isFlatRaw[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
+  }
+
+  // Erode the flatness mask to remove small isolated flat patches
+  // A pixel stays flat only if most of its neighbors are also flat
+  const erosionRadius = 5;
+  const erosionThreshold = 0.7; // 70% of neighbors must be flat
+  const isFlat = new Uint8Array(width * height);
+  
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = y * width + x;
+      if (!isFlatRaw[idx]) {
+        isFlat[idx] = 0;
+        continue;
+      }
+      
+      let flatCount = 0;
+      let totalCount = 0;
+      
+      for (let dy = -erosionRadius; dy <= erosionRadius; dy++) {
+        for (let dx = -erosionRadius; dx <= erosionRadius; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+          
+          totalCount++;
+          if (isFlatRaw[ny * width + nx]) {
+            flatCount++;
+          }
+        }
+      }
+      
+      isFlat[idx] = (flatCount / totalCount) >= erosionThreshold ? 1 : 0;
+    }
   }
 
   // Step 3: Connected components using union-find for flat regions with HSL color similarity
