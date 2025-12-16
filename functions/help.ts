@@ -87,9 +87,9 @@ There are 68 functions, some are normal image editing functions like '1' (colori
 
 The output images are completely deterministic given the program string and canvas size. You can share a qqqlang.com URL to replicate and fork the image.
 
-QQQLANG is both an image synthesis and editing language. You can upload an image as the starting image, or as arguments to functions that take image inputs. You can also paste images from the clipboard, or paste image URLs.
+QQQLANG is both an image synthesis and editing language. You can upload an image as the starting image, or as an argument to functions that take image inputs. You can also paste images from the clipboard, or paste image URLs.
 
-The language is complete and won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
+This project is finished now and the language won't change (other than bug fixes). But anyone can fork the language and add new functions as a new language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
 `;
 
 function generateIntroPage(charsPerLine: number): string[] {
