@@ -1,8 +1,10 @@
-#!/usr/bin/env npx ts-node
-
-import { chromium, Browser, Page } from "playwright";
+import { chromium, type Browser, type Page } from "playwright";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
 const ASSETS_DIR = path.join(PROJECT_ROOT, "assets");
@@ -58,7 +60,7 @@ function parseCharacterDefs(): Record<string, CharDef> {
       /functionName:\s*["']([^"']+)["']/
     );
     const documentationMatch = objContent.match(
-      /documentation:\s*["']([^"']+)["']/
+      /documentation:\s*\n?\s*["']([^"']+)["']/
     );
     const exampleMatch = objContent.match(/example:\s*["']([^"']+)["']/);
 
@@ -74,23 +76,26 @@ function parseCharacterDefs(): Record<string, CharDef> {
     const argsMatch = objContent.match(/args:\s*\[([\s\S]*?)\]/);
     if (argsMatch) {
       const argsContent = argsMatch[1];
-      const argMatches = argsContent.matchAll(
-        /\{\s*type:\s*(\w+(?:\([^)]*\))?)[^}]*documentation:\s*["']([^"']+)["'][^}]*\}/g
-      );
-      for (const argMatch of argMatches) {
-        const typeStr = argMatch[1];
-        const doc = argMatch[2];
+      const argRegex =
+        /\{\s*(?:type:\s*([^,}]+),\s*documentation:\s*["']([^"']+)["']|documentation:\s*["']([^"']+)["'],\s*type:\s*([^,}]+))/g;
+      let argMatch;
+      while ((argMatch = argRegex.exec(argsContent)) !== null) {
+        const typeStr = (argMatch[1] || argMatch[4] || "").trim();
+        const doc = argMatch[2] || argMatch[3];
 
         let type = typeStr;
         let choices: string[] | undefined;
 
         if (typeStr.startsWith("Choice(")) {
           type = "choice";
-          const choicesMatch = typeStr.match(/Choice\(([^)]+)\)/);
-          if (choicesMatch) {
-            choices = choicesMatch[1]
+          const fullChoiceMatch = argsContent
+            .substring(argMatch.index)
+            .match(/Choice\(([\s\S]*?)\)/);
+          if (fullChoiceMatch) {
+            choices = fullChoiceMatch[1]
               .split(",")
-              .map((s) => s.trim().replace(/["']/g, ""));
+              .map((s) => s.trim().replace(/["'\n\s]/g, ""))
+              .filter((s) => s.length > 0);
           }
         }
 
@@ -140,17 +145,13 @@ async function captureExampleImage(
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }, fullProgram);
 
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1000);
 
   const canvas = await page.$("#canvas");
   if (!canvas) throw new Error("Canvas not found");
 
   await canvas.screenshot({ path: outputPath });
-  console.log(`  Captured: ${outputPath}`);
-}
-
-function escapeMarkdown(text: string): string {
-  return text.replace(/([\\`*_{}[\]()#+\-.!|])/g, "\\$1");
+  console.log(`  Captured: ${path.basename(outputPath)}`);
 }
 
 function generateReadme(chars: Record<string, CharDef>): string {
@@ -255,11 +256,15 @@ async function main() {
   const page = await context.newPage();
 
   console.log("Navigating to localhost:5173...");
-  await page.goto("https://localhost:5173/?p=" + getUploadChar(0) + UPLOAD_HASH, {
-    waitUntil: "networkidle",
-  });
+  const uploadChar = getUploadChar(0);
+  await page.goto(
+    `https://localhost:5173/?p=${encodeURIComponent(uploadChar + UPLOAD_HASH)}`,
+    {
+      waitUntil: "networkidle",
+    }
+  );
 
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
 
   console.log("\nCapturing example images...");
   const sortedChars = Object.entries(chars).sort(
