@@ -8,6 +8,7 @@
     "build": "npm run build:font && tsc && vite build",
     "build:readme": "cd scripts/readme && npm install && npx playwright install chromium && npx tsx generate-readme.ts",
     "build:readme:char": "cd scripts/readme && npx tsx generate-readme.ts --char",
+    "build:readme:quick": "cd scripts/readme && npx tsx generate-readme.ts --skip-images",
     "preview": "vite preview",
     "format": "prettier --write \"**/*.ts\"",
     "format:check": "prettier --check \"**/*.ts\""
