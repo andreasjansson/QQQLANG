@@ -30,7 +30,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 # Character Reference
 
-## `A` (number 1, color <code style="background-color:#78A10F; color:white; padding: 2px 6px;">#78A10F</code>)
+## `A` (number 1, color `#78A10F`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywA"><img align="right" width="384" src="assets/01-example.png"></a>
 
@@ -40,7 +40,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `B` (number 2, color <code style="background-color:#8B4513; color:white; padding: 2px 6px;">#8B4513</code>)
+## `B` (number 2, color `#8B4513`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywBAA"><img align="right" width="384" src="assets/02-example.png"></a>
 
@@ -54,7 +54,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `C` (number 3, color <code style="background-color:#FF6B35; color:white; padding: 2px 6px;">#FF6B35</code>)
+## `C` (number 3, color `#FF6B35`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywCP"><img align="right" width="384" src="assets/03-example.png"></a>
 
@@ -67,7 +67,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `D` (number 4, color <code style="background-color:#FF1493; color:white; padding: 2px 6px;">#FF1493</code>)
+## `D` (number 4, color `#FF1493`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywD"><img align="right" width="384" src="assets/04-example.png"></a>
 
@@ -77,7 +77,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `E` (number 5, color <code style="background-color:#50C878; color:white; padding: 2px 6px;">#50C878</code>)
+## `E` (number 5, color `#50C878`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywE"><img align="right" width="384" src="assets/05-example.png"></a>
 
@@ -87,7 +87,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `F` (number 6, color <code style="background-color:#FFD700; color:white; padding: 2px 6px;">#FFD700</code>)
+## `F` (number 6, color `#FFD700`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywFB"><img align="right" width="384" src="assets/06-example.png"></a>
 
@@ -100,7 +100,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `G` (number 7, color <code style="background-color:#9370DB; color:white; padding: 2px 6px;">#9370DB</code>)
+## `G` (number 7, color `#9370DB`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywGG"><img align="right" width="384" src="assets/07-example.png"></a>
 
@@ -113,7 +113,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `H` (number 8, color <code style="background-color:#DC143C; color:white; padding: 2px 6px;">#DC143C</code>)
+## `H` (number 8, color `#DC143C`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywH"><img align="right" width="384" src="assets/08-example.png"></a>
 
@@ -123,7 +123,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `I` (number 9, color <code style="background-color:#00FF7F; color:white; padding: 2px 6px;">#00FF7F</code>)
+## `I` (number 9, color `#00FF7F`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywI"><img align="right" width="384" src="assets/09-example.png"></a>
 
@@ -133,7 +133,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `J` (number 10, color <code style="background-color:#FF8C00; color:white; padding: 2px 6px;">#FF8C00</code>)
+## `J` (number 10, color `#FF8C00`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywJM"><img align="right" width="384" src="assets/10-example.png"></a>
 
@@ -146,7 +146,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `K` (number 11, color <code style="background-color:#9966FF; color:white; padding: 2px 6px;">#9966FF</code>)
+## `K` (number 11, color `#9966FF`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywKE"><img align="right" width="384" src="assets/11-example.png"></a>
 
@@ -159,7 +159,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `L` (number 12, color <code style="background-color:#20B2AA; color:white; padding: 2px 6px;">#20B2AA</code>)
+## `L` (number 12, color `#20B2AA`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywLLL"><img align="right" width="384" src="assets/12-example.png"></a>
 
@@ -173,7 +173,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `M` (number 13, color <code style="background-color:#FF69B4; color:white; padding: 2px 6px;">#FF69B4</code>)
+## `M` (number 13, color `#FF69B4`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywMC"><img align="right" width="384" src="assets/13-example.png"></a>
 
@@ -186,7 +186,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `N` (number 14, color <code style="background-color:#8A2BE2; color:white; padding: 2px 6px;">#8A2BE2</code>)
+## `N` (number 14, color `#8A2BE2`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywN"><img align="right" width="384" src="assets/14-example.png"></a>
 
@@ -196,7 +196,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `O` (number 15, color <code style="background-color:#FF6347; color:white; padding: 2px 6px;">#FF6347</code>)
+## `O` (number 15, color `#FF6347`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywO9"><img align="right" width="384" src="assets/15-example.png"></a>
 
@@ -209,7 +209,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `P` (number 16, color <code style="background-color:#4682B4; color:white; padding: 2px 6px;">#4682B4</code>)
+## `P` (number 16, color `#4682B4`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywP6"><img align="right" width="384" src="assets/16-example.png"></a>
 
@@ -222,7 +222,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `Q` (number 17, color <code style="background-color:#32CD32; color:white; padding: 2px 6px;">#32CD32</code>)
+## `Q` (number 17, color `#32CD32`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywQ"><img align="right" width="384" src="assets/17-example.png"></a>
 
@@ -232,7 +232,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `R` (number 18, color <code style="background-color:#DA70D6; color:white; padding: 2px 6px;">#DA70D6</code>)
+## `R` (number 18, color `#DA70D6`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywR"><img align="right" width="384" src="assets/18-example.png"></a>
 
@@ -242,7 +242,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `S` (number 19, color <code style="background-color:#87CEEB; color:white; padding: 2px 6px;">#87CEEB</code>)
+## `S` (number 19, color `#87CEEB`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywSSS"><img align="right" width="384" src="assets/19-example.png"></a>
 
@@ -256,7 +256,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `T` (number 20, color <code style="background-color:#F0E68C; color:white; padding: 2px 6px;">#F0E68C</code>)
+## `T` (number 20, color `#F0E68C`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywT8"><img align="right" width="384" src="assets/20-example.png"></a>
 
@@ -269,7 +269,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `U` (number 21, color <code style="background-color:#DDA0DD; color:white; padding: 2px 6px;">#DDA0DD</code>)
+## `U` (number 21, color `#DDA0DD`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywUB"><img align="right" width="384" src="assets/21-example.png"></a>
 
@@ -282,7 +282,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `V` (number 22, color <code style="background-color:#40E0D0; color:white; padding: 2px 6px;">#40E0D0</code>)
+## `V` (number 22, color `#40E0D0`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw)~1AVBJ"><img align="right" width="384" src="assets/22-example.png"></a>
 
@@ -296,7 +296,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `W` (number 23, color <code style="background-color:#EE82EE; color:white; padding: 2px 6px;">#EE82EE</code>)
+## `W` (number 23, color `#EE82EE`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywWW"><img align="right" width="384" src="assets/23-example.png"></a>
 
@@ -309,7 +309,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `X` (number 24, color <code style="background-color:#F5DEB3; color:white; padding: 2px 6px;">#F5DEB3</code>)
+## `X` (number 24, color `#F5DEB3`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywX~"><img align="right" width="384" src="assets/24-example.png"></a>
 
@@ -322,7 +322,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `Y` (number 25, color <code style="background-color:#98FB98; color:white; padding: 2px 6px;">#98FB98</code>)
+## `Y` (number 25, color `#98FB98`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywYY"><img align="right" width="384" src="assets/25-example.png"></a>
 
@@ -335,7 +335,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `Z` (number 26, color <code style="background-color:#AFEEEE; color:white; padding: 2px 6px;">#AFEEEE</code>)
+## `Z` (number 26, color `#AFEEEE`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywZK"><img align="right" width="384" src="assets/26-example.png"></a>
 
@@ -348,7 +348,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `0` (number 27, color <code style="background-color:#E6E6FA; color:white; padding: 2px 6px;">#E6E6FA</code>)
+## `0` (number 27, color `#E6E6FA`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw0A"><img align="right" width="384" src="assets/27-example.png"></a>
 
@@ -361,7 +361,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `1` (number 28, color <code style="background-color:#FFA07A; color:white; padding: 2px 6px;">#FFA07A</code>)
+## `1` (number 28, color `#FFA07A`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw1E"><img align="right" width="384" src="assets/28-example.png"></a>
 
@@ -374,7 +374,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `2` (number 29, color <code style="background-color:#98D8C8; color:white; padding: 2px 6px;">#98D8C8</code>)
+## `2` (number 29, color `#98D8C8`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw2BAB"><img align="right" width="384" src="assets/29-example.png"></a>
 
@@ -389,7 +389,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `3` (number 30, color <code style="background-color:#F7DC6F; color:white; padding: 2px 6px;">#F7DC6F</code>)
+## `3` (number 30, color `#F7DC6F`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw3"><img align="right" width="384" src="assets/30-example.png"></a>
 
@@ -399,7 +399,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `4` (number 31, color <code style="background-color:#BB8FCE; color:white; padding: 2px 6px;">#BB8FCE</code>)
+## `4` (number 31, color `#BB8FCE`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw4"><img align="right" width="384" src="assets/31-example.png"></a>
 
@@ -409,7 +409,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `5` (number 32, color <code style="background-color:#85C1E9; color:white; padding: 2px 6px;">#85C1E9</code>)
+## `5` (number 32, color `#85C1E9`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw55"><img align="right" width="384" src="assets/32-example.png"></a>
 
@@ -422,7 +422,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `6` (number 33, color <code style="background-color:#F1948A; color:white; padding: 2px 6px;">#F1948A</code>)
+## `6` (number 33, color `#F1948A`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw6"><img align="right" width="384" src="assets/33-example.png"></a>
 
@@ -432,7 +432,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `7` (number 34, color <code style="background-color:#82E0AA; color:white; padding: 2px 6px;">#82E0AA</code>)
+## `7` (number 34, color `#82E0AA`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw777"><img align="right" width="384" src="assets/34-example.png"></a>
 
@@ -442,7 +442,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `8` (number 35, color <code style="background-color:#F8C471; color:white; padding: 2px 6px;">#F8C471</code>)
+## `8` (number 35, color `#F8C471`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw8T"><img align="right" width="384" src="assets/35-example.png"></a>
 
@@ -455,7 +455,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `9` (number 36, color <code style="background-color:#D7BDE2; color:white; padding: 2px 6px;">#D7BDE2</code>)
+## `9` (number 36, color `#D7BDE2`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywYY9B"><img align="right" width="384" src="assets/36-example.png"></a>
 
@@ -468,7 +468,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `<` (number 37, color <code style="background-color:#E74C3C; color:white; padding: 2px 6px;">#E74C3C</code>)
+## `<` (number 37, color `#E74C3C`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3CJ"><img align="right" width="384" src="assets/37-example.png"></a>
 
@@ -481,7 +481,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `>` (number 38, color <code style="background-color:#3498DB; color:white; padding: 2px 6px;">#3498DB</code>)
+## `>` (number 38, color `#3498DB`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3E"><img align="right" width="384" src="assets/38-example.png"></a>
 
@@ -491,7 +491,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `^` (number 39, color <code style="background-color:#2ECC71; color:white; padding: 2px 6px;">#2ECC71</code>)
+## `^` (number 39, color `#2ECC71`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5EV"><img align="right" width="384" src="assets/39-example.png"></a>
 
@@ -504,7 +504,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `!` (number 40, color <code style="background-color:#FF4500; color:white; padding: 2px 6px;">#FF4500</code>)
+## `!` (number 40, color `#FF4500`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw!"><img align="right" width="384" src="assets/40-example.png"></a>
 
@@ -514,7 +514,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `"` (number 41, color <code style="background-color:#9932CC; color:white; padding: 2px 6px;">#9932CC</code>)
+## `"` (number 41, color `#9932CC`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%22"><img align="right" width="384" src="assets/41-example.png"></a>
 
@@ -527,7 +527,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `#` (number 42, color <code style="background-color:#228B22; color:white; padding: 2px 6px;">#228B22</code>)
+## `#` (number 42, color `#228B22`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%23B"><img align="right" width="384" src="assets/42-example.png"></a>
 
@@ -540,7 +540,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `$` (number 43, color <code style="background-color:#FFD700; color:white; padding: 2px 6px;">#FFD700</code>)
+## `$` (number 43, color `#FFD700`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%24"><img align="right" width="384" src="assets/43-example.png"></a>
 
@@ -550,7 +550,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `%` (number 44, color <code style="background-color:#8B0000; color:white; padding: 2px 6px;">#8B0000</code>)
+## `%` (number 44, color `#8B0000`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%25A"><img align="right" width="384" src="assets/44-example.png"></a>
 
@@ -563,7 +563,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `&` (number 45, color <code style="background-color:#4169E1; color:white; padding: 2px 6px;">#4169E1</code>)
+## `&` (number 45, color `#4169E1`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%26P"><img align="right" width="384" src="assets/45-example.png"></a>
 
@@ -576,7 +576,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `'` (number 46, color <code style="background-color:#FF1493; color:white; padding: 2px 6px;">#FF1493</code>)
+## `'` (number 46, color `#FF1493`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1%27%27B"><img align="right" width="384" src="assets/46-example.png"></a>
 
@@ -589,7 +589,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `(` (number 47, color <code style="background-color:#00CED1; color:white; padding: 2px 6px;">#00CED1</code>)
+## `(` (number 47, color `#00CED1`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw(3F%26"><img align="right" width="384" src="assets/47-example.png"></a>
 
@@ -604,7 +604,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `)` (number 48, color <code style="background-color:#FF69B4; color:white; padding: 2px 6px;">#FF69B4</code>)
+## `)` (number 48, color `#FF69B4`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))"><img align="right" width="384" src="assets/48-example.png"></a>
 
@@ -617,7 +617,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `*` (number 49, color <code style="background-color:#FFD700; color:white; padding: 2px 6px;">#FFD700</code>)
+## `*` (number 49, color `#FFD700`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw*"><img align="right" width="384" src="assets/49-example.png"></a>
 
@@ -627,7 +627,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `+` (number 50, color <code style="background-color:#32CD32; color:white; padding: 2px 6px;">#32CD32</code>)
+## `+` (number 50, color `#32CD32`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2B%2B%2B%2B%2B%2B%2B"><img align="right" width="384" src="assets/50-example.png"></a>
 
@@ -637,7 +637,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `,` (number 51, color <code style="background-color:#BA55D3; color:white; padding: 2px 6px;">#BA55D3</code>)
+## `,` (number 51, color `#BA55D3`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2CD"><img align="right" width="384" src="assets/51-example.png"></a>
 
@@ -650,7 +650,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `-` (number 52, color <code style="background-color:#FF7F50; color:white; padding: 2px 6px;">#FF7F50</code>)
+## `-` (number 52, color `#FF7F50`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1D-B6"><img align="right" width="384" src="assets/52-example.png"></a>
 
@@ -664,7 +664,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `.` (number 53, color <code style="background-color:#20B2AA; color:white; padding: 2px 6px;">#20B2AA</code>)
+## `.` (number 53, color `#20B2AA`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw.M"><img align="right" width="384" src="assets/53-example.png"></a>
 
@@ -677,7 +677,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `/` (number 54, color <code style="background-color:#CD853F; color:white; padding: 2px 6px;">#CD853F</code>)
+## `/` (number 54, color `#CD853F`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2FB073C"><img align="right" width="384" src="assets/54-example.png"></a>
 
@@ -694,7 +694,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `:` (number 55, color <code style="background-color:#6B8E23; color:white; padding: 2px 6px;">#6B8E23</code>)
+## `:` (number 55, color `#6B8E23`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw1D%3AB"><img align="right" width="384" src="assets/55-example.png"></a>
 
@@ -707,7 +707,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `;` (number 56, color <code style="background-color:#DB7093; color:white; padding: 2px 6px;">#DB7093</code>)
+## `;` (number 56, color `#DB7093`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3B"><img align="right" width="384" src="assets/56-example.png"></a>
 
@@ -717,7 +717,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `=` (number 57, color <code style="background-color:#5F9EA0; color:white; padding: 2px 6px;">#5F9EA0</code>)
+## `=` (number 57, color `#5F9EA0`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3DX"><img align="right" width="384" src="assets/57-example.png"></a>
 
@@ -730,7 +730,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `?` (number 58, color <code style="background-color:#D2691E; color:white; padding: 2px 6px;">#D2691E</code>)
+## `?` (number 58, color `#D2691E`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3F%3F"><img align="right" width="384" src="assets/58-example.png"></a>
 
@@ -743,7 +743,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `@` (number 59, color <code style="background-color:#7B68EE; color:white; padding: 2px 6px;">#7B68EE</code>)
+## `@` (number 59, color `#7B68EE`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywGA%23B1.%23B1C%40CEGAE"><img align="right" width="384" src="assets/59-example.png"></a>
 
@@ -760,7 +760,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `[` (number 60, color <code style="background-color:#48D1CC; color:white; padding: 2px 6px;">#48D1CC</code>)
+## `[` (number 60, color `#48D1CC`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5BX"><img align="right" width="384" src="assets/60-example.png"></a>
 
@@ -773,7 +773,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `\\` (number 61, color <code style="background-color:#C71585; color:white; padding: 2px 6px;">#C71585</code>)
+## `\\` (number 61, color `#C71585`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5CB4VXMVH-0%7DA"><img align="right" width="384" src="assets/61-example.png"></a>
 
@@ -796,7 +796,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `]` (number 62, color <code style="background-color:#00FA9A; color:white; padding: 2px 6px;">#00FA9A</code>)
+## `]` (number 62, color `#00FA9A`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5D"><img align="right" width="384" src="assets/62-example.png"></a>
 
@@ -806,7 +806,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `_` (number 63, color <code style="background-color:#708090; color:white; padding: 2px 6px;">#708090</code>)
+## `_` (number 63, color `#708090`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw_"><img align="right" width="384" src="assets/63-example.png"></a>
 
@@ -816,7 +816,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `\`` (number 64, color <code style="background-color:#6495ED; color:white; padding: 2px 6px;">#6495ED</code>)
+## `\`` (number 64, color `#6495ED`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%60M"><img align="right" width="384" src="assets/64-example.png"></a>
 
@@ -829,7 +829,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `{` (number 65, color <code style="background-color:#DC143C; color:white; padding: 2px 6px;">#DC143C</code>)
+## `{` (number 65, color `#DC143C`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7BR"><img align="right" width="384" src="assets/65-example.png"></a>
 
@@ -842,7 +842,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `|` (number 66, color <code style="background-color:#00BFFF; color:white; padding: 2px 6px;">#00BFFF</code>)
+## `|` (number 66, color `#00BFFF`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1%7C%7C%7C"><img align="right" width="384" src="assets/66-example.png"></a>
 
@@ -855,7 +855,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `}` (number 67, color <code style="background-color:#9400D3; color:white; padding: 2px 6px;">#9400D3</code>)
+## `}` (number 67, color `#9400D3`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7D"><img align="right" width="384" src="assets/67-example.png"></a>
 
@@ -865,7 +865,7 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-## `~` (number 68, color <code style="background-color:#FF6347; color:white; padding: 2px 6px;">#FF6347</code>)
+## `~` (number 68, color `#FF6347`)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw~F"><img align="right" width="384" src="assets/68-example.png"></a>
 
