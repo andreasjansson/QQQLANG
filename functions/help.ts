@@ -59,12 +59,13 @@ Each character has three properties:
 
 Functions can take zero or more arguments. If a function takes arguments, the characters that follow are interpreted as arguments. Otherwise characters are interpreted as functions. The exception is the first character of the program string which sets an initial solid color.
 
-For example, the program 'ABCD' has the following interpretation:
+For example, the program 'ABCDE' has the following interpretation:
 
 * 'A' sets the intial color to #78A10F
 * 'B' is the 'border' function that creates a circular gradient around the edges. It takes one argument, the border color.
-* 'C' becomes the argument to 'B', the color of 'C' is #FF6B35
-* 'D' is the 'drip' function, which creates a water drop effect. It takes no arguments.
+* 'C' becomes the first argument to 'B', sets the border style to style 3
+* 'D' becomes the second argument to 'B', sets the border color to D's color
+* 'E' is the 'emerald' function, which draws 3D emeralds. It takes no arguments.
 
 If the program string ends before the last function has had arguments defined, it will use its own number and color as default arguments. For example, the programs 'AL', 'ALL', and 'ALLL' are equivalent.
 
