@@ -85,6 +85,7 @@ export interface CharDef {
   args: ArgDef[];
   functionName: string;
   documentation: string;
+  example: string;
 }
 
 // Upload character constants - must match build-font.py
