@@ -82,23 +82,21 @@ function gradientify(ctx: FnContext): Image {
     isFlat[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
   }
 
-  // Step 3: Connected components using union-find with lightness range tracking
+  // Step 3: Connected components using union-find with dark/light tracking
   const parent = new Int32Array(width * height);
   const rank = new Uint8Array(width * height);
-  const minL = new Float32Array(width * height);
-  const maxL = new Float32Array(width * height);
-  const minS = new Float32Array(width * height);
-  const maxS = new Float32Array(width * height);
+  const hasDark = new Uint8Array(width * height);  // Has pixels with L < 0.25
+  const hasLight = new Uint8Array(width * height); // Has pixels with L > 0.55
+  
+  const darkThreshold = 0.25;
+  const lightThreshold = 0.55;
   
   for (let i = 0; i < width * height; i++) {
     parent[i] = i;
     rank[i] = 0;
     const l = hslData[i * 3 + 2];
-    const s = hslData[i * 3 + 1];
-    minL[i] = l;
-    maxL[i] = l;
-    minS[i] = s;
-    maxS[i] = s;
+    hasDark[i] = l < darkThreshold ? 1 : 0;
+    hasLight[i] = l > lightThreshold ? 1 : 0;
   }
 
   function find(x: number): number {
@@ -108,44 +106,30 @@ function gradientify(ctx: FnContext): Image {
     return parent[x];
   }
 
-  const maxLightnessRange = 0.2;
-  const maxSaturationRange = 0.25;
-
   function tryUnion(x: number, y: number): boolean {
     const px = find(x);
     const py = find(y);
     if (px === py) return true;
     
-    // Check if merging would create too wide a lightness range
-    const newMinL = Math.min(minL[px], minL[py]);
-    const newMaxL = Math.max(maxL[px], maxL[py]);
-    if (newMaxL - newMinL > maxLightnessRange) return false;
-    
-    // Check saturation range too
-    const newMinS = Math.min(minS[px], minS[py]);
-    const newMaxS = Math.max(maxS[px], maxS[py]);
-    if (newMaxS - newMinS > maxSaturationRange) return false;
+    // Don't merge if one region has dark pixels and the other has light pixels
+    const wouldHaveDark = hasDark[px] || hasDark[py];
+    const wouldHaveLight = hasLight[px] || hasLight[py];
+    if (wouldHaveDark && wouldHaveLight) return false;
     
     // Perform union
     if (rank[px] < rank[py]) {
       parent[px] = py;
-      minL[py] = newMinL;
-      maxL[py] = newMaxL;
-      minS[py] = newMinS;
-      maxS[py] = newMaxS;
+      hasDark[py] = wouldHaveDark ? 1 : 0;
+      hasLight[py] = wouldHaveLight ? 1 : 0;
     } else if (rank[px] > rank[py]) {
       parent[py] = px;
-      minL[px] = newMinL;
-      maxL[px] = newMaxL;
-      minS[px] = newMinS;
-      maxS[px] = newMaxS;
+      hasDark[px] = wouldHaveDark ? 1 : 0;
+      hasLight[px] = wouldHaveLight ? 1 : 0;
     } else {
       parent[py] = px;
       rank[px]++;
-      minL[px] = newMinL;
-      maxL[px] = newMaxL;
-      minS[px] = newMinS;
-      maxS[px] = newMaxS;
+      hasDark[px] = wouldHaveDark ? 1 : 0;
+      hasLight[px] = wouldHaveLight ? 1 : 0;
     }
     return true;
   }
