@@ -468,8 +468,8 @@ function help(ctx: FnContext, pageArg: number): Image {
   }
 
   // Iteratively find the largest font size that fits the content
-  const minFontSize = 10;
-  const maxFontSize = 28;
+  const minFontSize = 8;
+  const maxFontSize = 16;
   let bestFontSize = minFontSize;
   let bestLines: string[] = [];
   let bestCharsPerLine = 40;
