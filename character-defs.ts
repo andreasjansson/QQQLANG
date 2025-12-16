@@ -115,7 +115,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [],
     functionName: "spheres",
     documentation:
-      "Flips prev horizontally, then renders as texture on two 3D spheres with lighting.",
+      "Renders image as texture on two 3D spheres with lighting.",
     example: "A",
   },
 
@@ -153,7 +153,7 @@ export const characterDefs: Record<string, CharDef> = {
     ],
     functionName: "border",
     documentation:
-      "Border effect with various shapes: circular, horizontal, vertical, rectangular, diamond, hexagon, sine waves, and triangle waves.",
+      "Border effect with various shapes.",
     example: "BAA",
   },
 
@@ -415,7 +415,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "cppn",
     documentation:
       "Compositional Pattern Producing Network warps and modulates saturation/value using a neural network. Fully deterministic based on input.",
-    example: "XE",
+    example: "X~",
   },
 
   Y: {
@@ -802,7 +802,7 @@ export const characterDefs: Record<string, CharDef> = {
     args: [{ type: INT, documentation: "Dot radius base (mod 8 + 2)" }],
     functionName: "pointillism",
     documentation: "Pointillism effect with saturated circular dots.",
-    example: "..",
+    example: ".M",
   },
 
   "/": {
@@ -999,7 +999,7 @@ export const characterDefs: Record<string, CharDef> = {
     functionName: "vertical-split",
     documentation:
       "Vertical split with wavy blend zone using multiple blend modes.",
-    example: "))1||",
+    example: "))1|||",
   },
 
   "}": {
