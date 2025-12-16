@@ -11,8 +11,8 @@ const ASSETS_DIR = path.join(PROJECT_ROOT, "assets");
 const README_PATH = path.join(PROJECT_ROOT, "README.md");
 const CHARACTER_DEFS_PATH = path.join(PROJECT_ROOT, "character-defs.ts");
 
-const BASE_IMAGE_URL =
-  "https://replicate.delivery/pbxt/NV0JLz4NfRmXPOkVrzjiASCfJvsea419i9agH2EuPJlHjG9h/0_1.webp";
+const UPLOAD_CHAR = String.fromCodePoint(0x2600); // ☀ U+2600
+const UPLOAD_HASH = "Lh8lX-CEM_8ykW3QtaeIyw";
 
 interface CharDef {
   color: string;
