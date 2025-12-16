@@ -314,6 +314,90 @@ function blend(ctx: FnContext, old: Image, modeName: string): Image {
           break;
         }
 
+        case "opacity-25":
+          r = br * 0.75 + tr * 0.25;
+          g = bg * 0.75 + tg * 0.25;
+          b = bb * 0.75 + tb * 0.25;
+          break;
+
+        case "opacity-50":
+          r = br * 0.5 + tr * 0.5;
+          g = bg * 0.5 + tg * 0.5;
+          b = bb * 0.5 + tb * 0.5;
+          break;
+
+        case "opacity-75":
+          r = br * 0.25 + tr * 0.75;
+          g = bg * 0.25 + tg * 0.75;
+          b = bb * 0.25 + tb * 0.75;
+          break;
+
+        case "glow":
+          // Glow: screen + extra brightness boost
+          r = 255 - ((255 - br) * (255 - tr)) / 255;
+          g = 255 - ((255 - bg) * (255 - tg)) / 255;
+          b = 255 - ((255 - bb) * (255 - tb)) / 255;
+          r = Math.min(255, r * 1.2);
+          g = Math.min(255, g * 1.2);
+          b = Math.min(255, b * 1.2);
+          break;
+
+        case "negation":
+          // Inverts based on top layer
+          r = 255 - Math.abs(255 - br - tr);
+          g = 255 - Math.abs(255 - bg - tg);
+          b = 255 - Math.abs(255 - bb - tb);
+          break;
+
+        case "phoenix":
+          // Phoenix: min + max - 255
+          r = Math.min(br, tr) - Math.max(br, tr) + 255;
+          g = Math.min(bg, tg) - Math.max(bg, tg) + 255;
+          b = Math.min(bb, tb) - Math.max(bb, tb) + 255;
+          break;
+
+        case "reflect":
+          // Reflect: like dodge but squared
+          r = tr === 255 ? 255 : Math.min(255, (br * br) / (255 - tr));
+          g = tg === 255 ? 255 : Math.min(255, (bg * bg) / (255 - tg));
+          b = tb === 255 ? 255 : Math.min(255, (bb * bb) / (255 - tb));
+          break;
+
+        case "freeze":
+          // Freeze: inverse of reflect
+          r = tr === 0 ? 0 : Math.max(0, 255 - ((255 - br) * (255 - br)) / tr);
+          g = tg === 0 ? 0 : Math.max(0, 255 - ((255 - bg) * (255 - bg)) / tg);
+          b = tb === 0 ? 0 : Math.max(0, 255 - ((255 - bb) * (255 - bb)) / tb);
+          break;
+
+        case "heat":
+          // Heat: reflect with swapped layers
+          r = br === 255 ? 255 : Math.min(255, (tr * tr) / (255 - br));
+          g = bg === 255 ? 255 : Math.min(255, (tg * tg) / (255 - bg));
+          b = bb === 255 ? 255 : Math.min(255, (tb * tb) / (255 - bb));
+          break;
+
+        case "stamp":
+          // Stamp: emboss-like effect
+          r = Math.max(0, Math.min(255, br + 2 * tr - 256));
+          g = Math.max(0, Math.min(255, bg + 2 * tg - 256));
+          b = Math.max(0, Math.min(255, bb + 2 * tb - 256));
+          break;
+
+        case "geometric":
+          // Geometric mean
+          r = Math.sqrt(br * tr);
+          g = Math.sqrt(bg * tg);
+          b = Math.sqrt(bb * tb);
+          break;
+
+        case "hypot":
+          // Hypotenuse blend
+          r = Math.min(255, Math.sqrt(br * br + tr * tr) / Math.SQRT2);
+          g = Math.min(255, Math.sqrt(bg * bg + tg * tg) / Math.SQRT2);
+          b = Math.min(255, Math.sqrt(bb * bb + tb * tb) / Math.SQRT2);
+          break;
+
         default:
           r = tr;
           g = tg;
