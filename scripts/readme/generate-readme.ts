@@ -276,6 +276,7 @@ async function main() {
   const charArgIdx = process.argv.indexOf("--char");
   const singleChar = charArgIdx !== -1 ? process.argv[charArgIdx + 1] : null;
   const skipImages = process.argv.includes("--skip-images");
+  const debugMode = process.argv.includes("--debug");
 
   console.log("Parsing character definitions...");
   const chars = parseCharacterDefs();
