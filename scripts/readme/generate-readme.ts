@@ -94,42 +94,50 @@ function parseCharacterDefs(): Record<string, CharDef> {
     if (!colorMatch || !numberMatch || !functionNameMatch || !docMatch) continue;
     
     const args: CharDef["args"] = [];
-    const argsMatch = entryContent.match(/args:\s*\[([\s\S]*?)\],?\s*(?:functionName|$)/);
+    const argsMatch = entryContent.match(/args:\s*\[([\s\S]*?)\],?\s*functionName:/);
     if (argsMatch) {
       const argsContent = argsMatch[1];
-      // Find each arg object
-      const argObjRegex = /\{\s*type:\s*([\w(][^}]*?),\s*documentation:\s*["']([^"']+)["']\s*\}/g;
-      let argMatch;
-      while ((argMatch = argObjRegex.exec(argsContent)) !== null) {
-        const typeStr = argMatch[1];
-        const doc = argMatch[2];
+      
+      // Find each arg by looking for `documentation: "..."` patterns
+      const docRegex = /documentation:\s*["']([^"']+)["']/g;
+      let docMatch2;
+      let argIndex = 0;
+      
+      while ((docMatch2 = docRegex.exec(argsContent)) !== null) {
+        const doc = docMatch2[1];
+        
+        // Look backwards from this doc to find the type
+        const beforeDoc = argsContent.substring(0, docMatch2.index);
         
         let choices: string[] | undefined;
-        if (typeStr.startsWith("Choice(")) {
-          // Extract choices - they may span multiple lines
-          const choiceStart = argsContent.indexOf("Choice(", argMatch.index);
-          if (choiceStart !== -1) {
-            let parenCount = 0;
-            let choiceEnd = choiceStart;
-            for (let j = choiceStart; j < argsContent.length; j++) {
-              if (argsContent[j] === '(') parenCount++;
-              else if (argsContent[j] === ')') {
-                parenCount--;
-                if (parenCount === 0) {
-                  choiceEnd = j + 1;
-                  break;
-                }
+        
+        // Check if there's a Choice before this doc
+        const lastChoiceIdx = beforeDoc.lastIndexOf("Choice(");
+        const lastTypeIdx = beforeDoc.lastIndexOf("type:");
+        
+        if (lastChoiceIdx > lastTypeIdx - 20 && lastChoiceIdx !== -1) {
+          // Extract the Choice content
+          let parenCount = 0;
+          let choiceEnd = lastChoiceIdx;
+          for (let j = lastChoiceIdx; j < argsContent.length; j++) {
+            if (argsContent[j] === '(') parenCount++;
+            else if (argsContent[j] === ')') {
+              parenCount--;
+              if (parenCount === 0) {
+                choiceEnd = j + 1;
+                break;
               }
             }
-            const choiceContent = argsContent.substring(choiceStart + 7, choiceEnd - 1);
-            choices = choiceContent
-              .split(",")
-              .map(s => s.trim().replace(/["'\n\s]/g, ""))
-              .filter(s => s.length > 0);
           }
+          const choiceContent = argsContent.substring(lastChoiceIdx + 7, choiceEnd - 1);
+          choices = choiceContent
+            .split(",")
+            .map(s => s.trim().replace(/["'\n\s]/g, ""))
+            .filter(s => s.length > 0);
         }
         
         args.push({ type: { choices }, documentation: doc });
+        argIndex++;
       }
     }
     
