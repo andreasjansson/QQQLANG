@@ -53,18 +53,18 @@ function gradientify(ctx: FnContext): Image {
 
       // Hue gradient (weighted by saturation - hue matters less when desaturated)
       const avgS = (s + s1 + s2 + s3 + s4) / 5;
-      const hueWeight = avgS * 0.5; // Scale hue importance by saturation
+      const hueWeight = avgS * 2.0; // Scale hue importance by saturation
       
       const gxH = hueDiff(h2, h1) / 2 * hueWeight;
       const gyH = hueDiff(h4, h3) / 2 * hueWeight;
       
-      // Saturation gradient (0-1 scale, multiply by 100 to match lightness scale)
-      const gxS = (s2 - s1) / 2 * 100;
-      const gyS = (s4 - s3) / 2 * 100;
+      // Saturation gradient (0-1 scale, multiply by 150 - saturation changes matter a lot)
+      const gxS = (s2 - s1) / 2 * 150;
+      const gyS = (s4 - s3) / 2 * 150;
       
-      // Lightness gradient (0-1 scale, multiply by 100)
-      const gxL = (l2 - l1) / 2 * 100;
-      const gyL = (l4 - l3) / 2 * 100;
+      // Lightness gradient (0-1 scale, multiply by 30 - lightness changes matter less)
+      const gxL = (l2 - l1) / 2 * 30;
+      const gyL = (l4 - l3) / 2 * 30;
 
       const mag = Math.sqrt(
         gxH * gxH + gyH * gyH +
