@@ -175,7 +175,11 @@ async function captureExampleImage(
 ): Promise<void> {
   // Build URL with upload char + hash + program
   const fullProgram = UPLOAD_CHAR + UPLOAD_HASH + program;
-  const url = `http://localhost:5173/?p=${encodeURIComponent(fullProgram)}`;
+  // encodeURIComponent doesn't encode single quotes, so do it manually
+  const encoded = encodeURIComponent(fullProgram).replace(/'/g, "%27");
+  const url = `http://localhost:5173/?p=${encoded}`;
+  
+  console.log(`    URL: ${url}`);
   
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForTimeout(2000);
