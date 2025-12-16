@@ -88,10 +88,12 @@ export interface CharDef {
 }
 
 // Upload character constants - must match build-font.py
+// Using Hangul Syllables block (U+AC00-U+D7A3) instead of PUA because
+// Chrome has GSUB issues with PUA codepoints
 export const UPLOAD_CHAR = "□"; // U+25A1 - unassigned upload placeholder
 export const UPLOAD_COUNT = 256;
-export const UPLOAD_REGULAR_BASE = 0xe200; // U+E200 to U+E2FF: valid upload □
-export const UPLOAD_INVALID_BASE = 0xe300; // U+E300 to U+E3FF: invalid upload ■
+export const UPLOAD_REGULAR_BASE = 0xac00; // U+AC00 to U+ACFF: valid upload □ (Hangul)
+export const UPLOAD_INVALID_BASE = 0xad00; // U+AD00 to U+ADFF: invalid upload ■ (Hangul)
 
 // Get the upload character for a given index (0-255)
 export function getUploadChar(index: number): string {
