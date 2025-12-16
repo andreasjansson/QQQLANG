@@ -223,7 +223,7 @@ function generateReadme(chars: Record<string, CharDef>): string {
     (a, b) => a[1].number - b[1].number
   );
 
-  let readme = `![QQQLANG Logo](public/logo.png)
+  let readme = `[![QQQLANG Logo](public/logo.png)](https://qqqlang.com)
 
 # QQQLANG: A syntax-free programming language for image synthesis
 
