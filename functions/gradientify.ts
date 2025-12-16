@@ -115,13 +115,19 @@ function gradientify(ctx: FnContext): Image {
     h1: number, s1: number, l1: number,
     h2: number, s2: number, l2: number,
   ): boolean {
-    // Lightness difference (most important)
+    // Lightness difference - strict to prevent dark/light chaining
     const dL = Math.abs(l1 - l2);
-    if (dL > 0.15) return false;
+    if (dL > 0.08) return false;
+    
+    // Also check absolute lightness - don't cluster very dark with anything else
+    const minL = Math.min(l1, l2);
+    const maxL = Math.max(l1, l2);
+    if (minL < 0.15 && maxL > 0.25) return false;
+    if (minL < 0.3 && maxL > 0.7) return false;
     
     // Saturation difference
     const dS = Math.abs(s1 - s2);
-    if (dS > 0.2) return false;
+    if (dS > 0.15) return false;
     
     // Hue difference (only matters if both have decent saturation)
     const minS = Math.min(s1, s2);
