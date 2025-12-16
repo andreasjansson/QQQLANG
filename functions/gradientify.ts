@@ -53,18 +53,18 @@ function gradientify(ctx: FnContext): Image {
 
       // Hue gradient (weighted by saturation - hue matters less when desaturated)
       const avgS = (s + s1 + s2 + s3 + s4) / 5;
-      const hueWeight = avgS * 2.0; // Scale hue importance by saturation
+      const hueWeight = avgS * 0.5;
       
       const gxH = hueDiff(h2, h1) / 2 * hueWeight;
       const gyH = hueDiff(h4, h3) / 2 * hueWeight;
       
-      // Saturation gradient (0-1 scale, multiply by 50)
-      const gxS = (s2 - s1) / 2 * 50;
-      const gyS = (s4 - s3) / 2 * 50;
+      // Saturation gradient (0-1 scale, multiply by 100 to match lightness scale)
+      const gxS = (s2 - s1) / 2 * 100;
+      const gyS = (s4 - s3) / 2 * 100;
       
-      // Lightness gradient (0-1 scale, multiply by 30 - lightness changes matter less)
-      const gxL = (l2 - l1) / 2 * 30;
-      const gyL = (l4 - l3) / 2 * 30;
+      // Lightness gradient (0-1 scale, multiply by 100)
+      const gxL = (l2 - l1) / 2 * 100;
+      const gyL = (l4 - l3) / 2 * 100;
 
       const mag = Math.sqrt(
         gxH * gxH + gyH * gyH +
@@ -76,44 +76,10 @@ function gradientify(ctx: FnContext): Image {
   }
 
   // Step 2: Create flatness mask with threshold
-  const gradientThreshold = 1.5;
-  const isFlatRaw = new Uint8Array(width * height);
-  for (let i = 0; i < width * height; i++) {
-    isFlatRaw[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
-  }
-
-  // Erode the flatness mask to remove small isolated flat patches
-  // A pixel stays flat only if most of its neighbors are also flat
-  const erosionRadius = 5;
-  const erosionThreshold = 0.7; // 70% of neighbors must be flat
+  const gradientThreshold = 8;
   const isFlat = new Uint8Array(width * height);
-  
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x;
-      if (!isFlatRaw[idx]) {
-        isFlat[idx] = 0;
-        continue;
-      }
-      
-      let flatCount = 0;
-      let totalCount = 0;
-      
-      for (let dy = -erosionRadius; dy <= erosionRadius; dy++) {
-        for (let dx = -erosionRadius; dx <= erosionRadius; dx++) {
-          const nx = x + dx;
-          const ny = y + dy;
-          if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-          
-          totalCount++;
-          if (isFlatRaw[ny * width + nx]) {
-            flatCount++;
-          }
-        }
-      }
-      
-      isFlat[idx] = (flatCount / totalCount) >= erosionThreshold ? 1 : 0;
-    }
+  for (let i = 0; i < width * height; i++) {
+    isFlat[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
   }
 
   // Step 3: Connected components using union-find for flat regions with HSL color similarity
@@ -149,23 +115,19 @@ function gradientify(ctx: FnContext): Image {
     h1: number, s1: number, l1: number,
     h2: number, s2: number, l2: number,
   ): boolean {
-    // Lightness difference
+    // Lightness difference (most important)
     const dL = Math.abs(l1 - l2);
-    if (dL > 0.02) return false;
+    if (dL > 0.15) return false;
     
-    // Saturation difference - be strict here
+    // Saturation difference
     const dS = Math.abs(s1 - s2);
-    if (dS > 0.02) return false;
-    
-    // If one is gray and one is colored, don't merge
-    const isGray1 = s1 < 0.05;
-    const isGray2 = s2 < 0.05;
-    if (isGray1 !== isGray2) return false;
+    if (dS > 0.2) return false;
     
     // Hue difference (only matters if both have decent saturation)
-    if (!isGray1 && !isGray2) {
+    const minS = Math.min(s1, s2);
+    if (minS > 0.15) {
       const dH = hueDiff(h1, h2);
-      if (dH > 5) return false;
+      if (dH > 25) return false;
     }
     
     return true;
