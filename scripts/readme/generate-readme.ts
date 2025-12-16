@@ -299,10 +299,8 @@ The language is complete and won't change (other than bug fixes). But anyone can
         if (arg.type.choices && arg.type.choices.length > 0) {
           const mappings = arg.type.choices
             .map((choice, idx) => `${numToChar(idx + 1)}=${choice}`)
-            .slice(0, 8)
             .join(", ");
-          const suffix = arg.type.choices.length > 8 ? ", ..." : "";
-          argLine += ` (${mappings}${suffix})`;
+          argLine += ` (${mappings})`;
         }
         readme += `   ${argLine}\n`;
       }
