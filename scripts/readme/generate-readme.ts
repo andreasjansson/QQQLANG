@@ -14,6 +14,33 @@ const CHARACTER_DEFS_PATH = path.join(PROJECT_ROOT, "character-defs.ts");
 
 const UPLOAD_CHAR = String.fromCodePoint(0x2600); // ☀ U+2600
 const UPLOAD_HASH = "Lh8lX-CEM_8ykW3QtaeIyw";
+const SWATCH_SIZE = 16;
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace("#", "");
+  return {
+    r: parseInt(h.substring(0, 2), 16),
+    g: parseInt(h.substring(2, 4), 16),
+    b: parseInt(h.substring(4, 6), 16),
+  };
+}
+
+async function generateColorSwatch(
+  color: string,
+  outputPath: string
+): Promise<void> {
+  const rgb = hexToRgb(color);
+  await sharp({
+    create: {
+      width: SWATCH_SIZE,
+      height: SWATCH_SIZE,
+      channels: 3,
+      background: rgb,
+    },
+  })
+    .png()
+    .toFile(outputPath);
+}
 
 interface CharDef {
   color: string;
