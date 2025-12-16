@@ -264,8 +264,8 @@ def create_indexed_upload_chars(font, glyph_order, glyf, hmtx, cmap, pua_start):
         if hasattr(table, 'cmap'):
             table.cmap.update(cmap)
     
-    print(f"  Created {UPLOAD_COUNT} regular □ glyphs (U+AC00-U+ACFF)")
-    print(f"  Created {UPLOAD_COUNT} invalid ■ glyphs (U+AD00-U+ADFF)")
+    print(f"  Created {UPLOAD_COUNT} regular □ glyphs (U+1D400-U+1D4FF)")
+    print(f"  Created {UPLOAD_COUNT} invalid ■ glyphs (U+1D500-U+1D5FF)")
     print(f"  Created {UPLOAD_COUNT} bold_first variants")
     print(f"  Created {UPLOAD_COUNT} regular_spaced variants")
     
