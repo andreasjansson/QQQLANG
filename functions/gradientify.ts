@@ -82,12 +82,23 @@ function gradientify(ctx: FnContext): Image {
     isFlat[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
   }
 
-  // Step 3: Connected components using union-find for flat regions with HSL color similarity
+  // Step 3: Connected components using union-find with lightness range tracking
   const parent = new Int32Array(width * height);
   const rank = new Uint8Array(width * height);
+  const minL = new Float32Array(width * height);
+  const maxL = new Float32Array(width * height);
+  const minS = new Float32Array(width * height);
+  const maxS = new Float32Array(width * height);
+  
   for (let i = 0; i < width * height; i++) {
     parent[i] = i;
     rank[i] = 0;
+    const l = hslData[i * 3 + 2];
+    const s = hslData[i * 3 + 1];
+    minL[i] = l;
+    maxL[i] = l;
+    minS[i] = s;
+    maxS[i] = s;
   }
 
   function find(x: number): number {
@@ -97,41 +108,63 @@ function gradientify(ctx: FnContext): Image {
     return parent[x];
   }
 
-  function union(x: number, y: number): void {
+  const maxLightnessRange = 0.2;
+  const maxSaturationRange = 0.25;
+
+  function tryUnion(x: number, y: number): boolean {
     const px = find(x);
     const py = find(y);
-    if (px === py) return;
+    if (px === py) return true;
+    
+    // Check if merging would create too wide a lightness range
+    const newMinL = Math.min(minL[px], minL[py]);
+    const newMaxL = Math.max(maxL[px], maxL[py]);
+    if (newMaxL - newMinL > maxLightnessRange) return false;
+    
+    // Check saturation range too
+    const newMinS = Math.min(minS[px], minS[py]);
+    const newMaxS = Math.max(maxS[px], maxS[py]);
+    if (newMaxS - newMinS > maxSaturationRange) return false;
+    
+    // Perform union
     if (rank[px] < rank[py]) {
       parent[px] = py;
+      minL[py] = newMinL;
+      maxL[py] = newMaxL;
+      minS[py] = newMinS;
+      maxS[py] = newMaxS;
     } else if (rank[px] > rank[py]) {
       parent[py] = px;
+      minL[px] = newMinL;
+      maxL[px] = newMaxL;
+      minS[px] = newMinS;
+      maxS[px] = newMaxS;
     } else {
       parent[py] = px;
       rank[px]++;
+      minL[px] = newMinL;
+      maxL[px] = newMaxL;
+      minS[px] = newMinS;
+      maxS[px] = newMaxS;
     }
+    return true;
   }
 
   function hslSimilar(
     h1: number, s1: number, l1: number,
     h2: number, s2: number, l2: number,
   ): boolean {
-    // Lightness difference - strict to prevent dark/light chaining
+    // Lightness difference
     const dL = Math.abs(l1 - l2);
-    if (dL > 0.08) return false;
-    
-    // Also check absolute lightness - don't cluster very dark with anything else
-    const minL = Math.min(l1, l2);
-    const maxL = Math.max(l1, l2);
-    if (minL < 0.15 && maxL > 0.25) return false;
-    if (minL < 0.3 && maxL > 0.7) return false;
+    if (dL > 0.1) return false;
     
     // Saturation difference
     const dS = Math.abs(s1 - s2);
     if (dS > 0.15) return false;
     
     // Hue difference (only matters if both have decent saturation)
-    const minS = Math.min(s1, s2);
-    if (minS > 0.15) {
+    const minSat = Math.min(s1, s2);
+    if (minSat > 0.15) {
       const dH = hueDiff(h1, h2);
       if (dH > 25) return false;
     }
@@ -152,7 +185,7 @@ function gradientify(ctx: FnContext): Image {
         if (isFlat[nidx]) {
           const [nh, ns, nl] = getHsl(x + 1, y);
           if (hslSimilar(h, s, l, nh, ns, nl)) {
-            union(idx, nidx);
+            tryUnion(idx, nidx);
           }
         }
       }
@@ -162,7 +195,7 @@ function gradientify(ctx: FnContext): Image {
         if (isFlat[nidx]) {
           const [nh, ns, nl] = getHsl(x, y + 1);
           if (hslSimilar(h, s, l, nh, ns, nl)) {
-            union(idx, nidx);
+            tryUnion(idx, nidx);
           }
         }
       }
