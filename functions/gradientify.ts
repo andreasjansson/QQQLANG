@@ -180,8 +180,8 @@ function gradientify(ctx: FnContext): Image {
 
   // Step 5: Apply gradients to regions
   const minRegionSize = Math.max(30, (width * height) / 800);
-  const lightnessRange = 0.25;
-  const saturationBoost = 1.4;
+  const lightnessRange = 0.45;
+  const saturationBoost = 1.8;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
