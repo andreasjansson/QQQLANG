@@ -15,7 +15,10 @@ function voronoi(ctx: FnContext, old: Image, n: number): Image {
   const gridRows = 6 + Math.round(((n - 1) * 11) / 67);
   const cellW = ctx.width / gridCols;
   const cellH = ctx.height / gridRows;
-  const angle = (n * Math.PI) / 34;
+  
+  // Use angles that create more interference patterns
+  // Small angles relative to grid alignment create interesting wrap effects
+  const angle = (n * Math.PI) / 68;  // Smaller divisor = more variation per n
   const cos_a = Math.cos(angle);
   const sin_a = Math.sin(angle);
   const offsetX = (n % 17) / 17;
@@ -23,8 +26,8 @@ function voronoi(ctx: FnContext, old: Image, n: number): Image {
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
 
-  // Extend grid beyond canvas to create more wrapping interference
-  const extend = 1 + (n % 3);
+  // More extension = more wrapping interference
+  const extend = 2 + (n % 3);
   
   const seeds: [number, number][] = [];
   for (let row = -extend; row < gridRows + extend; row++) {
