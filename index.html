@@ -1332,22 +1332,22 @@
       const plainText = e.clipboardData.getData('text/plain');
       if (!plainText) return;
       
-      // Check if it's a URL pointing to an image
+      // Check if it's a URL pointing to an image - must preventDefault synchronously
       const urlMatch = plainText.trim().match(/^(https?:\/\/[^\s]+)$/);
       if (urlMatch) {
+        // Prevent default BEFORE the async fetch
+        e.preventDefault();
         const url = urlMatch[1];
         const blob = await tryLoadImageFromUrl(url);
         if (blob) {
-          e.preventDefault();
           // Always insert at cursor - syncUploadChars will show as invalid if needed
           await handleImageUpload(blob, true);
-          return;
         }
+        // If URL wasn't an image, don't insert anything (already prevented default)
+        return;
       }
       
       // Process any text as a QQQLANG program
-      if (!plainText) return;
-      
       e.preventDefault();
       
       // Parse text, preserving hashes after indexed uploads
