@@ -116,14 +116,23 @@ function parseCharacterDefs(): Record<string, CharDef> {
     let example = exampleMatch ? exampleMatch[1] : entry.char;
     example = example.replace(/\\\\/g, "\\");
     
+    const num = parseInt(numberMatch[1]);
+    foundNumbers.add(num);
     chars[entry.char] = {
       color: colorMatch[1],
-      number: parseInt(numberMatch[1]),
+      number: num,
       functionName: functionNameMatch[1],
       documentation: docMatch[1],
       example,
       args,
     };
+  }
+  
+  // Report missing numbers
+  for (let i = 1; i <= 68; i++) {
+    if (!foundNumbers.has(i)) {
+      console.log(`  Missing number ${i}`);
+    }
   }
   
   return chars;
