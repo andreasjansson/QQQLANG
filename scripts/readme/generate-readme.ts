@@ -77,11 +77,6 @@ function parseCharacterDefs(): Record<string, CharDef> {
     entries.push({ char, startIdx: match.index });
   }
   
-
-  
-  // Check for missing numbers
-  const foundNumbers = new Set<number>();
-  
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
     const nextStart = i + 1 < entries.length ? entries[i + 1].startIdx : defsContent.length;
