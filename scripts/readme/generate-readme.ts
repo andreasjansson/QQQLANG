@@ -32,14 +32,19 @@ interface ArgDef {
 function parseCharacterDefs(): Record<string, CharDef> {
   const content = fs.readFileSync(CHARACTER_DEFS_PATH, "utf-8");
 
-  const pattern = /(?:(['\"])([^'"]+)\1|([A-Z0-9$_])):\s*\{/g;
+  // Match quoted keys like '"': or "'": or "\\": and unquoted keys like A:
+  const pattern = /(?:'([^'\\]|\\.)':?|"([^"\\]|\\.)":|([A-Z0-9$_]):)\s*\{/g;
   const chars: Record<string, CharDef> = {};
 
   let match;
   while ((match = pattern.exec(content)) !== null) {
-    let char = match[2] || match[3];
+    let char = match[1] || match[2] || match[3];
+    if (!char) continue;
+    
+    // Handle escape sequences
     if (char === "\\\\") char = "\\";
     else if (char === "\\'") char = "'";
+    else if (char === '\\"') char = '"';
 
     const startPos = match.index + match[0].length;
     let braceCount = 1;
