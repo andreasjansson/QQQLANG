@@ -14,7 +14,8 @@ const BASE_IMAGE_URL =
   "https://replicate.delivery/pbxt/NV0JLz4NfRmXPOkVrzjiASCfJvsea419i9agH2EuPJlHjG9h/0_1.webp";
 
 // Import characterDefs directly
-import { characterDefs, ChoiceType } from "../../character-defs.js";
+import { characterDefs } from "../../character-defs.js";
+import { ChoiceType } from "../../functions/helpers.js";
 
 function numToChar(num: number): string {
   if (num >= 1 && num <= 26)
