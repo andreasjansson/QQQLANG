@@ -628,9 +628,11 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     all_any = all_regular + char_bold_first + upload_bold_first + char_bold + char_bold_spaced + all_regular_spaced
     fea_lines.append(f"@any = [{' '.join(all_any)}];")
     
-    # @preceded_by for detecting non-first chars (bold_first or bold)
-    # Include BOTH char_bold_first AND upload_bold_first
-    all_preceded = char_bold_first + upload_bold_first + char_bold
+    # @preceded_by for detecting non-first chars (bold_first, bold, or upload_regular)
+    # Include char_bold_first, upload_bold_first, char_bold, AND upload_regular
+    # upload_regular needs to be included because after pass1b converts upload_bf → upload_regular,
+    # subsequent chars need to see upload_regular as a valid "preceded by" context
+    all_preceded = char_bold_first + upload_bold_first + char_bold + upload_regular
     fea_lines.append(f"@preceded_by = [{' '.join(all_preceded)}];")
     fea_lines.append("")
     
