@@ -84,8 +84,8 @@ function gradientify(ctx: FnContext): Image {
 
   // Erode the flatness mask to remove small isolated flat patches
   // A pixel stays flat only if most of its neighbors are also flat
-  const erosionRadius = 12;
-  const erosionThreshold = 0.85; // 85% of neighbors must be flat
+  const erosionRadius = 5;
+  const erosionThreshold = 0.7; // 70% of neighbors must be flat
   const isFlat = new Uint8Array(width * height);
   
   for (let y = 0; y < height; y++) {
