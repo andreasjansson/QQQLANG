@@ -288,7 +288,7 @@ async function main() {
 
   if (!skipImages) {
     console.log("\nLaunching browser...");
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: !debugMode });
     const context = await browser.newContext({
       viewport: { width: 768, height: 512 },
       ignoreHTTPSErrors: true,
