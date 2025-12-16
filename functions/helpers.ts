@@ -88,14 +88,15 @@ export interface CharDef {
 }
 
 // Upload character constants - must match build-font.py
-// Using Mathematical Alphanumeric Symbols (U+1D400-U+1D7FF) because:
+// Using Miscellaneous Symbols (U+2600+) because:
 // - Chrome has GSUB issues with PUA codepoints
 // - Hangul codepoints cause HarfBuzz to detect script as Hang, breaking GSUB
-// - Math Alphanumeric is detected as Latin script and works in Chrome
+// - Must be in BMP (< U+10000) for cmap Format 4 compatibility
+// - Misc Symbols is detected as Latin script
 export const UPLOAD_CHAR = "□"; // U+25A1 - unassigned upload placeholder
 export const UPLOAD_COUNT = 256;
-export const UPLOAD_REGULAR_BASE = 0x1d400; // U+1D400 to U+1D4FF: valid upload □
-export const UPLOAD_INVALID_BASE = 0x1d500; // U+1D500 to U+1D5FF: invalid upload ■
+export const UPLOAD_REGULAR_BASE = 0x2600; // U+2600 to U+26FF: valid upload □ (Misc Symbols)
+export const UPLOAD_INVALID_BASE = 0x2700; // U+2700 to U+27FF: invalid upload ■ (Dingbats)
 
 // Get the upload character for a given index (0-255)
 export function getUploadChar(index: number): string {
