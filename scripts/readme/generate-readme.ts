@@ -32,13 +32,34 @@ function parseCharacterDefs(): Record<string, CharDef> {
   
   const startIdx = startMatch.index! + startMatch[0].length;
   
-  // Find matching closing brace
+  // Find matching closing brace, skipping string contents
   let braceCount = 1;
   let endIdx = startIdx;
   while (braceCount > 0 && endIdx < content.length) {
-    if (content[endIdx] === '{') braceCount++;
-    else if (content[endIdx] === '}') braceCount--;
-    endIdx++;
+    const ch = content[endIdx];
+    if (ch === '"' || ch === "'") {
+      // Skip string
+      const quote = ch;
+      endIdx++;
+      while (endIdx < content.length) {
+        if (content[endIdx] === '\\') {
+          endIdx += 2; // Skip escaped char
+        } else if (content[endIdx] === quote) {
+          endIdx++;
+          break;
+        } else {
+          endIdx++;
+        }
+      }
+    } else if (ch === '{') {
+      braceCount++;
+      endIdx++;
+    } else if (ch === '}') {
+      braceCount--;
+      endIdx++;
+    } else {
+      endIdx++;
+    }
   }
   
   const defsContent = content.substring(startIdx, endIdx - 1);
