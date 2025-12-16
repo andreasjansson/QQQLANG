@@ -7,6 +7,7 @@
     "build:font": "(pip install -r requirements.txt || uv pip install -r requirements.txt) && python scripts/build-font.py",
     "build": "npm run build:font && tsc && vite build",
     "build:readme": "cd scripts/readme && npm install && npx playwright install chromium && npx tsx generate-readme.ts",
+    "build:readme:char": "cd scripts/readme && npx tsx generate-readme.ts --char",
     "preview": "vite preview",
     "format": "prettier --write \"**/*.ts\"",
     "format:check": "prettier --check \"**/*.ts\""
