@@ -1,4 +1,4 @@
-![QQQLANG Logo](public/logo.png)
+[![QQQLANG Logo](public/logo.png)](https://qqqlang.com)
 
 # QQQLANG: A syntax-free programming language for image synthesis
 
@@ -67,7 +67,7 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `border` — Border effect with various shapes.
 
 **Arguments:**
-   1. Border shape style (A=circular-solid, B=circular-blur, C=horizontal-solid, D=horizontal-blur, E=vertical-solid, F=vertical-blur, G=rectangular-solid, H=rectangular-blur, ...)
+   1. Border shape style (A=circular-solid, B=circular-blur, C=horizontal-solid, D=horizontal-blur, E=vertical-solid, F=vertical-blur, G=rectangular-solid, H=rectangular-blur, I=diamond-solid, J=diamond-blur, K=hexagon-solid, L=hexagon-blur, M=sine-horizontal-solid, N=sine-horizontal-blur, O=sine-vertical-solid, P=sine-vertical-blur, Q=triangle-horizontal-solid, R=triangle-horizontal-blur, S=triangle-vertical-solid, T=triangle-vertical-blur)
    2. Border color
 
 <br clear="right">
@@ -296,7 +296,7 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `dither` — Apply one of 16 dithering algorithms, from subtle to aggressive 2-color modes.
 
 **Arguments:**
-   1. Dithering algorithm (A=ordered-5level, B=bayer-bw, C=threshold-bw, D=ordered-2bit, E=floyd-rgb, F=floyd-bw, G=atkinson-4level, H=atkinson-bw, ...)
+   1. Dithering algorithm (A=ordered-5level, B=bayer-bw, C=threshold-bw, D=ordered-2bit, E=floyd-rgb, F=floyd-bw, G=atkinson-4level, H=atkinson-bw, I=stucki-6level, J=burkes, K=sierra, L=random-bw, M=cluster-2bit, N=bluenoise-bw, O=bayer2x2-2bit, P=noise-2bit)
 
 <br clear="right">
 
@@ -678,7 +678,7 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 **Arguments:**
    1. Old image to blend with
-   2. Blend mode (A=multiply, B=screen, C=overlay, D=darken, E=lighten, F=dodge, G=burn, H=hardlight, ...)
+   2. Blend mode (A=multiply, B=screen, C=overlay, D=darken, E=lighten, F=dodge, G=burn, H=hardlight, I=softlight, J=difference, K=exclusion, L=add, M=subtract, N=xor, O=and, P=or, Q=nand, R=nor, S=xnor, T=average, U=divide, V=grain-extract, W=grain-merge, X=vivid, Y=linear, Z=pin, 0=hardmix, 1=hue, 2=saturation, 3=color, 4=luminosity, 5=replace-dark-third, 6=replace-mid-third, 7=replace-light-third, 8=opacity-25, 9=opacity-50, <=opacity-75, >=glow, ^=negation, !=phoenix, "=reflect, #=freeze, $=heat, %=stamp, &=geometric, '=hypot, (=modulo, )=modulo-reverse, *=sin-blend, +=cos-blend, ,=bitshift-left, -=bitshift-right, .=threshold-max, /=threshold-min, :=threshold-swap, ;=posterize-blend)
 
 <br clear="right">
 
@@ -708,7 +708,7 @@ The language is complete and won't change (other than bug fixes). But anyone can
    2. X position (A=left, 7=center, ~=right)
    3. Y position (A=top, 7=center, ~=bottom)
    4. Circle size (A=tiny, ~=full)
-   5. Blend mode (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, ...)
+   5. Blend mode (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, I=darken, J=lighten, K=difference, L=exclusion, M=add, N=subtract, O=hardlight, P=softlight)
 
 <br clear="right">
 
@@ -879,7 +879,7 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7D"><img align="right" width="384" src="assets/67-example.png"></a>
 
-**Function:** `sharpen` — Sharpen using convolution kernel to enhance edges.
+**Function:** `gradientify` — Turns flat single-color areas into subtle gradients with hue shifts.
 
 <br clear="right">
 
