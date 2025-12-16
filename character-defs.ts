@@ -104,7 +104,7 @@ import { scanlines } from "./functions/scanlines.js";
 import { rule110 } from "./functions/rule110.js";
 import { skew } from "./functions/skew.js";
 import { verticalSplit } from "./functions/vertical-split.js";
-import { sharpen } from "./functions/sharpen.js";
+import { gradientify } from "./functions/sharpen.js";
 import { waveChromatic } from "./functions/wave-chromatic.js";
 
 export const characterDefs: Record<string, CharDef> = {
