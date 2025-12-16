@@ -43,11 +43,13 @@ REGULAR_WEIGHT = 400
 BOLD_WEIGHT = 700
 
 # Upload character configuration
+# Using Hangul Syllables block (U+AC00-U+D7A3) instead of PUA because
+# Chrome has GSUB issues with PUA codepoints
 UPLOAD_CHAR = '□'  # U+25A1 - unassigned upload placeholder
 UPLOAD_COUNT = 256
-UPLOAD_REGULAR_BASE = 0xE200  # U+E200 to U+E2FF: valid upload □ (256 indices)
-UPLOAD_INVALID_BASE = 0xE300  # U+E300 to U+E3FF: invalid upload ■ (256 indices)
-UPLOAD_GSUB_BASE = 0xE400     # U+E400+: upload GSUB variants (bold_first, regular_spaced)
+UPLOAD_REGULAR_BASE = 0xAC00  # U+AC00 to U+ACFF: valid upload □ (Hangul)
+UPLOAD_INVALID_BASE = 0xAD00  # U+AD00 to U+ADFF: invalid upload ■ (Hangul)
+UPLOAD_GSUB_BASE = 0xAE00     # U+AE00+: upload GSUB variants (bold_first, regular_spaced)
 
 
 def parse_character_defs():
