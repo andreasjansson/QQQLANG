@@ -83,8 +83,8 @@ function spheres(ctx: FnContext): Image {
       float radius = 0.195;
       float rotationAmount = 0.3 * 2.0 * 3.14159;
       
-      vec3 sphere1 = renderSphere(uv, topRight, radius, texture, rotationAmount);
-      vec3 sphere2 = renderSphere(uv, bottomLeft, radius, texture, -rotationAmount);
+      vec3 sphere1 = renderSphere(uv, topRight, radius, texture, -rotationAmount);
+      vec3 sphere2 = renderSphere(uv, bottomLeft, radius, texture, rotationAmount);
       
       vec3 color = bg;
       if (sphere1.x >= 0.0) color = sphere1;
