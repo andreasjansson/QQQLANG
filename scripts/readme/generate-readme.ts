@@ -44,8 +44,8 @@ function parseCharacterDefs(): Record<string, CharDef> {
   const defsContent = content.substring(startIdx, endIdx - 1);
   const chars: Record<string, CharDef> = {};
   
-  // Split by top-level entries - look for pattern like `  X: {` or `  "X": {`
-  const entryRegex = /^  (?:([A-Z0-9])|\s*["'](.+?)["']):\s*\{/gm;
+  // Split by top-level entries - look for pattern like `  X: {` or `  "X": {` or `  $: {`
+  const entryRegex = /^  (?:([A-Z0-9$_])|\s*["'](.+?)["']):\s*\{/gm;
   let match;
   const entries: { char: string; startIdx: number }[] = [];
   
