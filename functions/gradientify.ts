@@ -255,7 +255,7 @@ function gradientify(ctx: FnContext): Image {
   }
 
   // Step 5: Apply gradients to regions
-  const minRegionSize = Math.max(500, (width * height) / 50);
+  const minRegionSize = Math.max(30, (width * height) / 800);
   const lightnessRange = 0.45;
   const saturationBoost = 1.8;
 
