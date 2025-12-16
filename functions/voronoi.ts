@@ -5,16 +5,6 @@ import {
   getPrevImage,
   getPixel,
   setPixel,
-  cloneImage,
-  hexToRgb,
-  rgbToHsl,
-  hslToRgb,
-  initWebGL,
-  createShaderProgram,
-  getOldImage,
-  createPlaceholderImage,
-  emeraldReady,
-  bgRemovalReady,
 } from "./helpers.js";
 
 function voronoi(ctx: FnContext, old: Image, n: number): Image {
@@ -49,15 +39,20 @@ function voronoi(ctx: FnContext, old: Image, n: number): Image {
     }
   }
 
+  // Minkowski p-norm parameter: p=1 is Manhattan (diamonds), p=2 is Euclidean (circles), p=∞ is Chebyshev (squares)
+  // We interpolate p from 0.5 to 4 based on n, creating different angular cell shapes
+  const p = 0.5 + (n / 68) * 3.5;
+
   for (let y = 0; y < ctx.height; y++) {
     for (let x = 0; x < ctx.width; x++) {
       let minDist = Infinity;
       let closestIdx = 0;
 
       for (let i = 0; i < seeds.length; i++) {
-        const dx = x - seeds[i][0];
-        const dy = y - seeds[i][1];
-        const dist = dx * dx + dy * dy;
+        const dx = Math.abs(x - seeds[i][0]);
+        const dy = Math.abs(y - seeds[i][1]);
+        // Minkowski distance with parameter p
+        const dist = Math.pow(Math.pow(dx, p) + Math.pow(dy, p), 1 / p);
         if (dist < minDist) {
           minDist = dist;
           closestIdx = i;
