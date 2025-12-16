@@ -32,90 +32,147 @@ interface ArgDef {
 function parseCharacterDefs(): Record<string, CharDef> {
   const content = fs.readFileSync(CHARACTER_DEFS_PATH, "utf-8");
 
-  // Match quoted keys like '"': or "'": or "\\": and unquoted keys like A:
-  const pattern = /(?:'([^'\\]|\\.)':?|"([^"\\]|\\.)":|([A-Z0-9$_]):)\s*\{/g;
   const chars: Record<string, CharDef> = {};
 
-  let match;
-  while ((match = pattern.exec(content)) !== null) {
-    let char = match[1] || match[2] || match[3];
-    if (!char) continue;
-    
-    // Handle escape sequences
-    if (char === "\\\\") char = "\\";
-    else if (char === "\\'") char = "'";
-    else if (char === '\\"') char = '"';
+  // Find all top-level keys in characterDefs object
+  // Match patterns like: 'X': {, "X": {, X: {, "\\": {, '"': {
+  const keyPatterns = [
+    /'"':\s*\{/g, // Single quote character: '"':
+    /"\\\\?":\s*\{/g, // Backslash: "\\":
+    /"([^"\\])"|'([^'\\])':\s*\{/g, // Other single chars in quotes
+    /([A-Z0-9]):\s*\{/g, // Unquoted alphanumeric
+  ];
 
-    const startPos = match.index + match[0].length;
-    let braceCount = 1;
-    let pos = startPos;
+  // Instead, let's find all character definitions by looking for the pattern
+  // We'll scan for lines that look like character keys
+  const lines = content.split("\n");
+  let inCharacterDefs = false;
+  let braceDepth = 0;
+  let currentChar: string | null = null;
+  let currentObjStart = -1;
 
-    while (pos < content.length && braceCount > 0) {
-      if (content[pos] === "{") braceCount++;
-      else if (content[pos] === "}") braceCount--;
-      pos++;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (line.includes("export const characterDefs")) {
+      inCharacterDefs = true;
+      continue;
     }
 
-    if (braceCount !== 0) continue;
-    const objContent = content.substring(startPos, pos - 1);
+    if (!inCharacterDefs) continue;
 
-    const colorMatch = objContent.match(/color:\s*["']([^"']+)["']/);
-    const numberMatch = objContent.match(/number:\s*(\d+)/);
-    const functionNameMatch = objContent.match(
-      /functionName:\s*["']([^"']+)["']/
-    );
-    const documentationMatch = objContent.match(
-      /documentation:\s*\n?\s*["']([^"']+)["']/
-    );
-    const exampleMatch = objContent.match(/example:\s*["']([^"']+)["']/);
+    // Check for a new character key at depth 1
+    if (braceDepth === 1) {
+      // Match various key patterns
+      let keyMatch =
+        line.match(/^\s*"\\\\?":\s*\{/) || // "\\":
+        line.match(/^\s*'"':\s*\{/) || // '"':
+        line.match(/^\s*"([^"\\])":\s*\{/) || // "X":
+        line.match(/^\s*'([^'\\])':\s*\{/) || // 'X':
+        line.match(/^\s*([A-Z0-9$_]):\s*\{/); // X:
 
-    if (
-      !colorMatch ||
-      !numberMatch ||
-      !functionNameMatch ||
-      !documentationMatch
-    )
-      continue;
-
-    const args: ArgDef[] = [];
-    const argsMatch = objContent.match(/args:\s*\[([\s\S]*?)\]/);
-    if (argsMatch) {
-      const argsContent = argsMatch[1];
-      const argRegex =
-        /\{\s*(?:type:\s*([^,}]+),\s*documentation:\s*["']([^"']+)["']|documentation:\s*["']([^"']+)["'],\s*type:\s*([^,}]+))/g;
-      let argMatch;
-      while ((argMatch = argRegex.exec(argsContent)) !== null) {
-        const typeStr = (argMatch[1] || argMatch[4] || "").trim();
-        const doc = argMatch[2] || argMatch[3];
-
-        let type = typeStr;
-        let choices: string[] | undefined;
-
-        if (typeStr.startsWith("Choice(")) {
-          type = "choice";
-          const fullChoiceMatch = argsContent
-            .substring(argMatch.index)
-            .match(/Choice\(([\s\S]*?)\)/);
-          if (fullChoiceMatch) {
-            choices = fullChoiceMatch[1]
-              .split(",")
-              .map((s) => s.trim().replace(/["'\n\s]/g, ""))
-              .filter((s) => s.length > 0);
+      if (keyMatch) {
+        // Extract the character
+        if (line.includes('"\\\\":') || line.includes('"\\":"')) {
+          currentChar = "\\";
+        } else if (line.includes("'\"':")) {
+          currentChar = '"';
+        } else {
+          // Extract from the match
+          const fullMatch = keyMatch[0];
+          if (fullMatch.includes('"')) {
+            const m = fullMatch.match(/"([^"\\])"/);
+            currentChar = m ? m[1] : null;
+          } else if (fullMatch.includes("'")) {
+            const m = fullMatch.match(/'([^'\\])'/);
+            currentChar = m ? m[1] : null;
+          } else {
+            const m = fullMatch.match(/([A-Z0-9$_]):/);
+            currentChar = m ? m[1] : null;
           }
         }
-
-        args.push({ type, documentation: doc, choices });
+        currentObjStart = i;
       }
     }
 
-    chars[char] = {
-      color: colorMatch[1],
-      number: parseInt(numberMatch[1]),
-      functionName: functionNameMatch[1],
-      documentation: documentationMatch[1],
-      example: exampleMatch ? exampleMatch[1] : char,
-      args,
-    };
+    // Track brace depth
+    for (const c of line) {
+      if (c === "{") braceDepth++;
+      else if (c === "}") {
+        braceDepth--;
+
+        // If we just closed a character definition
+        if (braceDepth === 1 && currentChar !== null) {
+          const objContent = lines.slice(currentObjStart, i + 1).join("\n");
+
+          const colorMatch = objContent.match(/color:\s*["']([^"']+)["']/);
+          const numberMatch = objContent.match(/number:\s*(\d+)/);
+          const functionNameMatch = objContent.match(
+            /functionName:\s*["']([^"']+)["']/
+          );
+          const documentationMatch = objContent.match(
+            /documentation:\s*\n?\s*["']([^"']+)["']/
+          );
+          const exampleMatch = objContent.match(
+            /example:\s*["']([^"']+)["']/
+          );
+
+          if (colorMatch && numberMatch && functionNameMatch && documentationMatch) {
+            const args: ArgDef[] = [];
+            const argsMatch = objContent.match(/args:\s*\[([\s\S]*?)\]/);
+            if (argsMatch) {
+              const argsContent = argsMatch[1];
+              const argRegex =
+                /\{\s*(?:type:\s*([^,}]+),\s*documentation:\s*["']([^"']+)["']|documentation:\s*["']([^"']+)["'],\s*type:\s*([^,}]+))/g;
+              let argMatch;
+              while ((argMatch = argRegex.exec(argsContent)) !== null) {
+                const typeStr = (argMatch[1] || argMatch[4] || "").trim();
+                const doc = argMatch[2] || argMatch[3];
+
+                let type = typeStr;
+                let choices: string[] | undefined;
+
+                if (typeStr.startsWith("Choice(")) {
+                  type = "choice";
+                  const fullChoiceMatch = argsContent
+                    .substring(argMatch.index)
+                    .match(/Choice\(([\s\S]*?)\)/);
+                  if (fullChoiceMatch) {
+                    choices = fullChoiceMatch[1]
+                      .split(",")
+                      .map((s) => s.trim().replace(/["'\n\s]/g, ""))
+                      .filter((s) => s.length > 0);
+                  }
+                }
+
+                args.push({ type, documentation: doc, choices });
+              }
+            }
+
+            // Handle escaped backslash in example
+            let example = exampleMatch ? exampleMatch[1] : currentChar;
+            if (example.includes("\\\\")) {
+              example = example.replace(/\\\\/g, "\\");
+            }
+
+            chars[currentChar] = {
+              color: colorMatch[1],
+              number: parseInt(numberMatch[1]),
+              functionName: functionNameMatch[1],
+              documentation: documentationMatch[1],
+              example,
+              args,
+            };
+          }
+
+          currentChar = null;
+        }
+
+        if (braceDepth === 0) {
+          inCharacterDefs = false;
+        }
+      }
+    }
   }
 
   return chars;
@@ -276,6 +333,13 @@ async function main() {
   const chars = parseCharacterDefs();
   console.log(`Found ${Object.keys(chars).length} character definitions`);
 
+  // Debug: show what we parsed
+  for (const [char, def] of Object.entries(chars).sort(
+    (a, b) => a[1].number - b[1].number
+  )) {
+    console.log(`  ${def.number}: '${char}' -> ${def.functionName}, example: ${def.example}`);
+  }
+
   if (!fs.existsSync(ASSETS_DIR)) {
     fs.mkdirSync(ASSETS_DIR, { recursive: true });
   }
@@ -283,7 +347,7 @@ async function main() {
   console.log("\nLaunching browser...");
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
-    viewport: { width: 512, height: 512 },
+    viewport: { width: 768, height: 512 },
     ignoreHTTPSErrors: true,
   });
   const page = await context.newPage();
