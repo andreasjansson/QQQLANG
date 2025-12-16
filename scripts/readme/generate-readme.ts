@@ -233,13 +233,13 @@ Some functions take an image index as an argument, and uses that old image in so
     const escapedChar = char === "\\" ? "\\\\" : char;
     const displayChar = char === "`" ? "\\`" : escapedChar;
 
-    readme += `## \`${displayChar}\` (number ${def.number}, color <span style="color:${def.color}">${def.color}</span>)\n\n`;
-
     const safeFilename = def.number.toString().padStart(2, "0");
     const fullProgram = UPLOAD_CHAR + UPLOAD_HASH + def.example;
     const encodedProgram = encodeURIComponent(fullProgram).replace(/'/g, "%27");
     const qqqlangUrl = `https://qqqlang.com/?p=${encodedProgram}`;
-    readme += `[![Example for ${displayChar}](assets/${safeFilename}-example.png)](${qqqlangUrl})\n\n`;
+    
+    readme += `## \`${displayChar}\` (number ${def.number}, color <span style="color:${def.color}">${def.color}</span>)\n\n`;
+    readme += `<a href="${qqqlangUrl}"><img align="right" width="384" src="assets/${safeFilename}-example.png"></a>\n\n`;
 
     readme += `**Function:** \`${def.functionName}\` — ${def.documentation}\n\n`;
 
@@ -261,8 +261,7 @@ Some functions take an image index as an argument, and uses that old image in so
       readme += "\n";
     }
 
-    readme += `**Example:** \`${def.example}\`\n\n`;
-    readme += `---\n\n`;
+    readme += `<br clear="right">\n\n---\n\n`;
   }
 
   readme += `## License
