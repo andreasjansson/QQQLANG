@@ -89,7 +89,8 @@ function parseCharacterDefs(): Record<string, CharDef> {
     const fnNameIdx = entryContent.indexOf('functionName:');
     const docAfterFnName = fnNameIdx >= 0 ? entryContent.substring(fnNameIdx) : entryContent;
     const docMatch = docAfterFnName.match(/documentation:\s*\n?\s*["']([^"']+)["']/);
-    const exampleMatch = entryContent.match(/example:\s*["'](.+?)["']/);
+    // Match example with correct closing quote (double quote)
+    const exampleMatch = entryContent.match(/example:\s*"([^"]+)"/);
     
     if (!colorMatch || !numberMatch || !functionNameMatch || !docMatch) continue;
     
