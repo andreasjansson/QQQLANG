@@ -79,7 +79,7 @@ function parseCharacterDefs(): Record<string, CharDef> {
     entries.push({ char, startIdx: match.index });
   }
   
-  console.log(`  Found ${entries.length} entries: ${entries.map(e => e.char).join(', ')}`);
+
   
   // Check for missing numbers
   const foundNumbers = new Set<number>();
