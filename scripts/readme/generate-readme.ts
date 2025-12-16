@@ -202,10 +202,21 @@ async function captureExampleImage(
 
   await page.waitForTimeout(2000);
 
-  // Type the program character by character to trigger proper input handling
+  // Get the current value (should have upload char) and append the program
+  const currentValue = await page.evaluate(() => {
+    return (document.getElementById("program-input") as HTMLInputElement).value;
+  });
+  
+  const newValue = currentValue + program;
+  
+  // Use fill() to set the value, then dispatch input event
   const inputEl = await page.$("#program-input");
   if (inputEl) {
-    await inputEl.type(program, { delay: 50 });
+    await inputEl.fill(newValue);
+    await page.evaluate(() => {
+      const input = document.getElementById("program-input") as HTMLInputElement;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
   }
 
   await page.waitForTimeout(1000);
