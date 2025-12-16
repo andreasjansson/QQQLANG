@@ -5,16 +5,6 @@ import {
   getPrevImage,
   getPixel,
   setPixel,
-  cloneImage,
-  hexToRgb,
-  rgbToHsl,
-  hslToRgb,
-  initWebGL,
-  createShaderProgram,
-  getOldImage,
-  createPlaceholderImage,
-  emeraldReady,
-  bgRemovalReady,
 } from "./helpers.js";
 
 function voronoi(ctx: FnContext, old: Image, n: number): Image {
@@ -33,9 +23,12 @@ function voronoi(ctx: FnContext, old: Image, n: number): Image {
   const cx = ctx.width / 2;
   const cy = ctx.height / 2;
 
+  // Extend grid beyond canvas to create more wrapping interference
+  const extend = 1 + (n % 3);
+  
   const seeds: [number, number][] = [];
-  for (let row = 0; row < gridRows; row++) {
-    for (let col = 0; col < gridCols; col++) {
+  for (let row = -extend; row < gridRows + extend; row++) {
+    for (let col = -extend; col < gridCols + extend; col++) {
       const baseX = (col + 0.5 + offsetX) * cellW;
       const baseY = (row + 0.5 + offsetY) * cellH;
       const dx = baseX - cx;
