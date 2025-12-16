@@ -9,13 +9,120 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
 const ASSETS_DIR = path.join(PROJECT_ROOT, "assets");
 const README_PATH = path.join(PROJECT_ROOT, "README.md");
+const CHARACTER_DEFS_PATH = path.join(PROJECT_ROOT, "character-defs.ts");
 
 const BASE_IMAGE_URL =
   "https://replicate.delivery/pbxt/NV0JLz4NfRmXPOkVrzjiASCfJvsea419i9agH2EuPJlHjG9h/0_1.webp";
 
-// Import characterDefs directly
-import { characterDefs } from "../../character-defs.js";
-import { ChoiceType } from "../../functions/helpers.js";
+interface CharDef {
+  color: string;
+  number: number;
+  functionName: string;
+  documentation: string;
+  example: string;
+  args: { type: { choices?: string[] }; documentation: string }[];
+}
+
+function parseCharacterDefs(): Record<string, CharDef> {
+  const content = fs.readFileSync(CHARACTER_DEFS_PATH, "utf-8");
+  
+  // Find the characterDefs object
+  const startMatch = content.match(/export const characterDefs[^{]*\{/);
+  if (!startMatch) throw new Error("Could not find characterDefs");
+  
+  const startIdx = startMatch.index! + startMatch[0].length;
+  
+  // Find matching closing brace
+  let braceCount = 1;
+  let endIdx = startIdx;
+  while (braceCount > 0 && endIdx < content.length) {
+    if (content[endIdx] === '{') braceCount++;
+    else if (content[endIdx] === '}') braceCount--;
+    endIdx++;
+  }
+  
+  const defsContent = content.substring(startIdx, endIdx - 1);
+  const chars: Record<string, CharDef> = {};
+  
+  // Split by top-level entries - look for pattern like `  X: {` or `  "X": {`
+  const entryRegex = /^  (?:([A-Z0-9])|\s*["'](.+?)["']):\s*\{/gm;
+  let match;
+  const entries: { char: string; startIdx: number }[] = [];
+  
+  while ((match = entryRegex.exec(defsContent)) !== null) {
+    let char = match[1] || match[2];
+    if (char === "\\\\") char = "\\";
+    entries.push({ char, startIdx: match.index });
+  }
+  
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const nextStart = i + 1 < entries.length ? entries[i + 1].startIdx : defsContent.length;
+    const entryContent = defsContent.substring(entry.startIdx, nextStart);
+    
+    const colorMatch = entryContent.match(/color:\s*["']([^"']+)["']/);
+    const numberMatch = entryContent.match(/number:\s*(\d+)/);
+    const functionNameMatch = entryContent.match(/functionName:\s*["']([^"']+)["']/);
+    const docMatch = entryContent.match(/documentation:\s*\n?\s*["']([^"']+)["']/);
+    const exampleMatch = entryContent.match(/example:\s*["'](.+?)["']/);
+    
+    if (!colorMatch || !numberMatch || !functionNameMatch || !docMatch) continue;
+    
+    const args: CharDef["args"] = [];
+    const argsMatch = entryContent.match(/args:\s*\[([\s\S]*?)\],?\s*(?:functionName|$)/);
+    if (argsMatch) {
+      const argsContent = argsMatch[1];
+      // Find each arg object
+      const argObjRegex = /\{\s*type:\s*([\w(][^}]*?),\s*documentation:\s*["']([^"']+)["']\s*\}/g;
+      let argMatch;
+      while ((argMatch = argObjRegex.exec(argsContent)) !== null) {
+        const typeStr = argMatch[1];
+        const doc = argMatch[2];
+        
+        let choices: string[] | undefined;
+        if (typeStr.startsWith("Choice(")) {
+          // Extract choices - they may span multiple lines
+          const choiceStart = argsContent.indexOf("Choice(", argMatch.index);
+          if (choiceStart !== -1) {
+            let parenCount = 0;
+            let choiceEnd = choiceStart;
+            for (let j = choiceStart; j < argsContent.length; j++) {
+              if (argsContent[j] === '(') parenCount++;
+              else if (argsContent[j] === ')') {
+                parenCount--;
+                if (parenCount === 0) {
+                  choiceEnd = j + 1;
+                  break;
+                }
+              }
+            }
+            const choiceContent = argsContent.substring(choiceStart + 7, choiceEnd - 1);
+            choices = choiceContent
+              .split(",")
+              .map(s => s.trim().replace(/["'\n\s]/g, ""))
+              .filter(s => s.length > 0);
+          }
+        }
+        
+        args.push({ type: { choices }, documentation: doc });
+      }
+    }
+    
+    let example = exampleMatch ? exampleMatch[1] : entry.char;
+    example = example.replace(/\\\\/g, "\\");
+    
+    chars[entry.char] = {
+      color: colorMatch[1],
+      number: parseInt(numberMatch[1]),
+      functionName: functionNameMatch[1],
+      documentation: docMatch[1],
+      example,
+      args,
+    };
+  }
+  
+  return chars;
+}
 
 function numToChar(num: number): string {
   if (num >= 1 && num <= 26)
@@ -77,8 +184,8 @@ async function captureExampleImage(
   console.log(`  Captured: ${path.basename(outputPath)}`);
 }
 
-function generateReadme(): string {
-  const sortedChars = Object.entries(characterDefs).sort(
+function generateReadme(chars: Record<string, CharDef>): string {
+  const sortedChars = Object.entries(chars).sort(
     (a, b) => a[1].number - b[1].number
   );
 
@@ -132,13 +239,12 @@ Some functions take an image index as an argument, and uses that old image in so
       for (let i = 0; i < def.args.length; i++) {
         const arg = def.args[i];
         let argLine = `${i + 1}. ${arg.documentation}`;
-        if (arg.type instanceof ChoiceType) {
-          const choices = arg.type.choices;
-          const mappings = choices
+        if (arg.type.choices && arg.type.choices.length > 0) {
+          const mappings = arg.type.choices
             .map((choice, idx) => `${numToChar(idx + 1)}=${choice}`)
             .slice(0, 8)
             .join(", ");
-          const suffix = choices.length > 8 ? ", ..." : "";
+          const suffix = arg.type.choices.length > 8 ? ", ..." : "";
           argLine += ` (${mappings}${suffix})`;
         }
         readme += `   ${argLine}\n`;
@@ -163,9 +269,9 @@ Andreas Jansson ([@andreasjansson](https://github.com/andreasjansson))
 }
 
 async function main() {
-  console.log("Loading character definitions...");
-  const chars = Object.keys(characterDefs);
-  console.log(`Found ${chars.length} character definitions`);
+  console.log("Parsing character definitions...");
+  const chars = parseCharacterDefs();
+  console.log(`Found ${Object.keys(chars).length} character definitions`);
 
   if (!fs.existsSync(ASSETS_DIR)) {
     fs.mkdirSync(ASSETS_DIR, { recursive: true });
@@ -187,7 +293,7 @@ async function main() {
   await page.waitForTimeout(3000);
 
   console.log("\nCapturing example images...");
-  const sortedChars = Object.entries(characterDefs).sort(
+  const sortedChars = Object.entries(chars).sort(
     (a, b) => a[1].number - b[1].number
   );
 
@@ -202,7 +308,7 @@ async function main() {
   await browser.close();
 
   console.log("\nGenerating README.md...");
-  const readme = generateReadme();
+  const readme = generateReadme(chars);
   fs.writeFileSync(README_PATH, readme);
   console.log(`Wrote ${README_PATH}`);
 
