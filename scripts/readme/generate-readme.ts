@@ -180,8 +180,6 @@ async function captureExampleImage(
   const encoded = encodeURIComponent(fullProgram).replace(/'/g, "%27");
   const url = `http://localhost:5173/?p=${encoded}`;
   
-  console.log(`    URL: ${url}`);
-  
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForTimeout(2000);
 
