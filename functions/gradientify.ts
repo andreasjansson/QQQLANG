@@ -76,7 +76,7 @@ function gradientify(ctx: FnContext): Image {
   }
 
   // Step 2: Create flatness mask with threshold
-  const gradientThreshold = 8;
+  const gradientThreshold = 3;
   const isFlat = new Uint8Array(width * height);
   for (let i = 0; i < width * height; i++) {
     isFlat[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
