@@ -202,11 +202,11 @@ async function captureExampleImage(
 
   await page.waitForTimeout(2000);
 
-  await page.evaluate((prog) => {
-    const input = document.getElementById("program-input") as HTMLInputElement;
-    input.value = input.value + prog;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  }, program);
+  // Type the program character by character to trigger proper input handling
+  const inputEl = await page.$("#program-input");
+  if (inputEl) {
+    await inputEl.type(program, { delay: 50 });
+  }
 
   await page.waitForTimeout(1000);
 
