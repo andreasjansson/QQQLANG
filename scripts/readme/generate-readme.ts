@@ -238,7 +238,7 @@ Some functions take an image index as an argument, and uses that old image in so
     const encodedProgram = encodeURIComponent(fullProgram).replace(/'/g, "%27");
     const qqqlangUrl = `https://qqqlang.com/?p=${encodedProgram}`;
     
-    readme += `## \`${displayChar}\` (number ${def.number}, color <span style="color:${def.color}">${def.color}</span>)\n\n`;
+    readme += `## \`${displayChar}\` (number ${def.number}, color <code style="background-color:${def.color}; color:white; padding: 2px 6px;">${def.color}</code>)\n\n`;
     readme += `<a href="${qqqlangUrl}"><img align="right" width="384" src="assets/${safeFilename}-example.png"></a>\n\n`;
 
     readme += `**Function:** \`${def.functionName}\` — ${def.documentation}\n\n`;
