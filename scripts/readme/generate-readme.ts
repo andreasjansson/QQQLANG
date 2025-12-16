@@ -173,43 +173,12 @@ async function captureExampleImage(
   program: string,
   outputPath: string
 ): Promise<void> {
-  await page.evaluate(() => {
-    const input = document.getElementById("program-input") as HTMLInputElement;
-    input.value = "";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-
-  await page.waitForTimeout(200);
-
-  const input = await page.$("#program-input");
-  await input?.focus();
-
-  await page.evaluate((url) => {
-    const input = document.getElementById("program-input") as HTMLInputElement;
-    input.focus();
-
-    const clipboardData = new DataTransfer();
-    clipboardData.setData("text/plain", url);
-
-    const pasteEvent = new ClipboardEvent("paste", {
-      bubbles: true,
-      cancelable: true,
-      clipboardData: clipboardData,
-    });
-
-    input.dispatchEvent(pasteEvent);
-  }, BASE_IMAGE_URL);
-
+  // Build URL with upload char + hash + program
+  const fullProgram = UPLOAD_CHAR + UPLOAD_HASH + program;
+  const url = `http://localhost:5173/?p=${encodeURIComponent(fullProgram)}`;
+  
+  await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForTimeout(2000);
-
-  // Set value directly via JS to bypass any input validation
-  await page.evaluate((prog) => {
-    const input = document.getElementById("program-input") as HTMLInputElement;
-    input.value = input.value + prog;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  }, program);
-
-  await page.waitForTimeout(1500);
 
   const canvas = await page.$("#canvas");
   if (!canvas) throw new Error("Canvas not found");
