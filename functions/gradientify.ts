@@ -5,6 +5,7 @@ import {
   getPixel,
   setPixel,
   cloneImage,
+  rgbToHsl,
   hslToRgb,
 } from "./helpers.js";
 
@@ -129,10 +130,17 @@ function gradientify(ctx: FnContext): Image {
     }
   }
 
-  // Step 4: Gather region statistics and count regions
+  // Step 4: Gather region statistics including mean color and bounding box
   const regionStats = new Map<
     number,
     {
+      sumR: number;
+      sumG: number;
+      sumB: number;
+      minX: number;
+      maxX: number;
+      minY: number;
+      maxY: number;
       count: number;
     }
   >();
@@ -143,51 +151,73 @@ function gradientify(ctx: FnContext): Image {
       if (!isFlat[idx]) continue;
 
       const root = find(idx);
+      const [r, g, b] = getPixel(prev, x, y);
 
       if (!regionStats.has(root)) {
-        regionStats.set(root, { count: 0 });
+        regionStats.set(root, {
+          sumR: 0,
+          sumG: 0,
+          sumB: 0,
+          minX: x,
+          maxX: x,
+          minY: y,
+          maxY: y,
+          count: 0,
+        });
       }
 
-      regionStats.get(root)!.count++;
+      const stats = regionStats.get(root)!;
+      stats.sumR += r;
+      stats.sumG += g;
+      stats.sumB += b;
+      stats.minX = Math.min(stats.minX, x);
+      stats.maxX = Math.max(stats.maxX, x);
+      stats.minY = Math.min(stats.minY, y);
+      stats.maxY = Math.max(stats.maxY, y);
+      stats.count++;
     }
   }
 
-  // Assign each region a unique hue
-  const regionHue = new Map<number, number>();
-  const goldenRatio = 0.618033988749895;
-  let hueAccum = 0;
-  
-  for (const root of regionStats.keys()) {
-    regionHue.set(root, hueAccum * 360);
-    hueAccum = (hueAccum + goldenRatio) % 1;
-  }
-
-  // DEBUG: Color each region with its unique hue
+  // Step 5: Apply gradients to regions
   const minRegionSize = Math.max(30, (width * height) / 800);
+  const lightnessRange = 0.25;
+  const saturationBoost = 1.4;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = y * width + x;
-      
-      if (!isFlat[idx]) {
-        // Non-flat pixels: show as dark gray
-        setPixel(out, x, y, 40, 40, 40);
-        continue;
-      }
+      if (!isFlat[idx]) continue;
 
       const root = find(idx);
       const stats = regionStats.get(root);
-      
-      if (!stats || stats.count < minRegionSize) {
-        // Too-small regions: show as medium gray
-        setPixel(out, x, y, 100, 100, 100);
-        continue;
-      }
+      if (!stats || stats.count < minRegionSize) continue;
 
-      // Valid region: color with unique hue
-      const hue = regionHue.get(root) || 0;
-      const [r, g, b] = hslToRgb(hue, 0.9, 0.5);
-      setPixel(out, x, y, r, g, b);
+      // Calculate mean color for region
+      const meanR = stats.sumR / stats.count;
+      const meanG = stats.sumG / stats.count;
+      const meanB = stats.sumB / stats.count;
+      const [h, s, l] = rgbToHsl(meanR, meanG, meanB);
+
+      // Calculate gradient position: top-left (0) to bottom-right (1)
+      // Angle slightly to the left means more weight on Y than X
+      const regionWidth = stats.maxX - stats.minX + 1;
+      const regionHeight = stats.maxY - stats.minY + 1;
+      
+      const normX = regionWidth > 1 ? (x - stats.minX) / (regionWidth - 1) : 0.5;
+      const normY = regionHeight > 1 ? (y - stats.minY) / (regionHeight - 1) : 0.5;
+      
+      // Angled gradient: more vertical than horizontal (0.3x + 0.7y)
+      const gradientPos = normX * 0.3 + normY * 0.7;
+
+      // Lightness: high at top, low at bottom
+      const lightnessShift = (0.5 - gradientPos) * lightnessRange;
+      const newL = Math.max(0.05, Math.min(0.95, l + lightnessShift));
+
+      // Boost saturation
+      const newS = Math.min(1, s * saturationBoost);
+
+      const [newR, newG, newB] = hslToRgb(h, newS, newL);
+      setPixel(out, x, y, newR, newG, newB);
     }
   }
 
