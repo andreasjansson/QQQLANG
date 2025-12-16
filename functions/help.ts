@@ -158,6 +158,7 @@ function getPageChar(pageNum: number): string {
 interface HelpPagesResult {
   pages: string[][];
   introPageCount: number;
+  aboutPageCount: number;
   refPageCount: number;
 }
 
@@ -183,6 +184,22 @@ function generateAllHelpPages(
   }
 
   const introPageCount = pages.length;
+
+  const aboutLines = generateAboutPage(charsPerLine);
+
+  let aboutPage: string[] = [];
+  for (let i = 0; i < aboutLines.length; i++) {
+    if (aboutPage.length >= linesPerPage - 2) {
+      pages.push(aboutPage);
+      aboutPage = [];
+    }
+    aboutPage.push(aboutLines[i]);
+  }
+  if (aboutPage.length > 0) {
+    pages.push(aboutPage);
+  }
+
+  const aboutPageCount = pages.length - introPageCount;
 
   const chars = Object.keys(defs).sort(
     (a, b) => defs[a].number - defs[b].number,
@@ -214,7 +231,7 @@ function generateAllHelpPages(
     pages.push(currentPage);
   }
 
-  const refPageCount = pages.length - introPageCount;
+  const refPageCount = pages.length - introPageCount - aboutPageCount;
   const totalPages = pages.length;
 
   for (let i = 0; i < pages.length; i++) {
@@ -230,7 +247,7 @@ function generateAllHelpPages(
     }
   }
 
-  return { pages, introPageCount, refPageCount };
+  return { pages, introPageCount, aboutPageCount, refPageCount };
 }
 
 function generateIndexPage(
