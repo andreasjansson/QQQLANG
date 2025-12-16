@@ -58,9 +58,9 @@ function gradientify(ctx: FnContext): Image {
       const gxH = hueDiff(h2, h1) / 2 * hueWeight;
       const gyH = hueDiff(h4, h3) / 2 * hueWeight;
       
-      // Saturation gradient (0-1 scale, multiply by 150 - saturation changes matter a lot)
-      const gxS = (s2 - s1) / 2 * 150;
-      const gyS = (s4 - s3) / 2 * 150;
+      // Saturation gradient (0-1 scale, multiply by 50)
+      const gxS = (s2 - s1) / 2 * 50;
+      const gyS = (s4 - s3) / 2 * 50;
       
       // Lightness gradient (0-1 scale, multiply by 30 - lightness changes matter less)
       const gxL = (l2 - l1) / 2 * 30;
