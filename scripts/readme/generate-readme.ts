@@ -45,15 +45,20 @@ function parseCharacterDefs(): Record<string, CharDef> {
   const chars: Record<string, CharDef> = {};
   
   // Split by top-level entries - look for pattern like `  X: {` or `  "X": {` or `  $: {`
-  const entryRegex = /^  (?:([A-Z0-9$_])|\s*["'](.+?)["']):\s*\{/gm;
+  const entryRegex = /^  (?:([A-Z0-9$_])|\s*"(\\\\|[^"]+)"|\s*'([^']+)'):\s*\{/gm;
   let match;
   const entries: { char: string; startIdx: number }[] = [];
   
   while ((match = entryRegex.exec(defsContent)) !== null) {
-    let char = match[1] || match[2];
+    let char = match[1] || match[2] || match[3];
     if (char === "\\\\") char = "\\";
     entries.push({ char, startIdx: match.index });
   }
+  
+  console.log(`  Found ${entries.length} entries: ${entries.map(e => e.char).join(', ')}`);
+  
+  // Check for missing numbers
+  const foundNumbers = new Set<number>();
   
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
