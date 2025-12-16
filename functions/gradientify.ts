@@ -9,53 +9,80 @@ import {
   hslToRgb,
 } from "./helpers.js";
 
+function hueDiff(h1: number, h2: number): number {
+  // Circular distance for hue (0-360)
+  const diff = Math.abs(h1 - h2);
+  return Math.min(diff, 360 - diff);
+}
+
 function gradientify(ctx: FnContext): Image {
   const prev = getPrevImage(ctx);
   const out = cloneImage(prev);
   const { width, height } = prev;
 
-  // Step 1: Compute gradient magnitude for each pixel
+  // Pre-compute HSL for all pixels
+  const hslData = new Float32Array(width * height * 3);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = y * width + x;
+      const [r, g, b] = getPixel(prev, x, y);
+      const [h, s, l] = rgbToHsl(r, g, b);
+      hslData[idx * 3] = h;
+      hslData[idx * 3 + 1] = s;
+      hslData[idx * 3 + 2] = l;
+    }
+  }
+
+  function getHsl(x: number, y: number): [number, number, number] {
+    const idx = y * width + x;
+    return [hslData[idx * 3], hslData[idx * 3 + 1], hslData[idx * 3 + 2]];
+  }
+
+  // Step 1: Compute gradient magnitude in HSL space
   const gradientMag = new Float32Array(width * height);
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = y * width + x;
-      const [r, g, b] = getPixel(prev, x, y);
+      const [h, s, l] = getHsl(x, y);
 
-      const [r1, g1, b1] = x > 0 ? getPixel(prev, x - 1, y) : [r, g, b];
-      const [r2, g2, b2] =
-        x < width - 1 ? getPixel(prev, x + 1, y) : [r, g, b];
-      const [r3, g3, b3] = y > 0 ? getPixel(prev, x, y - 1) : [r, g, b];
-      const [r4, g4, b4] =
-        y < height - 1 ? getPixel(prev, x, y + 1) : [r, g, b];
+      const [h1, s1, l1] = x > 0 ? getHsl(x - 1, y) : [h, s, l];
+      const [h2, s2, l2] = x < width - 1 ? getHsl(x + 1, y) : [h, s, l];
+      const [h3, s3, l3] = y > 0 ? getHsl(x, y - 1) : [h, s, l];
+      const [h4, s4, l4] = y < height - 1 ? getHsl(x, y + 1) : [h, s, l];
 
-      const gxR = (r2 - r1) / 2;
-      const gxG = (g2 - g1) / 2;
-      const gxB = (b2 - b1) / 2;
-      const gyR = (r4 - r3) / 2;
-      const gyG = (g4 - g3) / 2;
-      const gyB = (b4 - b3) / 2;
+      // Hue gradient (weighted by saturation - hue matters less when desaturated)
+      const avgS = (s + s1 + s2 + s3 + s4) / 5;
+      const hueWeight = avgS * 0.5; // Scale hue importance by saturation
+      
+      const gxH = hueDiff(h2, h1) / 2 * hueWeight;
+      const gyH = hueDiff(h4, h3) / 2 * hueWeight;
+      
+      // Saturation gradient (0-1 scale, multiply by 100 to match lightness scale)
+      const gxS = (s2 - s1) / 2 * 100;
+      const gyS = (s4 - s3) / 2 * 100;
+      
+      // Lightness gradient (0-1 scale, multiply by 100)
+      const gxL = (l2 - l1) / 2 * 100;
+      const gyL = (l4 - l3) / 2 * 100;
 
       const mag = Math.sqrt(
-        gxR * gxR +
-          gxG * gxG +
-          gxB * gxB +
-          gyR * gyR +
-          gyG * gyG +
-          gyB * gyB,
+        gxH * gxH + gyH * gyH +
+        gxS * gxS + gyS * gyS +
+        gxL * gxL + gyL * gyL
       );
       gradientMag[idx] = mag;
     }
   }
 
   // Step 2: Create flatness mask with threshold
-  const gradientThreshold = 15;
+  const gradientThreshold = 8;
   const isFlat = new Uint8Array(width * height);
   for (let i = 0; i < width * height; i++) {
     isFlat[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
   }
 
-  // Step 3: Connected components using union-find for flat regions with color similarity
+  // Step 3: Connected components using union-find for flat regions with HSL color similarity
   const parent = new Int32Array(width * height);
   const rank = new Uint8Array(width * height);
   for (let i = 0; i < width * height; i++) {
@@ -84,20 +111,26 @@ function gradientify(ctx: FnContext): Image {
     }
   }
 
-  const colorThreshold = 30;
-
-  function colorSimilar(
-    r1: number,
-    g1: number,
-    b1: number,
-    r2: number,
-    g2: number,
-    b2: number,
+  function hslSimilar(
+    h1: number, s1: number, l1: number,
+    h2: number, s2: number, l2: number,
   ): boolean {
-    const dr = r1 - r2;
-    const dg = g1 - g2;
-    const db = b1 - b2;
-    return Math.sqrt(dr * dr + dg * dg + db * db) < colorThreshold;
+    // Lightness difference (most important)
+    const dL = Math.abs(l1 - l2);
+    if (dL > 0.15) return false;
+    
+    // Saturation difference
+    const dS = Math.abs(s1 - s2);
+    if (dS > 0.2) return false;
+    
+    // Hue difference (only matters if both have decent saturation)
+    const minS = Math.min(s1, s2);
+    if (minS > 0.15) {
+      const dH = hueDiff(h1, h2);
+      if (dH > 25) return false;
+    }
+    
+    return true;
   }
 
   // Union adjacent flat pixels with similar colors
@@ -106,13 +139,13 @@ function gradientify(ctx: FnContext): Image {
       const idx = y * width + x;
       if (!isFlat[idx]) continue;
 
-      const [r, g, b] = getPixel(prev, x, y);
+      const [h, s, l] = getHsl(x, y);
 
       if (x < width - 1) {
         const nidx = y * width + (x + 1);
         if (isFlat[nidx]) {
-          const [nr, ng, nb] = getPixel(prev, x + 1, y);
-          if (colorSimilar(r, g, b, nr, ng, nb)) {
+          const [nh, ns, nl] = getHsl(x + 1, y);
+          if (hslSimilar(h, s, l, nh, ns, nl)) {
             union(idx, nidx);
           }
         }
@@ -121,8 +154,8 @@ function gradientify(ctx: FnContext): Image {
       if (y < height - 1) {
         const nidx = (y + 1) * width + x;
         if (isFlat[nidx]) {
-          const [nr, ng, nb] = getPixel(prev, x, y + 1);
-          if (colorSimilar(r, g, b, nr, ng, nb)) {
+          const [nh, ns, nl] = getHsl(x, y + 1);
+          if (hslSimilar(h, s, l, nh, ns, nl)) {
             union(idx, nidx);
           }
         }
@@ -134,9 +167,10 @@ function gradientify(ctx: FnContext): Image {
   const regionStats = new Map<
     number,
     {
-      sumR: number;
-      sumG: number;
-      sumB: number;
+      sumH_x: number; // For circular mean of hue
+      sumH_y: number;
+      sumS: number;
+      sumL: number;
       minX: number;
       maxX: number;
       minY: number;
@@ -151,13 +185,14 @@ function gradientify(ctx: FnContext): Image {
       if (!isFlat[idx]) continue;
 
       const root = find(idx);
-      const [r, g, b] = getPixel(prev, x, y);
+      const [h, s, l] = getHsl(x, y);
 
       if (!regionStats.has(root)) {
         regionStats.set(root, {
-          sumR: 0,
-          sumG: 0,
-          sumB: 0,
+          sumH_x: 0,
+          sumH_y: 0,
+          sumS: 0,
+          sumL: 0,
           minX: x,
           maxX: x,
           minY: y,
@@ -167,9 +202,12 @@ function gradientify(ctx: FnContext): Image {
       }
 
       const stats = regionStats.get(root)!;
-      stats.sumR += r;
-      stats.sumG += g;
-      stats.sumB += b;
+      // Circular mean for hue
+      const hRad = (h / 360) * 2 * Math.PI;
+      stats.sumH_x += Math.cos(hRad) * s; // Weight by saturation
+      stats.sumH_y += Math.sin(hRad) * s;
+      stats.sumS += s;
+      stats.sumL += l;
       stats.minX = Math.min(stats.minX, x);
       stats.maxX = Math.max(stats.maxX, x);
       stats.minY = Math.min(stats.minY, y);
@@ -193,13 +231,11 @@ function gradientify(ctx: FnContext): Image {
       if (!stats || stats.count < minRegionSize) continue;
 
       // Calculate mean color for region
-      const meanR = stats.sumR / stats.count;
-      const meanG = stats.sumG / stats.count;
-      const meanB = stats.sumB / stats.count;
-      const [h, s, l] = rgbToHsl(meanR, meanG, meanB);
+      const meanH = ((Math.atan2(stats.sumH_y, stats.sumH_x) / (2 * Math.PI)) * 360 + 360) % 360;
+      const meanS = stats.sumS / stats.count;
+      const meanL = stats.sumL / stats.count;
 
       // Calculate gradient position: top-left (0) to bottom-right (1)
-      // Angle slightly to the left means more weight on Y than X
       const regionWidth = stats.maxX - stats.minX + 1;
       const regionHeight = stats.maxY - stats.minY + 1;
       
@@ -211,12 +247,12 @@ function gradientify(ctx: FnContext): Image {
 
       // Lightness: high at top, low at bottom
       const lightnessShift = (0.5 - gradientPos) * lightnessRange;
-      const newL = Math.max(0.05, Math.min(0.95, l + lightnessShift));
+      const newL = Math.max(0.05, Math.min(0.95, meanL + lightnessShift));
 
       // Boost saturation
-      const newS = Math.min(1, s * saturationBoost);
+      const newS = Math.min(1, meanS * saturationBoost);
 
-      const [newR, newG, newB] = hslToRgb(h, newS, newL);
+      const [newR, newG, newB] = hslToRgb(meanH, newS, newL);
       setPixel(out, x, y, newR, newG, newB);
     }
   }
