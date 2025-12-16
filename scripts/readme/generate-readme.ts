@@ -325,6 +325,11 @@ async function main() {
       await captureExampleImage(page, def.example, outputPath);
     }
 
+    if (debugMode) {
+      console.log("\nDebug mode: keeping browser open for 10 minutes...");
+      await page.waitForTimeout(10 * 60 * 1000);
+    }
+    
     await browser.close();
   }
 
