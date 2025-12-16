@@ -32,17 +32,17 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ## `A` (number 1, color <span style="color:#78A10F">#78A10F</span>)
 
-[![Example for A](assets/01-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywA)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywA"><img align="right" width="384" src="assets/01-example.png"></a>
 
 **Function:** `spheres` — Renders image as texture on two 3D spheres with lighting.
 
-**Example:** `A`
+<br clear="right">
 
 ---
 
 ## `B` (number 2, color <span style="color:#8B4513">#8B4513</span>)
 
-[![Example for B](assets/02-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywBAA)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywBAA"><img align="right" width="384" src="assets/02-example.png"></a>
 
 **Function:** `border` — Border effect with various shapes.
 
@@ -50,118 +50,118 @@ Some functions take an image index as an argument, and uses that old image in so
    1. Border shape style (A=circular-solid, B=circular-blur, C=horizontal-solid, D=horizontal-blur, E=vertical-solid, F=vertical-blur, G=rectangular-solid, H=rectangular-blur, ...)
    2. Border color
 
-**Example:** `BAA`
+<br clear="right">
 
 ---
 
 ## `C` (number 3, color <span style="color:#FF6B35">#FF6B35</span>)
 
-[![Example for C](assets/03-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywCP)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywCP"><img align="right" width="384" src="assets/03-example.png"></a>
 
 **Function:** `concentric-hue` — Alternating original and hue-shifted concentric circles.
 
 **Arguments:**
    1. Number of concentric circles
 
-**Example:** `CP`
+<br clear="right">
 
 ---
 
 ## `D` (number 4, color <span style="color:#FF1493">#FF1493</span>)
 
-[![Example for D](assets/04-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywD)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywD"><img align="right" width="384" src="assets/04-example.png"></a>
 
 **Function:** `drip` — Metaball-based dripping water drops effect.
 
-**Example:** `D`
+<br clear="right">
 
 ---
 
 ## `E` (number 5, color <span style="color:#50C878">#50C878</span>)
 
-[![Example for E](assets/05-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywE)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywE"><img align="right" width="384" src="assets/05-example.png"></a>
 
 **Function:** `emerald` — Renders reflective 3D emeralds in symmetric pattern.
 
-**Example:** `E`
+<br clear="right">
 
 ---
 
 ## `F` (number 6, color <span style="color:#FFD700">#FFD700</span>)
 
-[![Example for F](assets/06-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywFB)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywFB"><img align="right" width="384" src="assets/06-example.png"></a>
 
 **Function:** `fft-overflow` — 2D FFT with magnitude overflow and chromatic phase shifts.
 
 **Arguments:**
    1. FFT multiplier strength
 
-**Example:** `FB`
+<br clear="right">
 
 ---
 
 ## `G` (number 7, color <span style="color:#9370DB">#9370DB</span>)
 
-[![Example for G](assets/07-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywGG)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywGG"><img align="right" width="384" src="assets/07-example.png"></a>
 
 **Function:** `grayscale-colorize` — Converts to grayscale then applies rainbow palette.
 
 **Arguments:**
    1. Number of posterize colors
 
-**Example:** `GG`
+<br clear="right">
 
 ---
 
 ## `H` (number 8, color <span style="color:#DC143C">#DC143C</span>)
 
-[![Example for H](assets/08-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywH)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywH"><img align="right" width="384" src="assets/08-example.png"></a>
 
 **Function:** `hourglass` — Hourglass gradient with bitwise color blending.
 
-**Example:** `H`
+<br clear="right">
 
 ---
 
 ## `I` (number 9, color <span style="color:#00FF7F">#00FF7F</span>)
 
-[![Example for I](assets/09-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywI)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywI"><img align="right" width="384" src="assets/09-example.png"></a>
 
 **Function:** `invert-edges` — Inverts colors then adds Sobel edge detection.
 
-**Example:** `I`
+<br clear="right">
 
 ---
 
 ## `J` (number 10, color <span style="color:#FF8C00">#FF8C00</span>)
 
-[![Example for J](assets/10-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywJM)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywJM"><img align="right" width="384" src="assets/10-example.png"></a>
 
 **Function:** `julia-fractal` — Julia set fractal masking the previous image.
 
 **Arguments:**
    1. Fractal zoom depth
 
-**Example:** `JM`
+<br clear="right">
 
 ---
 
 ## `K` (number 11, color <span style="color:#9966FF">#9966FF</span>)
 
-[![Example for K](assets/11-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywKE)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywKE"><img align="right" width="384" src="assets/11-example.png"></a>
 
 **Function:** `kaleidoscope` — N-way kaleidoscope effect with zoom.
 
 **Arguments:**
    1. Number of kaleidoscope segments
 
-**Example:** `KE`
+<br clear="right">
 
 ---
 
 ## `L` (number 12, color <span style="color:#20B2AA">#20B2AA</span>)
 
-[![Example for L](assets/12-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywLLL)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywLLL"><img align="right" width="384" src="assets/12-example.png"></a>
 
 **Function:** `lissajous` — 3D Lissajous tube with textured surface.
 
@@ -169,82 +169,82 @@ Some functions take an image index as an argument, and uses that old image in so
    1. Old image for tube texture
    2. Rotation angle multiplier
 
-**Example:** `LLL`
+<br clear="right">
 
 ---
 
 ## `M` (number 13, color <span style="color:#FF69B4">#FF69B4</span>)
 
-[![Example for M](assets/13-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywMC)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywMC"><img align="right" width="384" src="assets/13-example.png"></a>
 
 **Function:** `moire` — Moiré interference pattern with color zones.
 
 **Arguments:**
    1. Pattern complexity seed
 
-**Example:** `MC`
+<br clear="right">
 
 ---
 
 ## `N` (number 14, color <span style="color:#8A2BE2">#8A2BE2</span>)
 
-[![Example for N](assets/14-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywN)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywN"><img align="right" width="384" src="assets/14-example.png"></a>
 
 **Function:** `neon` — Neon glow effect on bright edges.
 
-**Example:** `N`
+<br clear="right">
 
 ---
 
 ## `O` (number 15, color <span style="color:#FF6347">#FF6347</span>)
 
-[![Example for O](assets/15-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywO9)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywO9"><img align="right" width="384" src="assets/15-example.png"></a>
 
 **Function:** `oil-slick` — Domain warping with iridescent lighting.
 
 **Arguments:**
    1. Warp intensity and depth
 
-**Example:** `O9`
+<br clear="right">
 
 ---
 
 ## `P` (number 16, color <span style="color:#4682B4">#4682B4</span>)
 
-[![Example for P](assets/16-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywP6)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywP6"><img align="right" width="384" src="assets/16-example.png"></a>
 
 **Function:** `pixelate` — Pixelate with diagonal split using average/saturated colors.
 
 **Arguments:**
    1. Pixel cell size
 
-**Example:** `P6`
+<br clear="right">
 
 ---
 
 ## `Q` (number 17, color <span style="color:#32CD32">#32CD32</span>)
 
-[![Example for Q](assets/17-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywQ)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywQ"><img align="right" width="384" src="assets/17-example.png"></a>
 
 **Function:** `quad-prism` — Negative prism with diagonal inversion and mirroring.
 
-**Example:** `Q`
+<br clear="right">
 
 ---
 
 ## `R` (number 18, color <span style="color:#DA70D6">#DA70D6</span>)
 
-[![Example for R](assets/18-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywR)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywR"><img align="right" width="384" src="assets/18-example.png"></a>
 
 **Function:** `room` — 3D room with textured walls, ceiling, and floor.
 
-**Example:** `R`
+<br clear="right">
 
 ---
 
 ## `S` (number 19, color <span style="color:#87CEEB">#87CEEB</span>)
 
-[![Example for S](assets/19-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywSSS)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywSSS"><img align="right" width="384" src="assets/19-example.png"></a>
 
 **Function:** `sierpinski` — Sierpiński triangle fractal with color effects.
 
@@ -252,39 +252,39 @@ Some functions take an image index as an argument, and uses that old image in so
    1. Old image for triangle interior
    2. Fractal detail level (A-~)
 
-**Example:** `SSS`
+<br clear="right">
 
 ---
 
 ## `T` (number 20, color <span style="color:#F0E68C">#F0E68C</span>)
 
-[![Example for T](assets/20-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywT8)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywT8"><img align="right" width="384" src="assets/20-example.png"></a>
 
 **Function:** `tiles` — Grid of 3D tiles covering entire canvas, heights based on seed with multiplier.
 
 **Arguments:**
    1. Building height multiplier (A=short, ~=tall)
 
-**Example:** `T8`
+<br clear="right">
 
 ---
 
 ## `U` (number 21, color <span style="color:#DDA0DD">#DDA0DD</span>)
 
-[![Example for U](assets/21-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywUB)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywUB"><img align="right" width="384" src="assets/21-example.png"></a>
 
 **Function:** `dither` — Apply one of 16 dithering algorithms, from subtle to aggressive 2-color modes.
 
 **Arguments:**
    1. Dithering algorithm (A=ordered-5level, B=bayer-bw, C=threshold-bw, D=ordered-2bit, E=floyd-rgb, F=floyd-bw, G=atkinson-4level, H=atkinson-bw, ...)
 
-**Example:** `UB`
+<br clear="right">
 
 ---
 
 ## `V` (number 22, color <span style="color:#40E0D0">#40E0D0</span>)
 
-[![Example for V](assets/22-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw)~1AVBJ)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw)~1AVBJ"><img align="right" width="384" src="assets/22-example.png"></a>
 
 **Function:** `voronoi` — Voronoi cells alternating between current and old image, with variable pattern shape.
 
@@ -292,91 +292,91 @@ Some functions take an image index as an argument, and uses that old image in so
    1. Old image to alternate with
    2. Pattern shape
 
-**Example:** `)~1AVBJ`
+<br clear="right">
 
 ---
 
 ## `W` (number 23, color <span style="color:#EE82EE">#EE82EE</span>)
 
-[![Example for W](assets/23-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywWW)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywWW"><img align="right" width="384" src="assets/23-example.png"></a>
 
 **Function:** `whirl` — Swirl distortion from center with quadratic falloff.
 
 **Arguments:**
    1. Rotation multiplier (×20°)
 
-**Example:** `WW`
+<br clear="right">
 
 ---
 
 ## `X` (number 24, color <span style="color:#F5DEB3">#F5DEB3</span>)
 
-[![Example for X](assets/24-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywX~)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywX~"><img align="right" width="384" src="assets/24-example.png"></a>
 
 **Function:** `cppn` — Compositional Pattern Producing Network warps and modulates saturation/value using a neural network. Fully deterministic based on input.
 
 **Arguments:**
    1. Effect strength
 
-**Example:** `X~`
+<br clear="right">
 
 ---
 
 ## `Y` (number 25, color <span style="color:#98FB98">#98FB98</span>)
 
-[![Example for Y](assets/25-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywYY)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywYY"><img align="right" width="384" src="assets/25-example.png"></a>
 
 **Function:** `yuv-shift` — YUV color shift with three gradient directions 120° apart: luminance, blue chrominance, and red chrominance shifts.
 
 **Arguments:**
    1. Controls angle and intensity of color shifts
 
-**Example:** `YY`
+<br clear="right">
 
 ---
 
 ## `Z` (number 26, color <span style="color:#AFEEEE">#AFEEEE</span>)
 
-[![Example for Z](assets/26-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywZK)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywZK"><img align="right" width="384" src="assets/26-example.png"></a>
 
 **Function:** `zoom-blur` — Radial motion blur from center with sharp center.
 
 **Arguments:**
    1. Blur strength multiplier (×4px)
 
-**Example:** `ZK`
+<br clear="right">
 
 ---
 
 ## `0` (number 27, color <span style="color:#E6E6FA">#E6E6FA</span>)
 
-[![Example for 0](assets/27-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw0A)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw0A"><img align="right" width="384" src="assets/27-example.png"></a>
 
 **Function:** `bg-remove` — Removes background from prev image using ML, composites on specified background.
 
 **Arguments:**
    1. Background image to composite behind
 
-**Example:** `0A`
+<br clear="right">
 
 ---
 
 ## `1` (number 28, color <span style="color:#FFA07A">#FFA07A</span>)
 
-[![Example for 1](assets/28-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw1E)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw1E"><img align="right" width="384" src="assets/28-example.png"></a>
 
 **Function:** `colorize` — Tints the image with the specified color using gamma-corrected luminance and boosted saturation.
 
 **Arguments:**
    1. Tint color applied based on luminance
 
-**Example:** `1E`
+<br clear="right">
 
 ---
 
 ## `2` (number 29, color <span style="color:#98D8C8">#98D8C8</span>)
 
-[![Example for 2](assets/29-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw2BAB)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw2BAB"><img align="right" width="384" src="assets/29-example.png"></a>
 
 **Function:** `third-stamp` — Replace a vertical third of current image with a third from old image.
 
@@ -385,213 +385,213 @@ Some functions take an image index as an argument, and uses that old image in so
    2. Old image third (1=left, 2=mid, 3=right, cycling)
    3. Current image third to replace (1=left, 2=mid, 3=right, cycling)
 
-**Example:** `2BAB`
+<br clear="right">
 
 ---
 
 ## `3` (number 30, color <span style="color:#F7DC6F">#F7DC6F</span>)
 
-[![Example for 3](assets/30-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw3)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw3"><img align="right" width="384" src="assets/30-example.png"></a>
 
 **Function:** `triple-rotate` — Three vertical strips with different rotations.
 
-**Example:** `3`
+<br clear="right">
 
 ---
 
 ## `4` (number 31, color <span style="color:#BB8FCE">#BB8FCE</span>)
 
-[![Example for 4](assets/31-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw4)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw4"><img align="right" width="384" src="assets/31-example.png"></a>
 
 **Function:** `quad-rotate` — Four quadrants each rotated 0°, 90°, 180°, 270°.
 
-**Example:** `4`
+<br clear="right">
 
 ---
 
 ## `5` (number 32, color <span style="color:#85C1E9">#85C1E9</span>)
 
-[![Example for 5](assets/32-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw55)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw55"><img align="right" width="384" src="assets/32-example.png"></a>
 
 **Function:** `triangular-split` — Triangular grid with hue shifts and lightness variation.
 
 **Arguments:**
    1. Cell size multiplier
 
-**Example:** `55`
+<br clear="right">
 
 ---
 
 ## `6` (number 33, color <span style="color:#F1948A">#F1948A</span>)
 
-[![Example for 6](assets/33-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw6)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw6"><img align="right" width="384" src="assets/33-example.png"></a>
 
 **Function:** `posterize` — Posterize to 4 levels per channel.
 
-**Example:** `6`
+<br clear="right">
 
 ---
 
 ## `7` (number 34, color <span style="color:#82E0AA">#82E0AA</span>)
 
-[![Example for 7](assets/34-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw777)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw777"><img align="right" width="384" src="assets/34-example.png"></a>
 
 **Function:** `chromatic` — Chromatic aberration with RGB channel shifts.
 
-**Example:** `777`
+<br clear="right">
 
 ---
 
 ## `8` (number 35, color <span style="color:#F8C471">#F8C471</span>)
 
-[![Example for 8](assets/35-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw8T)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw8T"><img align="right" width="384" src="assets/35-example.png"></a>
 
 **Function:** `lemniscate` — Infinity-loop lemniscate distortion.
 
 **Arguments:**
    1. Distortion strength
 
-**Example:** `8T`
+<br clear="right">
 
 ---
 
 ## `9` (number 36, color <span style="color:#D7BDE2">#D7BDE2</span>)
 
-[![Example for 9](assets/36-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywYY9B)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywYY9B"><img align="right" width="384" src="assets/36-example.png"></a>
 
 **Function:** `xor-blend` — XOR blend creating glitchy digital artifacts.
 
 **Arguments:**
    1. Old image to XOR with
 
-**Example:** `YY9B`
+<br clear="right">
 
 ---
 
 ## `<` (number 37, color <span style="color:#E74C3C">#E74C3C</span>)
 
-[![Example for <](assets/37-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3CJ)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3CJ"><img align="right" width="384" src="assets/37-example.png"></a>
 
 **Function:** `horizontal-shift` — Horizontal shift with wraparound.
 
 **Arguments:**
    1. Shift amount (A=left, 7=none, ~=right)
 
-**Example:** `<J`
+<br clear="right">
 
 ---
 
 ## `>` (number 38, color <span style="color:#3498DB">#3498DB</span>)
 
-[![Example for >](assets/38-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3E)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3E"><img align="right" width="384" src="assets/38-example.png"></a>
 
 **Function:** `rotate-90` — Rotate 90 degrees clockwise.
 
-**Example:** `>`
+<br clear="right">
 
 ---
 
 ## `^` (number 39, color <span style="color:#2ECC71">#2ECC71</span>)
 
-[![Example for ^](assets/39-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5EV)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5EV"><img align="right" width="384" src="assets/39-example.png"></a>
 
 **Function:** `vertical-shift` — Vertical shift with wraparound.
 
 **Arguments:**
    1. Shift amount (A=up, 7=none, ~=down)
 
-**Example:** `^V`
+<br clear="right">
 
 ---
 
 ## `!` (number 40, color <span style="color:#FF4500">#FF4500</span>)
 
-[![Example for !](assets/40-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw!)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw!"><img align="right" width="384" src="assets/40-example.png"></a>
 
 **Function:** `godrays` — Volumetric light scattering from center.
 
-**Example:** `!`
+<br clear="right">
 
 ---
 
 ## `"` (number 41, color <span style="color:#9932CC">#9932CC</span>)
 
-[![Example for "](assets/41-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%22)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%22"><img align="right" width="384" src="assets/41-example.png"></a>
 
 **Function:** `band-transform` — Horizontal bands with alternating hue/saturation transforms.
 
 **Arguments:**
    1. Number of horizontal bands
 
-**Example:** `"`
+<br clear="right">
 
 ---
 
 ## `#` (number 42, color <span style="color:#228B22">#228B22</span>)
 
-[![Example for #](assets/42-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%23B)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%23B"><img align="right" width="384" src="assets/42-example.png"></a>
 
 **Function:** `insert` — Replaces current image with specified old image.
 
 **Arguments:**
    1. Old image index to insert
 
-**Example:** `#B`
+<br clear="right">
 
 ---
 
 ## `$` (number 43, color <span style="color:#FFD700">#FFD700</span>)
 
-[![Example for $](assets/43-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%24)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%24"><img align="right" width="384" src="assets/43-example.png"></a>
 
 **Function:** `segment-hue-sort` — Color-based segmentation, then sorts pixels by hue within each segment.
 
-**Example:** `$`
+<br clear="right">
 
 ---
 
 ## `%` (number 44, color <span style="color:#8B0000">#8B0000</span>)
 
-[![Example for %](assets/44-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%25A)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%25A"><img align="right" width="384" src="assets/44-example.png"></a>
 
 **Function:** `flip` — Flips image horizontally or vertically based on argument parity.
 
 **Arguments:**
    1. Flip direction (even=horizontal, odd=vertical)
 
-**Example:** `%A`
+<br clear="right">
 
 ---
 
 ## `&` (number 45, color <span style="color:#4169E1">#4169E1</span>)
 
-[![Example for &](assets/45-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%26P)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%26P"><img align="right" width="384" src="assets/45-example.png"></a>
 
 **Function:** `quadtree-compress` — Adaptive quadtree compression - detailed areas keep resolution while uniform areas become large blocks, creating geometric patterns.
 
 **Arguments:**
    1. Compression level (A=minimal/detailed, ~=maximal/geometric blocks)
 
-**Example:** `&P`
+<br clear="right">
 
 ---
 
 ## `'` (number 46, color <span style="color:#FF1493">#FF1493</span>)
 
-[![Example for '](assets/46-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1%27%27B)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1%27%27B"><img align="right" width="384" src="assets/46-example.png"></a>
 
 **Function:** `variable-checkerboard` — Checkerboard blend with increasing square size from corner to corner.
 
 **Arguments:**
    1. Old image to checkerboard with
 
-**Example:** `))1''B`
+<br clear="right">
 
 ---
 
 ## `(` (number 47, color <span style="color:#00CED1">#00CED1</span>)
 
-[![Example for (](assets/47-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw(3F%26)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw(3F%26"><img align="right" width="384" src="assets/47-example.png"></a>
 
 **Function:** `shear-radial` — Combined shear and radial distortion. Shear amount couples to horizontal offset and radial strength.
 
@@ -600,59 +600,59 @@ Some functions take an image index as an argument, and uses that old image in so
    2. Center Y offset (A=bottom, M=center, ~=top)
    3. Radial/shear strength (A=barrel, M=none, ~=pincushion)
 
-**Example:** `(3F&`
+<br clear="right">
 
 ---
 
 ## `)` (number 48, color <span style="color:#FF69B4">#FF69B4</span>)
 
-[![Example for )](assets/48-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw)))
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))"><img align="right" width="384" src="assets/48-example.png"></a>
 
 **Function:** `blur` — Gaussian blur with adjustable radius using two-pass convolution.
 
 **Arguments:**
    1. Blur radius (A=subtle, ~=heavy)
 
-**Example:** `))`
+<br clear="right">
 
 ---
 
 ## `*` (number 49, color <span style="color:#FFD700">#FFD700</span>)
 
-[![Example for *](assets/49-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw*)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw*"><img align="right" width="384" src="assets/49-example.png"></a>
 
 **Function:** `fur` — Fur/hair strands growing from pixels based on hue and noise.
 
-**Example:** `*`
+<br clear="right">
 
 ---
 
 ## `+` (number 50, color <span style="color:#32CD32">#32CD32</span>)
 
-[![Example for +](assets/50-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2B%2B%2B%2B%2B%2B%2B)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2B%2B%2B%2B%2B%2B%2B"><img align="right" width="384" src="assets/50-example.png"></a>
 
 **Function:** `zoom` — Zoom in 1.2× from center.
 
-**Example:** `+++++++`
+<br clear="right">
 
 ---
 
 ## `,` (number 51, color <span style="color:#BA55D3">#BA55D3</span>)
 
-[![Example for ,](assets/51-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2CD)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2CD"><img align="right" width="384" src="assets/51-example.png"></a>
 
 **Function:** `stipple` — Stipple dots at luminance-based positions.
 
 **Arguments:**
    1. Stipple dot color
 
-**Example:** `,D`
+<br clear="right">
 
 ---
 
 ## `-` (number 52, color <span style="color:#FF7F50">#FF7F50</span>)
 
-[![Example for -](assets/52-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1D-B6)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1D-B6"><img align="right" width="384" src="assets/52-example.png"></a>
 
 **Function:** `blend` — Blend old image with current using specified mode.
 
@@ -660,26 +660,26 @@ Some functions take an image index as an argument, and uses that old image in so
    1. Old image to blend with
    2. Blend mode (A=multiply, B=screen, C=overlay, D=darken, E=lighten, F=dodge, G=burn, H=hardlight, ...)
 
-**Example:** `))1D-B6`
+<br clear="right">
 
 ---
 
 ## `.` (number 53, color <span style="color:#20B2AA">#20B2AA</span>)
 
-[![Example for .](assets/53-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw.M)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw.M"><img align="right" width="384" src="assets/53-example.png"></a>
 
 **Function:** `pointillism` — Pointillism effect with saturated circular dots.
 
 **Arguments:**
    1. Dot radius base (mod 8 + 2)
 
-**Example:** `.M`
+<br clear="right">
 
 ---
 
 ## `/` (number 54, color <span style="color:#CD853F">#CD853F</span>)
 
-[![Example for /](assets/54-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2FB073C)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2FB073C"><img align="right" width="384" src="assets/54-example.png"></a>
 
 **Function:** `circle-stamp` — Stamp circular region from old image center onto current.
 
@@ -690,62 +690,62 @@ Some functions take an image index as an argument, and uses that old image in so
    4. Circle size (A=tiny, ~=full)
    5. Blend mode (A=normal, B=xor, C=nand, D=and, E=or, F=multiply, G=screen, H=overlay, ...)
 
-**Example:** `/B073C`
+<br clear="right">
 
 ---
 
 ## `:` (number 55, color <span style="color:#6B8E23">#6B8E23</span>)
 
-[![Example for :](assets/55-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw1D%3AB)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw1D%3AB"><img align="right" width="384" src="assets/55-example.png"></a>
 
 **Function:** `porthole` — Circular window showing current image with old image as background.
 
 **Arguments:**
    1. Old image for background
 
-**Example:** `1D:B`
+<br clear="right">
 
 ---
 
 ## `;` (number 56, color <span style="color:#DB7093">#DB7093</span>)
 
-[![Example for ;](assets/56-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3B)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3B"><img align="right" width="384" src="assets/56-example.png"></a>
 
 **Function:** `semicircle-reflect` — Top semicircle preserved, bottom reflected with wave distortion.
 
-**Example:** `;`
+<br clear="right">
 
 ---
 
 ## `=` (number 57, color <span style="color:#5F9EA0">#5F9EA0</span>)
 
-[![Example for =](assets/57-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3DX)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3DX"><img align="right" width="384" src="assets/57-example.png"></a>
 
 **Function:** `shifted-stripes` — Horizontal stripes with alternating shifts.
 
 **Arguments:**
    1. Stripe height in pixels
 
-**Example:** `=X`
+<br clear="right">
 
 ---
 
 ## `?` (number 58, color <span style="color:#D2691E">#D2691E</span>)
 
-[![Example for ?](assets/58-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3F%3F)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3F%3F"><img align="right" width="384" src="assets/58-example.png"></a>
 
 **Function:** `help` — Display help text or image history table.
 
 **Arguments:**
    1. Page number (A=intro, B+=reference, #=history)
 
-**Example:** `??`
+<br clear="right">
 
 ---
 
 ## `@` (number 59, color <span style="color:#7B68EE">#7B68EE</span>)
 
-[![Example for @](assets/59-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywGA%23B1.%23B1C%40CEGAE)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywGA%23B1.%23B1C%40CEGAE"><img align="right" width="384" src="assets/59-example.png"></a>
 
 **Function:** `cond` — Per-pixel conditional: extracts channel from condition image, outputs true-image pixel where value >= threshold, otherwise false-image pixel.
 
@@ -756,26 +756,26 @@ Some functions take an image index as an argument, and uses that old image in so
    4. Color channel to extract from condition image (A=hue, B=saturation, C=lightness, D=red, E=green, F=blue)
    5. Threshold (A=0%, ~=100% of channel range)
 
-**Example:** `GA#B1.#B1C@CEGAE`
+<br clear="right">
 
 ---
 
 ## `[` (number 60, color <span style="color:#48D1CC">#48D1CC</span>)
 
-[![Example for [](assets/60-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5BX)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5BX"><img align="right" width="384" src="assets/60-example.png"></a>
 
 **Function:** `rotate` — Rotate around center.
 
 **Arguments:**
    1. Rotation amount (A=left, 7=none, ~=right)
 
-**Example:** `[X`
+<br clear="right">
 
 ---
 
 ## `\\` (number 61, color <span style="color:#C71585">#C71585</span>)
 
-[![Example for \\](assets/61-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5CB4VXMVH-0%7DA)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5CB4VXMVH-0%7DA"><img align="right" width="384" src="assets/61-example.png"></a>
 
 **Function:** `composite` — Composite transformed region from old image onto current.
 
@@ -792,89 +792,89 @@ Some functions take an image index as an argument, and uses that old image in so
    10. Rotation (normalized 0-1 → 0-360°)
    11. Blend mode (mod 16: normal, xor, nand, and, or, multiply, screen, overlay, darken, lighten, diff, excl, add, sub, hard, soft)
 
-**Example:** `\B4VXMVH-0}A`
+<br clear="right">
 
 ---
 
 ## `]` (number 62, color <span style="color:#00FA9A">#00FA9A</span>)
 
-[![Example for ]](assets/62-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5D)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5D"><img align="right" width="384" src="assets/62-example.png"></a>
 
 **Function:** `left-half-offset` — Shift left half vertically by 20% with wraparound.
 
-**Example:** `]`
+<br clear="right">
 
 ---
 
 ## `_` (number 63, color <span style="color:#708090">#708090</span>)
 
-[![Example for _](assets/63-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw_)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw_"><img align="right" width="384" src="assets/63-example.png"></a>
 
 **Function:** `scanlines` — CRT scanline effect with darkening and displacement.
 
-**Example:** `_`
+<br clear="right">
 
 ---
 
 ## `\`` (number 64, color <span style="color:#6495ED">#6495ED</span>)
 
-[![Example for \`](assets/64-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%60M)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%60M"><img align="right" width="384" src="assets/64-example.png"></a>
 
 **Function:** `rule110` — Rule 110 cellular automaton - a Turing-complete 1D CA applied horizontally to each row.
 
 **Arguments:**
    1. Number of generations (×8)
 
-**Example:** ``M`
+<br clear="right">
 
 ---
 
 ## `{` (number 65, color <span style="color:#DC143C">#DC143C</span>)
 
-[![Example for {](assets/65-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7BR)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7BR"><img align="right" width="384" src="assets/65-example.png"></a>
 
 **Function:** `skew` — Skew horizontal with wraparound.
 
 **Arguments:**
    1. Skew amount (A=left, 7=none, ~=right)
 
-**Example:** `{R`
+<br clear="right">
 
 ---
 
 ## `|` (number 66, color <span style="color:#00BFFF">#00BFFF</span>)
 
-[![Example for |](assets/66-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1%7C%7C%7C)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1%7C%7C%7C"><img align="right" width="384" src="assets/66-example.png"></a>
 
 **Function:** `vertical-split` — Vertical split with wavy blend zone using multiple blend modes.
 
 **Arguments:**
    1. Old image for right half
 
-**Example:** `))1|||`
+<br clear="right">
 
 ---
 
 ## `}` (number 67, color <span style="color:#9400D3">#9400D3</span>)
 
-[![Example for }](assets/67-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7D)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7D"><img align="right" width="384" src="assets/67-example.png"></a>
 
 **Function:** `sharpen` — Sharpen using convolution kernel to enhance edges.
 
-**Example:** `}`
+<br clear="right">
 
 ---
 
 ## `~` (number 68, color <span style="color:#FF6347">#FF6347</span>)
 
-[![Example for ~](assets/68-example.png)](https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw~F)
+<a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw~F"><img align="right" width="384" src="assets/68-example.png"></a>
 
 **Function:** `wave-chromatic` — Horizontal wave distortion with chromatic aberration.
 
 **Arguments:**
    1. Wave amplitude and chromatic shift
 
-**Example:** `~F`
+<br clear="right">
 
 ---
 
