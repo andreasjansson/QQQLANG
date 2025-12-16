@@ -326,7 +326,7 @@ async function main() {
       const safeFilename = def.number.toString().padStart(2, "0");
       const outputPath = path.join(ASSETS_DIR, `${safeFilename}-example.png`);
 
-      console.log(`  Processing '${char}' (${def.functionName}), example='${def.example}'...`);
+      console.log(`  Processing '${char}' (${def.functionName})...`);
       await captureExampleImage(page, def.example, outputPath);
     }
 
