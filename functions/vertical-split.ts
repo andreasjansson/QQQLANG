@@ -5,16 +5,7 @@ import {
   getPrevImage,
   getPixel,
   setPixel,
-  cloneImage,
-  hexToRgb,
-  rgbToHsl,
-  hslToRgb,
-  initWebGL,
-  createShaderProgram,
   getOldImage,
-  createPlaceholderImage,
-  emeraldReady,
-  bgRemovalReady,
 } from "./helpers.js";
 
 function verticalSplit(ctx: FnContext, old: Image): Image {
@@ -39,49 +30,77 @@ function verticalSplit(ctx: FnContext, old: Image): Image {
       } else {
         const t = (x - (effectiveMidX - blendWidth)) / (blendWidth * 2);
 
-        const screenR = 255 - ((255 - pr) * (255 - or)) / 255;
-        const screenG = 255 - ((255 - pg) * (255 - og)) / 255;
-        const screenB = 255 - ((255 - pb) * (255 - ob)) / 255;
-
-        const diffR = Math.abs(pr - or);
-        const diffG = Math.abs(pg - og);
-        const diffB = Math.abs(pb - ob);
-
-        const xorR = pr ^ or;
-        const xorG = pg ^ og;
-        const xorB = pb ^ ob;
-
         const band = Math.floor(y / 20) % 3;
 
         let r: number, g: number, b: number;
 
+        // Base linear blend
+        const baseR = pr * (1 - t) + or * t;
+        const baseG = pg * (1 - t) + og * t;
+        const baseB = pb * (1 - t) + ob * t;
+
         if (band === 0) {
-          if (t < 0.5) {
-            const localT = t * 2;
-            r = pr * (1 - localT) + screenR * localT;
-            g = pg * (1 - localT) + screenG * localT;
-            b = pb * (1 - localT) + screenB * localT;
-          } else {
-            const localT = (t - 0.5) * 2;
-            r = screenR * (1 - localT) + or * localT;
-            g = screenG * (1 - localT) + og * localT;
-            b = screenB * (1 - localT) + ob * localT;
-          }
+          // Screen blend - but normalized so same image = no change
+          const screenR = 255 - ((255 - pr) * (255 - or)) / 255;
+          const screenG = 255 - ((255 - pg) * (255 - og)) / 255;
+          const screenB = 255 - ((255 - pb) * (255 - ob)) / 255;
+          
+          // When pr=or, screen gives: 255 - (255-pr)^2/255, which is brighter than pr
+          // Normalize: subtract the "self-screen" brightness boost
+          const selfScreenR = 255 - ((255 - pr) * (255 - pr)) / 255;
+          const selfScreenG = 255 - ((255 - pg) * (255 - pg)) / 255;
+          const selfScreenB = 255 - ((255 - pb) * (255 - pb)) / 255;
+          
+          const boostR = selfScreenR - pr;
+          const boostG = selfScreenG - pg;
+          const boostB = selfScreenB - pb;
+          
+          // Blend weight peaks at center
+          const blendWeight = Math.sin(t * Math.PI);
+          
+          r = baseR + (screenR - baseR - boostR) * blendWeight;
+          g = baseG + (screenG - baseG - boostG) * blendWeight;
+          b = baseB + (screenB - baseB - boostB) * blendWeight;
         } else if (band === 1) {
-          const centerDist = Math.abs(t - 0.5) * 2;
-          const diffWeight = 1 - centerDist;
-          r = (pr * (1 - t) + or * t) * (1 - diffWeight) + diffR * diffWeight;
-          g = (pg * (1 - t) + og * t) * (1 - diffWeight) + diffG * diffWeight;
-          b = (pb * (1 - t) + ob * t) * (1 - diffWeight) + diffB * diffWeight;
+          // Overlay blend - normalized
+          const overlayR = pr < 128 
+            ? (2 * pr * or) / 255 
+            : 255 - (2 * (255 - pr) * (255 - or)) / 255;
+          const overlayG = pg < 128 
+            ? (2 * pg * og) / 255 
+            : 255 - (2 * (255 - pg) * (255 - og)) / 255;
+          const overlayB = pb < 128 
+            ? (2 * pb * ob) / 255 
+            : 255 - (2 * (255 - pb) * (255 - ob)) / 255;
+          
+          const blendWeight = Math.sin(t * Math.PI) * 0.5;
+          
+          // Overlay with same image = original, so just blend toward overlay result
+          r = baseR + (overlayR - baseR) * blendWeight;
+          g = baseG + (overlayG - baseG) * blendWeight;
+          b = baseB + (overlayB - baseB) * blendWeight;
         } else {
-          const xorWeight = Math.sin(t * Math.PI) * 0.7;
-          const baseR = pr * (1 - t) + or * t;
-          const baseG = pg * (1 - t) + og * t;
-          const baseB = pb * (1 - t) + ob * t;
-          r = baseR * (1 - xorWeight) + xorR * xorWeight;
-          g = baseG * (1 - xorWeight) + xorG * xorWeight;
-          b = baseB * (1 - xorWeight) + xorB * xorWeight;
+          // Soft light blend
+          const softR = or < 128
+            ? pr - (255 - 2 * or) * pr * (255 - pr) / (255 * 255)
+            : pr + (2 * or - 255) * (Math.sqrt(pr / 255) * 255 - pr) / 255;
+          const softG = og < 128
+            ? pg - (255 - 2 * og) * pg * (255 - pg) / (255 * 255)
+            : pg + (2 * og - 255) * (Math.sqrt(pg / 255) * 255 - pg) / 255;
+          const softB = ob < 128
+            ? pb - (255 - 2 * ob) * pb * (255 - pb) / (255 * 255)
+            : pb + (2 * ob - 255) * (Math.sqrt(pb / 255) * 255 - pb) / 255;
+          
+          const blendWeight = Math.sin(t * Math.PI) * 0.5;
+          
+          r = baseR + (softR - baseR) * blendWeight;
+          g = baseG + (softG - baseG) * blendWeight;
+          b = baseB + (softB - baseB) * blendWeight;
         }
+
+        r = Math.max(0, Math.min(255, r));
+        g = Math.max(0, Math.min(255, g));
+        b = Math.max(0, Math.min(255, b));
 
         setPixel(out, x, y, Math.round(r), Math.round(g), Math.round(b));
       }
