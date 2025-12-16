@@ -117,21 +117,21 @@ function gradientify(ctx: FnContext): Image {
   ): boolean {
     // Lightness difference
     const dL = Math.abs(l1 - l2);
-    if (dL > 0.12) return false;
+    if (dL > 0.06) return false;
     
     // Saturation difference - be strict here
     const dS = Math.abs(s1 - s2);
-    if (dS > 0.08) return false;
+    if (dS > 0.04) return false;
     
     // If one is gray and one is colored, don't merge
-    const isGray1 = s1 < 0.12;
-    const isGray2 = s2 < 0.12;
+    const isGray1 = s1 < 0.08;
+    const isGray2 = s2 < 0.08;
     if (isGray1 !== isGray2) return false;
     
     // Hue difference (only matters if both have decent saturation)
     if (!isGray1 && !isGray2) {
       const dH = hueDiff(h1, h2);
-      if (dH > 20) return false;
+      if (dH > 10) return false;
     }
     
     return true;
