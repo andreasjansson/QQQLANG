@@ -319,6 +319,14 @@ async function main() {
     fs.mkdirSync(ASSETS_DIR, { recursive: true });
   }
 
+  console.log("\nGenerating color swatches...");
+  for (const [char, def] of Object.entries(chars)) {
+    const safeFilename = def.number.toString().padStart(2, "0");
+    const swatchPath = path.join(ASSETS_DIR, `${safeFilename}-color.png`);
+    await generateColorSwatch(def.color, swatchPath);
+  }
+  console.log(`Generated ${Object.keys(chars).length} color swatches`);
+
   if (!skipImages) {
     console.log("\nLaunching browser...");
     const browser = await chromium.launch({ headless: !debugMode });
