@@ -594,28 +594,28 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
     
     fea_lines = []
     
-    # Define glyph classes for regular characters
-    all_regular = [glyph_name_map[c] for c in qqqlang_chars]
-    all_bold_first = [bold_first_glyph_map[c] for c in qqqlang_chars]
-    all_bold = [bold_glyph_map[c] for c in qqqlang_chars]
-    all_bold_spaced = [bold_spaced_glyph_map[c] for c in qqqlang_chars]
-    all_regular_spaced = [regular_spaced_glyph_map[c] for c in qqqlang_chars]
+    # Define glyph classes for regular characters (NOT including uploads)
+    char_regular = [glyph_name_map[c] for c in qqqlang_chars]
+    char_bold_first = [bold_first_glyph_map[c] for c in qqqlang_chars]
+    char_bold = [bold_glyph_map[c] for c in qqqlang_chars]
+    char_bold_spaced = [bold_spaced_glyph_map[c] for c in qqqlang_chars]
+    char_regular_spaced = [regular_spaced_glyph_map[c] for c in qqqlang_chars]
     
     # Upload characters have their own variants (no bold/bold_spaced)
     upload_regular = upload_chars['all_regular'] if upload_chars else []
     upload_bold_first = upload_chars['all_bold_first'] if upload_chars else []
     upload_regular_spaced = upload_chars['all_regular_spaced'] if upload_chars else []
     
-    # Add upload variants to the main classes
-    all_regular.extend(upload_regular)
-    all_bold_first.extend(upload_bold_first)
-    all_regular_spaced.extend(upload_regular_spaced)
-    # Note: uploads don't have bold or bold_spaced variants
+    # Combined classes for @regular and @regular_spaced include uploads
+    all_regular = char_regular + upload_regular
+    all_regular_spaced = char_regular_spaced + upload_regular_spaced
     
+    # @bold_first does NOT include upload_bold_first (they use separate lookups)
+    # This prevents pass5 rule 1 from trying to match upload_bf with char lookup
     fea_lines.append(f"@regular = [{' '.join(all_regular)}];")
-    fea_lines.append(f"@bold_first = [{' '.join(all_bold_first)}];")
-    fea_lines.append(f"@bold = [{' '.join(all_bold)}];")
-    fea_lines.append(f"@bold_spaced = [{' '.join(all_bold_spaced)}];")
+    fea_lines.append(f"@bold_first = [{' '.join(char_bold_first)}];")  # NO uploads!
+    fea_lines.append(f"@bold = [{' '.join(char_bold)}];")
+    fea_lines.append(f"@bold_spaced = [{' '.join(char_bold_spaced)}];")
     fea_lines.append(f"@regular_spaced = [{' '.join(all_regular_spaced)}];")
     
     # Upload-specific classes (uploads don't have bold/bold_spaced)
@@ -624,13 +624,13 @@ def build_gsub_feature(font, char_defs, qqqlang_chars, arity_map,
         fea_lines.append(f"@upload_bold_first = [{' '.join(upload_bold_first)}];")
         fea_lines.append(f"@upload_regular_spaced = [{' '.join(upload_regular_spaced)}];")
     
-    # @any includes all variants (uploads don't have bold/bold_spaced)
-    all_any = all_regular + all_bold_first + all_bold + all_bold_spaced + all_regular_spaced
+    # @any includes all variants (both char and upload)
+    all_any = all_regular + char_bold_first + upload_bold_first + char_bold + char_bold_spaced + all_regular_spaced
     fea_lines.append(f"@any = [{' '.join(all_any)}];")
     
     # @preceded_by for detecting non-first chars (bold_first or bold)
-    # Upload bold_first is included so it gets converted when not first
-    all_preceded = all_bold_first + all_bold
+    # Include BOTH char_bold_first AND upload_bold_first
+    all_preceded = char_bold_first + upload_bold_first + char_bold
     fea_lines.append(f"@preceded_by = [{' '.join(all_preceded)}];")
     fea_lines.append("")
     
