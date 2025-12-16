@@ -71,16 +71,7 @@ function parseCharacterDefs(): Record<string, CharDef> {
   let match;
   const entries: { char: string; startIdx: number }[] = [];
   
-  // Debug: check length and ending
-  console.log(`  defsContent length: ${defsContent.length}`);
-  console.log(`  Last 200 chars: ${defsContent.substring(defsContent.length - 200)}`);
-  
-  // Debug: check if "]": is in the content
-  const bracketIdx = defsContent.indexOf('"]":');
-  console.log(`  "]": found at index ${bracketIdx}`);
-  if (bracketIdx > 0) {
-    console.log(`  Context: ${defsContent.substring(bracketIdx - 20, bracketIdx + 30)}`);
-  }
+
   
   while ((match = entryRegex.exec(defsContent)) !== null) {
     let char = match[1] || match[2] || match[3];
