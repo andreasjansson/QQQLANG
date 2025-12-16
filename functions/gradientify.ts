@@ -1,7 +1,6 @@
 import {
   FnContext,
   Image,
-  createSolidImage,
   getPrevImage,
   getPixel,
   setPixel,
@@ -50,7 +49,7 @@ function gradientify(ctx: FnContext): Image {
   }
 
   // Step 2: Create flatness mask with threshold
-  const gradientThreshold = 12;
+  const gradientThreshold = 15;
   const isFlat = new Uint8Array(width * height);
   for (let i = 0; i < width * height; i++) {
     isFlat[i] = gradientMag[i] < gradientThreshold ? 1 : 0;
@@ -85,7 +84,7 @@ function gradientify(ctx: FnContext): Image {
     }
   }
 
-  const colorThreshold = 25;
+  const colorThreshold = 30;
 
   function colorSimilar(
     r1: number,
@@ -109,7 +108,6 @@ function gradientify(ctx: FnContext): Image {
 
       const [r, g, b] = getPixel(prev, x, y);
 
-      // Check right neighbor
       if (x < width - 1) {
         const nidx = y * width + (x + 1);
         if (isFlat[nidx]) {
@@ -120,7 +118,6 @@ function gradientify(ctx: FnContext): Image {
         }
       }
 
-      // Check bottom neighbor
       if (y < height - 1) {
         const nidx = (y + 1) * width + x;
         if (isFlat[nidx]) {
@@ -188,9 +185,10 @@ function gradientify(ctx: FnContext): Image {
   }
 
   // Step 5: Apply gradients to regions
-  const minRegionSize = Math.max(50, (width * height) / 500);
-  const hueShiftAmount = 15;
-  const lightnessShiftAmount = 0.08;
+  const minRegionSize = Math.max(30, (width * height) / 800);
+  const hueShiftAmount = 35;
+  const lightnessShiftAmount = 0.18;
+  const saturationBoost = 1.15;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -204,24 +202,19 @@ function gradientify(ctx: FnContext): Image {
       const [r, g, b] = getPixel(prev, x, y);
       const [h, s, l] = rgbToHsl(r, g, b);
 
-      // Calculate gradient direction based on region shape
       const regionWidth = stats.maxX - stats.minX + 1;
       const regionHeight = stats.maxY - stats.minY + 1;
       const centerX = stats.sumX / stats.count;
       const centerY = stats.sumY / stats.count;
 
-      // Use diagonal gradient direction based on region aspect ratio
       let gradientPos: number;
       if (regionWidth > regionHeight * 1.5) {
-        // Wide region: horizontal gradient
         gradientPos =
           regionWidth > 1 ? (x - stats.minX) / (regionWidth - 1) : 0.5;
       } else if (regionHeight > regionWidth * 1.5) {
-        // Tall region: vertical gradient
         gradientPos =
           regionHeight > 1 ? (y - stats.minY) / (regionHeight - 1) : 0.5;
       } else {
-        // Square-ish region: radial gradient from center
         const dx = x - centerX;
         const dy = y - centerY;
         const maxDist =
@@ -233,18 +226,51 @@ function gradientify(ctx: FnContext): Image {
             : 0.5;
       }
 
-      // Apply subtle hue shift
-      const hueShift = (gradientPos - 0.5) * hueShiftAmount;
-      let newH = h + hueShift;
-      if (newH < 0) newH += 360;
-      if (newH >= 360) newH -= 360;
+      const isGrayscale = s < 0.08;
+      const isVeryDark = l < 0.08;
+      const isVeryLight = l > 0.92;
 
-      // Apply subtle lightness variation
-      const lightnessShift = (gradientPos - 0.5) * lightnessShiftAmount;
-      const newL = Math.max(0, Math.min(1, l + lightnessShift));
+      let newH: number, newS: number, newL: number;
 
-      // Slightly boost saturation in gradients
-      const newS = Math.min(1, s * 1.05);
+      if (isVeryDark) {
+        // For black/very dark areas: add color and lightness gradient
+        // Use position-based hue to create color variation
+        const baseHue = ((x + y) / (width + height)) * 360;
+        newH = (baseHue + (gradientPos - 0.5) * 60) % 360;
+        if (newH < 0) newH += 360;
+        // Add some saturation and vary lightness from dark to slightly less dark
+        newS = 0.3 + gradientPos * 0.2;
+        newL = 0.02 + gradientPos * 0.12;
+      } else if (isVeryLight) {
+        // For white/very light areas: add subtle color and darken gradient
+        const baseHue = ((x + y) / (width + height)) * 360;
+        newH = (baseHue + (gradientPos - 0.5) * 60) % 360;
+        if (newH < 0) newH += 360;
+        // Add subtle saturation and vary lightness from light to slightly less light
+        newS = 0.15 + gradientPos * 0.15;
+        newL = 0.98 - gradientPos * 0.12;
+      } else if (isGrayscale) {
+        // For gray areas: add color based on position
+        const baseHue = ((x * 0.7 + y * 0.3) / (width * 0.7 + height * 0.3)) * 360;
+        newH = (baseHue + (gradientPos - 0.5) * 50) % 360;
+        if (newH < 0) newH += 360;
+        // Add saturation to make the gradient visible
+        newS = 0.25 + gradientPos * 0.15;
+        // Vary lightness
+        const lightnessShift = (gradientPos - 0.5) * lightnessShiftAmount;
+        newL = Math.max(0.05, Math.min(0.95, l + lightnessShift));
+      } else {
+        // Normal colored areas: shift hue and lightness
+        const hueShift = (gradientPos - 0.5) * hueShiftAmount;
+        newH = h + hueShift;
+        if (newH < 0) newH += 360;
+        if (newH >= 360) newH -= 360;
+
+        const lightnessShift = (gradientPos - 0.5) * lightnessShiftAmount;
+        newL = Math.max(0.05, Math.min(0.95, l + lightnessShift));
+
+        newS = Math.min(1, s * saturationBoost);
+      }
 
       const [newR, newG, newB] = hslToRgb(newH, newS, newL);
       setPixel(out, x, y, newR, newG, newB);
@@ -252,23 +278,17 @@ function gradientify(ctx: FnContext): Image {
   }
 
   // Step 6: Feathering - create smooth transition at edges of gradient regions
-  const featherRadius = 3;
+  const featherRadius = 4;
   const feathered = cloneImage(out);
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = y * width + x;
 
-      // Check if this pixel is near a boundary between gradient and non-gradient
-      let isNearBoundary = false;
       let gradientCount = 0;
       let nonGradientCount = 0;
 
-      for (
-        let dy = -featherRadius;
-        dy <= featherRadius && !isNearBoundary;
-        dy++
-      ) {
+      for (let dy = -featherRadius; dy <= featherRadius; dy++) {
         for (let dx = -featherRadius; dx <= featherRadius; dx++) {
           const nx = x + dx;
           const ny = y + dy;
@@ -288,7 +308,6 @@ function gradientify(ctx: FnContext): Image {
       }
 
       if (gradientCount > 0 && nonGradientCount > 0) {
-        // This pixel is near a boundary - blend
         const blendFactor = gradientCount / (gradientCount + nonGradientCount);
         const [origR, origG, origB] = getPixel(prev, x, y);
         const [gradR, gradG, gradB] = getPixel(out, x, y);
