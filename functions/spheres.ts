@@ -67,7 +67,7 @@ function spheres(ctx: FnContext): Image {
       float phi = acos(normal.y);
       vec2 texCoord = vec2(
         theta / (2.0 * 3.14159) + 0.5,
-        (phi - 0.3) / (3.14159 - 0.6)
+        1.0 - (phi - 0.3) / (3.14159 - 0.6)
       );
       
       vec3 color = texture2D(tex, texCoord).rgb;
