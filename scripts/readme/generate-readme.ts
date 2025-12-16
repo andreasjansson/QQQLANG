@@ -45,7 +45,8 @@ function parseCharacterDefs(): Record<string, CharDef> {
   const chars: Record<string, CharDef> = {};
   
   // Split by top-level entries - look for pattern like `  X: {` or `  "X": {` or `  $: {`
-  const entryRegex = /^  (?:([A-Z0-9$_])|\s*"(\\\\|[^"]+)"|\s*'([^']+)'):\s*\{/gm;
+  // Handle: unquoted A-Z0-9$_, double-quoted single chars, single-quoted single chars, escaped backslash
+  const entryRegex = /^  (?:([A-Z0-9$_])|\s*"(\\\\|.)"|'(.)'):\s*\{/gm;
   let match;
   const entries: { char: string; startIdx: number }[] = [];
   
