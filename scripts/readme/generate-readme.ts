@@ -133,11 +133,9 @@ function parseCharacterDefs(): Record<string, CharDef> {
     let example = exampleMatch ? exampleMatch[1] : entry.char;
     example = example.replace(/\\\\/g, "\\");
     
-    const num = parseInt(numberMatch[1]);
-    foundNumbers.add(num);
     chars[entry.char] = {
       color: colorMatch[1],
-      number: num,
+      number: parseInt(numberMatch[1]),
       functionName: functionNameMatch[1],
       documentation: docMatch[1],
       example,
