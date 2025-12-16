@@ -284,10 +284,7 @@ async function main() {
   const skipImages = process.argv.includes("--skip-images");
   const debugMode = process.argv.includes("--debug");
 
-  console.log("Generating color swatches...");
-  execSync("python3 generate-swatches.py", { cwd: __dirname, stdio: "inherit" });
-
-  console.log("\nParsing character definitions...");
+  console.log("Parsing character definitions...");
   const chars = parseCharacterDefs();
   console.log(`Found ${Object.keys(chars).length} character definitions`);
 
