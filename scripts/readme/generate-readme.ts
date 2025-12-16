@@ -152,13 +152,6 @@ function parseCharacterDefs(): Record<string, CharDef> {
     };
   }
   
-  // Report missing numbers
-  for (let i = 1; i <= 68; i++) {
-    if (!foundNumbers.has(i)) {
-      console.log(`  Missing number ${i}`);
-    }
-  }
-  
   return chars;
 }
 
