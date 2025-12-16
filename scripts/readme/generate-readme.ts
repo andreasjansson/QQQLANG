@@ -202,24 +202,14 @@ async function captureExampleImage(
 
   await page.waitForTimeout(2000);
 
-  // Get the current value (should have upload char) and append the program
-  const currentValue = await page.evaluate(() => {
-    return (document.getElementById("program-input") as HTMLInputElement).value;
-  });
-  
-  const newValue = currentValue + program;
-  
-  // Use fill() to set the value, then dispatch input event
-  const inputEl = await page.$("#program-input");
-  if (inputEl) {
-    await inputEl.fill(newValue);
-    await page.evaluate(() => {
-      const input = document.getElementById("program-input") as HTMLInputElement;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-  }
+  // Set value directly via JS to bypass any input validation
+  await page.evaluate((prog) => {
+    const input = document.getElementById("program-input") as HTMLInputElement;
+    input.value = input.value + prog;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }, program);
 
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
 
   const canvas = await page.$("#canvas");
   if (!canvas) throw new Error("Canvas not found");
