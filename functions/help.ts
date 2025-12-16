@@ -252,6 +252,7 @@ function generateAllHelpPages(
 
 function generateIndexPage(
   introPageCount: number,
+  aboutPageCount: number,
   refPageCount: number,
 ): string[] {
   const lines: string[] = [];
@@ -267,9 +268,22 @@ function generateIndexPage(
     lines.push(`??/?A-?${lastIntroChar} - Introduction`);
   }
 
+  if (aboutPageCount > 0) {
+    const firstAboutPage = introPageCount + 1;
+    const lastAboutPage = introPageCount + aboutPageCount;
+    const firstAboutChar = getPageChar(firstAboutPage);
+    const lastAboutChar = getPageChar(lastAboutPage);
+
+    if (aboutPageCount === 1) {
+      lines.push(`?${firstAboutChar} - About`);
+    } else {
+      lines.push(`?${firstAboutChar}-?${lastAboutChar} - About`);
+    }
+  }
+
   if (refPageCount > 0) {
-    const firstRefPage = introPageCount + 1;
-    const lastRefPage = introPageCount + refPageCount;
+    const firstRefPage = introPageCount + aboutPageCount + 1;
+    const lastRefPage = introPageCount + aboutPageCount + refPageCount;
     const firstRefChar = getPageChar(firstRefPage);
     const lastRefChar = getPageChar(lastRefPage);
 
