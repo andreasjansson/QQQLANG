@@ -254,6 +254,12 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
+# About
+
+${aboutText.replace(/^=== ABOUT QQQLANG ===\n\n/, "").trim()}
+
+---
+
 # Character Reference
 
 `;
