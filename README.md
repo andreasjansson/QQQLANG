@@ -28,26 +28,6 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
-# About
-
-QQQLANG is built by me, Andreas Jansson, and is MIT licensed. The code is on github.com/andreasjansson/qqqlang.
-
-QQQ is short for QQQEJOTTONO, a word that my three-year old son wrote on a label maker. He then went on to write fifty or so other words, until the label roll ran out. I thought it'd be nice if these labels could be treated like code.
-
-So QQQLANG is really a language designed for three year olds. It's a Turing complete* stack-based language that can accept any string of characters as a valid program, because each character is either a function name or an argument, depending on context.
-
-(* Turing complete because it includes a Rule 110 function)
-
-There are 68 functions, some are normal image editing functions like '1' (colorize), and some are weird, like 'L' (3D Lissajous tubes) or 'V' (overlay another image in the stack in Voronoi patterns).
-
-The output images are completely deterministic given the program string and canvas size. You can share a qqqlang.com URL to replicate and fork the image.
-
-QQQLANG is both an image synthesis and editing language. You can upload an image as the starting image, or as arguments to functions that take image inputs. You can also paste images from the clipboard, or paste image URLs.
-
-The language is complete and won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
-
----
-
 # Gallery
 
 <table>
@@ -67,6 +47,24 @@ The language is complete and won't change (other than bug fixes). But anyone can
 <td><a href="https://qqqlang.com/?p=1QQ(FX6JERHSQ3WF%25%251B-WQ"><img src="assets/gallery-8.png" width="256"></a></td>
 </tr>
 </table>
+
+---
+
+# About
+
+QQQ is short for QQQEJOTTONO, a word that my three-year old son wrote on a label maker. He then went on to write fifty or so other words, until the label roll ran out. I thought it'd be nice if these labels could be treated like code.
+
+So QQQLANG is really a language designed for three year olds. It's a Turing complete* stack-based language that can accept any string of characters as a valid program, because each character is either a function name or an argument, depending on context.
+
+(* Turing complete because it includes a Rule 110 function)
+
+There are 68 functions, some are normal image editing functions like '1' (colorize), and some are weird, like 'L' (3D Lissajous tubes) or 'V' (overlay another image in the stack in Voronoi patterns).
+
+The output images are completely deterministic given the program string and canvas size. You can share a qqqlang.com URL to replicate and fork the image.
+
+QQQLANG is both an image synthesis and editing language. You can upload an image as the starting image, or as arguments to functions that take image inputs. You can also paste images from the clipboard, or paste image URLs.
+
+The language is complete and won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
 
 ---
 
