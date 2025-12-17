@@ -231,10 +231,6 @@ async function captureExampleImage(
   console.log(`  Captured: ${path.basename(outputPath)}`);
 }
 
-function encodeGalleryProgram(program: string): string {
-  return encodeURIComponent(program).replace(/'/g, "%27");
-}
-
 function generateReadme(chars: Record<string, CharDef>): string {
   const sortedChars = Object.entries(chars).sort(
     (a, b) => a[1].number - b[1].number
