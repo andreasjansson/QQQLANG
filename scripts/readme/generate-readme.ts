@@ -219,10 +219,10 @@ async function captureExampleImage(
   const fullProgram = useUploadPrefix ? UPLOAD_CHAR + UPLOAD_HASH + program : program;
   // encodeURIComponent doesn't encode single quotes, so do it manually
   const encoded = encodeURIComponent(fullProgram).replace(/'/g, "%27");
-  const url = `http://localhost:5173/?p=${encoded}`;
+  const url = `http://localhost:5173/?p=${encoded}&no-inline-help`;
   
   await page.goto(url, { waitUntil: "networkidle" });
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1000);
 
   const canvas = await page.$("#canvas");
   if (!canvas) throw new Error("Canvas not found");
@@ -244,11 +244,10 @@ async function captureGalleryImage(
   const page = await context.newPage();
 
   const encoded = encodeURIComponent(program).replace(/'/g, "%27");
-  const url = `http://localhost:5173/?p=${encoded}`;
+  const url = `http://localhost:5173/?p=${encoded}&no-inline-help`;
   
   await page.goto(url, { waitUntil: "networkidle" });
-  // Wait for render + help text to disappear
-  await page.waitForTimeout(4000);
+  await page.waitForTimeout(1000);
 
   const canvas = await page.$("#canvas");
   if (!canvas) throw new Error("Canvas not found");
