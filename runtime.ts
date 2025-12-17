@@ -217,13 +217,17 @@ export async function preloadUploadedImages(
     uploadedCacheHeight = height;
   }
 
+  const targetWidth = width;
+  const targetHeight = height;
+
   const promises = Array.from(uploadedImages.entries()).map(
     async ([index, source]) => {
       if (!uploadedImagesCache.has(index)) {
-        uploadedImagesCache.set(
-          index,
-          await loadBlobToImage(source.blob, width, height),
-        );
+        const loadedImage = await loadBlobToImage(source.blob, targetWidth, targetHeight);
+        // Verify dimensions haven't changed during async load before caching
+        if (uploadedCacheWidth === targetWidth && uploadedCacheHeight === targetHeight) {
+          uploadedImagesCache.set(index, loadedImage);
+        }
       }
     },
   );
