@@ -432,7 +432,7 @@ async function main() {
         const program = GALLERY[i];
         const outputPath = path.join(ASSETS_DIR, `gallery-${i}.png`);
         console.log(`  Gallery ${i}: ${program.substring(0, 30)}...`);
-        await captureExampleImage(page, program, outputPath, false);
+        await captureGalleryImage(browser, program, outputPath, debugMode);
       }
     }
 
