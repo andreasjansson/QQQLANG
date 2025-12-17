@@ -756,11 +756,18 @@
       return program;
     }
     
+    const noInlineHelp = new URLSearchParams(window.location.search).has('no-inline-help');
+    
     function updateHelpDisplay() {
       // Clear any pending hide timeout
       if (helpHideTimeout) {
         clearTimeout(helpHideTimeout);
         helpHideTimeout = null;
+      }
+      
+      if (noInlineHelp) {
+        helpContainer.innerHTML = '';
+        return;
       }
       
       const program = input.value || '';
