@@ -291,8 +291,6 @@ The question mark character \`?\` is also a function that displays help text. \`
 
 Some functions take an image index as an argument, and uses that old image in some way. \`?#\` shows the history of images and the characters to use to retrieve each image.
 
----
-
 # Gallery
 
 <table>
