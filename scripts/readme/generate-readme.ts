@@ -26,6 +26,7 @@ const GALLERY = [
   "WEXO6}655::{#FAYF-J3",
   "A5XWF}JD55T=(665",
   "1QQ(FX6JERHSQ3WF%%1B-WQ",
+  "AFFGE8}4}73G99988{23CD`E7X`JONNN$11-R<XK",
 ];
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {

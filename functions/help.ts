@@ -62,7 +62,7 @@ Functions can take zero or more arguments. If a function takes arguments, the ch
 For example, the program 'ABCDE' has the following interpretation:
 
 * 'A' sets the intial color to #78A10F
-* 'B' is the 'border' function that creates a circular gradient around the edges. It takes one argument, the border color.
+* 'B' is the 'border' function that creates a border. It takes two arguments: the border style and the border color.
 * 'C' becomes the first argument to 'B', sets the border style to style 3
 * 'D' becomes the second argument to 'B', sets the border color to D's color
 * 'E' is the 'emerald' function, which draws 3D emeralds. It takes no arguments.
