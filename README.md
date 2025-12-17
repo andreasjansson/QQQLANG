@@ -7,7 +7,7 @@
 In QQQLANG, any string of visible uppercase ASCII characters is a valid program.
 
 Each character has three properties:
-- An integer ('A'=1, 'B'=2, [...], '}'=67, '~'=68)
+- An integer (`A`=1, `B`=2, [...], `}`=67, `~`=68)
 - A color
 - A function
 
@@ -54,15 +54,15 @@ So QQQLANG is really a language designed for three year olds. It's a Turing comp
 
 (* Turing complete because it includes a Rule 110 function)
 
-There are 68 functions, some are normal image editing functions like '1' (colorize), and some are weird, like 'L' (3D Lissajous tubes) or 'V' (overlay another image in the stack in Voronoi patterns).
+There are 68 functions, some are normal image editing functions like '1' (colorize), and some are weird, like `L` (3D Lissajous tubes) or `V` (overlay another image in the stack in Voronoi patterns).
 
 The output images are completely deterministic given the program string and canvas size. You can share a qqqlang.com URL to replicate and fork the image.
 
 QQQLANG is both an image synthesis and editing language. You can upload an image as the starting image, or as arguments to functions that take image inputs. You can also paste images from the clipboard, or paste image URLs.
 
-The language is now finished and the language won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
+This project is now finished and the language won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
 
-# Character Reference
+# Character reference
 
 ## `A` — number 1, color ![#78A10F](assets/01-color.png)
 
