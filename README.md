@@ -26,8 +26,6 @@ The question mark character `?` is also a function that displays help text. `?1`
 
 Some functions take an image index as an argument, and uses that old image in some way. `?#` shows the history of images and the characters to use to retrieve each image.
 
----
-
 # Gallery
 
 <table>
@@ -48,8 +46,6 @@ Some functions take an image index as an argument, and uses that old image in so
 </tr>
 </table>
 
----
-
 # About
 
 QQQ is short for QQQEJOTTONO, a word that my three-year old son wrote on a label maker. He then went on to write fifty or so other words, until the label roll ran out. I thought it'd be nice if these labels could be treated like code.
@@ -64,9 +60,7 @@ The output images are completely deterministic given the program string and canv
 
 QQQLANG is both an image synthesis and editing language. You can upload an image as the starting image, or as arguments to functions that take image inputs. You can also paste images from the clipboard, or paste image URLs.
 
-The language is complete and won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
-
----
+The language is now finished and the language won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
 
 # Character Reference
 
@@ -77,8 +71,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `spheres` — Renders image as texture on two 3D spheres with lighting.
 
 <br clear="right">
-
----
 
 ## `B` — number 2, color ![#8B4513](assets/02-color.png)
 
@@ -92,8 +84,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `C` — number 3, color ![#FF6B35](assets/03-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywCP"><img align="right" width="384" src="assets/03-example.png"></a>
@@ -105,8 +95,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `D` — number 4, color ![#FF1493](assets/04-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywD"><img align="right" width="384" src="assets/04-example.png"></a>
@@ -115,8 +103,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `E` — number 5, color ![#50C878](assets/05-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywE"><img align="right" width="384" src="assets/05-example.png"></a>
@@ -124,8 +110,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `emerald` — Renders reflective 3D emeralds in symmetric pattern.
 
 <br clear="right">
-
----
 
 ## `F` — number 6, color ![#FFD700](assets/06-color.png)
 
@@ -138,8 +122,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `G` — number 7, color ![#9370DB](assets/07-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywGG"><img align="right" width="384" src="assets/07-example.png"></a>
@@ -151,8 +133,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `H` — number 8, color ![#DC143C](assets/08-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywH"><img align="right" width="384" src="assets/08-example.png"></a>
@@ -161,8 +141,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `I` — number 9, color ![#00FF7F](assets/09-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywI"><img align="right" width="384" src="assets/09-example.png"></a>
@@ -170,8 +148,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `invert-edges` — Inverts colors then adds Sobel edge detection.
 
 <br clear="right">
-
----
 
 ## `J` — number 10, color ![#FF8C00](assets/10-color.png)
 
@@ -184,8 +160,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `K` — number 11, color ![#9966FF](assets/11-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywKE"><img align="right" width="384" src="assets/11-example.png"></a>
@@ -196,8 +170,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Number of kaleidoscope segments
 
 <br clear="right">
-
----
 
 ## `L` — number 12, color ![#20B2AA](assets/12-color.png)
 
@@ -211,8 +183,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `M` — number 13, color ![#FF69B4](assets/13-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywMC"><img align="right" width="384" src="assets/13-example.png"></a>
@@ -224,8 +194,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `N` — number 14, color ![#8A2BE2](assets/14-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywN"><img align="right" width="384" src="assets/14-example.png"></a>
@@ -233,8 +201,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `neon` — Neon glow effect on bright edges.
 
 <br clear="right">
-
----
 
 ## `O` — number 15, color ![#FF6347](assets/15-color.png)
 
@@ -247,8 +213,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `P` — number 16, color ![#4682B4](assets/16-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywP6"><img align="right" width="384" src="assets/16-example.png"></a>
@@ -260,8 +224,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `Q` — number 17, color ![#32CD32](assets/17-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywQ"><img align="right" width="384" src="assets/17-example.png"></a>
@@ -270,8 +232,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `R` — number 18, color ![#DA70D6](assets/18-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywR"><img align="right" width="384" src="assets/18-example.png"></a>
@@ -279,8 +239,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `room` — 3D room with textured walls, ceiling, and floor.
 
 <br clear="right">
-
----
 
 ## `S` — number 19, color ![#87CEEB](assets/19-color.png)
 
@@ -294,8 +252,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `T` — number 20, color ![#F0E68C](assets/20-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywT8"><img align="right" width="384" src="assets/20-example.png"></a>
@@ -307,8 +263,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `U` — number 21, color ![#DDA0DD](assets/21-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywUB"><img align="right" width="384" src="assets/21-example.png"></a>
@@ -319,8 +273,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Dithering algorithm (A=ordered-5level, B=bayer-bw, C=threshold-bw, D=ordered-2bit, E=floyd-rgb, F=floyd-bw, G=atkinson-4level, H=atkinson-bw, I=stucki-6level, J=burkes, K=sierra, L=random-bw, M=cluster-2bit, N=bluenoise-bw, O=bayer2x2-2bit, P=noise-2bit)
 
 <br clear="right">
-
----
 
 ## `V` — number 22, color ![#40E0D0](assets/22-color.png)
 
@@ -334,8 +286,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `W` — number 23, color ![#EE82EE](assets/23-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywWW"><img align="right" width="384" src="assets/23-example.png"></a>
@@ -346,8 +296,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Rotation multiplier (×20°)
 
 <br clear="right">
-
----
 
 ## `X` — number 24, color ![#F5DEB3](assets/24-color.png)
 
@@ -360,8 +308,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `Y` — number 25, color ![#98FB98](assets/25-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywYY"><img align="right" width="384" src="assets/25-example.png"></a>
@@ -372,8 +318,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Controls angle and intensity of color shifts
 
 <br clear="right">
-
----
 
 ## `Z` — number 26, color ![#AFEEEE](assets/26-color.png)
 
@@ -386,8 +330,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `0` — number 27, color ![#E6E6FA](assets/27-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw0A"><img align="right" width="384" src="assets/27-example.png"></a>
@@ -399,8 +341,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `1` — number 28, color ![#FFA07A](assets/28-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw1E"><img align="right" width="384" src="assets/28-example.png"></a>
@@ -411,8 +351,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Tint color applied based on luminance
 
 <br clear="right">
-
----
 
 ## `2` — number 29, color ![#98D8C8](assets/29-color.png)
 
@@ -427,8 +365,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `3` — number 30, color ![#F7DC6F](assets/30-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw3"><img align="right" width="384" src="assets/30-example.png"></a>
@@ -437,8 +373,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `4` — number 31, color ![#BB8FCE](assets/31-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw4"><img align="right" width="384" src="assets/31-example.png"></a>
@@ -446,8 +380,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `quad-rotate` — Four quadrants each rotated 0°, 90°, 180°, 270°.
 
 <br clear="right">
-
----
 
 ## `5` — number 32, color ![#85C1E9](assets/32-color.png)
 
@@ -460,8 +392,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `6` — number 33, color ![#F1948A](assets/33-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw6"><img align="right" width="384" src="assets/33-example.png"></a>
@@ -470,8 +400,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `7` — number 34, color ![#82E0AA](assets/34-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw777"><img align="right" width="384" src="assets/34-example.png"></a>
@@ -479,8 +407,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `chromatic` — Chromatic aberration with RGB channel shifts.
 
 <br clear="right">
-
----
 
 ## `8` — number 35, color ![#F8C471](assets/35-color.png)
 
@@ -493,8 +419,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `9` — number 36, color ![#D7BDE2](assets/36-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIywYY9B"><img align="right" width="384" src="assets/36-example.png"></a>
@@ -505,8 +429,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Old image to XOR with
 
 <br clear="right">
-
----
 
 ## `<` — number 37, color ![#E74C3C](assets/37-color.png)
 
@@ -519,8 +441,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `>` — number 38, color ![#3498DB](assets/38-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3E"><img align="right" width="384" src="assets/38-example.png"></a>
@@ -528,8 +448,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `rotate-90` — Rotate 90 degrees clockwise.
 
 <br clear="right">
-
----
 
 ## `^` — number 39, color ![#2ECC71](assets/39-color.png)
 
@@ -542,8 +460,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `!` — number 40, color ![#FF4500](assets/40-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw!"><img align="right" width="384" src="assets/40-example.png"></a>
@@ -551,8 +467,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `godrays` — Volumetric light scattering from center.
 
 <br clear="right">
-
----
 
 ## `"` — number 41, color ![#9932CC](assets/41-color.png)
 
@@ -565,8 +479,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `#` — number 42, color ![#228B22](assets/42-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%23B"><img align="right" width="384" src="assets/42-example.png"></a>
@@ -578,8 +490,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `$` — number 43, color ![#FFD700](assets/43-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%24"><img align="right" width="384" src="assets/43-example.png"></a>
@@ -587,8 +497,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `segment-hue-sort` — Color-based segmentation, then sorts pixels by hue within each segment.
 
 <br clear="right">
-
----
 
 ## `%` — number 44, color ![#8B0000](assets/44-color.png)
 
@@ -601,8 +509,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `&` — number 45, color ![#4169E1](assets/45-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%26P"><img align="right" width="384" src="assets/45-example.png"></a>
@@ -614,8 +520,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `'` — number 46, color ![#FF1493](assets/46-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))1%27%27B"><img align="right" width="384" src="assets/46-example.png"></a>
@@ -626,8 +530,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Old image to checkerboard with
 
 <br clear="right">
-
----
 
 ## `(` — number 47, color ![#00CED1](assets/47-color.png)
 
@@ -642,8 +544,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `)` — number 48, color ![#FF69B4](assets/48-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw))"><img align="right" width="384" src="assets/48-example.png"></a>
@@ -655,8 +555,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `*` — number 49, color ![#FFD700](assets/49-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw*"><img align="right" width="384" src="assets/49-example.png"></a>
@@ -665,8 +563,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `+` — number 50, color ![#32CD32](assets/50-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%2B%2B%2B%2B%2B%2B%2B"><img align="right" width="384" src="assets/50-example.png"></a>
@@ -674,8 +570,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `zoom` — Zoom in 1.2× from center.
 
 <br clear="right">
-
----
 
 ## `,` — number 51, color ![#BA55D3](assets/51-color.png)
 
@@ -687,8 +581,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Stipple dot color
 
 <br clear="right">
-
----
 
 ## `-` — number 52, color ![#FF7F50](assets/52-color.png)
 
@@ -702,8 +594,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `.` — number 53, color ![#20B2AA](assets/53-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw.M"><img align="right" width="384" src="assets/53-example.png"></a>
@@ -714,8 +604,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Dot radius base (mod 8 + 2)
 
 <br clear="right">
-
----
 
 ## `/` — number 54, color ![#CD853F](assets/54-color.png)
 
@@ -732,8 +620,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `:` — number 55, color ![#6B8E23](assets/55-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw1D%3AB"><img align="right" width="384" src="assets/55-example.png"></a>
@@ -745,8 +631,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `;` — number 56, color ![#DB7093](assets/56-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3B"><img align="right" width="384" src="assets/56-example.png"></a>
@@ -754,8 +638,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `semicircle-reflect` — Top semicircle preserved, bottom reflected with wave distortion.
 
 <br clear="right">
-
----
 
 ## `=` — number 57, color ![#5F9EA0](assets/57-color.png)
 
@@ -768,8 +650,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `?` — number 58, color ![#D2691E](assets/58-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%3F%3F"><img align="right" width="384" src="assets/58-example.png"></a>
@@ -780,8 +660,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Page number (A=intro, B+=reference, #=history)
 
 <br clear="right">
-
----
 
 ## `@` — number 59, color ![#7B68EE](assets/59-color.png)
 
@@ -798,8 +676,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `[` — number 60, color ![#48D1CC](assets/60-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5BX"><img align="right" width="384" src="assets/60-example.png"></a>
@@ -810,8 +686,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Rotation amount (A=left, 7=none, ~=right)
 
 <br clear="right">
-
----
 
 ## `\\` — number 61, color ![#C71585](assets/61-color.png)
 
@@ -834,8 +708,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `]` — number 62, color ![#00FA9A](assets/62-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%5D"><img align="right" width="384" src="assets/62-example.png"></a>
@@ -844,8 +716,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `_` — number 63, color ![#708090](assets/63-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw_"><img align="right" width="384" src="assets/63-example.png"></a>
@@ -853,8 +723,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `scanlines` — CRT scanline effect with darkening and displacement.
 
 <br clear="right">
-
----
 
 ## `\`` — number 64, color ![#6495ED](assets/64-color.png)
 
@@ -867,8 +735,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `{` — number 65, color ![#DC143C](assets/65-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7BR"><img align="right" width="384" src="assets/65-example.png"></a>
@@ -879,8 +745,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Skew amount (A=left, 7=none, ~=right)
 
 <br clear="right">
-
----
 
 ## `|` — number 66, color ![#00BFFF](assets/66-color.png)
 
@@ -893,8 +757,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <br clear="right">
 
----
-
 ## `}` — number 67, color ![#9400D3](assets/67-color.png)
 
 <a href="https://qqqlang.com/?p=%E2%98%80Lh8lX-CEM_8ykW3QtaeIyw%7D"><img align="right" width="384" src="assets/67-example.png"></a>
@@ -902,8 +764,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
 **Function:** `gradientify` — Turns flat single-color areas into subtle gradients with hue shifts.
 
 <br clear="right">
-
----
 
 ## `~` — number 68, color ![#FF6347](assets/68-color.png)
 
@@ -915,8 +775,6 @@ The language is complete and won't change (other than bug fixes). But anyone can
    1. Wave amplitude and chromatic shift
 
 <br clear="right">
-
----
 
 ## License
 
