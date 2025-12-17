@@ -955,11 +955,23 @@
 
 
 
+    let resizeTimeout = null;
+    
     function resize() {
       const container = document.getElementById('canvas-container');
       canvas.width = container.clientWidth;
       canvas.height = container.clientHeight;
       render();
+    }
+    
+    function debouncedResize() {
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      resizeTimeout = setTimeout(() => {
+        resizeTimeout = null;
+        resize();
+      }, 50);
     }
 
     function updateFaviconAndTitle(program) {
