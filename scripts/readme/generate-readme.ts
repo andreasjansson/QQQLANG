@@ -394,6 +394,14 @@ async function main() {
 
     await page.waitForTimeout(3000);
 
+    console.log("\nCapturing gallery images...");
+    for (let i = 0; i < GALLERY.length; i++) {
+      const program = GALLERY[i];
+      const outputPath = path.join(ASSETS_DIR, `gallery-${i}.png`);
+      console.log(`  Gallery ${i}: ${program.substring(0, 30)}...`);
+      await captureExampleImage(page, program, outputPath, false);
+    }
+
     console.log("\nCapturing example images...");
     
     let charsToProcess: [string, CharDef][];
