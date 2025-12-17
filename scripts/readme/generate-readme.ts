@@ -231,6 +231,34 @@ async function captureExampleImage(
   console.log(`  Captured: ${path.basename(outputPath)}`);
 }
 
+async function captureGalleryImage(
+  browser: ReturnType<typeof chromium.launch> extends Promise<infer T> ? T : never,
+  program: string,
+  outputPath: string,
+  debugMode: boolean
+): Promise<void> {
+  const context = await browser.newContext({
+    viewport: { width: 1512, height: 797 },
+    ignoreHTTPSErrors: true,
+  });
+  const page = await context.newPage();
+
+  const encoded = encodeURIComponent(program).replace(/'/g, "%27");
+  const url = `http://localhost:5173/?p=${encoded}`;
+  
+  await page.goto(url, { waitUntil: "networkidle" });
+  // Wait for render + help text to disappear
+  await page.waitForTimeout(4000);
+
+  const canvas = await page.$("#canvas");
+  if (!canvas) throw new Error("Canvas not found");
+
+  await canvas.screenshot({ path: outputPath });
+  console.log(`  Captured: ${path.basename(outputPath)}`);
+  
+  await context.close();
+}
+
 function generateReadme(chars: Record<string, CharDef>): string {
   const sortedChars = Object.entries(chars).sort(
     (a, b) => a[1].number - b[1].number
