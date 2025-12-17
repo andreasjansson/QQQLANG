@@ -238,7 +238,7 @@ async function captureGalleryImage(
   debugMode: boolean
 ): Promise<void> {
   const context = await browser.newContext({
-    viewport: { width: 1512, height: 797 },
+    viewport: { width: 1512, height: 861 },  // 797 + 64px header
     ignoreHTTPSErrors: true,
   });
   const page = await context.newPage();
