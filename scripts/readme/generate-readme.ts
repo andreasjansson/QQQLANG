@@ -334,9 +334,10 @@ This project is now finished and the language won't change (other than bug fixes
     const encodedProgram = encodeURIComponent(fullProgram).replace(/'/g, "%27");
     const qqqlangUrl = `https://qqqlang.com/?p=${encodedProgram}`;
     
-    readme += `## \`${displayChar}\` — number ${def.number}, color ![${def.color}](assets/${safeFilename}-color.png)\n\n`;
+    readme += `## \`${displayChar}\`\n\n`;
     readme += `<a href="${qqqlangUrl}"><img align="right" width="384" src="assets/${safeFilename}-example.png"></a>\n\n`;
 
+    readme += `**Number:** ${def.number} · **Color:** ![${def.color}](assets/${safeFilename}-color.png) ${def.color}\n\n`;
     readme += `**Function:** \`${def.functionName}\` — ${def.documentation}\n\n`;
 
     if (def.args.length > 0) {
