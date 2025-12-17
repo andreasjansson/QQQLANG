@@ -293,6 +293,22 @@ Some functions take an image index as an argument, and uses that old image in so
 
 ---
 
+# Gallery
+
+<table>
+<tr>
+` + GALLERY.slice(0, 3).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i}.png" width="256"></a></td>`).join("\n") + `
+</tr>
+<tr>
+` + GALLERY.slice(3, 6).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i + 3}.png" width="256"></a></td>`).join("\n") + `
+</tr>
+<tr>
+` + GALLERY.slice(6, 9).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i + 6}.png" width="256"></a></td>`).join("\n") + `
+</tr>
+</table>
+
+---
+
 # About
 
 QQQLANG is built by me, Andreas Jansson, and is MIT licensed. The code is on github.com/andreasjansson/qqqlang.
@@ -310,22 +326,6 @@ The output images are completely deterministic given the program string and canv
 QQQLANG is both an image synthesis and editing language. You can upload an image as the starting image, or as arguments to functions that take image inputs. You can also paste images from the clipboard, or paste image URLs.
 
 The language is complete and won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
-
----
-
-# Gallery
-
-<table>
-<tr>
-` + GALLERY.slice(0, 3).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i}.png" width="256"></a></td>`).join("\n") + `
-</tr>
-<tr>
-` + GALLERY.slice(3, 6).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i + 3}.png" width="256"></a></td>`).join("\n") + `
-</tr>
-<tr>
-` + GALLERY.slice(6, 9).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i + 6}.png" width="256"></a></td>`).join("\n") + `
-</tr>
-</table>
 
 ---
 
