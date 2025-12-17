@@ -16,6 +16,18 @@ const UPLOAD_CHAR = String.fromCodePoint(0x2600); // ☀ U+2600
 const UPLOAD_HASH = "Lh8lX-CEM_8ykW3QtaeIyw";
 const SWATCH_SIZE = 16;
 
+const GALLERY = [
+  "AF`H+F++++++++++++++++++++++{4}HX~WDCBY5N$UA77",
+  "☀CWc022HqJzLmt018fuUEUALBL++8.&&FF((((-I^XA,V#F.ANH-BFVL0((((D",
+  "AFFGERE",
+  "AVWNA.~}5YMDJA@FGIBJ8G-K~H:JJSX.<=|J<E||%%",
+  "KL;SWW6}#ALLL+>{3>>>Q1D(..!=E#F0R2FBBXH",
+  "FSEDSH2H%A8@",
+  "WEXO6}655::{#FAYF-J3",
+  "A5XWF}JD55T=(665",
+  "1QQ(FX6JERHSQ3WF%%1B-WQ",
+];
+
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const h = hex.replace("#", "");
   return {
@@ -200,10 +212,11 @@ function numToChar(num: number): string {
 async function captureExampleImage(
   page: Page,
   program: string,
-  outputPath: string
+  outputPath: string,
+  useUploadPrefix: boolean = true
 ): Promise<void> {
-  // Build URL with upload char + hash + program
-  const fullProgram = UPLOAD_CHAR + UPLOAD_HASH + program;
+  // Build URL with optional upload char + hash prefix
+  const fullProgram = useUploadPrefix ? UPLOAD_CHAR + UPLOAD_HASH + program : program;
   // encodeURIComponent doesn't encode single quotes, so do it manually
   const encoded = encodeURIComponent(fullProgram).replace(/'/g, "%27");
   const url = `http://localhost:5173/?p=${encoded}`;
@@ -216,6 +229,10 @@ async function captureExampleImage(
 
   await canvas.screenshot({ path: outputPath });
   console.log(`  Captured: ${path.basename(outputPath)}`);
+}
+
+function encodeGalleryProgram(program: string): string {
+  return encodeURIComponent(program).replace(/'/g, "%27");
 }
 
 function generateReadme(chars: Record<string, CharDef>): string {
