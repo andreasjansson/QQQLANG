@@ -1222,7 +1222,7 @@
       input.setSelectionRange(input.value.length, input.value.length);
     }
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', debouncedResize);
     
     input.addEventListener('beforeinput', (e) => {
       if (e.inputType === 'insertText' && e.data) {
