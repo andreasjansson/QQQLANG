@@ -311,8 +311,6 @@ Some functions take an image index as an argument, and uses that old image in so
 
 # About
 
-QQQLANG is built by me, Andreas Jansson, and is MIT licensed. The code is on github.com/andreasjansson/qqqlang.
-
 QQQ is short for QQQEJOTTONO, a word that my three-year old son wrote on a label maker. He then went on to write fifty or so other words, until the label roll ran out. I thought it'd be nice if these labels could be treated like code.
 
 So QQQLANG is really a language designed for three year olds. It's a Turing complete* stack-based language that can accept any string of characters as a valid program, because each character is either a function name or an argument, depending on context.
