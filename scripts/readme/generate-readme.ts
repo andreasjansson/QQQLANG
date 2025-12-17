@@ -356,6 +356,8 @@ async function main() {
   const charArgIdx = process.argv.indexOf("--char");
   const singleChar = charArgIdx !== -1 ? process.argv[charArgIdx + 1] : null;
   const skipImages = process.argv.includes("--skip-images");
+  const galleryOnly = process.argv.includes("--gallery-only");
+  const skipGallery = process.argv.includes("--skip-gallery");
   const debugMode = process.argv.includes("--debug");
 
   console.log("Parsing character definitions...");
@@ -366,15 +368,21 @@ async function main() {
     fs.mkdirSync(ASSETS_DIR, { recursive: true });
   }
 
-  console.log("\nGenerating color swatches...");
-  for (const [char, def] of Object.entries(chars)) {
-    const safeFilename = def.number.toString().padStart(2, "0");
-    const swatchPath = path.join(ASSETS_DIR, `${safeFilename}-color.png`);
-    await generateColorSwatch(def.color, swatchPath);
+  if (!galleryOnly) {
+    console.log("\nGenerating color swatches...");
+    for (const [char, def] of Object.entries(chars)) {
+      const safeFilename = def.number.toString().padStart(2, "0");
+      const swatchPath = path.join(ASSETS_DIR, `${safeFilename}-color.png`);
+      await generateColorSwatch(def.color, swatchPath);
+    }
+    console.log(`Generated ${Object.keys(chars).length} color swatches`);
   }
-  console.log(`Generated ${Object.keys(chars).length} color swatches`);
 
-  if (!skipImages) {
+  const needsBrowser = !skipImages || galleryOnly;
+  const captureGallery = !skipImages && !skipGallery || galleryOnly;
+  const captureExamples = !skipImages && !galleryOnly;
+
+  if (needsBrowser && (captureGallery || captureExamples)) {
     console.log("\nLaunching browser...");
     const browser = await chromium.launch({ headless: !debugMode });
     const context = await browser.newContext({
@@ -390,35 +398,39 @@ async function main() {
 
     await page.waitForTimeout(3000);
 
-    console.log("\nCapturing gallery images...");
-    for (let i = 0; i < GALLERY.length; i++) {
-      const program = GALLERY[i];
-      const outputPath = path.join(ASSETS_DIR, `gallery-${i}.png`);
-      console.log(`  Gallery ${i}: ${program.substring(0, 30)}...`);
-      await captureExampleImage(page, program, outputPath, false);
-    }
-
-    console.log("\nCapturing example images...");
-    
-    let charsToProcess: [string, CharDef][];
-    if (singleChar) {
-      if (!chars[singleChar]) {
-        console.error(`Character '${singleChar}' not found`);
-        process.exit(1);
+    if (captureGallery) {
+      console.log("\nCapturing gallery images...");
+      for (let i = 0; i < GALLERY.length; i++) {
+        const program = GALLERY[i];
+        const outputPath = path.join(ASSETS_DIR, `gallery-${i}.png`);
+        console.log(`  Gallery ${i}: ${program.substring(0, 30)}...`);
+        await captureExampleImage(page, program, outputPath, false);
       }
-      charsToProcess = [[singleChar, chars[singleChar]]];
-    } else {
-      charsToProcess = Object.entries(chars).sort(
-        (a, b) => a[1].number - b[1].number
-      );
     }
 
-    for (const [char, def] of charsToProcess) {
-      const safeFilename = def.number.toString().padStart(2, "0");
-      const outputPath = path.join(ASSETS_DIR, `${safeFilename}-example.png`);
+    if (captureExamples) {
+      console.log("\nCapturing example images...");
+      
+      let charsToProcess: [string, CharDef][];
+      if (singleChar) {
+        if (!chars[singleChar]) {
+          console.error(`Character '${singleChar}' not found`);
+          process.exit(1);
+        }
+        charsToProcess = [[singleChar, chars[singleChar]]];
+      } else {
+        charsToProcess = Object.entries(chars).sort(
+          (a, b) => a[1].number - b[1].number
+        );
+      }
 
-      console.log(`  Processing '${char}' (${def.functionName})...`);
-      await captureExampleImage(page, def.example, outputPath);
+      for (const [char, def] of charsToProcess) {
+        const safeFilename = def.number.toString().padStart(2, "0");
+        const outputPath = path.join(ASSETS_DIR, `${safeFilename}-example.png`);
+
+        console.log(`  Processing '${char}' (${def.functionName})...`);
+        await captureExampleImage(page, def.example, outputPath);
+      }
     }
 
     if (debugMode) {
@@ -429,7 +441,7 @@ async function main() {
     await browser.close();
   }
 
-  if (!singleChar) {
+  if (!singleChar && !galleryOnly) {
     console.log("\nGenerating README.md...");
     const readme = generateReadme(chars);
     fs.writeFileSync(README_PATH, readme);
