@@ -321,8 +321,6 @@ QQQLANG is both an image synthesis and editing language. You can upload an image
 
 The language is complete and won't change (other than bug fixes). But anyone can fork the language and add new functions as a different language. It would be both fun and possible to build languages like QQQ-AUDIO, QQQ-VIDEO, QQQ-3D, etc.
 
----
-
 # Character Reference
 
 `;
