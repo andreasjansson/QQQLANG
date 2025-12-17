@@ -294,13 +294,13 @@ The language is complete and won't change (other than bug fixes). But anyone can
 
 <table>
 <tr>
-${GALLERY.slice(0, 3).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeGalleryProgram(prog)}"><img src="assets/gallery-${i}.png" width="256"></a></td>`).join("\n")}
+${GALLERY.slice(0, 3).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i}.png" width="256"></a></td>`).join("\n")}
 </tr>
 <tr>
-${GALLERY.slice(3, 6).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeGalleryProgram(prog)}"><img src="assets/gallery-${i + 3}.png" width="256"></a></td>`).join("\n")}
+${GALLERY.slice(3, 6).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i + 3}.png" width="256"></a></td>`).join("\n")}
 </tr>
 <tr>
-${GALLERY.slice(6, 9).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeGalleryProgram(prog)}"><img src="assets/gallery-${i + 6}.png" width="256"></a></td>`).join("\n")}
+${GALLERY.slice(6, 9).map((prog, i) => `<td><a href="https://qqqlang.com/?p=${encodeURIComponent(prog).replace(/'/g, "%27")}"><img src="assets/gallery-${i + 6}.png" width="256"></a></td>`).join("\n")}
 </tr>
 </table>
 
